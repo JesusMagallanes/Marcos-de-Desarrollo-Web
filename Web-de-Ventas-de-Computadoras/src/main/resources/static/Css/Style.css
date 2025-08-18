@@ -1,7 +1,27 @@
 :root {
-  --bs-primary: #00CFFF;   /* Celeste brillante */
+  --bs-primary: #00ff95;   /* Celeste brillante */
   --bs-secondary: #BDC3C7; /* Plateado */
   --bs-success: #FF6F00;   /* Naranja */
-  --bs-dark: #1C2833;      /* Azul petróleo */
+  --bs-dark: #212529;      /* Azul petróleo */
   --bs-light: #FFFFFF;     /* Blanco puro */
+}
+
+.btn-primary{
+  background-color: #06b56c;
+  border: none;
+}
+.btn-primary:hover{
+  background-color: #05975a;
+}
+
+.btn-primary:active{
+  background-color: #035e38 !important;
+}
+
+.btn-outline-success{
+  border-color: #06b56c;
+  color: white;
+}
+.btn-outline-success:hover{
+  border-color: #05975a;
 }
