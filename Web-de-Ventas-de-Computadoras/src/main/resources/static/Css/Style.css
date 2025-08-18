@@ -21,11 +21,31 @@
 .btn-outline-success{
   border-color: #06b56c;
   color: green;
+  backdrop-filter: blur(1.7px);
 }
 .btn-outline-success:hover{
   border-color: #05975a;
 }
 .navbar{
   box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.353);
+  margin-bottom: 15px;}
+.btn-outline-light{
+  border: none;
+}
+.btn-outline-light:hover{
+  -webkit-mask: url("/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Carrito.svg") no-repeat center;
+ mask: url("/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Carrito.svg") no-repeat center;
+  background-color:  #035e38;
+
+}
+.navbar{
+  box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.414);
   margin-bottom: 15px;
+  background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/head.png);
+}
+.productostop{
+  margin-top: 50px;
+  margin-bottom: 50px;
+padding-left: 50px;
+padding-right: 50px;
 }
