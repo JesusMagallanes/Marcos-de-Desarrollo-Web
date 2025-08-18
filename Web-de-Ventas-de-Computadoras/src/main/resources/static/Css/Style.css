@@ -2,7 +2,7 @@
   --bs-primary: #00ff95;   /* Celeste brillante */
   --bs-secondary: #BDC3C7; /* Plateado */
   --bs-success: #FF6F00;   /* Naranja */
-  --bs-dark: #212529;      /* Azul petróleo */
+  --bs-dark: #eaebea;      /* Azul petróleo */
   --bs-light: #FFFFFF;     /* Blanco puro */
 }
 
@@ -20,8 +20,12 @@
 
 .btn-outline-success{
   border-color: #06b56c;
-  color: white;
+  color: green;
 }
 .btn-outline-success:hover{
   border-color: #05975a;
+}
+.navbar{
+  box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.353);
+  margin-bottom: 15px;
 }
