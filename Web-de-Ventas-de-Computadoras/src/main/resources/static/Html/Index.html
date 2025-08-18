@@ -9,60 +9,173 @@
     <title>SmartZone</title>
 </head>
 
-<body class = "d-flex flex-column h-100">
-    <nav class="navbar navbar-expand-lg" style="background-color: var(--bs-dark);">
+<body class="d-flex flex-column h-100">
+    <nav  class="navbar navbar-expand-lg navbar-dark bg-dark py-4" >
         <div class="container-fluid">
             <a class="navbar-brand" href="Index.html">
-                <img src="" alt="Logo" width="30" height="30"> 
+                <img src="" alt="Logo" width="30" height="30" class="me-2">
+                SmartZone
             </a>
-            <h3>SmartZone</h3>
             <button class="btn btn-primary me-2">Categorías</button>
-            <form class="d-flex me-auto" role="search">
+            <!-- Formulario de búsqueda -->
+            <form class="d-flex flex-grow-1 me-2" role="search">
                 <input class="form-control me-2" type="search" placeholder="Busca en nuestro catálogo..."
-                    aria-label="Search">
+                    aria-label="Search">a
+                <button class="btn btn-outline-success" type="submit">Buscar</button>
             </form>
             <a class="btn btn-outline-success me-2" href="#">Iniciar Sesión</a>
-            <a class="btn btn-outline-secondary" href="#"><img src="img/Carrito.zip" alt="Carrito"></a>
+            <a class="btn btn-outline-light" href="#"><img
+                    src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Carrito.svg" alt="Carrito"
+                    width="30"></a>
         </div>
     </nav>
     </div>
-    <main class = "flex-shrink-0">
+    <main class="flex-shrink-0">
+        <!-- SECCIÓN DE MARCAS PRINCIPALES -->
         <section id="Marcas Principales">
-            <p class = "h5 mb-3">Marcas Líderes en Tecnología</p>
-            <div class="d-flex justify-content-start gap-3">
-                <a href=""><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Asus.svg" alt="Asus"></a>
-                <a href=""><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Msi.svg" alt="MSI"></a>
-                <a href=""><img src="" alt="Asus"></a>
+            <div class="container-fluid">
+                <div class="row align-items-center justify-content-center" style="height: 45px;">
+                    <div class="d-flex col-md-6 text-start ">
+                        <p class=" h6">Marcas Líderes en Tecnología</p>
+                    </div>
+                    <div class="col-md-6 d-flex justify-content-end gap-4">
+                        <a href=""><img width="40"
+                                src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Asus.svg"
+                                alt="Asus"></a>
+                        <a href=""><img width="40"
+                                src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Msi.svg"
+                                alt="MSI"></a>
+                        <a href=""><img width="100"
+                                src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Corsair.svg"
+                                alt=""></a>
+                    </div>
+                </div>
             </div>
         </section>
+        <!-- FIN DE SECCIÓN DE MARCAS PRINCIPALES -->
+        <!-- INICIO DE SECCIÓN DE CARRUSEL -->
+        <section id="Carrusel">
+            <div id="carouselExampleIndicators" class="carousel slide">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0"
+                        class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1"
+                        aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2"
+                        aria-label="Slide 3"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Prueba1.webp"
+                            class="d-block w-100" alt="...">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Prueba2.webp"
+                            class="d-block w-100" alt="...">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Prueba3.webp"
+                            class="d-block w-100" alt="...">
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators"
+                    data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators"
+                    data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </section>
+        <!-- FIN DE SECCIÓN DE CARRUSEL -->
 
+
+        <section class="productostop">
+            <div class="container-fluid">
+                <div class="row ">
+                    <div class="col text-start">
+                        <h4>Producos Top</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="..." class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">Card title</h5>
+                            <p class="card-text">This is a longer card with supporting text below as a natural lead-in
+                                to additional content. This content is a little bit longer.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="..." class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">Card title</h5>
+                            <p class="card-text">This is a short card.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="..." class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">Card title</h5>
+                            <p class="card-text">This is a longer card with supporting text below as a natural lead-in
+                                to additional content.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="..." class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">Card title</h5>
+                            <p class="card-text">This is a longer card with supporting text below as a natural lead-in
+                                to additional content. This content is a little bit longer.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
     <footer class="bg-dark text-light pt-4 mt-auto">
         <div class="container">
             <div class="row">
                 <!-- Columna 1 -->
                 <div class="col-md-4 mb-3">
-                    <h6 style="color: var(--bs-primary);">Mi Empresa</h6>
+                    <h6 style="color: var(--bs-primary);">SmartZone</h6>
                     <p>Innovación y exclusividad en productos tecnológicos.</p>
                     <p>Horario de Atención: L-S : 8 am - 8 pm </p>
                 </div>
                 <!-- Columna 2 -->
                 <div class="col-md-4 mb-3 text-center">
                     <h6>Sobre Nosotros</h6>
-                        <a href="">¿Quiénes somos? </a> <br>
-                        <a href="">Canales de Atención</a>
+                    <a href="">¿Quiénes somos? </a> <br>
+                    <a href="">Canales de Atención</a>
                 </div>
                 <!-- Columna 3 -->
                 <div class="col-md-4 mb-3 text-center">
                     <h6>Redes Sociales</h6>
-                    <a href="https://www.facebook.com/"><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Facebook.svg" alt="Facebook"></a>
-                    <a href="https://www.instagram.com/"><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Instagram.svg" alt="Instragram"></a>
-                    <a href="https://www.tiktok.com/es/"><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-TikTok.svg" alt="Tiktok"></a>
+                    <a href="https://www.facebook.com/"><img
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Facebook.svg"
+                            alt="Facebook"></a>
+                    <a href="https://www.instagram.com/"><img
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Instagram.svg"
+                            alt="Instragram"></a>
+                    <a href="https://www.tiktok.com/es/"><img
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-TikTok.svg"
+                            alt="Tiktok"></a>
                 </div>
-                
+
             </div>
             <div class="text-center py-3 border-top border-secondary">
-                &copy; 2025 Mi Empresa
+                &copy; 2025 SmartZone
             </div>
         </div>
     </footer>
