@@ -56,10 +56,20 @@
                                     </div>
                                     <div class="mb-3 form-check">
                                         <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                                        <label class="form-check-label" for="exampleCheck1">Mostrar</label>
+                                        <label class="form-check-label" for="exampleCheck1">Guardar en este dispositivo</label>
                                     </div>
                                     <button type="submit" class="btn btn-primary">Iniciar</button>
-                                </form>
+                                </form><br>
+                                <label for="inputAddress2" class="form-label" style="font-weight: 600;">Continuar
+                                    con</label>
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                    <button class="btn btn-primary me-md-2" type="button"><img
+                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-google.png"
+                                            alt="" width="30px" style="padding-right: 4px;">Google</button>
+                                    <button class="btn btn-primary" type="button"><img
+                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-facebook2.png"
+                                            alt="" width="30px" style="padding-right: 4px;">Facebook</button>
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -82,6 +92,14 @@
                             </div>
                             <div class="modal-body">
                                 <form class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="inputEmail4" class="form-label">Nombre Completo</label>
+                                        <input type="text" class="form-control" id="Nombre" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputPassword4" class="form-label">Apellidos</label>
+                                        <input type="text" class="form-control" id="Apellidos" required>
+                                    </div>
                                     <div class="col-md-6">
                                         <label for="inputEmail4" class="form-label">Correo Electrónico</label>
                                         <input type="email" class="form-control" id="inputEmail4" required>
@@ -116,9 +134,9 @@
                                             </label>
                                         </div>
                                     </div>
-
-
                                     
+
+
                                     <div class="col-12">
                                         <button type="submit" class="btn btn-primary">Confirmar</button>
                                     </div>
