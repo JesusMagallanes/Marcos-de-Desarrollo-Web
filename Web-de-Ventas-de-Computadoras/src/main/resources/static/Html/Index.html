@@ -160,9 +160,12 @@
         </div>
     </nav>
 
+
     <!-- CONTENIDO CATEGORIA-->
-    <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat1" aria-labelledby="cat1" style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
-        <div class="offcanvas-header" style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
+    <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat1" aria-labelledby="cat1"
+        style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
+        <div class="offcanvas-header"
+            style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
             <h5 class="offcanvas-title text-light" id="cat1">Categorías</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
                 aria-label="Close"></button>
@@ -172,17 +175,18 @@
 
                 <li>
                     <button type="button" class="btn btn-outline-success text-light"
-                        style="border: none; margin-bottom: 8px;">
+                        style="border: none; margin-bottom: 8px;" data-bs-toggle="offcanvas" href="#cat2" role="button"
+                        aria-controls="cat2">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-pc.svg"
-                            alt="Pc">Computadoras</button>
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-laptop.svg"
+                            alt="Pc">Laptops</button>
                 </li>
                 <li>
                     <button type="button" class="btn btn-outline-success text-light"
                         style="border: none; margin-bottom: 8px;">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-laptop.svg"
-                            alt="Laptop">Laptops
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-pc.svg"
+                            alt="Laptop">Computadoras
                     </button>
                 </li>
 
@@ -216,6 +220,36 @@
         </div>
     </div>
     <!-- FIN CONTENIDO CATEGORIA-->
+
+    <!--CONTENIDO CATEGORIA-POST-->
+    <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat2" aria-labelledby="cat2"
+        style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
+        <div class="offcanvas-header"
+            style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
+            <h5 class="offcanvas-title text-light" id="cat2">Laptops</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body" style="margin-left: 10px;">
+            <div class="list-group" style="background-color: transparent;">
+                <h6 class="offcanvas-title text-light" id="cat1">Marcas</h6>
+                <a href="#" class="list-group-item list-group-item-action text-light">Asus</a>
+                <a href="#" class="list-group-item list-group-item-action text-light">Acer</a>
+                <a href="#" class="list-group-item list-group-item-action text-light">Hp</a>
+                <a href="#" class="list-group-item list-group-item-action text-light">MSI</a>
+            </div>
+        </div>
+        <div class="offcanvas-body" style="margin-left: 10px;">
+            <div class="list-group" style="background-color: transparent;">
+                <h6 class="offcanvas-title text-light" id="cat1">Accesorios</h6>
+                <a href="#" class="list-group-item list-group-item-action text-light">Asus</a>
+                <a href="#" class="list-group-item list-group-item-action text-light">Acer</a>
+                <a href="#" class="list-group-item list-group-item-action text-light">Hp</a>
+                <a href="#" class="list-group-item list-group-item-action text-light">MSI</a>
+            </div>
+        </div>
+    </div>
+    <!--FIN CONTENIDO CATEGORIA-POST-->
 
     <main class="flex-shrink-0">
         <!-- SECCIÓN DE MARCAS PRINCIPALES -->

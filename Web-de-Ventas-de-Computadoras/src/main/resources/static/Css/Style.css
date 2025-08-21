@@ -73,6 +73,15 @@
   filter: invert(1);
 }
 
+#cat2 .list-group-item {
+  border-color: transparent !important;
+    background-color: transparent !important;
+}
+
+#cat2 .list-group-item:hover{
+  transform: scale(1.02);
+  transition: 350ms;
+}
 
 .productostop {
   margin-top: 50px;
