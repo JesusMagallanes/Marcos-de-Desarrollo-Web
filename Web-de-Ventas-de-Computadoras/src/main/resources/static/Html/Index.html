@@ -23,7 +23,12 @@
                     alt="Menú">
             </button>
             <div class="collapse navbar-collapse" id="opciones">
-                <button class="btn btn-primary me-2">Categorías</button>
+
+                <a class="btn btn-primary me-2" data-bs-toggle="offcanvas" href="#cat1" role="button"
+                    aria-controls="cat1">
+                    Categorías
+                </a>
+
                 <!-- Formulario de búsqueda -->
                 <form class="d-flex flex-grow-1 me-2" role="search">
                     <input class="form-control me-2" type="search" placeholder="Busca en nuestro catálogo..."
@@ -154,6 +159,63 @@
             </div>
         </div>
     </nav>
+
+    <!-- CONTENIDO CATEGORIA-->
+    <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat1" aria-labelledby="cat1" style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
+        <div class="offcanvas-header" style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
+            <h5 class="offcanvas-title text-light" id="cat1">Categorías</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul style="list-style: none;">
+
+                <li>
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;">
+                        <img style="margin-right: 8px;"
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-pc.svg"
+                            alt="Pc">Computadoras</button>
+                </li>
+                <li>
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;">
+                        <img style="margin-right: 8px;"
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-laptop.svg"
+                            alt="Laptop">Laptops
+                    </button>
+                </li>
+
+                <li>
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;">
+                        <img style="margin-right: 8px;"
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-consola.svg"
+                            alt="Consolas">Consolas
+                    </button>
+                </li>
+
+                <li>
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;">
+                        <img style="margin-right: 8px;"
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-game.svg"
+                            alt="Videojuegos">Videojuegos
+                    </button>
+                </li>
+
+                <li>
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;">
+                        <img style="margin-right: 8px;"
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-celular.svg"
+                            alt="Celulares">Celulares
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!-- FIN CONTENIDO CATEGORIA-->
 
     <main class="flex-shrink-0">
         <!-- SECCIÓN DE MARCAS PRINCIPALES -->
@@ -1119,8 +1181,8 @@
                         <div class="card" style="width: 18rem;">
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-3">
-                                    <img src="https://yt3.googleusercontent.com/M9GRxRpNaK5z2vzHMD6dQ6c8jYiZE1yP6X_JLiuspY5p83rpwPU9-i-kByb8kF1yef0k_9ycIw=s160-c-k-c0x00ffffff-no-rj" class="rounded-circle me-3" width="48"
-                                        height="48" alt="Avatar">
+                                    <img src="https://yt3.googleusercontent.com/M9GRxRpNaK5z2vzHMD6dQ6c8jYiZE1yP6X_JLiuspY5p83rpwPU9-i-kByb8kF1yef0k_9ycIw=s160-c-k-c0x00ffffff-no-rj"
+                                        class="rounded-circle me-3" width="48" height="48" alt="Avatar">
                                     <div>
                                         <h6 class="mb-0">Juan L.</h6>
                                         <small class="text-muted">Compradora verificada</small>
@@ -1135,8 +1197,8 @@
                         <div class="card" style="width: 18rem;">
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-3">
-                                    <img src="https://yt3.googleusercontent.com/MsMTpsSJrIC99zcM4BNuZnsLnAlxzg4znFJvcnw_qaaLXx8Jp1A5SO2FgTtajj8E-LMsqUO8ng=s900-c-k-c0x00ffffff-no-rj" class="rounded-circle me-3" width="48"
-                                        height="48" alt="Avatar">
+                                    <img src="https://yt3.googleusercontent.com/MsMTpsSJrIC99zcM4BNuZnsLnAlxzg4znFJvcnw_qaaLXx8Jp1A5SO2FgTtajj8E-LMsqUO8ng=s900-c-k-c0x00ffffff-no-rj"
+                                        class="rounded-circle me-3" width="48" height="48" alt="Avatar">
                                     <div>
                                         <h6 class="mb-0">Andrés T.</h6>
                                         <small class="text-muted">Comprador verificado</small>

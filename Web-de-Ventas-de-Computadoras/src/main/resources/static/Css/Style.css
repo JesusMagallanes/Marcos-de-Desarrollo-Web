@@ -61,6 +61,19 @@
   background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/head.png);
 }
 
+#cat1 {
+  width: 320px;
+}
+
+#cat1 .offcanvas-body {
+  color: white;
+}
+
+#cat1 .offcanvas-body img {
+  filter: invert(1);
+}
+
+
 .productostop {
   margin-top: 50px;
   margin-bottom: 50px;
@@ -93,15 +106,15 @@
 
 #carousel-resena .carousel-control-prev-icon,
 #carousel-resena .carousel-control-next-icon {
-  background-color: black;   /* Fondo negro */
-  border-radius: 50%;        /* Para que sean círculos */
+  background-color: black;
+  border-radius: 50%;
   background-size: 100% 100%;
 }
 
-/* Si quieres que la flecha sea negra en lugar de blanca */
+
 #carousel-resena .carousel-control-prev-icon,
 #carousel-resena .carousel-control-next-icon {
-  filter: invert(1); /* Cambia el color del ícono */
+  filter: invert(1);
 }
 
 
