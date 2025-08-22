@@ -34,10 +34,6 @@
   border-color: #05975a;
 }
 
-.navbar {
-  box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.353);
-  margin-bottom: 15px;
-}
 
 .btn-outline-light {
   border: none;
@@ -136,7 +132,7 @@
   .canales .card {
     padding-bottom: 10px;
   }
-  
+
   #opciones button {
     margin-top: 10px;
     margin-bottom: 10px;
