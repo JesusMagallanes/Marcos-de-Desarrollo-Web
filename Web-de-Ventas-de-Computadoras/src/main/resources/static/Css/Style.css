@@ -65,6 +65,10 @@
   width: 320px;
 }
 
+#cat2 {
+  width: 380px;
+}
+
 #cat1 .offcanvas-body {
   color: white;
 }
@@ -73,15 +77,16 @@
   filter: invert(1);
 }
 
-#cat2 .list-group-item {
-  border-color: transparent !important;
-    background-color: transparent !important;
+#cat2 a {
+  text-decoration: none;
+  color: #BDC3C7;
 }
 
-#cat2 .list-group-item:hover{
-  transform: scale(1.02);
+#cat2 a:hover {
+  color: white;
   transition: 350ms;
 }
+
 
 .productostop {
   margin-top: 50px;
@@ -108,7 +113,7 @@
   box-shadow: 0px 4px 10px #048f5532;
 }
 
-.modal .form-control{
+.modal .form-control {
   border: 3px solid #e3e3e3;
   backdrop-filter: blur(20px);
 }
@@ -131,11 +136,13 @@
   .canales .card {
     padding-bottom: 10px;
   }
-  #opciones button{
+  
+  #opciones button {
     margin-top: 10px;
     margin-bottom: 10px;
   }
-  #opciones form{
+
+  #opciones form {
     margin-bottom: 10px;
   }
 }
