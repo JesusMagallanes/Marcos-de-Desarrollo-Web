@@ -23,20 +23,257 @@
                     alt="Menú">
             </button>
             <div class="collapse navbar-collapse" id="opciones">
-                <button class="btn btn-primary me-2">Categorías</button>
+
+                <a class="btn btn-primary me-2" data-bs-toggle="offcanvas" href="#cat1" role="button"
+                    aria-controls="cat1" style="margin-top: 10px;
+    margin-bottom: 10px;">
+                    Categorías
+                </a>
+
                 <!-- Formulario de búsqueda -->
                 <form class="d-flex flex-grow-1 me-2" role="search">
                     <input class="form-control me-2" type="search" placeholder="Busca en nuestro catálogo..."
                         aria-label="Search">
                     <button class="btn btn-outline-success" type="submit">Buscar</button>
                 </form>
-                <a class="btn btn-outline-success me-2" href="#">Iniciar Sesión</a>
+                <a class="btn btn-outline-success me-2" href="#" data-bs-toggle="modal" data-bs-target="#login">Iniciar
+                    Sesión</a>
+
+                <div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content"
+                            style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">Inicia Sesión</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form>
+                                    <div class="mb-3">
+                                        <label for="exampleInputEmail1" class="form-label">Correo Electrónico</label>
+                                        <input type="email" class="form-control" id="exampleInputEmail1"
+                                            aria-describedby="emailHelp" required>
+                                        <div id="emailHelp" class="form-text">Nunca compartiremos tu correo electrónico
+                                            con nadie más.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="exampleInputPassword1" class="form-label">Contraseña</label>
+                                        <input type="password" class="form-control" id="exampleInputPassword1" required>
+                                    </div>
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                                        <label class="form-check-label" for="exampleCheck1">Guardar en este
+                                            dispositivo</label>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Iniciar</button>
+                                </form><br>
+                                <label for="inputAddress2" class="form-label" style="font-weight: 600;">Continuar
+                                    con</label>
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                    <button class="btn btn-primary me-md-2" type="button"><img
+                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-google.png"
+                                            alt="" width="30px" style="padding-right: 4px;">Google</button>
+                                    <button class="btn btn-primary" type="button"><img
+                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-facebook2.png"
+                                            alt="" width="30px" style="padding-right: 4px;">Facebook</button>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close"
+                                    data-bs-toggle="modal" data-bs-target="#register">Registrarse</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal -->
+                <div class="modal fade" id="register" tabindex="-1" aria-labelledby="exampleModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content"
+                            style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">Registrar</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="inputEmail4" class="form-label">Nombre Completo</label>
+                                        <input type="text" class="form-control" id="Nombre" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputPassword4" class="form-label">Apellidos</label>
+                                        <input type="text" class="form-control" id="Apellidos" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputEmail4" class="form-label">Correo Electrónico</label>
+                                        <input type="email" class="form-control" id="inputEmail4" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputPassword4" class="form-label">Contraseña</label>
+                                        <input type="password" class="form-control" id="inputPassword4" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="inputAddress" class="form-label">Dirección</label>
+                                        <input type="text" class="form-control" id="inputAddress"
+                                            placeholder="Av. Grau 123" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="inputAddress2" class="form-label">Dirección 2 (Opcional)</label>
+                                        <input type="text" class="form-control" id="inputAddress2"
+                                            placeholder="Apartamento, estudio o piso" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputCity" class="form-label">Ciudad</label>
+                                        <input type="text" class="form-control" id="inputCity" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="inputEmail4" class="form-label">Edad</label>
+                                        <input type="number" class="form-control" id="inputEmail4" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="gridCheck" required>
+                                            <label class="form-check-label" for="gridCheck">
+                                                Aceptar Terminos y Condiciones
+                                            </label>
+                                        </div>
+                                    </div>
+
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                    data-bs-toggle="modal" data-bs-target="#login">Regresar</button>
+                                <button type="submit" class="btn btn-primary">Confirmar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <a class="btn btn-outline-light" href="#"><img
                         src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Carrito.svg"
                         alt="Carrito" width="35"></a>
             </div>
         </div>
     </nav>
+
+
+    <!-- CONTENIDO CATEGORIA-->
+    <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat1" aria-labelledby="cat1"
+        style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
+        <div class="offcanvas-header"
+            style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
+            <h5 class="offcanvas-title text-light" id="cat1">Categorías</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul style="list-style: none;">
+
+                <li>
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;" data-bs-toggle="offcanvas" href="#cat2" role="button"
+                        aria-controls="cat2">
+                        <img style="margin-right: 8px;"
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-laptop.svg"
+                            alt="Pc">Laptops</button>
+                </li>
+                <li>
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;">
+                        <img style="margin-right: 8px;"
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-pc.svg"
+                            alt="Laptop">Computadoras
+                    </button>
+                </li>
+
+                <li>
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;">
+                        <img style="margin-right: 8px;"
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-consola.svg"
+                            alt="Consolas">Consolas
+                    </button>
+                </li>
+
+                <li>
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;">
+                        <img style="margin-right: 8px;"
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-game.svg"
+                            alt="Videojuegos">Videojuegos
+                    </button>
+                </li>
+
+                <li>
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;">
+                        <img style="margin-right: 8px;"
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-celular.svg"
+                            alt="Celulares">Celulares
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!-- FIN CONTENIDO CATEGORIA-->
+
+    <!--CONTENIDO CATEGORIA-POST-->
+    <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat2" aria-labelledby="cat2"
+        style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
+
+        <div class="offcanvas-header"
+            style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
+            <h5 class="offcanvas-title text-light" id="cat2">Laptops</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                aria-label="Close"></button>
+        </div>
+
+        <div style="display: flex; gap: 60px; margin-left: 50px; flex-wrap: wrap;">
+            <div class="list-group" style="background-color: transparent;">
+                <h6 class="offcanvas-title text-light" style="margin-bottom: 7px;">Marcas</h6>
+                <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
+                        href="#">Asus</a></p>
+                <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
+                        href="#">Acer</a></p>
+                <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
+                        href="#">MSI</a></p>
+                <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
+                        href="#">Hp</a></p>
+            </div>
+
+            <div class="list-group" style="background-color: transparent;">
+                <h6 class="offcanvas-title text-light">Accesorios</h6>
+                <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
+                        href="#">Mouse</a></p>
+                <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
+                        href="#">Teclado</a></p>
+                <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
+                        href="#">Audífonos</a></p>
+            </div>
+        </div><br>
+        <div style="display: flex; gap: 60px; margin-left: 50px; flex-wrap: wrap;">
+            <div class="list-group" style="background-color: transparent;">
+                <h6 class="offcanvas-title text-light" style="margin-bottom: 7px;">Modelo</h6>
+                <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
+                        href="#">Gamer</a></p>
+                <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
+                        href="#">Oficina</a></p>
+                <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
+                        href="#">Profesional</a></p>
+            </div>
+        </div><br><br>
+        <div class="d-grid gap-2 col-5 mx-auto">
+            <button class="btn btn-primary" data-bs-toggle="offcanvas" href="#cat1" type="button"><img
+                    style="filter: invert(1);;"
+                    src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/arrox-left.svg" alt="volver"
+                    width="25px">Volver</button>
+        </div>
+    </div>
 
     <div class="container-fluid p-0">
         <section class="canales-de-atencion">
@@ -164,7 +401,7 @@
 
             </div>
     </div>
-    </section>
+
     <footer class="bg-dark text-light pt-4 mt-auto">
         <div class="container">
             <div class="row">
@@ -201,6 +438,7 @@
             </div>
         </div>
     </footer>
+
     <div id="chatbot-container">
         <div id="chat-header">
             <div class="brand">
@@ -217,10 +455,9 @@
     </div>
     <button id="chat-toggle"><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/logo-bot.svg"
             class="card-img-top" width="10" height="30" alt="Bot"></button>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Js/Chat-Bot.js"></script>
-
-
 </body>
 
 </html>
