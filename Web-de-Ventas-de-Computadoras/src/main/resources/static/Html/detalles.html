@@ -9,6 +9,22 @@
     <link rel="stylesheet" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Css/Style.css">
     <link rel="icon" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/img.png">
     <link rel="stylesheet" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Css/Chat-Bot.css">
+    <style>
+        /* pequeños ajustes opcionales */
+        .imgprod img {
+            padding: 30px;
+        }
+
+        .spec-box {
+            box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179);
+            margin: 0 auto;
+            max-height: 200px;
+            max-width: 500px;
+            overflow-y: auto;
+            border: 3px solid #BDC3C7;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 
 <body class="d-flex flex-column h-100">
@@ -278,127 +294,50 @@
     <!--FIN CONTENIDO CATEGORIA-POST-->
 
     <main class="flex-shrink-0" style="margin: 30px;">
-        <div class="container text-center"
-            style="background-color: white; padding: 10px; border-radius: 10px;box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179)">
-            <div class="row row-cols-1 row-cols-lg-2 g-5">
-                <div class="col">
-                    <div class="imgprod position-relative">
-                        <h4 class="card-title mt-4"><b>Laptop Asus Tuf F15 Gaming FX507VV-LP142</b></h4>
-                        <div id="carouselExampleInterval" class="carousel slide" data-bs-ride="carousel">
-                            <div class="carousel-inner">
-                                <div class="carousel-item active" data-bs-interval="10000">
-                                    <img style="padding: 30px;"
-                                        src="https://media.falabella.com/falabellaPE/143189901_01/w=1500,h=1500,fit=pad"
-                                        class="d-block w-100" alt="Asustuf1">
-                                </div>
-                                <div class="carousel-item" data-bs-interval="2000">
-                                    <img style="padding: 30px;"
-                                        src="https://media.falabella.com/falabellaPE/143189901_02/w=1500,h=1500,fit=pad"
-                                        class="d-block w-100" alt="Asustuf2">
-                                </div>
-                                <div class="carousel-item">
-                                    <img style="padding: 30px;"
-                                        src="https://media.falabella.com/falabellaPE/143189901_05/w=1500,h=1500,fit=pad"
-                                        class="d-block w-100" alt="Asustuf3">
-                                </div>
-                            </div>
-
-                            <button class="carousel-control-prev" type="button"
-                                data-bs-target="#carouselExampleInterval" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Previous</span>
-                            </button>
-                            <button class="carousel-control-next" type="button"
-                                data-bs-target="#carouselExampleInterval" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Next</span>
-                            </button>
-                        </div>
+        <div id="product-root" class="container text-center"
+            style="background-color: white; padding: 10px; border-radius: 10px; box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179)">
+            <!-- Aquí se inyecta todo el contenido dinámico -->
+        </div>
+        <div id="payments-placeholder" style="display:none;">
+            <div class="container text-center mt-4">
+                <div class="row justify-content-center">
+                    <div class="col-4 col-md-2">
+                        <img src="https://images.seeklogo.com/logo-png/39/3/yape-app-logo-png_seeklogo-399697.png"
+                            width="60px" class="img-fluid rounded" alt="yape">
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <img src="https://img.icons8.com/?size=512&id=13608&format=png" width="60px"
+                            class="img-fluid rounded" alt="visa">
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/88/MasterCard_early_1990s_logo.svg"
+                            width="60px" style="margin-top: 15px;" class="img-fluid rounded" alt="mastercard">
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaft1EtwutCeXGzg0hfXfXubaH1jXMJeb-Rg&s"
+                            width="60px" class="img-fluid rounded" alt="paypal">
                     </div>
                 </div>
-
-                <div class="col">
-                    <h5 class="card-title text-start mt-4"
-                        style="border-bottom: 2px solid #BDC3C7; padding-bottom: 13px;">Características específicas</h5>
-                    <br>
-                    <p class="card-text text-start" style="margin-right: 20px; text-align: justify;">La ASUS TUF F15
-                        FX507VV-LP142 es una opción formidable para gamers o
-                        profesionales creativos que buscan alto rendimiento en un rango de precio competitivo. Su GPU
-                        RTX 4060 y el sólido procesador i7 garantizan desempeño realista en juegos y productividad.</p>
-                    <div
-                        style="box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179);margin: 0 auto;max-height: 200px;max-width: 500px ; overflow-y: auto; border: 3px solid #BDC3C7; border-radius: 8px;">
-                        <div class="text-start" style="margin: 15px;">
-                            <p class="card-text">
-                                <span class="fw-semibold">Tamaño de la pantalla:</span> 15.6
-                            </p>
-                            <p class="card-text" style="margin-top: -15px;">
-                                <span class="fw-semibold">Memoria RAM:</span> 16GB
-                            </p>
-                            <p class="card-text" style="margin-top: -15px;">
-                                <span class="fw-semibold">Capacidad de almacenamiento:</span> 1TB
-                            </p>
-                            <p class="card-text" style="margin-top: -15px;">
-                                <span class="fw-semibold">Sistema operativo:</span> Free DOS
-                            </p>
-                            <p class="card-text" style="margin-top: -15px;">
-                                <span class="fw-semibold">Procesador:</span> Intel Core i7
-                            </p>
-                            <p class="card-text" style="margin-top: -15px;">
-                                <span class="fw-semibold">Núcleos del procesador:</span> Deca core
-                            </p>
-                            <p class="card-text" style="margin-top: -15px;">
-                                <span class="fw-semibold">Tipo:</span> Notebooks
-                            </p>
-                            <p class="card-text" style="margin-top: -15px;">
-                                <span class="fw-semibold">Resolución de pantalla:</span> FHD
-                            </p>
-                        </div>
-                    </div>
-                    <h5 class="card-title text-start mt-4"
-                        style="border-bottom: 2px solid #BDC3C7; padding-bottom: 13px;">Métodos de pago</h5>
-                    <div class="container text-center mt-4">
-                        <div class="row justify-content-center">
-                            <div class="col-4 col-md-2">
-                                <img src="https://images.seeklogo.com/logo-png/39/3/yape-app-logo-png_seeklogo-399697.png"
-                                    width="60px" class="img-fluid rounded" alt="yape">
-                            </div>
-                            <div class="col-4 col-md-2">
-                                <img src="https://img.icons8.com/?size=512&id=13608&format=png" width="60px"
-                                    class="img-fluid rounded" alt="visa">
-                            </div>
-                            <div class="col-4 col-md-2">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/8/88/MasterCard_early_1990s_logo.svg"
-                                    width="60px" style="margin-top: 15px;" class="img-fluid rounded" alt="mastercard">
-                            </div>
-                            <div class="col-4 col-md-2">
-                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaft1EtwutCeXGzg0hfXfXubaH1jXMJeb-Rg&s"
-                                    width="60px" class="img-fluid rounded" alt="paypal">
-                            </div>
-                        </div>
-                    </div>
-                    <h2 class="card-title text-start mt-4" style="color: #06b56c;">S/. 5,499</h2><br>
-                    <div class="d-flex align-items-center justify-content-center" style="gap: 40px;">
-                        <div class="d-flex align-items-center">
-                            <span class="me-2">Cantidad</span>
-                            <input type="number" class="form-control" style="max-width: 100px;" required>
-                        </div>
-                        <b>
-                            <button class="btn btn-outline-success" style="font-size: 15px;" type="submit">Agregar
-                                Carrito</button>
-                        </b>
-                    </div>
-
-
-
-
+            </div>
+        </div>
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/img.png" class="rounded me-2"
+                        height="20px" alt="SmartZone">
+                    <strong class="me-auto">Notificación Carrito</strong>
+                    <small class="text-muted" id="toastTime">ahora</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body" id="toastMessage">
+                    <!-- aquí se pondrá el mensaje -->
                 </div>
             </div>
         </div>
     </main>
     <footer class="bg-dark text-light pt-4 mt-auto">
         <div class="container">
-            <div class="row">
-                <!-- Columna 1 -->
+            <div class="row"><!-- Columna 1 -->
                 <div class="col-md-4 mb-3">
                     <h6 style="color: var(--bs-primary);">SmartZone</h6>
                     <p>Innovación y exclusividad en productos tecnológicos.</p>
@@ -446,11 +385,13 @@
             <button id="send-btn">➤</button>
         </div>
     </div>
+
     <button id="chat-toggle"><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/logo-bot.svg"
             class="card-img-top" width="10" height="30" alt="Bot"></button>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Js/Chat-Bot.js"></script>
+    <script src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Js/Productos-Det.js"></script>
 </body>
 
 </html>
