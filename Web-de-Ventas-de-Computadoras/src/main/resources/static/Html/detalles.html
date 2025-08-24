@@ -9,6 +9,22 @@
     <link rel="stylesheet" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Css/Style.css">
     <link rel="icon" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/img.png">
     <link rel="stylesheet" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Css/Chat-Bot.css">
+    <style>
+        /* pequeños ajustes opcionales */
+        .imgprod img {
+            padding: 30px;
+        }
+
+        .spec-box {
+            box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179);
+            margin: 0 auto;
+            max-height: 200px;
+            max-width: 500px;
+            overflow-y: auto;
+            border: 3px solid #BDC3C7;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 
 <body class="d-flex flex-column h-100">
@@ -275,137 +291,53 @@
         </div>
     </div>
 
-    <div class="container-fluid p-0">
-        <section class="canales-de-atencion">
-            <div class="row ">
-                <div class="col text-start">
-                    <h5>Canales de Atención</h5>
-                    <p>Comunícate con nosotros, estamos dispuestos a ayudarte
-                        para que tu compra tenga la mejor experiencia posible.
-                    </p>
-                </div>
-            </div>
-            <div class="canales">
-                <div class="row row-cols-1 row-cols-lg-4 g-4">
-                    <div class="col">
-                        <div class="card h-100 ">
-                            <br>
-                            <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-Whatsapp.svg"
-                                class="card-img-top" width="50px" height="40" alt="Whatsapp"><br>
-                            <div class="card-body">
-                                <h5 class="card-title">WhatsApp</h5>
-                                <p class="card-text">Ofrecemos atención personalizada a través de WhatsApp para resolver
-                                    tus dudas, brindarte asesoría y acompañarte en cada paso de tu compra de manera
-                                    rápida y sencilla.</p><br><br>
-                                <p class="card-text" style="margin-bottom: -1px;"><small
-                                        class="text-body-secondary">Horario de atención:</small></p>
-                                <small class="text-body-secondary">Lunes a Sábado de 8 a.m. a 8 p.m.</small></p>
-                                <div class="detalle">
-                                    <p class="card-texts"><small class="text-body-det">+51 987 654 321</small></p>
-                                </div>
-                            </div>
-                        </div>
+    <!--FIN CONTENIDO CATEGORIA-POST-->
+
+    <main class="flex-shrink-0" style="margin: 30px;">
+        <div id="product-root" class="container text-center"
+            style="background-color: white; padding: 10px; border-radius: 10px; box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179)">
+            <!-- Aquí se inyecta todo el contenido dinámico -->
+        </div>
+        <div id="payments-placeholder" style="display:none;">
+            <div class="container text-center mt-4">
+                <div class="row justify-content-center">
+                    <div class="col-4 col-md-2">
+                        <img src="https://images.seeklogo.com/logo-png/39/3/yape-app-logo-png_seeklogo-399697.png"
+                            width="60px" class="img-fluid rounded" alt="yape">
                     </div>
-                    <div class="col">
-                        <div class="card h-100"><br>
-                            <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-Email.svg"
-                                class="card-img-top" width="50px" height="40" alt="Email">
-                            <div class="card-body"><br>
-                                <h5 class="card-title">Correo Electrónico</h5>
-                                <p class="card-text">Brindamos atención directa también por correo electrónico, donde
-                                    podrás enviarnos tus consultas, solicitudes o comentarios y recibirás una respuesta
-                                    personalizada en el menor tiempo posible.</p><br><br>
-                                <p class="card-text" style="margin-bottom: -1px;"><small
-                                        class="text-body-secondary">Horario de atención:</small></p>
-                                <small class="text-body-secondary">Lunes a Sábado todo el día.</small></p>
-                                <div class="detalle">
-                                    <p class="card-texts"><small class="text-body-det">soporte@smartzone.com</small></p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="col-4 col-md-2">
+                        <img src="https://img.icons8.com/?size=512&id=13608&format=png" width="60px"
+                            class="img-fluid rounded" alt="visa">
                     </div>
-                    <div class="col">
-                        <div class="card h-100"><br>
-                            <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-Redes.svg"
-                                class="card-img-top" width="50px" height="40" alt="Redes">
-                            <div class="card-body"><br>
-                                <h5 class="card-title">Redes Sociales</h5>
-                                <p class="card-text">Síguenos en nuestras redes sociales para mantenerte al día con
-                                    nuestras novedades, promociones exclusivas y contenidos pensados para ti.</p>
-                                <br><br>
-                                <p class="card-text" style="margin-bottom: -1px;">
-                                    <small class="text-body-secondary">Horario de atención:</small>
-                                </p>
-                                <small class="text-body-secondary">Lunes a Viernes de 9 a.m. a 8 p.m. <br>Sábado y
-                                    Domingo de 10 a.m. a 6 p.m.</small></p>
-
-                                <div class="detalle">
-                                    <div class="container">
-                                        <div class="row">
-                                            <div class="col-md-4 mb-3">
-                                                <p class="card-texts d-flex align-items-center"><a
-                                                        href="https://www.facebook.com/"
-                                                        class="text-decoration-none"><small class="text-body-det"
-                                                            style="padding-right: 10px;">Facebook</small><img
-                                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Facebook.svg"
-                                                            alt="Facebook"></a></p>
-                                            </div>
-                                            <div class="col-md-4 mb-3">
-                                                <p class="card-texts d-flex align-items-center"><a
-                                                        href="https://www.instagram.com/"
-                                                        class="text-decoration-none"><small class="text-body-det"
-                                                            style="padding-right: 10px;;">Instagram</small><img
-                                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Instagram.svg"
-                                                            alt="Facebook"></a></p>
-                                            </div>
-                                            <div class="col-md-4 mb-3">
-                                                <p class="card-texts d-flex align-items-center"><a
-                                                        href="https://www.tiktok.com/es/"
-                                                        class="text-decoration-none"><small class="text-body-det"
-                                                            style="padding-right: 10px;">Tiktok</small><img
-                                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-TikTok.svg"
-                                                            alt="Facebook"></a></p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
+                    <div class="col-4 col-md-2">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/88/MasterCard_early_1990s_logo.svg"
+                            width="60px" style="margin-top: 15px;" class="img-fluid rounded" alt="mastercard">
                     </div>
-                    <div class="col">
-                        <div class="card h-100"><br>
-                            <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-Phone.svg"
-                                class="card-img-top" width="50px" height="40" alt="Phone">
-                            <div class="card-body"><br>
-                                <h5 class="card-title">Telefónica</h5>
-                                <p class="card-text">Contamos con atención telefónica para brindarte soporte
-                                    inmediato,
-                                    resolver tus dudas y asesorarte de manera personalizada.</p>
-                                <br><br>
-
-                                <p class="card-text" style="margin-bottom: -1px;">
-                                    <small class="text-body-secondary">Horario de atención:</small>
-                                </p>
-                                <small class="text-body-secondary">Lunes y Martes de 8 a.m. a 6 p.m. <br>
-                                    Miércoles a Viernes de 10 a.m. a 6 p.m.</small></p>
-
-                                <div class="detalle">
-                                    <p class="card-texts"><small class="text-body-det">011-51-84-123456</small>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="col-4 col-md-2">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaft1EtwutCeXGzg0hfXfXubaH1jXMJeb-Rg&s"
+                            width="60px" class="img-fluid rounded" alt="paypal">
                     </div>
                 </div>
-
             </div>
-    </div>
-
+        </div>
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/img.png" class="rounded me-2"
+                        height="20px" alt="SmartZone">
+                    <strong class="me-auto">Notificación Carrito</strong>
+                    <small class="text-muted" id="toastTime">ahora</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body" id="toastMessage">
+                    <!-- aquí se pondrá el mensaje -->
+                </div>
+            </div>
+        </div>
+    </main>
     <footer class="bg-dark text-light pt-4 mt-auto">
         <div class="container">
-            <div class="row">
-                <!-- Columna 1 -->
+            <div class="row"><!-- Columna 1 -->
                 <div class="col-md-4 mb-3">
                     <h6 style="color: var(--bs-primary);">SmartZone</h6>
                     <p>Innovación y exclusividad en productos tecnológicos.</p>
@@ -453,11 +385,13 @@
             <button id="send-btn">➤</button>
         </div>
     </div>
+
     <button id="chat-toggle"><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/logo-bot.svg"
             class="card-img-top" width="10" height="30" alt="Bot"></button>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Js/Chat-Bot.js"></script>
+    <script src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Js/Productos-Det.js"></script>
 </body>
 
 </html>
