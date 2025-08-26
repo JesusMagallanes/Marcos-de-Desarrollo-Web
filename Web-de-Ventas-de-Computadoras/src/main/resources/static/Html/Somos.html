@@ -55,121 +55,6 @@
                 <a class="btn btn-outline-success me-2" href="#" data-bs-toggle="modal" data-bs-target="#login">Iniciar
                     Sesión</a>
 
-                <div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content"
-                            style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
-                            <div class="modal-header">
-                                <h1 class="modal-title fs-5" id="exampleModalLabel">Inicia Sesión</h1>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form>
-                                    <div class="mb-3">
-                                        <label for="exampleInputEmail1" class="form-label">Correo Electrónico</label>
-                                        <input type="email" class="form-control" id="exampleInputEmail1"
-                                            aria-describedby="emailHelp" required>
-                                        <div id="emailHelp" class="form-text">Nunca compartiremos tu correo electrónico
-                                            con nadie más.</div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="exampleInputPassword1" class="form-label">Contraseña</label>
-                                        <input type="password" class="form-control" id="exampleInputPassword1" required>
-                                    </div>
-                                    <div class="mb-3 form-check">
-                                        <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                                        <label class="form-check-label" for="exampleCheck1">Guardar en este
-                                            dispositivo</label>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Iniciar</button>
-                                </form><br>
-                                <label for="inputAddress2" class="form-label" style="font-weight: 600;">Continuar
-                                    con</label>
-                                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                                    <button class="btn btn-primary me-md-2" type="button"><img
-                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-google.png"
-                                            alt="" width="30px" style="padding-right: 4px;">Google</button>
-                                    <button class="btn btn-primary" type="button"><img
-                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-facebook2.png"
-                                            alt="" width="30px" style="padding-right: 4px;">Facebook</button>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close"
-                                    data-bs-toggle="modal" data-bs-target="#register">Registrarse</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal -->
-                <div class="modal fade" id="register" tabindex="-1" aria-labelledby="exampleModalLabel"
-                    aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content"
-                            style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
-                            <div class="modal-header">
-                                <h1 class="modal-title fs-5" id="exampleModalLabel">Registrar</h1>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form class="row g-3">
-                                    <div class="col-md-6">
-                                        <label for="inputEmail4" class="form-label">Nombre Completo</label>
-                                        <input type="text" class="form-control" id="Nombre" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="inputPassword4" class="form-label">Apellidos</label>
-                                        <input type="text" class="form-control" id="Apellidos" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="inputEmail4" class="form-label">Correo Electrónico</label>
-                                        <input type="email" class="form-control" id="inputEmail4" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="inputPassword4" class="form-label">Contraseña</label>
-                                        <input type="password" class="form-control" id="inputPassword4" required>
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="inputAddress" class="form-label">Dirección</label>
-                                        <input type="text" class="form-control" id="inputAddress"
-                                            placeholder="Av. Grau 123" required>
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="inputAddress2" class="form-label">Dirección 2 (Opcional)</label>
-                                        <input type="text" class="form-control" id="inputAddress2"
-                                            placeholder="Apartamento, estudio o piso" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="inputCity" class="form-label">Ciudad</label>
-                                        <input type="text" class="form-control" id="inputCity" required>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="inputEmail4" class="form-label">Edad</label>
-                                        <input type="number" class="form-control" id="inputEmail4" required>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="gridCheck" required>
-                                            <label class="form-check-label" for="gridCheck">
-                                                Aceptar Terminos y Condiciones
-                                            </label>
-                                        </div>
-                                    </div>
-
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
-                                    data-bs-toggle="modal" data-bs-target="#login">Regresar</button>
-                                <button type="submit" class="btn btn-primary">Confirmar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <a class="btn btn-outline-light" href="#"><img
                         src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Carrito.svg"
                         alt="Carrito" width="35"></a>
@@ -177,6 +62,197 @@
         </div>
     </nav>
 
+    <main class="flex-shrink-0" style="margin: 30px;">
+        <div id="carouselExample" class="carousel slide">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/anuncio.png"
+                        class="d-block w-100" alt="anuncio">
+                </div>
+            </div>
+        </div><br><br>
+        <div class="container" style="background-color: white; border: 2px solid #c9c9c9; border-radius: 15px;">
+            <div class="row justify-content-center align-items-center" style="padding: 20px;">
+                <!-- Columna 1 -->
+                <div class="col-md-6 mb-3 text-center">
+                    <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/paquetes.png" alt="envios"
+                        class="img-fluid">
+                </div>
+                <!-- Columna 2 -->
+                <div class="col-md-4 mb-3 text-start">
+                    <h2 class="card-title">¡Tenemos algo que contarte!</h2><br>
+                    <p class="card-text" style="text-align: justify;">
+                        En SmartZone queremos que comprar tecnología sea rápido, fácil y sin complicaciones.
+                        Nos propusimos darte la mejor experiencia online para que encuentres lo que buscas en pocos
+                        clics.
+                        Hoy te presentamos el nuevo <b>SmartZone.com</b>, tu espacio para descubrir lo último en
+                        tecnología.
+                    </p>
+                </div>
+            </div>
+        </div><br><br>
+
+        <div class="marcas" >
+            <h3 class="text-center">Marcas Principales</h3><br>
+            <div class="marcasimg justify-content-center flex-wrap d-flex gap-5">
+                <button class="btn btn-primary" type="submit">Asus</button>
+                <button class="btn btn-primary" type="submit">Hp</button>
+                <button class="btn btn-primary" type="submit">Samsung</button>
+                <button class="btn btn-primary" type="submit">Iphone</button>
+            </div>
+        </div>
+
+    </main>
+    <footer class="bg-dark text-light pt-4 mt-auto">
+        <div class="container">
+            <div class="row"><!-- Columna 1 -->
+                <div class="col-md-4 mb-3">
+                    <h6 style="color: var(--bs-primary);">SmartZone</h6>
+                    <p>Innovación y exclusividad en productos tecnológicos.</p>
+                    <p>Horario de Atención: L-S : 8 am - 8 pm </p>
+                </div>
+                <!-- Columna 2 -->
+                <div class="col-md-4 mb-3 text-center">
+                    <h6>Sobre Nosotros</h6>
+                    <a href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Html/Somos.html">¿Quiénes somos? </a> <br>
+                    <a href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Html/Canales-De-Atención.html">Canales
+                        de Atención</a>
+                </div>
+                <!-- Columna 3 -->
+                <div class="col-md-4 mb-3 text-center">
+                    <h6>Redes Sociales</h6>
+                    <a href="https://www.facebook.com/"><img
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Facebook.svg"
+                            alt="Facebook"></a>
+                    <a href="https://www.instagram.com/"><img
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Instagram.svg"
+                            alt="Instragram"></a>
+                    <a href="https://www.tiktok.com/es/"><img
+                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-TikTok.svg"
+                            alt="Tiktok"></a>
+                </div>
+
+            </div>
+            <div class="text-center py-3 border-top border-secondary">
+                &copy; 2025 SmartZone
+            </div>
+        </div>
+    </footer>
+
+    <!--MODAL INICION SESION-->
+    <div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content"
+                style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Inicia Sesión</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="exampleInputEmail1" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="exampleInputEmail1"
+                                aria-describedby="emailHelp" required>
+                            <div id="emailHelp" class="form-text">Nunca compartiremos tu correo electrónico
+                                con nadie más.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="exampleInputPassword1" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="exampleInputPassword1" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                            <label class="form-check-label" for="exampleCheck1">Guardar en este
+                                dispositivo</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Iniciar</button>
+                    </form><br>
+                    <label for="inputAddress2" class="form-label" style="font-weight: 600;">Continuar
+                        con</label>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <button class="btn btn-primary me-md-2" type="button"><img
+                                src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-google.png"
+                                alt="" width="30px" style="padding-right: 4px;">Google</button>
+                        <button class="btn btn-primary" type="button"><img
+                                src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-facebook2.png"
+                                alt="" width="30px" style="padding-right: 4px;">Facebook</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close"
+                        data-bs-toggle="modal" data-bs-target="#register">Registrarse</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--FIN MODAL INICION SESION-->
+
+    <!--MODAL REGISTRARSE-->
+    <div class="modal fade" id="register" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content"
+                style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Registrar</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="row g-3">
+                        <div class="col-md-6">
+                            <label for="inputEmail4" class="form-label">Nombre Completo</label>
+                            <input type="text" class="form-control" id="Nombre" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="inputPassword4" class="form-label">Apellidos</label>
+                            <input type="text" class="form-control" id="Apellidos" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="inputEmail4" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="inputEmail4" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="inputPassword4" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="inputPassword4" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="inputAddress" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="inputAddress" placeholder="Av. Grau 123"
+                                required>
+                        </div>
+                        <div class="col-12">
+                            <label for="inputAddress2" class="form-label">Dirección 2 (Opcional)</label>
+                            <input type="text" class="form-control" id="inputAddress2"
+                                placeholder="Apartamento, estudio o piso" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="inputCity" class="form-label">Ciudad</label>
+                            <input type="text" class="form-control" id="inputCity" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="inputEmail4" class="form-label">Edad</label>
+                            <input type="number" class="form-control" id="inputEmail4" required>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="gridCheck" required>
+                                <label class="form-check-label" for="gridCheck">
+                                    Aceptar Terminos y Condiciones
+                                </label>
+                            </div>
+                        </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-bs-toggle="modal"
+                        data-bs-target="#login">Regresar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--FIN MODAL REGISTRARSE-->
 
     <!-- CONTENIDO CATEGORIA-->
     <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat1" aria-labelledby="cat1"
@@ -290,86 +366,9 @@
                     width="25px">Volver</button>
         </div>
     </div>
-
     <!--FIN CONTENIDO CATEGORIA-POST-->
 
-    <main class="flex-shrink-0" style="margin: 30px;">
-        <div id="carouselExample" class="carousel slide">
-            <div class="carousel-inner">
-                <div class="carousel-item active">
-                    <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/anuncio.png"
-                        class="d-block w-100" alt="anuncio">
-                </div>
-            </div>
-        </div><br><br>
-        <div class="container" style="background-color: white; border: 2px solid #c9c9c9; border-radius: 15px;">
-            <div class="row justify-content-center align-items-center" style="padding: 20px;">
-                <!-- Columna 1 -->
-                <div class="col-md-6 mb-3 text-center">
-                    <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/paquetes.png" alt="envios"
-                        class="img-fluid">
-                </div>
-                <!-- Columna 2 -->
-                <div class="col-md-4 mb-3 text-start">
-                    <h2 class="card-title">¡Tenemos algo que contarte!</h2><br>
-                    <p class="card-text" style="text-align: justify;">
-                        En SmartZone queremos que comprar tecnología sea rápido, fácil y sin complicaciones.
-                        Nos propusimos darte la mejor experiencia online para que encuentres lo que buscas en pocos
-                        clics.
-                        Hoy te presentamos el nuevo <b>SmartZone.com</b>, tu espacio para descubrir lo último en
-                        tecnología.
-                    </p>
-                </div>
-            </div>
-        </div><br><br>
-
-        <div class="marcas" >
-            <h3 class="text-center">Marcas Principales</h3><br>
-            <div class="marcasimg justify-content-center flex-wrap d-flex gap-5">
-                <button class="btn btn-primary" type="submit">Asus</button>
-                <button class="btn btn-primary" type="submit">Hp</button>
-                <button class="btn btn-primary" type="submit">Samsung</button>
-                <button class="btn btn-primary" type="submit">Iphone</button>
-            </div>
-        </div>
-
-    </main>
-    <footer class="bg-dark text-light pt-4 mt-auto">
-        <div class="container">
-            <div class="row"><!-- Columna 1 -->
-                <div class="col-md-4 mb-3">
-                    <h6 style="color: var(--bs-primary);">SmartZone</h6>
-                    <p>Innovación y exclusividad en productos tecnológicos.</p>
-                    <p>Horario de Atención: L-S : 8 am - 8 pm </p>
-                </div>
-                <!-- Columna 2 -->
-                <div class="col-md-4 mb-3 text-center">
-                    <h6>Sobre Nosotros</h6>
-                    <a href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Html/Somos.html">¿Quiénes somos? </a> <br>
-                    <a href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Html/Canales-De-Atención.html">Canales
-                        de Atención</a>
-                </div>
-                <!-- Columna 3 -->
-                <div class="col-md-4 mb-3 text-center">
-                    <h6>Redes Sociales</h6>
-                    <a href="https://www.facebook.com/"><img
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Facebook.svg"
-                            alt="Facebook"></a>
-                    <a href="https://www.instagram.com/"><img
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Instagram.svg"
-                            alt="Instragram"></a>
-                    <a href="https://www.tiktok.com/es/"><img
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-TikTok.svg"
-                            alt="Tiktok"></a>
-                </div>
-
-            </div>
-            <div class="text-center py-3 border-top border-secondary">
-                &copy; 2025 SmartZone
-            </div>
-        </div>
-    </footer>
-
+    <!--CONTENIDO BOT-->
     <div id="chatbot-container">
         <div id="chat-header">
             <div class="brand">
@@ -384,9 +383,9 @@
             <button id="send-btn">➤</button>
         </div>
     </div>
-
     <button id="chat-toggle"><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/logo-bot.svg"
             class="card-img-top" width="10" height="30" alt="Bot"></button>
+    <!--FIN CONTENIDO BOT-->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Js/Chat-Bot.js"></script>
