@@ -11,7 +11,7 @@
     <title>SmartZone</title>
 </head>
 
-<body>
+<body class="d-flex flex-column min-vh-100">
     <!-- NAV -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-2">
         <div class="container-fluid">
@@ -56,41 +56,86 @@
     </nav>
 
     <main>
-
-        <div class="container-fluid">
+        <div class="container my-4">
             <div class="row">
-                <section class="col-md-6 mb-3">
-                    <div class="d-flex align-items-center mb-3">
-                        <h4 class="mb-0 me-2">Carrito</h4>
-                        <h6 class="mb-0 text-muted">(1 producto)</h6>
-                    </div>
-                    <div class="d-flex justify-content-center">
-                        <div class="card " style="width: 18rem;">
-                            <div class="card-body">
-                                <h5 class="card-title">Card title</h5>
-                                <p class="card-text">
-                                    Some quick example text to build on the card title and make up the bulk
-                                    of the card’s content.
-                                </p>
+
+                <!-- Carrito -->
+                <div class="col-md-8">
+                    <div class="card mb-3">
+                        <div class="card-body">
+
+                            <!-- Texto encima del producto -->
+                            <small class="text-muted">Productos del
+                                <span class="text-success fw-bold">Carrito</span>
+                            </small>
+                            <hr>
+
+                            <!-- Producto -->
+                            <div class="row align-items-center">
+
+                                <!-- Imagen de producto -->
+                                <div class="col-2 text-center">
+                                    <input type="checkbox" checked class="form-check-input mb-2">
+                                    <img src="https://media.falabella.com/falabellaPE/143189901_01/w=1500,h=1500,fit=pad"
+                                        class="img-fluid" style="max-height:80px; object-fit:contain;" alt="Producto">
+                                </div>
+
+                                <!-- Informacion de producto -->
+                                <div class="col-6">
+                                    <h6 class="mb-1 fw-bold">Laptop Asus Tuf F15 Gaming FX507VV-LP142</h6>
+                                    <p class="mb-1 text-muted">ASUS</p>
+                                    <p class="mb-1"><strong>Color:</strong> Negro</p>
+                                    <span class="badge bg-light text-success border">Llega mañana</span>
+                                    <span class="badge bg-light text-success border">Retira hoy</span>
+                                </div>
+
+                                <!-- Precio del producto -->
+                                <div class="col-4 text-end">
+                                    <h5 class="fw-bold text-danger mb-1">S/ 189</h5>
+
+                                    <!-- Contador de productos -->
+                                    <div class="d-flex justify-content-end align-items-center mt-2">
+                                        <button class="btn btn-sm btn-outline-secondary">-</button>
+                                        <input type="text" value="1"
+                                            class="form-control form-control-sm text-center mx-2" style="width:50px;">
+                                        <button class="btn btn-sm btn-outline-secondary">+</button>
+                                    </div>
+                                    <small class="text-muted">Máx 10 unidades</small>
+                                </div>
+
                             </div>
                         </div>
                     </div>
-                </section>
-                <section class="col-md-6 mb-3">
-                    <h4>Resumen de la orden</h4>
-                    <div class="d-flex justify-content-center">
-                        <div class="card " style="width: 18rem;">
-                            <div class="card-body">
-                                <h5 class="card-title">Card title</h5>
-                                <p class="card-text">Some quick example text to build on the card title and make up the
-                                    bulk
-                                    of the card’s content.</p>
-                            </div>
+                </div>
+
+                <!-- Resumen de la orden -->
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <h6 class="fw-bold mb-3">Resumen de la orden</h6>
+
+                        <div class="d-flex justify-content-between">
+                            <span>Productos (1)</span>
+                            <span>S/ 199</span>
                         </div>
+                        <hr>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total:</span>
+                            <span class="text-primary">S/ 189</span>
+                        </div>
+
+                        <button class="btn btn-dark w-100 rounded-pill mt-3">Continuar compra</button>
                     </div>
-                </section>
+
+                    <div class="alert alert-light text-center mt-3 border">
+                        <strong>¡Ahora puedes pagar con Yape!</strong>
+                    </div>
+                </div>
+
             </div>
         </div>
+
+
+
 
     </main>
 
