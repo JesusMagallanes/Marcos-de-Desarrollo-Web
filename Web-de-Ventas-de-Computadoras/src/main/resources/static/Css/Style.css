@@ -98,8 +98,9 @@
   padding-right: 50px;
 }
 
-.card img {
+.productostop .card img {
   margin-top: 15px;
+  height: 360px;
 }
 
 .card:hover {
