@@ -257,116 +257,122 @@
 
 
     <!-- ============================= -->
-    <!-- MODAL LOGIN -->
-    <div class="modal fade" id="login" tabindex="-1" aria-labelledby="loginLabel" aria-hidden="true">
+    <!--MODAL INICION SESION-->
+    <div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content modal-custom">
+            <div class="modal-content"
+                style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="loginLabel">Inicia Sesión</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Inicia Sesión</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="mb-3">
-                            <label for="loginEmail" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="loginEmail" required>
-                            <div class="form-text">Nunca compartiremos tu correo electrónico con nadie más.</div>
+                            <label for="exampleInputEmail1" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="exampleInputEmail1"
+                                aria-describedby="emailHelp" required>
+                            <div id="emailHelp" class="form-text">Nunca compartiremos tu correo electrónico
+                                con nadie más.</div>
                         </div>
                         <div class="mb-3">
-                            <label for="loginPassword" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="loginPassword" required>
+                            <label for="exampleInputPassword1" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="exampleInputPassword1" required>
                         </div>
                         <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="loginRemember">
-                            <label class="form-check-label" for="loginRemember">Guardar en este dispositivo</label>
+                            <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                            <label class="form-check-label" for="exampleCheck1">Guardar en este
+                                dispositivo</label>
                         </div>
                         <button type="submit" class="btn btn-primary">Iniciar</button>
-                    </form>
-
-                    <hr>
-                    <p class="fw-semibold">Continuar con</p>
+                    </form><br>
+                    <label for="inputAddress2" class="form-label" style="font-weight: 600;">Continuar
+                        con</label>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                        <button class="btn btn-primary me-md-2" type="button">
-                            <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-google.png"
-                                alt="Google" width="30" class="me-1">Google
-                        </button>
-                        <button class="btn btn-primary" type="button">
-                            <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-facebook2.png"
-                                alt="Facebook" width="30" class="me-1">Facebook
-                        </button>
+                        <button class="btn btn-primary me-md-2" type="button"><img
+                                src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-google.png"
+                                alt="" width="30px" style="padding-right: 4px;">Google</button>
+                        <button class="btn btn-primary" type="button"><img
+                                src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-facebook2.png"
+                                alt="" width="30px" style="padding-right: 4px;">Facebook</button>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal"
-                        data-bs-target="#register">Registrarse</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close"
+                        data-bs-toggle="modal" data-bs-target="#register">Registrarse</button>
                 </div>
             </div>
         </div>
     </div>
+    <!--FIN MODAL INICION SESION-->
 
-    <!-- ============================= -->
-    <!-- MODAL REGISTER -->
-    <div class="modal fade" id="register" tabindex="-1" aria-labelledby="registerLabel" aria-hidden="true">
+    <!--MODAL REGISTRARSE-->
+    <div class="modal fade" id="register" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content modal-custom">
+            <div class="modal-content"
+                style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="registerLabel">Registrar</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Registrar</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form class="row g-3">
                         <div class="col-md-6">
-                            <label for="nombre" class="form-label">Nombre Completo</label>
-                            <input type="text" class="form-control" id="nombre" required>
+                            <label for="inputEmail4" class="form-label">Nombre Completo</label>
+                            <input type="text" class="form-control" id="Nombre" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="apellidos" class="form-label">Apellidos</label>
-                            <input type="text" class="form-control" id="apellidos" required>
+                            <label for="inputPassword4" class="form-label">Apellidos</label>
+                            <input type="text" class="form-control" id="Apellidos" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="correo" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="correo" required>
+                            <label for="inputEmail4" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="inputEmail4" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="pass" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="pass" required>
+                            <label for="inputPassword4" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="inputPassword4" required>
                         </div>
                         <div class="col-12">
-                            <label for="direccion1" class="form-label">Dirección</label>
-                            <input type="text" class="form-control" id="direccion1" placeholder="Av. Grau 123" required>
+                            <label for="inputAddress" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="inputAddress" placeholder="Av. Grau 123"
+                                required>
                         </div>
                         <div class="col-12">
-                            <label for="direccion2" class="form-label">Dirección 2 (Opcional)</label>
-                            <input type="text" class="form-control" id="direccion2"
-                                placeholder="Apartamento, estudio o piso">
+                            <label for="inputAddress2" class="form-label">Dirección 2 (Opcional)</label>
+                            <input type="text" class="form-control" id="inputAddress2"
+                                placeholder="Apartamento, estudio o piso" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="ciudad" class="form-label">Ciudad</label>
-                            <input type="text" class="form-control" id="ciudad" required>
+                            <label for="inputCity" class="form-label">Ciudad</label>
+                            <input type="text" class="form-control" id="inputCity" required>
                         </div>
                         <div class="col-md-4">
-                            <label for="edad" class="form-label">Edad</label>
-                            <input type="number" class="form-control" id="edad" required>
+                            <label for="inputEmail4" class="form-label">Edad</label>
+                            <input type="number" class="form-control" id="inputEmail4" required>
                         </div>
                         <div class="col-12">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="terminos" required>
-                                <label class="form-check-label" for="terminos">Aceptar Términos y Condiciones</label>
+                                <input class="form-check-input" type="checkbox" id="gridCheck" required>
+                                <label class="form-check-label" for="gridCheck">
+                                    Aceptar Terminos y Condiciones
+                                </label>
                             </div>
                         </div>
-                        <div class="col-12 text-end">
-                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal"
-                                data-bs-toggle="modal" data-bs-target="#login">Regresar</button>
-                            <button type="submit" class="btn btn-primary">Confirmar</button>
-                        </div>
-                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-bs-toggle="modal"
+                        data-bs-target="#login">Regresar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar</button>
                 </div>
             </div>
         </div>
     </div>
-    <!--MODAL 1 DE CATEGORIAS-->
+    <!--FIN MODAL REGISTRARSE-->
 
+    <!-- CONTENIDO CATEGORIA-->
     <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat1" aria-labelledby="cat1"
         style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
         <div class="offcanvas-header"
@@ -424,11 +430,9 @@
             </ul>
         </div>
     </div>
-    <!--FIN MODAL 1 DE CATEGORIAS-->
+    <!-- FIN CONTENIDO CATEGORIA-->
 
-
-    <!--MODAL 2 DE CATEGORIAS-->
-
+    <!--CONTENIDO CATEGORIA-POST-->
     <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat2" aria-labelledby="cat2"
         style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
 
@@ -480,8 +484,26 @@
                     width="25px">Volver</button>
         </div>
     </div>
+    <!--FIN CONTENIDO CATEGORIA-POST-->
 
-    <!-- FIN MODAL 2 DE CATEGORIAS-->
+    <!--CONTENIDO BOT-->
+    <div id="chatbot-container">
+        <div id="chat-header">
+            <div class="brand">
+                <div class="logo">SZ</div>
+                <div>SmartZoneBot</div>
+            </div>
+            <div id="close-chat">✕</div>
+        </div>
+        <div id="chat-body"></div>
+        <div id="chat-footer">
+            <input id="user-input" type="text" placeholder="Escribe tu consulta...">
+            <button id="send-btn">➤</button>
+        </div>
+    </div>
+    <button id="chat-toggle"><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/logo-bot.svg"
+            class="card-img-top" width="10" height="30" alt="Bot"></button>
+    <!--FIN CONTENIDO BOT-->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Js/Chat-Bot.js"></script>
