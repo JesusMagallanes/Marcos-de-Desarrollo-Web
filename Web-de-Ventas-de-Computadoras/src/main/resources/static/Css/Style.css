@@ -106,8 +106,12 @@
 .card:hover {
   transition: 350ms;
   border-color: #06b56c;
-  transform: scale(1.025);
+  transform: scale(1.005);
   box-shadow: 0px 4px 10px #048f5532;
+}
+
+.card.no-hover:hover {
+  transform: none !important;
 }
 
 .modal .form-control {
@@ -115,6 +119,35 @@
   backdrop-filter: blur(20px);
 }
 
+.imgprod img {
+  padding: 30px;
+}
+
+.spec-box {
+  box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179);
+  margin: 0 auto;
+  max-height: 200px;
+  max-width: 500px;
+  overflow-y: auto;
+  border: 3px solid #BDC3C7;
+  border-radius: 8px;
+}
+
+.enviospend{
+  border: 3px solid #eaebea;
+  box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.382);
+  border-radius: 14px;
+  padding: 15px;
+}
+
+.dropdown-menu .dropdown-item:active {
+  background-color: #198754 !important;
+  color: white !important;
+}
+
+.dropdown-menu {
+    z-index: 2000;
+  }
 #carousel-resena .carousel-control-prev-icon,
 #carousel-resena .carousel-control-next-icon {
   background-color: black;
