@@ -30,6 +30,7 @@ function appendBotWelcome() {
         <button data-q="laptops">💻 Laptops</button>
         <button data-q="monitores">🖥️ Monitores</button>
         <button data-q="celulares">📱 Celulares</button>
+        <button data-q="consolas">🎮 Consolas</button>
         <button data-q="ofertas">🔥 Ofertas</button>
         <button data-q="envíos">🚚 Envíos</button>
         <button data-q="pagos">💳 Pagos</button>
@@ -65,6 +66,40 @@ function getBotResponse(input) {
         `;
     }
 
+    // Consolas
+    if (input.includes('consola') || input.includes('consolas')) {
+        return `
+        🎮 <b>Top Consolas:</b><br><br>
+        🔹 <b>Nintendo Switch (OLED Model)</b><br>
+        📺 Pantalla: OLED de 7"<br>
+        💾 Almacenamiento: 64 GB<br>
+        🎮 Modo: Portátil y Sobremesa<br>
+        🕹️ Incluye: 2 Joy-Cons<br>
+        💲 Precio: <b>S/ 1,699</b><br><br>
+
+        🔹 <b>PlayStation 5 Slim Edition</b><br>
+        💾 Almacenamiento: 1 TB SSD<br>
+        📺 Resolución: 4K UHD<br>
+        🎮 Modo: Sobremesa<br>
+        🕹️ Incluye: 1 Control DualSense<br>
+        💲 Precio: <b>S/ 3,299</b><br><br>
+
+        🔹 <b>Xbox Series S</b><br>
+        💾 Almacenamiento: 1 TB SSD<br>
+        📺 Resolución: 4K UHD / 8K Ready<br>
+        🎮 Modo: Sobremesa<br>
+        🕹️ Incluye: 1 Control Xbox Wireless<br>
+        💲 Precio: <b>S/ 2,999</b><br><br>
+
+        🔹 <b>Steam Deck OLED</b><br>
+        📺 Pantalla: OLED de 7.4"<br>
+        💾 Almacenamiento: 512 GB NVMe SSD<br>
+        🎮 Modo: Portátil<br>
+        ⚙️ Sistema: SteamOS<br>
+        💲 Precio: <b>S/ 2,499</b><br><br>
+        👉 Elige una consola para más detalles.
+        `;
+    }
     // Laptops
     if (input.includes('laptop') || input.includes('laptops')) {
         return `
