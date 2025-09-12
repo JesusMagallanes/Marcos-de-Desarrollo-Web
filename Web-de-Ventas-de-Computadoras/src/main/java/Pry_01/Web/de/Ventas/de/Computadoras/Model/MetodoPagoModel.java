@@ -8,8 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "tipo_Pago")
-public class TipoPagoMode {
+@Table(name = "metodopago")
+public class MetodoPagoModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,10 +20,10 @@ public class TipoPagoMode {
     @Column(nullable = false, length = 200)
     private String description;
 
-    public TipoPagoMode() {
+    public MetodoPagoModel() {
     }
 
-    public TipoPagoMode(String name, String description) {
+    public MetodoPagoModel(String name, String description) {
         this.name = name;
         this.description = description;
     }
