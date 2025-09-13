@@ -14,7 +14,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
@@ -53,19 +52,13 @@ public class DetallePedidoModel {
         return creadoEn;
     }
 
-    @PrePersist
-    @PreUpdate
-    private void calcularTotal(){
-        if(precioUnitario != null && cantidad != null){
-            this.total=precioUnitario.multiply(new BigDecimal(cantidad));
-        }
-    }
     public DetallePedidoModel(){}
-    public DetallePedidoModel( PedidoModel pedido, ProductoModel producto, Integer cantidad, BigDecimal precioUnitario){
+    public DetallePedidoModel( PedidoModel pedido, ProductoModel producto, Integer cantidad, BigDecimal precioUnitario, BigDecimal total){
         this.pedido=pedido;
         this.producto=producto;
         this.cantidad=cantidad;
         this.precioUnitario=precioUnitario;
+        this.total=total;
     }
 
     public Long getId() {
@@ -102,7 +95,7 @@ public class DetallePedidoModel {
         return total;
     }
     public void setTotal(BigDecimal total) {
-        this.total = total;
+        this.total = precioUnitario.multiply(new BigDecimal(cantidad));
     }
     public void setCreadoEn(LocalDateTime creadoEn) {
         this.creadoEn = creadoEn;

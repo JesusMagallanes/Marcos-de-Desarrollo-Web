@@ -6,27 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>SmartZone</title>
-    <link rel="stylesheet" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Css/Style.css">
-    <link rel="icon" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/img.png">
-    <link rel="stylesheet" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Css/Chat-Bot.css">
+    <link rel="stylesheet" href="/css/Style.css">
+    <link rel="icon" href="/Img/img.png">
+    <link rel="stylesheet" href="/css/Chat-Bot.css">
 </head>
 
 <body class="d-flex flex-column h-100">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-2">
         <div class="container-fluid">
             <a class="navbar-brand" href="Index.html">
-                <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/logo.png" alt="Logo"
+                <img src="/Img/logo.png" alt="Logo"
                     width="me-auto" height="35px">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#opciones">
-                <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-burguer.svg" width="40px"
+                <img src="/Img/icon-burguer.svg" width="40px"
                     alt="Menú">
             </button>
-            <div class="collapse navbar-collapse" id="opciones">
 
+            <div class="collapse navbar-collapse" id="opciones">
                 <a class="btn btn-primary me-2" data-bs-toggle="offcanvas" href="#cat1" role="button"
-                    aria-controls="cat1" style="margin-top: 10px;
-    margin-bottom: 10px;">
+                    aria-controls="cat1" style="margin-top: 10px; margin-bottom: 10px;">
                     Categorías
                 </a>
 
@@ -41,148 +40,58 @@
                     Sesión</a>
 
                 <a class="btn btn-outline-light" href="Carrito.html"><img
-                        src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Carrito.svg"
+                        src="/Img/Icon-Carrito.svg"
                         alt="Carrito" width="35"></a>
             </div>
         </div>
     </nav>
 
-    <main class="flex-shrink-0 my-4">
-        <div class="container">
-            <h3 class="mb-4">Gestionar envíos</h3>
-
-            <div class="enviospend">
-                <h4 class="mb-3">Envíos pendientes</h4>
-
-                <div class="card no-hover mb-3">
-                    <div class="row g-0 align-items-center">
-                        <!-- Producto -->
-                        <div class="col-md-4 d-flex align-items-center p-3">
-                            <img src="https://media.falabella.com/falabellaPE/143189901_01/w=1500,h=1500,fit=pad"
-                                class="img-fluid me-3" style="max-width: 100px;" alt="asus">
-                            <div>
-                                <h6 class="fw-bold">Laptop Asus Tuf F15 Gaming FX507VV-LP142</h6>
-                                <small class="text-muted">Av. Javier Prado Este 1234, San Borja, Lima, Perú</small>
-                            </div>
-                        </div>
-
-                        <!-- Fecha -->
-                        <div class="col-md-4 p-3 d-flex justify-content-center">
-                            <form>
-                                <h6 class="fw-bold mb-2">Programar Fecha:</h6>
-                                <div class="input-group">
-                                    <input type="date" class="form-control" id="fecha" name="fecha">
-                                    <button class="btn btn-primary" type="submit">Subir</button>
-                                </div>
-                            </form>
-                        </div>
-
-                        <!-- Estado -->
-                        <div class="col-md-4 p-3 d-flex justify-content-center">
-                            <div class="dropdown">
-                                <h6 class="fw-bold mb-2">Establecer Estado:</h6>
-                                <button class="btn btn-secondary dropdown-toggle" type="button"
-                                    data-bs-toggle="dropdown" data-bs-display="static">
-                                    Estado: Pendiente
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="">Pendiente</a></li>
-                                    <li><a class="dropdown-item" href="">En camino</a></li>
-                                    <li><a class="dropdown-item" href="">Entregado</a></li>
-                                </ul>
-                            </div>
-                        </div>
+    <main class="flex-shrink-0" style="margin: 30px;">
+        <div id="product-root" class="container text-center"
+            style="background-color: white; padding: 10px; border-radius: 10px; box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179)">
+            <!-- Aquí se inyecta todo el contenido dinámico -->
+        </div>
+        <div id="payments-placeholder" style="display:none;">
+            <div class="container text-center mt-4">
+                <div class="row justify-content-center">
+                    <div class="col-4 col-md-2">
+                        <img src="https://images.seeklogo.com/logo-png/39/3/yape-app-logo-png_seeklogo-399697.png"
+                            width="60px" class="img-fluid rounded" alt="yape">
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <img src="https://img.icons8.com/?size=512&id=13608&format=png" width="60px"
+                            class="img-fluid rounded" alt="visa">
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/88/MasterCard_early_1990s_logo.svg"
+                            width="60px" style="margin-top: 15px;" class="img-fluid rounded" alt="mastercard">
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaft1EtwutCeXGzg0hfXfXubaH1jXMJeb-Rg&s"
+                            width="60px" class="img-fluid rounded" alt="paypal">
                     </div>
                 </div>
-
-                <div class="card no-hover mb-3">
-                    <div class="row g-0 align-items-center">
-                        <!-- Producto -->
-                        <div class="col-md-4 d-flex align-items-center p-3">
-                            <img src="https://media.falabella.com/falabellaPE/143189901_01/w=1500,h=1500,fit=pad"
-                                class="img-fluid me-3" style="max-width: 100px;" alt="asus">
-                            <div>
-                                <h6 class="fw-bold">Laptop Asus Tuf F15 Gaming FX507VV-LP142</h6>
-                                <small class="text-muted">Av. Javier Prado Este 1234, San Borja, Lima, Perú</small>
-                            </div>
-                        </div>
-
-                        <!-- Fecha -->
-                        <div class="col-md-4 p-3 d-flex justify-content-center">
-                            <form>
-                                <h6 class="fw-bold mb-2">Programar Fecha:</h6>
-                                <div class="input-group">
-                                    <input type="date" class="form-control" id="fecha" name="fecha">
-                                    <button class="btn btn-primary" type="submit">Subir</button>
-                                </div>
-                            </form>
-                        </div>
-
-                        <!-- Estado -->
-                        <div class="col-md-4 p-3 d-flex justify-content-center">
-                            <div class="dropdown">
-                                <h6 class="fw-bold mb-2">Establecer Estado:</h6>
-                                <button class="btn btn-secondary dropdown-toggle" type="button"
-                                    data-bs-toggle="dropdown" data-bs-display="static">
-                                    Estado: Pendiente
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="">Pendiente</a></li>
-                                    <li><a class="dropdown-item" href="">En camino</a></li>
-                                    <li><a class="dropdown-item" href="">Entregado</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+            </div>
+        </div>
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/img.png" class="rounded me-2"
+                        height="20px" alt="SmartZone">
+                    <strong class="me-auto">Notificación Carrito</strong>
+                    <small class="text-muted" id="toastTime">ahora</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
-
-                <div class="card no-hover mb-3">
-                    <div class="row g-0 align-items-center">
-                        <!-- Producto -->
-                        <div class="col-md-4 d-flex align-items-center p-3">
-                            <img src="https://media.falabella.com/falabellaPE/143189901_01/w=1500,h=1500,fit=pad"
-                                class="img-fluid me-3" style="max-width: 100px;" alt="asus">
-                            <div>
-                                <h6 class="fw-bold">Laptop Asus Tuf F15 Gaming FX507VV-LP142</h6>
-                                <small class="text-muted">Av. Javier Prado Este 1234, San Borja, Lima, Perú</small>
-                            </div>
-                        </div>
-
-                        <!-- Fecha -->
-                        <div class="col-md-4 p-3 d-flex justify-content-center">
-                            <form>
-                                <h6 class="fw-bold mb-2">Programar Fecha:</h6>
-                                <div class="input-group">
-                                    <input type="date" class="form-control" id="fecha" name="fecha">
-                                    <button class="btn btn-primary" type="submit">Subir</button>
-                                </div>
-                            </form>
-                        </div>
-
-                        <!-- Estado -->
-                        <div class="col-md-4 p-3 d-flex justify-content-center">
-                            <div class="dropdown">
-                                <h6 class="fw-bold mb-2">Establecer Estado:</h6>
-                                <button class="btn btn-secondary dropdown-toggle" type="button"
-                                    data-bs-toggle="dropdown" data-bs-display="static">
-                                    Estado: Pendiente
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="">Pendiente</a></li>
-                                    <li><a class="dropdown-item" href="">En camino</a></li>
-                                    <li><a class="dropdown-item" href="">Entregado</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                <div class="toast-body" id="toastMessage">
+                    <!-- aquí se pondrá el mensaje -->
                 </div>
-
             </div>
         </div>
     </main>
     <footer class="bg-dark text-light pt-4 mt-auto">
         <div class="container">
-            <div class="row"><!-- Columna 1 -->
+            <div class="row">
+                <!-- Columna 1 -->
                 <div class="col-md-4 mb-3">
                     <h6 style="color: var(--bs-primary);">SmartZone</h6>
                     <p>Innovación y exclusividad en productos tecnológicos.</p>
@@ -191,25 +100,24 @@
                 <!-- Columna 2 -->
                 <div class="col-md-4 mb-3 text-center">
                     <h6>Sobre Nosotros</h6>
-                    <a href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Html/Somos.html">¿Quiénes somos?
+                    <a href="Somos.html">¿Quiénes somos?
                     </a> <br>
-                    <a href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Html/Canales-De-Atención.html">Canales
+                    <a href="Canales-De-Atención.html">Canales
                         de Atención</a>
                 </div>
                 <!-- Columna 3 -->
                 <div class="col-md-4 mb-3 text-center">
                     <h6>Redes Sociales</h6>
                     <a href="https://www.facebook.com/"><img
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Facebook.svg"
+                            src="Img/Icon-Facebook.svg"
                             alt="Facebook"></a>
                     <a href="https://www.instagram.com/"><img
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Instagram.svg"
+                            src="Img/Icon-Instagram.svg"
                             alt="Instragram"></a>
                     <a href="https://www.tiktok.com/es/"><img
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-TikTok.svg"
+                            src="Img/Icon-TikTok.svg"
                             alt="Tiktok"></a>
                 </div>
-
             </div>
             <div class="text-center py-3 border-top border-secondary">
                 &copy; 2025 SmartZone
@@ -217,11 +125,12 @@
         </div>
     </footer>
 
+
     <!--MODAL INICION SESION-->
     <div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content"
-                style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
+                style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
                 <div class="modal-header">
                     <h1 class="modal-title fs-5" id="exampleModalLabel">Inicia Sesión</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -250,10 +159,10 @@
                         con</label>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                         <button class="btn btn-primary me-md-2" type="button"><img
-                                src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-google.png"
+                                src="Img/icon-google.png"
                                 alt="" width="30px" style="padding-right: 4px;">Google</button>
                         <button class="btn btn-primary" type="button"><img
-                                src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-facebook2.png"
+                                src="Img/icon-facebook2.png"
                                 alt="" width="30px" style="padding-right: 4px;">Facebook</button>
                     </div>
                 </div>
@@ -271,7 +180,7 @@
     <div class="modal fade" id="register" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content"
-                style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
+                style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
                 <div class="modal-header">
                     <h1 class="modal-title fs-5" id="exampleModalLabel">Registrar</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -300,9 +209,9 @@
                                 required>
                         </div>
                         <div class="col-12">
-                            <label for="inputAddress2" class="form-label">Dirección 2 (Opcional)</label>
-                            <input type="text" class="form-control" id="inputAddress2"
-                                placeholder="Apartamento, estudio o piso" required>
+                            <label for="inputAddress2" class="form-label">Teléfono</label>
+                            <input class="form-control" id="inputAddress2"
+                                placeholder="Ingrese su número telefónico" required>
                         </div>
                         <div class="col-md-6">
                             <label for="inputCity" class="form-label">Ciudad</label>
@@ -334,7 +243,7 @@
 
     <!-- CONTENIDO CATEGORIA-->
     <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat1" aria-labelledby="cat1"
-        style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
+        style="background-image: url(Img/fond-pest.png);">
         <div class="offcanvas-header"
             style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
             <h5 class="offcanvas-title text-light" id="cat1">Categorías</h5>
@@ -349,14 +258,14 @@
                         style="border: none; margin-bottom: 8px;" data-bs-toggle="offcanvas" href="#cat2" role="button"
                         aria-controls="cat2">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-laptop.svg"
+                            src="Img/icon-laptop.svg"
                             alt="Pc">Laptops</button>
                 </li>
                 <li>
                     <button type="button" class="btn btn-outline-success text-light"
                         style="border: none; margin-bottom: 8px;">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-pc.svg"
+                            src="Img/icon-pc.svg"
                             alt="Laptop">Computadoras
                     </button>
                 </li>
@@ -365,7 +274,7 @@
                     <button type="button" class="btn btn-outline-success text-light"
                         style="border: none; margin-bottom: 8px;">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-consola.svg"
+                            src="Img/icon-consola.svg"
                             alt="Consolas">Consolas
                     </button>
                 </li>
@@ -374,7 +283,7 @@
                     <button type="button" class="btn btn-outline-success text-light"
                         style="border: none; margin-bottom: 8px;">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-game.svg"
+                            src="Img/icon-game.svg"
                             alt="Videojuegos">Videojuegos
                     </button>
                 </li>
@@ -383,18 +292,23 @@
                     <button type="button" class="btn btn-outline-success text-light"
                         style="border: none; margin-bottom: 8px;">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-celular.svg"
+                            src="Img/icon-celular.svg"
                             alt="Celulares">Celulares
                     </button>
                 </li>
             </ul>
+            <div class="d-flex justify-content-center">
+                <a href="Gest-Envios.html">
+                    <button type="button" class="btn btn-primary">Gestionar Envíos</button>
+                </a>
+            </div>
         </div>
     </div>
     <!-- FIN CONTENIDO CATEGORIA-->
 
     <!--CONTENIDO CATEGORIA-POST-->
     <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat2" aria-labelledby="cat2"
-        style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
+        style="background-image: url(Img/fond-pest.png);">
 
         <div class="offcanvas-header"
             style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
@@ -440,7 +354,7 @@
         <div class="d-grid gap-2 col-5 mx-auto">
             <button class="btn btn-primary" data-bs-toggle="offcanvas" href="#cat1" type="button"><img
                     style="filter: invert(1);;"
-                    src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/arrox-left.svg" alt="volver"
+                    src="Img/arrox-left.svg" alt="volver"
                     width="25px">Volver</button>
         </div>
     </div>
@@ -461,14 +375,13 @@
             <button id="send-btn">➤</button>
         </div>
     </div>
-    <button id="chat-toggle"><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/logo-bot.svg"
+    <button id="chat-toggle"><img src="Img/logo-bot.svg"
             class="card-img-top" width="10" height="30" alt="Bot"></button>
     <!--FIN CONTENIDO BOT-->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Js/Chat-Bot.js"></script>
     <script src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Js/Productos-Det.js"></script>
-
 </body>
 
 </html>

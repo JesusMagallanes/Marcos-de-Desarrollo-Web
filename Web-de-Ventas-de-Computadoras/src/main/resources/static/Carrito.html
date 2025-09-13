@@ -5,28 +5,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/Style.css">
+    <link rel="icon" href="/Img/img.png">
+    <link rel="stylesheet" href="/css/Chat-Bot.css">
     <title>SmartZone</title>
-    <link rel="stylesheet" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Css/Style.css">
-    <link rel="icon" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/img.png">
-    <link rel="stylesheet" href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Css/Chat-Bot.css">
 </head>
 
-<body class="d-flex flex-column h-100">
+<body class="d-flex flex-column min-vh-100">
+    <!-- NAV -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-2">
         <div class="container-fluid">
             <a class="navbar-brand" href="Index.html">
-                <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/logo.png" alt="Logo"
+                <img src="/Img/logo.png" alt="Logo"
                     width="me-auto" height="35px">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#opciones">
-                <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-burguer.svg" width="40px"
+                <img src="/Img/icon-burguer.svg" width="40px"
                     alt="Menú">
             </button>
-            <div class="collapse navbar-collapse" id="opciones">
 
+            <div class="collapse navbar-collapse" id="opciones">
                 <a class="btn btn-primary me-2" data-bs-toggle="offcanvas" href="#cat1" role="button"
-                    aria-controls="cat1" style="margin-top: 10px;
-    margin-bottom: 10px;">
+                    aria-controls="cat1" style="margin-top: 10px; margin-bottom: 10px;">
                     Categorías
                 </a>
 
@@ -36,142 +36,167 @@
                         aria-label="Search">
                     <button class="btn btn-outline-success" type="submit">Buscar</button>
                 </form>
+
                 <a class="btn btn-outline-success me-2" href="#" data-bs-toggle="modal" data-bs-target="#login">Iniciar
                     Sesión</a>
 
                 <a class="btn btn-outline-light" href="Carrito.html"><img
-                        src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Carrito.svg"
+                        src="/Img/Icon-Carrito.svg"
                         alt="Carrito" width="35"></a>
             </div>
         </div>
     </nav>
+    <main>
+        <div class="container my-4">
+            <div class="row">
 
-    <div class="container-fluid p-0">
-        <section class="canales-de-atencion">
-            <div class="row ">
-                <div class="col text-start">
-                    <h5>Canales de Atención</h5>
-                    <p>Comunícate con nosotros, estamos dispuestos a ayudarte
-                        para que tu compra tenga la mejor experiencia posible.
-                    </p>
-                </div>
-            </div>
-            <div class="canales">
-                <div class="row row-cols-1 row-cols-lg-4 g-4">
-                    <div class="col">
-                        <div class="card h-100 ">
-                            <br>
-                            <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-Whatsapp.svg"
-                                class="card-img-top" width="50px" height="40" alt="Whatsapp"><br>
-                            <div class="card-body">
-                                <h5 class="card-title">WhatsApp</h5>
-                                <p class="card-text">Ofrecemos atención personalizada a través de WhatsApp para resolver
-                                    tus dudas, brindarte asesoría y acompañarte en cada paso de tu compra de manera
-                                    rápida y sencilla.</p><br><br>
-                                <p class="card-text" style="margin-bottom: -1px;"><small
-                                        class="text-body-secondary">Horario de atención:</small></p>
-                                <small class="text-body-secondary">Lunes a Sábado de 8 a.m. a 8 p.m.</small></p>
-                                <div class="detalle">
-                                    <p class="card-texts"><small class="text-body-det">+51 987 654 321</small></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100"><br>
-                            <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-Email.svg"
-                                class="card-img-top" width="50px" height="40" alt="Email">
-                            <div class="card-body"><br>
-                                <h5 class="card-title">Correo Electrónico</h5>
-                                <p class="card-text">Brindamos atención directa también por correo electrónico, donde
-                                    podrás enviarnos tus consultas, solicitudes o comentarios y recibirás una respuesta
-                                    personalizada en el menor tiempo posible.</p><br><br>
-                                <p class="card-text" style="margin-bottom: -1px;"><small
-                                        class="text-body-secondary">Horario de atención:</small></p>
-                                <small class="text-body-secondary">Lunes a Sábado todo el día.</small></p>
-                                <div class="detalle">
-                                    <p class="card-texts"><small class="text-body-det">soporte@smartzone.com</small></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100"><br>
-                            <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-Redes.svg"
-                                class="card-img-top" width="50px" height="40" alt="Redes">
-                            <div class="card-body"><br>
-                                <h5 class="card-title">Redes Sociales</h5>
-                                <p class="card-text">Síguenos en nuestras redes sociales para mantenerte al día con
-                                    nuestras novedades, promociones exclusivas y contenidos pensados para ti.</p>
-                                <br><br>
-                                <p class="card-text" style="margin-bottom: -1px;">
-                                    <small class="text-body-secondary">Horario de atención:</small>
-                                </p>
-                                <small class="text-body-secondary">Lunes a Viernes de 9 a.m. a 8 p.m. <br>Sábado y
-                                    Domingo de 10 a.m. a 6 p.m.</small></p>
+                <!-- Carrito -->
+                <div class="col-md-8">
+                    <div class="card mb-3" style="height: 400px ;overflow-y: auto;">
+                        <div class="card-body">
 
-                                <div class="detalle">
-                                    <div class="container">
-                                        <div class="row">
-                                            <div class="col-md-4 mb-3">
-                                                <p class="card-texts d-flex align-items-center"><a
-                                                        href="https://www.facebook.com/"
-                                                        class="text-decoration-none"><small class="text-body-det"
-                                                            style="padding-right: 10px;">Facebook</small><img
-                                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Facebook.svg"
-                                                            alt="Facebook"></a></p>
-                                            </div>
-                                            <div class="col-md-4 mb-3">
-                                                <p class="card-texts d-flex align-items-center"><a
-                                                        href="https://www.instagram.com/"
-                                                        class="text-decoration-none"><small class="text-body-det"
-                                                            style="padding-right: 10px;;">Instagram</small><img
-                                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Instagram.svg"
-                                                            alt="Facebook"></a></p>
-                                            </div>
-                                            <div class="col-md-4 mb-3">
-                                                <p class="card-texts d-flex align-items-center"><a
-                                                        href="https://www.tiktok.com/es/"
-                                                        class="text-decoration-none"><small class="text-body-det"
-                                                            style="padding-right: 10px;">Tiktok</small><img
-                                                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-TikTok.svg"
-                                                            alt="Facebook"></a></p>
-                                            </div>
-                                        </div>
+                            <!-- Texto encima del producto -->
+                            <small class="text-muted">Productos del
+                                <span class="text-success fw-bold">Carrito</span>
+                            </small>
+                            <hr>
+
+                            <!-- Producto -->
+                            <div class="row align-items-center">
+
+                                <!-- Imagen de producto -->
+                                <div class="col-2 text-center">
+                                    <input type="checkbox" checked class="form-check-input mb-2">
+                                    <img src="https://media.falabella.com/falabellaPE/143189901_01/w=1500,h=1500,fit=pad"
+                                        class="img-fluid" style="max-height:80px; object-fit:contain;" alt="Producto">
+                                </div>
+
+                                <!-- Informacion de producto -->
+                                <div class="col-6">
+                                    <h6 class="mb-1 fw-bold">Laptop Asus Tuf F15 Gaming FX507VV-LP142</h6>
+                                    <p class="mb-1 text-muted">ASUS</p>
+                                    <p class="mb-1"><strong>Color:</strong> Negro</p>
+                                    <span class="badge bg-light text-success border">Llega mañana</span>
+                                    <span class="badge bg-light text-success border">Retira hoy</span>
+                                </div>
+
+                                <!-- Precio del producto -->
+                                <div class="col-4 text-end">
+                                    <h5 class="fw-bold text-danger mb-1">S/ 189</h5>
+
+                                    <!-- Contador de productos -->
+                                    <div class="d-flex justify-content-end align-items-center mt-2">
+                                        <button class="btn btn-sm btn-outline-secondary">-</button>
+                                        <input type="text" value="1"
+                                            class="form-control form-control-sm text-center mx-2" style="width:50px;">
+                                        <button class="btn btn-sm btn-outline-secondary">+</button>
                                     </div>
+                                    <small class="text-muted">Máx 10 unidades</small>
                                 </div>
+
                             </div>
+                            <hr>
+                            <div class="row align-items-center">
 
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100"><br>
-                            <img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-Phone.svg"
-                                class="card-img-top" width="50px" height="40" alt="Phone">
-                            <div class="card-body"><br>
-                                <h5 class="card-title">Telefónica</h5>
-                                <p class="card-text">Contamos con atención telefónica para brindarte soporte
-                                    inmediato,
-                                    resolver tus dudas y asesorarte de manera personalizada.</p>
-                                <br><br>
-
-                                <p class="card-text" style="margin-bottom: -1px;">
-                                    <small class="text-body-secondary">Horario de atención:</small>
-                                </p>
-                                <small class="text-body-secondary">Lunes y Martes de 8 a.m. a 6 p.m. <br>
-                                    Miércoles a Viernes de 10 a.m. a 6 p.m.</small></p>
-
-                                <div class="detalle">
-                                    <p class="card-texts"><small class="text-body-det">011-51-84-123456</small>
-                                    </p>
+                                <!-- Imagen de producto -->
+                                <div class="col-2 text-center">
+                                    <input type="checkbox" checked class="form-check-input mb-2">
+                                    <img src="https://media.falabella.com/falabellaPE/143189901_01/w=1500,h=1500,fit=pad"
+                                        class="img-fluid" style="max-height:80px; object-fit:contain;" alt="Producto">
                                 </div>
+
+                                <!-- Informacion de producto -->
+                                <div class="col-6">
+                                    <h6 class="mb-1 fw-bold">Laptop Asus Tuf F15 Gaming FX507VV-LP142</h6>
+                                    <p class="mb-1 text-muted">ASUS</p>
+                                    <p class="mb-1"><strong>Color:</strong> Negro</p>
+                                    <span class="badge bg-light text-success border">Llega mañana</span>
+                                    <span class="badge bg-light text-success border">Retira hoy</span>
+                                </div>
+
+                                <!-- Precio del producto -->
+                                <div class="col-4 text-end">
+                                    <h5 class="fw-bold text-danger mb-1">S/ 189</h5>
+
+                                    <!-- Contador de productos -->
+                                    <div class="d-flex justify-content-end align-items-center mt-2">
+                                        <button class="btn btn-sm btn-outline-secondary">-</button>
+                                        <input type="text" value="1"
+                                            class="form-control form-control-sm text-center mx-2" style="width:50px;">
+                                        <button class="btn btn-sm btn-outline-secondary">+</button>
+                                    </div>
+                                    <small class="text-muted">Máx 10 unidades</small>
+                                </div>
+
+                            </div>
+                            <hr>
+                            <div class="row align-items-center">
+
+                                <!-- Imagen de producto -->
+                                <div class="col-2 text-center">
+                                    <input type="checkbox" checked class="form-check-input mb-2">
+                                    <img src="https://media.falabella.com/falabellaPE/143189901_01/w=1500,h=1500,fit=pad"
+                                        class="img-fluid" style="max-height:80px; object-fit:contain;" alt="Producto">
+                                </div>
+
+                                <!-- Informacion de producto -->
+                                <div class="col-6">
+                                    <h6 class="mb-1 fw-bold">Laptop Asus Tuf F15 Gaming FX507VV-LP142</h6>
+                                    <p class="mb-1 text-muted">ASUS</p>
+                                    <p class="mb-1"><strong>Color:</strong> Negro</p>
+                                    <span class="badge bg-light text-success border">Llega mañana</span>
+                                    <span class="badge bg-light text-success border">Retira hoy</span>
+                                </div>
+
+                                <!-- Precio del producto -->
+                                <div class="col-4 text-end">
+                                    <h5 class="fw-bold text-danger mb-1">S/ 189</h5>
+
+                                    <!-- Contador de productos -->
+                                    <div class="d-flex justify-content-end align-items-center mt-2">
+                                        <button class="btn btn-sm btn-outline-secondary">-</button>
+                                        <input type="text" value="1"
+                                            class="form-control form-control-sm text-center mx-2" style="width:50px;">
+                                        <button class="btn btn-sm btn-outline-secondary">+</button>
+                                    </div>
+                                    <small class="text-muted">Máx 10 unidades</small>
+                                </div>
+
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Resumen de la orden -->
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <h6 class="fw-bold mb-3">Resumen de la orden</h6>
+
+                        <div class="d-flex justify-content-between">
+                            <span>Productos (1)</span>
+                            <span>S/ 199</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total:</span>
+                            <span class="text-primary">S/ 189</span>
+                        </div>
+
+                        <button class="btn btn-dark w-100 rounded-pill mt-3">Continuar compra</button>
+                    </div>
+
+                    <div class="alert alert-light text-center mt-3 border">
+                        <strong>¡Ahora puedes pagar con Yape!</strong>
+                    </div>
+                </div>
+
             </div>
-    </div>
+        </div>
+
+
+
+
+    </main>
 
     <footer class="bg-dark text-light pt-4 mt-auto">
         <div class="container">
@@ -185,25 +210,24 @@
                 <!-- Columna 2 -->
                 <div class="col-md-4 mb-3 text-center">
                     <h6>Sobre Nosotros</h6>
-                    <a href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Html/Somos.html">¿Quiénes somos?
+                    <a href="Somos.html">¿Quiénes somos?
                     </a> <br>
-                    <a href="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Html/Canales-De-Atención.html">Canales
+                    <a href="Canales-De-Atención.html">Canales
                         de Atención</a>
                 </div>
                 <!-- Columna 3 -->
                 <div class="col-md-4 mb-3 text-center">
                     <h6>Redes Sociales</h6>
                     <a href="https://www.facebook.com/"><img
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Facebook.svg"
+                            src="Img/Icon-Facebook.svg"
                             alt="Facebook"></a>
                     <a href="https://www.instagram.com/"><img
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-Instagram.svg"
+                            src="Img/Icon-Instagram.svg"
                             alt="Instragram"></a>
                     <a href="https://www.tiktok.com/es/"><img
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/Icon-TikTok.svg"
+                            src="Img/Icon-TikTok.svg"
                             alt="Tiktok"></a>
                 </div>
-
             </div>
             <div class="text-center py-3 border-top border-secondary">
                 &copy; 2025 SmartZone
@@ -211,11 +235,11 @@
         </div>
     </footer>
 
-    <!--MODAL INICION SESION-->
+<!--MODAL INICION SESION-->
     <div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content"
-                style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
+                style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
                 <div class="modal-header">
                     <h1 class="modal-title fs-5" id="exampleModalLabel">Inicia Sesión</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -244,10 +268,10 @@
                         con</label>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                         <button class="btn btn-primary me-md-2" type="button"><img
-                                src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-google.png"
+                                src="Img/icon-google.png"
                                 alt="" width="30px" style="padding-right: 4px;">Google</button>
                         <button class="btn btn-primary" type="button"><img
-                                src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-facebook2.png"
+                                src="Img/icon-facebook2.png"
                                 alt="" width="30px" style="padding-right: 4px;">Facebook</button>
                     </div>
                 </div>
@@ -265,7 +289,7 @@
     <div class="modal fade" id="register" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content"
-                style="padding: 25px; background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/form-fond.png); border: 3px solid #e3e3e3;">
+                style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
                 <div class="modal-header">
                     <h1 class="modal-title fs-5" id="exampleModalLabel">Registrar</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -294,9 +318,9 @@
                                 required>
                         </div>
                         <div class="col-12">
-                            <label for="inputAddress2" class="form-label">Dirección 2 (Opcional)</label>
-                            <input type="text" class="form-control" id="inputAddress2"
-                                placeholder="Apartamento, estudio o piso" required>
+                            <label for="inputAddress2" class="form-label">Teléfono</label>
+                            <input class="form-control" id="inputAddress2"
+                                placeholder="Ingrese su número telefónico" required>
                         </div>
                         <div class="col-md-6">
                             <label for="inputCity" class="form-label">Ciudad</label>
@@ -328,7 +352,7 @@
 
     <!-- CONTENIDO CATEGORIA-->
     <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat1" aria-labelledby="cat1"
-        style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
+        style="background-image: url(Img/fond-pest.png);">
         <div class="offcanvas-header"
             style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
             <h5 class="offcanvas-title text-light" id="cat1">Categorías</h5>
@@ -343,14 +367,14 @@
                         style="border: none; margin-bottom: 8px;" data-bs-toggle="offcanvas" href="#cat2" role="button"
                         aria-controls="cat2">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-laptop.svg"
+                            src="Img/icon-laptop.svg"
                             alt="Pc">Laptops</button>
                 </li>
                 <li>
                     <button type="button" class="btn btn-outline-success text-light"
                         style="border: none; margin-bottom: 8px;">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-pc.svg"
+                            src="Img/icon-pc.svg"
                             alt="Laptop">Computadoras
                     </button>
                 </li>
@@ -359,7 +383,7 @@
                     <button type="button" class="btn btn-outline-success text-light"
                         style="border: none; margin-bottom: 8px;">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-consola.svg"
+                            src="Img/icon-consola.svg"
                             alt="Consolas">Consolas
                     </button>
                 </li>
@@ -368,7 +392,7 @@
                     <button type="button" class="btn btn-outline-success text-light"
                         style="border: none; margin-bottom: 8px;">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-game.svg"
+                            src="Img/icon-game.svg"
                             alt="Videojuegos">Videojuegos
                     </button>
                 </li>
@@ -377,18 +401,23 @@
                     <button type="button" class="btn btn-outline-success text-light"
                         style="border: none; margin-bottom: 8px;">
                         <img style="margin-right: 8px;"
-                            src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/icon-celular.svg"
+                            src="Img/icon-celular.svg"
                             alt="Celulares">Celulares
                     </button>
                 </li>
             </ul>
+            <div class="d-flex justify-content-center">
+                <a href="Gest-Envios.html">
+                    <button type="button" class="btn btn-primary">Gestionar Envíos</button>
+                </a>
+            </div>
         </div>
     </div>
     <!-- FIN CONTENIDO CATEGORIA-->
 
     <!--CONTENIDO CATEGORIA-POST-->
     <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat2" aria-labelledby="cat2"
-        style="background-image: url(/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/fond-pest.png);">
+        style="background-image: url(Img/fond-pest.png);">
 
         <div class="offcanvas-header"
             style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
@@ -434,7 +463,7 @@
         <div class="d-grid gap-2 col-5 mx-auto">
             <button class="btn btn-primary" data-bs-toggle="offcanvas" href="#cat1" type="button"><img
                     style="filter: invert(1);;"
-                    src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/arrox-left.svg" alt="volver"
+                    src="Img/arrox-left.svg" alt="volver"
                     width="25px">Volver</button>
         </div>
     </div>
@@ -455,12 +484,8 @@
             <button id="send-btn">➤</button>
         </div>
     </div>
-    <button id="chat-toggle"><img src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Img/logo-bot.svg"
+    <button id="chat-toggle"><img src="Img/logo-bot.svg"
             class="card-img-top" width="10" height="30" alt="Bot"></button>
-    <!--FIN CONTENIDO BOT-->
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/Web-de-Ventas-de-Computadoras/src/main/resources/static/Js/Chat-Bot.js"></script>
 </body>
 
 </html>
