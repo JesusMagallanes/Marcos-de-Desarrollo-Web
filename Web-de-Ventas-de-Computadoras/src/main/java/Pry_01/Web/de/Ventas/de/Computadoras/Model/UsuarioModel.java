@@ -1,5 +1,9 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,33 +18,45 @@ public class UsuarioModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length= 100)
+    @NotBlank(message = "El nombre no puede estar vacío.")
+    @Size(min = 2, max = 50, message = "El nombre debe tener entre 2 y 50 caracteres.")
+
+    @Column(name = "first_name", nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false, length = 100)
+    @NotBlank(message = "El apellido no puede estar vacío.")
+    @Column(name = "last_name", nullable = false, length = 100)
     private String lastname;
 
-    @Column( unique = true ,nullable = false, length = 100)
+    @NotBlank(message = "El correo no puede estar vacío.")
+    @Email(message = "El correo debe tener un formato correcto")
+    @Column(unique = true, nullable = false, length = 100)
     private String emailAddress;
 
-    @Column( name = "password_hash",nullable = false, length = 255)
+    @NotBlank(message = "la contraseña no puede estar vacía.")
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String password;
 
+    @Pattern(regexp = "\\d{9}", message = "El teléfono debe tener exactamente 9 dígitos.")
+    @NotBlank(message = "El teléfono no puede estar vacío.")
     @Column(nullable = false, length = 9)
     private String phoneNumber;
 
-    @Column (nullable = false, length = 200)
+    @NotBlank(message = "La dirección no puede estar vacía.")
+    @Column(nullable = false, length = 200)
     private String address;
 
-    public UsuarioModel(){};
-    
-    public UsuarioModel(String name, String lastname, String emailAddress, String password, String phoneNumber, String address){
-        this.name=name;
-        this.lastname=lastname;
-        this.emailAddress=emailAddress;
-        this.password=password;
-        this.phoneNumber=phoneNumber;
-        this.address=address;
+    public UsuarioModel() {
+    }
+
+    public UsuarioModel(String name, String lastname, String emailAddress, String password, String phoneNumber,
+            String address) {
+        this.name = name;
+        this.lastname = lastname;
+        this.emailAddress = emailAddress;
+        this.password = password;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
 
     }
 
