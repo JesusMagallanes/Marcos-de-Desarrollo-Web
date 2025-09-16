@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,11 +21,12 @@ public class UsuarioModel {
 
     @NotBlank(message = "El nombre no puede estar vacío.")
     @Size(min = 2, max = 50, message = "El nombre debe tener entre 2 y 50 caracteres.")
-
+    @Pattern(regexp = "[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+", message = "El nombre solo debe contener letras y espacios")
     @Column(name = "first_name", nullable = false, length = 100)
     private String name;
 
     @NotBlank(message = "El apellido no puede estar vacío.")
+    @Pattern(regexp = "[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+", message = "El apellido solo debe contener letras y espacios")
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastname;
 
@@ -33,12 +35,15 @@ public class UsuarioModel {
     @Column(unique = true, nullable = false, length = 100)
     private String emailAddress;
 
-    @NotBlank(message = "la contraseña no puede estar vacía.")
+    @JsonProperty(access= JsonProperty.Access.WRITE_ONLY)
+    @NotBlank(message = "La contraseña no puede estar vacía.")
+    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres.")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$", message = "La contraseña debe incluir al menos una mayúscula, una minúscula, un número y un símbolo")
     @Column(name = "password_hash", nullable = false, length = 255)
     private String password;
 
-    @Pattern(regexp = "\\d{9}", message = "El teléfono debe tener exactamente 9 dígitos.")
     @NotBlank(message = "El teléfono no puede estar vacío.")
+    @Pattern(regexp = "\\d{9}", message = "El teléfono debe tener exactamente 9 dígitos.")
     @Column(nullable = false, length = 9)
     private String phoneNumber;
 

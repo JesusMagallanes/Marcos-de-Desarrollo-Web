@@ -61,7 +61,6 @@ public class PedidoModel {
         this.creadoEn = LocalDateTime.now();
     }
 
-    // Getters y setters
     public Long getId() {
         return id;
     }
