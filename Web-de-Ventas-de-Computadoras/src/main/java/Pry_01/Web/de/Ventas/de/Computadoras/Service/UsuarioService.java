@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.UsuarioRepository;
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class UsuarioService {
@@ -32,6 +33,13 @@ public class UsuarioService {
         } catch (Exception e) {
             e.printStackTrace(); // imprime la causa real en consola
             throw e;
+        }
+    }
+    public void eliminarUsuarioPorId(Long id){
+        if(usuarioRepository.existsById(id)){
+            usuarioRepository.deleteById(id);
+        }else{
+            throw new EntityNotFoundException("Usuario con ID " +  id + "no existe");
         }
     }
 }
