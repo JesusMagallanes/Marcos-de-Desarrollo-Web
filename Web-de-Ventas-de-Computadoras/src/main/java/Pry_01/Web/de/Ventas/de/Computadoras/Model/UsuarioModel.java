@@ -35,7 +35,7 @@ public class UsuarioModel {
     @Column(unique = true, nullable = false, length = 100)
     private String emailAddress;
 
-    @JsonProperty(access= JsonProperty.Access.WRITE_ONLY)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotBlank(message = "La contraseña no puede estar vacía.")
     @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres.")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$", message = "La contraseña debe incluir al menos una mayúscula, una minúscula, un número y un símbolo")
@@ -51,6 +51,9 @@ public class UsuarioModel {
     @Column(nullable = false, length = 200)
     private String address;
 
+    @Column(nullable = false, length = 200)
+    private Roles rol = Roles.CLIENTE;
+
     public UsuarioModel() {
     }
 
@@ -62,6 +65,7 @@ public class UsuarioModel {
         this.password = password;
         this.phoneNumber = phoneNumber;
         this.address = address;
+        this.rol = rol != null ? rol : Roles.CLIENTE;
 
     }
 
