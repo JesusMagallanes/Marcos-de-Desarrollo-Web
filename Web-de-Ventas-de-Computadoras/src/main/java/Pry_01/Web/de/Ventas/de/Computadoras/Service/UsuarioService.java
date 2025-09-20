@@ -1,16 +1,17 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Service;
 
 import java.util.List;
-
+import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class UsuarioService {
+    @Autowired
     private final PasswordEncoder passwordEncoder;
     private final UsuarioRepository usuarioRepository;
 
@@ -29,17 +30,33 @@ public class UsuarioService {
         }
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         try {
+
             return usuarioRepository.save(usuario);
         } catch (Exception e) {
             e.printStackTrace(); // imprime la causa real en consola
             throw e;
         }
     }
-    public void eliminarUsuarioPorId(Long id){
-        if(usuarioRepository.existsById(id)){
+
+    public void eliminarUsuarioPorId(Long id) {
+        if (usuarioRepository.existsById(id)) {
             usuarioRepository.deleteById(id);
-        }else{
-            throw new EntityNotFoundException("Usuario con ID " +  id + "no existe");
+        } else {
+            throw new EntityNotFoundException("Usuario con ID " + id + "no existe");
         }
+    }
+
+    public Optional<UsuarioModel> actualizarUsuario(Long id, UsuarioModel datosActualizados) {
+        Optional<UsuarioModel> usuarioOptional = usuarioRepository.findById(id);
+        if (!usuarioOptional.isPresent()) {
+            return Optional.empty();
+        }
+        UsuarioModel usuario = usuarioOptional.get();
+        usuario.setName(datosActualizados.getName());
+        usuario.setLastname(datosActualizados.getLastname());
+        usuario.setEmailAddress(datosActualizados.getEmailAddress());
+        usuario.setPhoneNumber(datosActualizados.getPhoneNumber());
+        UsuarioModel usuarioActualizado = usuarioRepository.save(usuario);
+        return Optional.of(usuarioActualizado);
     }
 }

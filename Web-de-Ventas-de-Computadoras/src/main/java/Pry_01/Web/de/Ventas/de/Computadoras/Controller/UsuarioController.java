@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,5 +41,13 @@ public class UsuarioController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
         usuarioService.eliminarUsuarioPorId(id);
-        return ResponseEntity.noContent().build();   }    
+        return ResponseEntity.noContent().build();   
+    } 
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<UsuarioModel> actualizarUsuario(@PathVariable Long id,@RequestBody UsuarioModel datosActualizados){
+        return usuarioService.actualizarUsuario(id, datosActualizados)
+        .map(usuarioModel -> ResponseEntity.ok().body(usuarioModel))
+        .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }

@@ -63,7 +63,6 @@ public class EnviosModel {
         this.estadoEnvio = EstadoEnvio.ENTREGADO;
     }
 
-    // Getters y setters
     public Long getId() {
         return id;
     }
