@@ -6,5 +6,5 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Model.ProductoModel;
 
 @Repository
 public interface ProductoRepository extends JpaRepository<ProductoModel, Long> {
-
+    boolean existsByName(String name);
 }

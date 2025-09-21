@@ -1,5 +1,6 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,7 +24,7 @@ public class ProductoModel {
 
     @NotBlank(message = "El nombre no puede estar vacío.")
     @Size(min = 2, max = 50, message = "El nombre debe tener entre 2 y 50 caracteres.")
-    @Column(nullable = false, length = 50)
+    @Column(unique = true ,nullable = false, length = 50)
     private String name;
 
     @NotBlank(message = "La descripción no puede estar vacía.")

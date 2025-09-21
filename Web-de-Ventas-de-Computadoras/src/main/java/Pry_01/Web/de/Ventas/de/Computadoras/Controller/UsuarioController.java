@@ -3,6 +3,7 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDto;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
 import jakarta.validation.Valid;
@@ -41,13 +42,13 @@ public class UsuarioController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
         usuarioService.eliminarUsuarioPorId(id);
-        return ResponseEntity.noContent().build();   
-    } 
-    
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioModel> actualizarUsuario(@PathVariable Long id,@RequestBody UsuarioModel datosActualizados){
-        return usuarioService.actualizarUsuario(id, datosActualizados)
-        .map(usuarioModel -> ResponseEntity.ok().body(usuarioModel))
-        .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<UsuarioModel> actualizarUsuario(@PathVariable Long id,@Valid @RequestBody UsuarioDto usuarioDto) {
+        return usuarioService.actualizarUsuario(id, usuarioDto)
+                .map(usuario -> ResponseEntity.ok().body(usuario))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

@@ -57,6 +57,14 @@ public class UsuarioModel {
     @Column(nullable = false, length = 200)
     private Roles rol = Roles.CLIENTE;
 
+    public Roles getRol() {
+        return rol;
+    }
+
+    public void setRol(Roles rol) {
+        this.rol = rol;
+    }
+
     public UsuarioModel() {
     }
 

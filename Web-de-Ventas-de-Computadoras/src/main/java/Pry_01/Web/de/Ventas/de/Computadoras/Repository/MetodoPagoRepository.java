@@ -7,5 +7,5 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Model.MetodoPagoModel;
 
 @Repository
 public interface MetodoPagoRepository extends JpaRepository <MetodoPagoModel, Long> {
-    
+    boolean existsByName(String name);
 }

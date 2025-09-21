@@ -14,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
@@ -49,7 +50,15 @@ public class EnviosModel {
     @Column
     private LocalDateTime fechaEnvioEntregado;
 
-    public EnviosModel() {}
+    @PrePersist
+    protected void prePersist() {
+        if (estadoEnvio == null) {
+            estadoEnvio = EstadoEnvio.PENDIENTE;
+        }
+    }
+
+    public EnviosModel() {
+    }
 
     public EnviosModel(PedidoModel pedido, String direccion, LocalDateTime fechaEnvioProgramado) {
         this.pedido = pedido;
@@ -66,6 +75,7 @@ public class EnviosModel {
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -73,6 +83,7 @@ public class EnviosModel {
     public PedidoModel getPedido() {
         return pedido;
     }
+
     public void setPedido(PedidoModel pedido) {
         this.pedido = pedido;
     }
@@ -80,6 +91,7 @@ public class EnviosModel {
     public String getDireccion() {
         return direccion;
     }
+
     public void setDireccion(String direccion) {
         this.direccion = direccion;
     }
@@ -87,6 +99,7 @@ public class EnviosModel {
     public EstadoEnvio getEstadoEnvio() {
         return estadoEnvio;
     }
+
     public void setEstadoEnvio(EstadoEnvio estadoEnvio) {
         this.estadoEnvio = estadoEnvio;
     }
@@ -94,6 +107,7 @@ public class EnviosModel {
     public LocalDateTime getFechaEnvioProgramado() {
         return fechaEnvioProgramado;
     }
+
     public void setFechaEnvioProgramado(LocalDateTime fechaEnvioProgramado) {
         this.fechaEnvioProgramado = fechaEnvioProgramado;
     }
@@ -101,6 +115,7 @@ public class EnviosModel {
     public LocalDateTime getFechaEnvioEntregado() {
         return fechaEnvioEntregado;
     }
+
     public void setFechaEnvioEntregado(LocalDateTime fechaEnvioEntregado) {
         this.fechaEnvioEntregado = fechaEnvioEntregado;
     }

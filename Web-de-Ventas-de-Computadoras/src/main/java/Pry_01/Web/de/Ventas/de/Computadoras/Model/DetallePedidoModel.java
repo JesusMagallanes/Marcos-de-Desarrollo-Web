@@ -47,9 +47,11 @@ public class DetallePedidoModel {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal precioUnitario;
 
+    @NotNull
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 
+    @NotNull
     @Column(name = "creado_en", nullable = false, updatable = false)
     private LocalDateTime creadoEn;
 

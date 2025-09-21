@@ -17,6 +17,7 @@ import jakarta.persistence.Table;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "pedido")
@@ -25,21 +26,22 @@ public class PedidoModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "El pedido debe estar asociado a un usuario.")
+    @NotBlank(message = "El pedido debe estar asociado a un usuario.")
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
     private UsuarioModel usuario;
 
-    @NotNull(message = "Debe seleccionarse un método de pago.")
+    @NotBlank(message = "Debe seleccionarse un método de pago.")
     @ManyToOne
     @JoinColumn(name = "metodopago_id", nullable = false)
     private MetodoPagoModel metodoPago;
 
-    @NotNull(message = "El total no puede ser nulo.")
+    @NotBlank(message = "El total no puede ser nulo.")
     @DecimalMin(value = "0.01", message = "El total debe ser mayor que 0.")
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 
+    @NotNull(message = "El campo no puede estar vacío")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoPedido estado = EstadoPedido.PENDIENTE;

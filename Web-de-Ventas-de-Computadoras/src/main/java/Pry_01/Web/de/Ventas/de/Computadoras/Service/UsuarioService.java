@@ -5,6 +5,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDto;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,6 +28,7 @@ public class UsuarioService {
 
     public UsuarioModel guardarUsuario(UsuarioModel usuario) {
         if (usuarioRepository.existsByEmailAddress(usuario.getEmailAddress())) {
+
             throw new IllegalArgumentException("El coreo ya está en uso");
         }
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
@@ -46,17 +49,36 @@ public class UsuarioService {
         }
     }
 
-    public Optional<UsuarioModel> actualizarUsuario(Long id, UsuarioModel datosActualizados) {
-        Optional<UsuarioModel> usuarioOptional = usuarioRepository.findById(id);
-        if (!usuarioOptional.isPresent()) {
-            return Optional.empty();
-        }
-        UsuarioModel usuario = usuarioOptional.get();
-        usuario.setName(datosActualizados.getName());
-        usuario.setLastname(datosActualizados.getLastname());
-        usuario.setEmailAddress(datosActualizados.getEmailAddress());
-        usuario.setPhoneNumber(datosActualizados.getPhoneNumber());
-        UsuarioModel usuarioActualizado = usuarioRepository.save(usuario);
-        return Optional.of(usuarioActualizado);
+  public Optional<UsuarioModel> actualizarUsuario(Long id, UsuarioDto usuarioDto) {
+    Optional<UsuarioModel> usuarioOptional = usuarioRepository.findById(id);
+    if (!usuarioOptional.isPresent()) {
+        return Optional.empty();
     }
+
+    UsuarioModel usuario = usuarioOptional.get();
+
+    if (usuarioDto.getName() != null) {
+        usuario.setName(usuarioDto.getName());
+    }
+    if (usuarioDto.getLastname() != null) {
+        usuario.setLastname(usuarioDto.getLastname());
+    }
+    if (usuarioDto.getEmailAddress() != null) {
+        usuario.setEmailAddress(usuarioDto.getEmailAddress());
+    }
+    if (usuarioDto.getPhoneNumber() != null) {
+        usuario.setPhoneNumber(usuarioDto.getPhoneNumber());
+    }
+    if (usuarioDto.getAddress() != null) {
+        usuario.setAddress(usuarioDto.getAddress());
+    }
+    if (usuarioDto.getRol() != null) {
+        usuario.setRol(usuarioDto.getRol());
+    }
+
+    UsuarioModel usuarioActualizado = usuarioRepository.save(usuario);
+
+    return Optional.of(usuarioActualizado);
+}
+
 }
