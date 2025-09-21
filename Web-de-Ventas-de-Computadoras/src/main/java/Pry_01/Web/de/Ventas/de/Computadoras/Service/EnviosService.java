@@ -1,11 +1,12 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Service;
 
 import java.util.List;
-
+import org.springframework.stereotype.Service;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.EnviosModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.EnviosRepository;
 import jakarta.persistence.EntityNotFoundException;
 
+@Service
 public class EnviosService {
     private final EnviosRepository enviosRepository;
 

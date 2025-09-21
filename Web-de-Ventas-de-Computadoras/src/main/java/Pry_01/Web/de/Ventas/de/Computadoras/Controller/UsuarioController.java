@@ -2,14 +2,11 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDto;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
 import jakarta.validation.Valid;
-
 import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;

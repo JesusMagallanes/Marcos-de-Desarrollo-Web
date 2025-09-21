@@ -2,7 +2,6 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Dto;
 
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.Roles;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 public class UsuarioDto {
@@ -19,7 +18,6 @@ public class UsuarioDto {
 
     private String address;
 
-    @NotNull(message = "El rol es obligatorio")
     private Roles rol;
 
     public UsuarioDto() {

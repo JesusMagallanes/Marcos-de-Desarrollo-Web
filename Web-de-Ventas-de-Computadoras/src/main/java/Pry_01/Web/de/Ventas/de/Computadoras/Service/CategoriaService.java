@@ -2,10 +2,13 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Service;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.CategoriaRepository;
 import jakarta.persistence.EntityNotFoundException;
 
+@Service
 public class CategoriaService {
     private final CategoriaRepository categoriaRepository;
 
