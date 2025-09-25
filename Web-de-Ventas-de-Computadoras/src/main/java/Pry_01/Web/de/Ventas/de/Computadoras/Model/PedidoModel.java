@@ -31,6 +31,14 @@ public class PedidoModel {
     @JoinColumn(name = "usuario_id", nullable = false)
     private UsuarioModel usuario;
 
+    public UsuarioModel getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(UsuarioModel usuario) {
+        this.usuario = usuario;
+    }
+
     @NotBlank(message = "Debe seleccionarse un método de pago.")
     @ManyToOne
     @JoinColumn(name = "metodopago_id", nullable = false)
@@ -70,12 +78,7 @@ public class PedidoModel {
         this.id = id;
     }
 
-    public UsuarioModel getUsuario() {
-        return usuario;
-    }
-    public void setUsuario(UsuarioModel usuario) {
-        this.usuario = usuario;
-    }
+    
 
     public MetodoPagoModel getMetodoPago() {
         return metodoPago;

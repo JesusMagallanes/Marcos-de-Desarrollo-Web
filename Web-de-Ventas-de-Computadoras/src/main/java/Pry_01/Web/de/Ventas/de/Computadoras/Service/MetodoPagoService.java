@@ -1,9 +1,7 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Service;
 
 import java.util.List;
-
 import org.springframework.stereotype.Service;
-
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.MetodoPagoModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.MetodoPagoRepository;
 import jakarta.persistence.EntityNotFoundException;
