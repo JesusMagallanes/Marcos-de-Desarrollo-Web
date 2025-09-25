@@ -1,9 +1,9 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Service;
 
 import java.util.List;
-
+import java.util.Optional;
 import org.springframework.stereotype.Service;
-
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDto;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.CategoriaRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -36,4 +36,21 @@ public class CategoriaService {
             return categoriaRepository.save(categoria); 
         }
     }
+    public Optional<CategoriaModel> actualizarCategoria(Long id, CategoriaDto categoriaDto) {
+        Optional<CategoriaModel> categoriaOptional = categoriaRepository.findById(id);
+        if (!categoriaOptional.isPresent()) {
+            return Optional.empty();
+        }
+
+        CategoriaModel categoria = categoriaOptional.get();
+
+        if (categoriaDto.getName() != null) {
+            categoria.setName(categoriaDto.getName());
+        }
+        if (categoriaDto.getDescripcion() != null) {
+            categoria.setDescription(categoriaDto.getDescripcion());
+        }
+        CategoriaModel CategoriaActualizado  = categoriaRepository.save(categoria);
+        return Optional.of(CategoriaActualizado);
+    }  
 }

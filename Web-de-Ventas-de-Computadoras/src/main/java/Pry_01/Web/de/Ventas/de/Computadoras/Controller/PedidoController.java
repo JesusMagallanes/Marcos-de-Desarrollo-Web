@@ -45,7 +45,7 @@ public class PedidoController {
     @PutMapping("/{id}")
     public ResponseEntity<PedidoModel> actualizarPedido(@PathVariable Long id,
             @Valid @RequestBody PedidoDto pedidoDto) {
-        return pedidoService.actualizarProducto(id, pedidoDto)
+        return pedidoService.actualizarPedido(id, pedidoDto)
                 .map(producto -> ResponseEntity.ok().body(producto))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

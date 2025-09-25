@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.EstadoEnvio;
 
 public class EnviosDto {
@@ -13,6 +12,17 @@ public class EnviosDto {
 
     @NotBlank(message = "La dirección de envío no puede estar vacía.")
     private String direccion;
+
+    @NotNull(message = "El envío debe estar asociado a un pedido.")
+    private Long pedidoId;
+
+    public Long getPedidoId() {
+        return pedidoId;
+    }
+
+    public void setPedidoId(Long pedidoId) {
+        this.pedidoId = pedidoId;
+    }
 
     @NotNull(message = "El estado de envío es obligatorio")
     private EstadoEnvio estadoEnvio;
@@ -26,10 +36,11 @@ public class EnviosDto {
     public EnviosDto() {
     }
 
-    public EnviosDto(Long id, Long pedidoId, String direccion, EstadoEnvio estadoEnvio,
+    public EnviosDto(Long id, String direccion, EstadoEnvio estadoEnvio, Long pedidoId,
             LocalDateTime fechaEnvioProgramado, LocalDateTime fechaEnvioEntregado) {
         this.id = id;
         this.direccion = direccion;
+        this.pedidoId = pedidoId;
         this.estadoEnvio = estadoEnvio;
         this.fechaEnvioProgramado = fechaEnvioProgramado;
         this.fechaEnvioEntregado = fechaEnvioEntregado;

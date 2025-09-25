@@ -10,16 +10,24 @@ public class MetodoPagoDto {
     private String name;
 
     @Size(max = 200, message = "La descripción no puede tener más de 200 caracteres.")
-    private String description;
+    private String descripcion;
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
 
     public MetodoPagoDto() {
     }
 
-    public MetodoPagoDto(Long id,String name, String description) {
+    public MetodoPagoDto(Long id,String name, String descripcion) {
 
         this.id=id;
         this.name = name;
-        this.description = description;
+        this.descripcion = descripcion;
     }
      public Long getId() {
         return id;
@@ -34,13 +42,5 @@ public class MetodoPagoDto {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 }

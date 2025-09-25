@@ -15,15 +15,15 @@ public class CategoriaDto {
 
     @NotBlank(message = "La descripción es obligatoria.")
     @Size(max = 500, message = "La descripción no puede exceder 500 caracteres.")
-    private String description;
+    private String descripcion;
 
     public CategoriaDto() {
     }
 
-    public CategoriaDto(Long id, String name, String description) {
+    public CategoriaDto(Long id, String name, String descripcion) {
         this.id = id;
         this.name = name;
-        this.description = description;
+        this.descripcion = descripcion;
     }
 
 
@@ -42,12 +42,12 @@ public class CategoriaDto {
     public void setName(String name) {
         this.name = name;
     }
-
-    public String getDescription() {
-        return description;
+        public String getDescripcion() {
+        return descripcion;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
+
 }

@@ -1,7 +1,11 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Service;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
+
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.MetodoPagoDto;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.MetodoPagoModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.MetodoPagoRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -35,5 +39,23 @@ public class MetodoPagoService {
         }
     }
 
-    
+    public Optional<MetodoPagoModel> actualizarMetodoDePago(Long id, MetodoPagoDto metodoPagoDto) {
+        Optional<MetodoPagoModel> metodoOptional = metodoPagoRepository.findById(id);
+        if (!metodoOptional.isPresent()) {
+            return Optional.empty();
+        }
+
+        MetodoPagoModel metodoPago = metodoOptional.get();
+
+        if (metodoPagoDto.getName() != null) {
+            metodoPago.setName(metodoPagoDto.getName());
+        }
+        if (metodoPagoDto.getDescripcion() != null) {
+            metodoPago.setDescription(metodoPagoDto.getDescripcion());
+        }
+
+        MetodoPagoModel metodoPagoActualizado  = metodoPagoRepository.save(metodoPago);
+        return Optional.of(metodoPagoActualizado);
+        
+    }   
 }
