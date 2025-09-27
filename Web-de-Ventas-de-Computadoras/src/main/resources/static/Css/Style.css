@@ -65,7 +65,7 @@
 }
 
 .navbar {
-  box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.414);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.199);
   margin-bottom: 15px;
   background-image: url("/Img/head.png");
 }
