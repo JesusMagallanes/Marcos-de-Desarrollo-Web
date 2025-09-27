@@ -77,7 +77,6 @@ public class UsuarioModel {
         this.phoneNumber = phoneNumber;
         this.address = address;
         this.rol = rol != null ? rol : Roles.CLIENTE;
-
     }
 
     public Long getId() {

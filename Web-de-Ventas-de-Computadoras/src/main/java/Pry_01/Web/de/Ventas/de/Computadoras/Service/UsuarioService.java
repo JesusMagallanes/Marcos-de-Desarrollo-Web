@@ -74,7 +74,6 @@ public class UsuarioService {
     if (usuarioDto.getRol() != null) {
         usuario.setRol(usuarioDto.getRol());
     }
-
     UsuarioModel usuarioActualizado = usuarioRepository.save(usuario);
 
     return Optional.of(usuarioActualizado);
