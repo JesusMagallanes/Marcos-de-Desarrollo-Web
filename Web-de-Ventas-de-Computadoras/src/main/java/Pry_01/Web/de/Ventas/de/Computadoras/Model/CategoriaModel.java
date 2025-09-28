@@ -19,6 +19,9 @@ public class CategoriaModel {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @NotBlank
+    private String UrlImage;
+
     @NotBlank(message = "La descripción es obligatoria.")
     @Size(max = 500, message = "La descripción no puede exceder 500 caracteres.")
     @Column(nullable = false, length = 500)
@@ -29,9 +32,10 @@ public class CategoriaModel {
 
     public CategoriaModel() {}
 
-    public CategoriaModel(String name, String description) {
+    public CategoriaModel(String name, String description, String urlImage) {
         this.name = name;
         this.description = description;
+        this.UrlImage = urlImage;
     }
 
     public void addProducto(ProductoModel producto) {
@@ -44,7 +48,13 @@ public class CategoriaModel {
         producto.setCategoria(null);
     }
 
- 
+    public String getUrlImage() {
+        return UrlImage;
+    }
+
+    public void setUrlImage(String urlImage) {
+        UrlImage = urlImage;
+    }
     public Long getId() {
         return id;
     }

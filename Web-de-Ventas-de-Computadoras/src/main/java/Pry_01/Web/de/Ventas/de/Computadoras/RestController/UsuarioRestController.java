@@ -1,4 +1,4 @@
-package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
+package Pry_01.Web.de.Ventas.de.Computadoras.RestController;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/usuarios")
-public class UsuarioController {
+public class UsuarioRestController {
 
     private final UsuarioService usuarioService;
 
-    public UsuarioController(UsuarioService usuarioService) {
+    public UsuarioRestController(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
     }
 

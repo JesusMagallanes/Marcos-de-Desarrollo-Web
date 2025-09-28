@@ -13,6 +13,9 @@ public class CategoriaDto {
     @Size(max = 100, message = "El nombre no puede exceder 100 caracteres.")
     private String name;
 
+    @NotBlank
+    private String urlImage;
+
     @NotBlank(message = "La descripción es obligatoria.")
     @Size(max = 500, message = "La descripción no puede exceder 500 caracteres.")
     private String descripcion;
@@ -20,12 +23,20 @@ public class CategoriaDto {
     public CategoriaDto() {
     }
 
-    public CategoriaDto(Long id, String name, String descripcion) {
+    public CategoriaDto(Long id, String name, String descripcion, String urlImage) {
         this.id = id;
         this.name = name;
         this.descripcion = descripcion;
+        this.urlImage = urlImage;
     }
 
+    public String getUrlImage() {
+        return urlImage;
+    }
+
+    public void setUrlImage(String urlImage) {
+        this.urlImage = urlImage;
+    }
 
     public Long getId() {
         return id;
@@ -42,7 +53,8 @@ public class CategoriaDto {
     public void setName(String name) {
         this.name = name;
     }
-        public String getDescripcion() {
+
+    public String getDescripcion() {
         return descripcion;
     }
 

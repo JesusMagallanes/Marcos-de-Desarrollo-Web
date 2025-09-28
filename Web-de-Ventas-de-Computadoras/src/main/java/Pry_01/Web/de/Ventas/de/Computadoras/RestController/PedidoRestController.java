@@ -1,4 +1,4 @@
-package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
+package Pry_01.Web.de.Ventas.de.Computadoras.RestController;
 
 import java.util.List;
 
@@ -18,10 +18,10 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/pedido")
-public class PedidoController {
+public class PedidoRestController {
     private final PedidoService pedidoService;
 
-    public PedidoController(PedidoService pedidoService) {
+    public PedidoRestController(PedidoService pedidoService) {
         this.pedidoService = pedidoService;
     }
 

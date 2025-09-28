@@ -50,6 +50,9 @@ public class CategoriaService {
         if (categoriaDto.getDescripcion() != null) {
             categoria.setDescription(categoriaDto.getDescripcion());
         }
+        if( categoriaDto.getUrlImage() != null){
+            categoria.setUrlImage(categoriaDto.getUrlImage());
+        }
         CategoriaModel CategoriaActualizado  = categoriaRepository.save(categoria);
         return Optional.of(CategoriaActualizado);
     }  

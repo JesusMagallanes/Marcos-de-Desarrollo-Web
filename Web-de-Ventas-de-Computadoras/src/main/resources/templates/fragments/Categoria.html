@@ -1,0 +1,25 @@
+<div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat1" aria-labelledby="cat1"
+    style="background-image: url(Img/fond-pest.png);" th:fragment="categoria">
+    <div class="offcanvas-header"
+        style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
+        <h5 class="offcanvas-title text-light" id="cat1">Categorías</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+            aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <ul style="list-style: none;" th:if="${categorias != null}">
+            <li th:each="categoria : ${categorias}">
+                <button type="button" class="btn btn-outline-success text-light"
+                    style="border: none; margin-bottom: 8px;">
+                    <img style="margin-right: 8px;" th:src="${categoria.urlImage}" alt="icono" />
+                    <span th:text="${categoria.name}">Nombre</span>
+                </button>
+            </li>
+        </ul>
+        <div class="d-flex justify-content-center">
+            <a th:href="@{/EnviosPag}">
+                <button type="button" class="btn btn-primary">Gestionar Envíos</button>
+            </a>
+        </div>
+    </div>
+</div>

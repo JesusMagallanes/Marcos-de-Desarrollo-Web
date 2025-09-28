@@ -1,4 +1,4 @@
-package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
+package Pry_01.Web.de.Ventas.de.Computadoras.RestController;
 
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +17,11 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/metodoPago")
-public class MetodoPagoController {
+public class MetodoPagoRestController {
 
     private final MetodoPagoService metodoPagoService;
 
-    public MetodoPagoController(MetodoPagoService metodoPagoService) {
+    public MetodoPagoRestController(MetodoPagoService metodoPagoService) {
         this.metodoPagoService = metodoPagoService;
     }
 

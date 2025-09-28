@@ -1,4 +1,4 @@
-package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
+package Pry_01.Web.de.Ventas.de.Computadoras.RestController;
 
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +17,10 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/Envios")
-public class EnviosController {
+public class EnviosRestController {
     private final EnviosService enviosService;
 
-    public EnviosController(EnviosService enviosService) {
+    public EnviosRestController(EnviosService enviosService) {
         this.enviosService = enviosService;
     }
 

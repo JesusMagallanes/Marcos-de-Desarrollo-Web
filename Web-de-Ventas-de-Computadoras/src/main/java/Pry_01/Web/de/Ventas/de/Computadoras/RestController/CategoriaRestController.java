@@ -1,4 +1,4 @@
-package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
+package Pry_01.Web.de.Ventas.de.Computadoras.RestController;
 
 import java.util.List;
 
@@ -18,10 +18,10 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/categoria")
-public class CategoriaController {
+public class CategoriaRestController {
      private final CategoriaService categoriaService;
 
-    public CategoriaController(CategoriaService categoriaService) {
+    public CategoriaRestController(CategoriaService categoriaService) {
         this.categoriaService = categoriaService;
     }
 

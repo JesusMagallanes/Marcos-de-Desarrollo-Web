@@ -14,7 +14,7 @@
 <body class="d-flex flex-column h-100">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
         <div class="container-fluid">
-            <a class="navbar-brand" href="Index.html">
+            <a class="navbar-brand" th:href="@{/}">
                 <img src="/Img/logo.png" alt="Logo"
                     width="me-auto" height="35px">
             </a>
@@ -39,7 +39,7 @@
                 <a class="btn btn-outline-success me-2" href="#" data-bs-toggle="modal" data-bs-target="#login">Iniciar
                     Sesión</a>
 
-                <a class="btn btn-outline-light" href="Carrito.html"><img
+                <a class="btn btn-outline-light" th:href="@{/Carrito}"><img
                         src="/Img/Icon-Carrito.svg"
                         alt="Carrito" width="35"></a>
             </div>
@@ -88,7 +88,7 @@
             </div>
         </div>
     </main>
-    <footer class="bg-dark text-light pt-4 mt-auto">
+    footer class="bg-dark text-light pt-4 mt-auto">
         <div class="container">
             <div class="row">
                 <!-- Columna 1 -->
@@ -100,9 +100,9 @@
                 <!-- Columna 2 -->
                 <div class="col-md-4 mb-3 text-center">
                     <h6>Sobre Nosotros</h6>
-                    <a href="Somos.html">¿Quiénes somos?
+                    <a th:href="@{/Somos}">¿Quiénes somos?
                     </a> <br>
-                    <a href="Canales-De-Atención.html">Canales
+                    <a th:href="@{/Canales}">Canales
                         de Atención</a>
                 </div>
                 <!-- Columna 3 -->
