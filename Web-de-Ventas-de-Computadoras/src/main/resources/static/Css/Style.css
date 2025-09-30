@@ -12,18 +12,19 @@
 }
 
 .imgprod img {
-            padding: 30px;
-        }
+  padding: 30px;
+}
 
-        .spec-box {
-            box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179);
-            margin: 0 auto;
-            max-height: 200px;
-            max-width: 500px;
-            overflow-y: auto;
-            border: 3px solid #BDC3C7;
-            border-radius: 8px;
-        }
+.spec-box {
+  box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179);
+  margin: 0 auto;
+  max-height: 200px;
+  max-width: 500px;
+  overflow-y: auto;
+  border: 3px solid #BDC3C7;
+  border-radius: 8px;
+}
+
 .btn-primary {
   background-color: #06b56c;
   border: none;
@@ -146,7 +147,7 @@
   border-radius: 8px;
 }
 
-.enviospend{
+.enviospend {
   border: 3px solid #eaebea;
   box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.382);
   border-radius: 14px;
@@ -159,8 +160,9 @@
 }
 
 .dropdown-menu {
-    z-index: 2000;
-  }
+  z-index: 2000;
+}
+
 #carousel-resena .carousel-control-prev-icon,
 #carousel-resena .carousel-control-next-icon {
   background-color: black;
@@ -172,6 +174,26 @@
 #carousel-resena .carousel-control-prev-icon,
 #carousel-resena .carousel-control-next-icon {
   filter: invert(1);
+}
+
+/*PANEL ADMIN*/
+.sidebar {
+  padding-top: 15px;
+  color: black;
+  height: 100vh;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.199);
+  margin-top: 0px;
+  margin-left: 0px;
+  margin-bottom: 0px;
+  background-image: url("/Img/head.png");
+}
+
+.content {
+  padding: 20px;
+}
+
+.table-actions button {
+  margin-right: 5px;
 }
 
 
