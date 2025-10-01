@@ -26,6 +26,11 @@ public class HomeController {
         return "EnviosPag";
     }
 
+    @GetMapping("/Gest-admin")
+    public String Admin() {
+        return "Gest-admin";
+    }
+
     @GetMapping("/Detalles")
     public String Detalles() {
         return "Detalles";

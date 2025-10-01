@@ -12,39 +12,39 @@
 </head>
 
 <body class="d-flex flex-column h-100">
-   <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
-    <div class="container-fluid">
-        <a class="navbar-brand" th:href="@{/}">
-            <img src="/Img/logo.png" alt="Logo" height="35px">
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#opciones">
-            <img src="/Img/icon-burguer.svg" width="40px" alt="Menú">
-        </button>
-
-        <div class="collapse navbar-collapse" id="opciones">
-            <!-- Botón para abrir el offcanvas -->
-            <a class="btn btn-primary me-2" data-bs-toggle="offcanvas" href="#cat1" role="button"
-                aria-controls="cat1" style="margin-top: 10px; margin-bottom: 10px;">
-                Categorías
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+        <div class="container-fluid">
+            <a class="navbar-brand" th:href="@{/}">
+                <img src="/Img/logo.png" alt="Logo" height="35px">
             </a>
-            <!-- Formulario de búsqueda -->
-            <form class="d-flex flex-grow-1 me-2" role="search">
-                <input class="form-control me-2" type="search" placeholder="Busca en nuestro catálogo..."
-                    aria-label="Search">
-                <button class="btn btn-outline-success" type="submit">Buscar</button>
-            </form>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#opciones">
+                <img src="/Img/icon-burguer.svg" width="40px" alt="Menú">
+            </button>
 
-            <a class="btn btn-outline-success me-2" href="#" data-bs-toggle="modal" data-bs-target="#login">
-                Iniciar Sesión
-            </a>
+            <div class="collapse navbar-collapse" id="opciones">
+                <!-- Botón para abrir el offcanvas -->
+                <a class="btn btn-primary me-2" data-bs-toggle="offcanvas" href="#cat1" role="button"
+                    aria-controls="cat1" style="margin-top: 10px; margin-bottom: 10px;">
+                    Categorías
+                </a>
+                <!-- Formulario de búsqueda -->
+                <form class="d-flex flex-grow-1 me-2" role="search">
+                    <input class="form-control me-2" type="search" placeholder="Busca en nuestro catálogo..."
+                        aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit">Buscar</button>
+                </form>
 
-            <a class="btn btn-outline-light" th:href="@{/Carrito}">
-                <img src="/Img/Icon-Carrito.svg" alt="Carrito" width="35">
-            </a>
+                <a class="btn btn-outline-success me-2" href="#" data-bs-toggle="modal" data-bs-target="#login">
+                    Iniciar Sesión
+                </a>
+
+                <a class="btn btn-outline-light" th:href="@{/Carrito}">
+                    <img src="/Img/Icon-Carrito.svg" alt="Carrito" width="35">
+                </a>
+            </div>
         </div>
-    </div>
-</nav>
-<div th:replace="fragments/Categoria :: categoria"></div>
+    </nav>
+    <div th:replace="fragments/Categoria :: categoria"></div>
 
 
     <main class="flex-shrink-0">
@@ -177,10 +177,9 @@
                                 <b>
                                     <button class="btn btn-outline-success" style="font-size: 15px;" type="submit">S/.
                                         5,499</button>
-                                    <button class="btn btn-outline-success"
-                                        onclick="window.location.href='Detalles.html?id=asus-tuf'">
+                                    <a class="btn btn-outline-success" th:href="@{/Detalles(id=${'asus-tuf'})}">
                                         Detalles
-                                    </button>
+                                    </a>
                                 </b>
                             </h2>
                         </div>
@@ -248,10 +247,11 @@
                             <h2 class="card-title text-center"><b><button class="btn btn-outline-success"
                                         style="font-size: 15px;" type="submit">S/ 4,199</button>
 
-                                    <b><button class="btn btn-outline-success"
-                                            onclick="window.location.href='Detalles.html?id=acer-nitro-v15'">
+                                    <b><a class="btn btn-outline-success"
+                                            th:href="@{/Detalles(id=${'acer-nitro-v15'})}">
                                             Detalles
-                                        </button></b></b>
+                                        </a>
+                                    </b></b>
                             </h2>
                         </div>
                     </div>
@@ -317,10 +317,10 @@
                             </p>
                             <h2 class="card-title text-center"><b><button class="btn btn-outline-success"
                                         style="font-size: 15px;" type="submit">S/. 6,299</button></b>
-                                <b><button class="btn btn-outline-success"
-                                        onclick="window.location.href='Detalles.html?id=msi-katana-17'">
+                                <b><a class="btn btn-outline-success" th:href="@{/Detalles(id=${'msi-katana-17'})}">
                                         Detalles
-                                    </button></b>
+                                    </a>
+                                </b>
                             </h2>
                         </div>
                     </div>
@@ -385,10 +385,11 @@
                             </p>
                             <h2 class="card-title text-center"><b><button class="btn btn-outline-success"
                                         style="font-size: 15px;" type="submit">S/. 3,299</button></b>
-                                <b><button class="btn btn-outline-success"
-                                        onclick="window.location.href='Detalles.html?id=hp-pavilion-gaming-15'">
+                                <b><a class="btn btn-outline-success"
+                                        th:href="@{/Detalles(id=${'hp-pavilion-gaming-15'})}">
                                         Detalles
-                                    </button></b>
+                                    </a>
+                                </b>
                             </h2>
                         </div>
                     </div>
@@ -437,10 +438,10 @@
                             <p style="margin-top: -15px;"><span class="fw-semibold">Cámara:</span> 12 MP Dual</p>
                             <h2 class="card-title text-center"><b><button class="btn btn-outline-success"
                                         style="font-size: 15px;" type="submit">S/. 4,299</button>
-                                    <b><button class="btn btn-outline-success"
-                                            onclick="window.location.href='Detalles.html?id=iphone-14'">
+                                    <b><a class="btn btn-outline-success" th:href="@{/Detalles(id=${'iphone-14'})}">
                                             Detalles
-                                        </button></b></b>
+                                        </a>
+                                    </b></b>
                             </h2>
                         </div>
                     </div>
@@ -477,10 +478,11 @@
                             <p style="margin-top: -15px;"><span class="fw-semibold">Almacenamiento:</span> 256 GB</p>
                             <h2 class="card-title text-center"><b><button class="btn btn-outline-success"
                                         style="font-size: 15px;" type="submit">S/. 3,899</button>
-                                    <b><button class="btn btn-outline-success"
-                                            onclick="window.location.href='Detalles.html?id=samsung-galaxy-s23'">
+                                    <b><a class="btn btn-outline-success"
+                                            th:href="@{/Detalles(id=${'samsung-galaxy-s23'})}">
                                             Detalles
-                                        </button></b></b>
+                                        </a>
+                                    </b></b>
                             </h2>
                         </div>
                     </div>
@@ -517,10 +519,11 @@
                             <p style="margin-top: -15px;"><span class="fw-semibold">Cámara:</span> 200 MP</p>
                             <h2 class="card-title text-center"><b><button class="btn btn-outline-success"
                                         style="font-size: 15px;" type="submit">S/. 2,599</button>
-                                    <b><button class="btn btn-outline-success"
-                                            onclick="window.location.href='Detalles.html?id=xiaomi-12t-pro'">
+                                    <b><a class="btn btn-outline-success"
+                                            th:href="@{/Detalles(id=${'xiaomi-12t-pro'})}">
                                             Detalles
-                                        </button></b></b>
+                                        </a>
+                                    </b></b>
                             </h2>
                         </div>
                     </div>
@@ -558,10 +561,11 @@
 
                             <h2 class="card-title text-center"><b><button class="btn btn-outline-success"
                                         style="font-size: 15px;" type="submit">S/. 1,899</button>
-                                    <b><button class="btn btn-outline-success"
-                                            onclick="window.location.href='Detalles.html?id=motorola-edge-30'">
+                                    <b><a class="btn btn-outline-success"
+                                            th:href="@{/Detalles(id=${'motorola-edge-30'})}">
                                             Detalles
-                                        </button></b></b>
+                                        </a>
+                                    </b></b>
                             </h2>
                         </div>
                     </div>
@@ -613,10 +617,11 @@
                             <h2 class="card-title text-center">
                                 <b><button class="btn btn-outline-success" style="font-size: 15px;" type="submit">S/.
                                         1,399</button></b>
-                                <b><button class="btn btn-outline-success"
-                                        onclick="window.location.href='Detalles.html?id=samsung-odyssey-g5'">
+                                <b><a class="btn btn-outline-success"
+                                        th:href="@{/Detalles(id=${'samsung-odyssey-g5'})}">
                                         Detalles
-                                    </button></b></b>
+                                    </a>
+                                </b></b>
                             </h2>
                         </div>
 
@@ -655,10 +660,10 @@
                             <h2 class="card-title text-center">
                                 <b><button class="btn btn-outline-success" style="font-size: 15px;" type="submit">S/.
                                         999</button></b>
-                                <b><button class="btn btn-outline-success"
-                                        onclick="window.location.href='Detalles.html?id=lg-ultragear-24'">
+                                <b><a class="btn btn-outline-success" th:href="@{/Detalles(id=${'lg-ultragear-24'})}">
                                         Detalles
-                                    </button></b></b>
+                                    </a>
+                                </b></b>
                             </h2>
                         </div>
 
@@ -697,10 +702,10 @@
                             <h2 class="card-title text-center">
                                 <b><button class="btn btn-outline-success" style="font-size: 15px;" type="submit">S/.
                                         1,599</button></b>
-                                <b><button class="btn btn-outline-success"
-                                        onclick="window.location.href='Detalles.html?id=asus-tuf-vg27aq'">
+                                <b><a class="btn btn-outline-success" th:href="@{/Detalles(id=${'asus-tuf-vg27aq'})}">
                                         Detalles
-                                    </button></b></b>
+                                    </a>
+                                </b></b>
                             </h2>
                         </div>
 
@@ -739,10 +744,11 @@
                             <h2 class="card-title text-center">
                                 <b><button class="btn btn-outline-success" style="font-size: 15px;" type="submit">S/.
                                         1,899</button></b>
-                                <b><button class="btn btn-outline-success"
-                                        onclick="window.location.href='Detalles.html?id=acer-predator-xb273'">
+                                <b><a class="btn btn-outline-success"
+                                        th:href="@{/Detalles(id=${'acer-predator-xb273'})}">
                                         Detalles
-                                    </button></b></b>
+                                    </a>
+                                </b></b>
                             </h2>
                         </div>
 
@@ -799,10 +805,11 @@
                             <h2 class="card-title text-center">
                                 <b><button class="btn btn-outline-success" style="font-size: 15px;" type="submit">S/.
                                         1,699</button></b>
-                                <b><button class="btn btn-outline-success"
-                                        onclick="window.location.href='Detalles.html?id=nintendo-switch-oled'">
+                                <b><a class="btn btn-outline-success"
+                                        th:href="@{/Detalles(id=${'nintendo-switch-oled'})}">
                                         Detalles
-                                    </button></b>
+                                    </a>
+                                </b>
                             </h2>
                         </div>
 
@@ -846,10 +853,10 @@
                             <h2 class="card-title text-center">
                                 <b><button class="btn btn-outline-success" style="font-size: 15px;" type="submit">S/.
                                         3,299</button></b>
-                                <b><button class="btn btn-outline-success"
-                                        onclick="window.location.href='Detalles.html?id=ps5-slim-edition'">
+                                <b><a class="btn btn-outline-success" th:href="@{/Detalles(id=${'ps5-slim-edition'})}">
                                         Detalles
-                                    </button></b>
+                                    </a>
+                                </b>
                             </h2>
                         </div>
 
@@ -894,10 +901,10 @@
                             <h2 class="card-title text-center">
                                 <b><button class="btn btn-outline-success" style="font-size: 15px;" type="submit">S/.
                                         2,999</button></b>
-                                <b><button class="btn btn-outline-success"
-                                        onclick="window.location.href='Detalles.html?id=xbox-series-s'">
+                                <b><a class="btn btn-outline-success" th:href="@{/Detalles(id=${'xbox-series-s'})}">
                                         Detalles
-                                    </button></b>
+                                    </a>
+                                </b>
                             </h2>
                         </div>
 
@@ -941,10 +948,10 @@
                             <h2 class="card-title text-center">
                                 <b><button class="btn btn-outline-success" style="font-size: 15px;" type="submit">S/.
                                         2,499</button></b>
-                                <b><button class="btn btn-outline-success"
-                                        onclick="window.location.href='Detalles.html?id=steam-deck-oled'">
+                                <b><a class="btn btn-outline-success" th:href="@{/Detalles(id=${'steam-deck-oled'})}">
                                         Detalles
-                                    </button></b>
+                                    </a>
+                                </b>
                             </h2>
                         </div>
 
