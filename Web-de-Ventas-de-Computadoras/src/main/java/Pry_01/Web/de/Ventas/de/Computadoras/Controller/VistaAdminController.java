@@ -19,7 +19,7 @@ public class VistaAdminController {
         model.addAttribute("usuarios", usuarioService.listarUsuario());
         model.addAttribute("usuario", new UsuarioModel());
 
-        return "VistaAdmin"; // tu plantilla principal
+        return "VistaAdmin"; 
     }
 }
 

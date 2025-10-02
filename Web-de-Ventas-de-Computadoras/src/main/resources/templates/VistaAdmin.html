@@ -13,7 +13,7 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
+
             <nav class="col-md-2 d-none d-md-block sidebar text-center">
                 <div class="mb-4">
                     <a class="navbar-brand" th:href="@{/}">
@@ -33,10 +33,7 @@
                 </ul>
             </nav>
 
-            <!-- Contenido principal -->
             <main class="col-md-10 ms-sm-auto col-lg-10 content">
-
-                <!-- Mensaje de bienvenida -->
                 <div id="bienvenida" class="seccion">
                     <div class="alert alert-success text-center" role="alert">
                         <h3>¡Bienvenido Administrador a SmartZone!</h3>
@@ -44,19 +41,16 @@
                     </div>
                 </div>
 
-                <!-- Gestión de Usuarios -->
                 <div id="usuarios" class="seccion d-none">
                     <h2>Gestión de Usuarios</h2>
                     <div th:replace="~{fragments/Admin-gest/Gest-usuarios :: gest-usuarios}"></div>
                 </div>
 
-                <!-- Gestión de Productos -->
                 <div id="productos" class="seccion d-none">
                     <h2>Gestión de Productos</h2>
                     <div th:replace="fragments/Admin-gest/Gest-productos :: gest-productos"></div>
                 </div>
 
-                <!-- Gestión de Pedidos -->
                 <div id="pedidos" class="seccion d-none">
                     <h2>Gestión de Pedidos</h2>
                     <div th:replace="fragments/Admin-gest/Gest-pedidos :: gest-pedidos"></div>
@@ -66,7 +60,6 @@
         </div>
     </div>
 
-    <!-- JS -->
     <script src="Js/Admin-fun.js"></script>
     <script src="Js/Admin-Usuario.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

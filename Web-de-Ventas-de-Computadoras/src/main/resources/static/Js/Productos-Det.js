@@ -1,6 +1,4 @@
-// -----------------------------
-// Datos por defecto (tu producto Asus)
-// -----------------------------
+
 const productData = {
     id: 'vacio',
     titulo: 'Proximamente',
@@ -11,9 +9,9 @@ const productData = {
 };
 
 const productos = {
-    "vacio": productData, // Producto vacio
+    "vacio": productData, 
 
-    //LAPTOPS
+
 
     "asus-tuf": {
         id: 'asus-tuf',

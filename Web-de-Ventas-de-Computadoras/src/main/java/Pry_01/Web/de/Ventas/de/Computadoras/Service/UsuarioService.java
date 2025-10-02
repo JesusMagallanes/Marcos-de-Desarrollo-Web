@@ -32,6 +32,8 @@ public class UsuarioService {
     public void eliminarUsuario(Long id){
         usuarioRepository.deleteById(id);
     }
-    
+    public void actualizarUsuario(UsuarioModel usuario) {
+        usuarioRepository.save(usuario); 
+    }
    
 }
