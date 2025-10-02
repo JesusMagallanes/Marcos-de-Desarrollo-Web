@@ -1,0 +1,119 @@
+<!-- Modal añadir usuario -->
+<div class="modal fade" id="gest-user" tabindex="-1" aria-labelledby="gestUserLabel" aria-hidden="true"
+    th:fragment="gest-usuarios">
+    <div class="modal-dialog">
+        <div class="modal-content"
+            style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="gestUserLabel">Añadir nuevo usuario</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row g-3">
+                    <div class="col-md-6">
+                        <label for="iduser" class="form-label">ID Usuario</label>
+                        <input type="number" class="form-control" id="iduser" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="Nombre" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Apellido" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" id="Apellido" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Email" class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="Email" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Contraseña" class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="Contraseña" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Rol" class="form-label">Rol Usuario</label>
+                        <select id="Rol" class="form-select" required>
+                            <option selected>Seleccionar Rol</option>
+                            <option value="1">Cliente</option>
+                            <option value="2">Empleado</option>
+                            <option value="3">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Telefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="Telefono" placeholder="Ingrese su número telefónico"
+                            required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Direccion" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="Direccion" placeholder="Av. Grau 123" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Añadir usuario</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- FIN Modal añadir usuario -->
+
+<!-- Modal editar usuario -->
+<div class="modal fade" id="edit-user" tabindex="-1" aria-labelledby="editUserLabel" aria-hidden="true"
+    th:fragment="gest-usuarios">
+    <div class="modal-dialog">
+        <div class="modal-content"
+            style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="editUserLabel">Editar usuario</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row g-3">
+                    <div class="col-md-6">
+                        <label for="iduser-edit" class="form-label">ID Usuario</label>
+                        <input type="number" class="form-control" id="iduser-edit" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Nombre-edit" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="Nombre-edit" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Apellido-edit" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" id="Apellido-edit" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Email-edit" class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="Email-edit" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Contraseña-edit" class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="Contraseña-edit" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Rol-edit" class="form-label">Rol Usuario</label>
+                        <select id="Rol-edit" class="form-select" required>
+                            <option selected>Seleccionar Rol</option>
+                            <option value="1">Cliente</option>
+                            <option value="2">Empleado</option>
+                            <option value="3">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Telefono-edit" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="Telefono-edit"
+                            placeholder="Ingrese su número telefónico" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Direccion-edit" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="Direccion-edit" placeholder="Av. Grau 123" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-warning">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- FIN Modal editar usuario -->
