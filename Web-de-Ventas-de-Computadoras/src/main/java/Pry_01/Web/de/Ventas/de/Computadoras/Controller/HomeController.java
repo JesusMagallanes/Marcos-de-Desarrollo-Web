@@ -27,4 +27,9 @@ public class HomeController {
         return "EnviosPag";
     }
 
+    @GetMapping("/Detalles")
+    public String Detalles() {
+        return "Detalles";
+    }
+
 }
