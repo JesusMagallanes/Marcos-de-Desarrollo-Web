@@ -1,9 +1,10 @@
 <div th:fragment="gest-usuarios">
   <!-- Botón para abrir modal -->
   <div class="mb-3">
-    <button class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#modalAgregarUsuario">
+    <button class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#gest-user">
       Añadir Usuario
     </button>
+
   </div>
 
   <!-- Tabla de usuarios -->
@@ -30,15 +31,12 @@
         <td th:text="${usuario.phoneNumber}"></td>
         <td th:text="${usuario.rol}"></td>
         <td class="table-actions">
-          <button class="btn btn-sm btn-warning"
-                  th:attr="data-id=${usuario.id}, 
+          <button class="btn btn-sm btn-warning" th:attr="data-id=${usuario.id}, 
                            data-nombre=${usuario.name},
                            data-apellido=${usuario.lastname},
                            data-email=${usuario.emailAddress},
-                           data-rol=${usuario.rol}"
-                  onclick="abrirModalEditar(this)"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalEditarUsuario">
+                           data-rol=${usuario.rol}" onclick="abrirModalEditar(this)" data-bs-toggle="modal"
+            data-bs-target="#edit-user">
             Editar
           </button>
 
@@ -50,102 +48,120 @@
     </tbody>
   </table>
 
-  <!-- Modal Añadir Usuario -->
-  <div class="modal fade" id="modalAgregarUsuario" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <form th:action="@{/usuarios/nuevo}" method="post">
-          <div class="modal-header">
-            <h5 class="modal-title">Añadir Usuario</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
+  <div class="modal fade" id="gest-user" tabindex="-1" aria-labelledby="gestUserLabel" aria-hidden="true"
+    th:fragment="gest-usuarios">
+    <div class="modal-dialog">
+      <div class="modal-content"
+        style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="gestUserLabel">Añadir nuevo usuario</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+
+        <!-- 🚀 EL FORMULARIO -->
+        <form class="row g-3" th:action="@{/usuarios}" method="post" th:object="${usuario}">
           <div class="modal-body">
-            <!-- Nombre -->
-            <div class="mb-3">
-              <label class="form-label">Nombre</label>
-              <input type="text" name="name" class="form-control" required>
+            <div class="col-md-6">
+              <label for="Nombre" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="Nombre" th:field="*{name}" required>
             </div>
-            <!-- Apellido -->
-            <div class="mb-3">
-              <label class="form-label">Apellido</label>
-              <input type="text" name="lastname" class="form-control" required>
+            <div class="col-md-6">
+              <label for="Apellido" class="form-label">Apellido</label>
+              <input type="text" class="form-control" id="Apellido" th:field="*{lastname}" required>
             </div>
-            <!-- Email -->
-            <div class="mb-3">
-              <label class="form-label">Correo</label>
-              <input type="email" name="emailAddress" class="form-control" required>
+            <div class="col-md-6">
+              <label for="Password" class="form-label">Contraseña</label>
+              <input type="password" class="form-control" id="Password" th:field="*{password}" required>
             </div>
-            <!-- Password -->
-            <div class="mb-3">
-              <label class="form-label">Contraseña</label>
-              <input type="password" name="password" class="form-control" required>
+
+            <div class="col-md-6">
+              <label for="Email" class="form-label">Correo Electrónico</label>
+              <input type="email" class="form-control" id="Email" th:field="*{emailAddress}" required>
             </div>
-            <!-- Teléfono -->
-            <div class="mb-3">
-              <label class="form-label">Teléfono</label>
-              <input type="text" name="phoneNumber" class="form-control" required>
-            </div>
-            <!-- Dirección -->
-            <div class="mb-3">
-              <label class="form-label">Dirección</label>
-              <input type="text" name="address" class="form-control" required>
-            </div>
-            <!-- Rol -->
-            <div class="mb-3">
-              <label class="form-label">Rol</label>
-              <select name="rol" class="form-select" required>
-                <option value="">Seleccione un rol</option>
-                <option value="ADMIN">ADMIN</option>
-                <option value="CLIENTE">CLIENTE</option>
+            <div class="col-md-6">
+              <label for="Rol" class="form-label">Rol Usuario</label>
+              <select id="Rol" class="form-select" th:field="*{rol}" required>
+                <option value="">Seleccionar Rol</option>
+                <option value="CLIENTE">Cliente</option>
+                <option value="DELIVERY">Delivery</option>
+                <option value="ADMINISTRADOR">Administrador</option>
               </select>
             </div>
+            <div class="col-md-6">
+              <label for="Telefono" class="form-label">Teléfono</label>
+              <input type="text" class="form-control" id="Telefono" th:field="*{phoneNumber}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="Direccion" class="form-label">Dirección</label>
+              <input type="text" class="form-control" id="Direccion" th:field="*{address}" required>
+            </div>
           </div>
+
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Guardar Usuario</button>
+            <button type="submit" class="btn btn-primary">Añadir usuario</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Modal Editar Usuario -->
-  <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <form th:action="@{/usuarios/editar}" method="post">
-          <div class="modal-header">
-            <h5 class="modal-title">Editar Usuario</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" name="id" id="edit-id">
-            <div class="mb-3">
-              <label class="form-label">Nombre</label>
-              <input type="text" name="name" id="edit-nombre" class="form-control" required>
+  <!-- FIN Modal añadir usuario -->
+
+  <!-- Modal editar usuario -->
+  <div class="modal fade" id="edit-user" tabindex="-1" aria-labelledby="editUserLabel" aria-hidden="true"
+    th:fragment="gest-usuarios">
+    <div class="modal-dialog">
+      <div class="modal-content"
+        style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="editUserLabel">Editar usuario</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <form class="row g-3">
+            <div class="col-md-6">
+              <label for="iduser-edit" class="form-label">ID Usuario</label>
+              <input type="number" class="form-control" id="iduser-edit" required>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Apellido</label>
-              <input type="text" name="lastname" id="edit-apellido" class="form-control" required>
+            <div class="col-md-6">
+              <label for="Nombre-edit" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="Nombre-edit" required>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Correo</label>
-              <input type="email" name="emailAddress" id="edit-email" class="form-control" required>
+            <div class="col-md-6">
+              <label for="Apellido-edit" class="form-label">Apellido</label>
+              <input type="text" class="form-control" id="Apellido-edit" required>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Rol</label>
-              <select name="rol" id="edit-rol" class="form-select" required>
-                <option value="ADMIN">ADMIN</option>
-                <option value="CLIENTE">CLIENTE</option>
+            <div class="col-md-6">
+              <label for="Email-edit" class="form-label">Correo Electrónico</label>
+              <input type="email" class="form-control" id="Email-edit" required>
+            </div>
+            <div class="col-md-6">
+              <label for="Contraseña-edit" class="form-label">Contraseña</label>
+              <input type="password" class="form-control" id="Contraseña-edit" required>
+            </div>
+            <div class="col-md-6">
+              <label for="Rol-edit" class="form-label">Rol Usuario</label>
+              <select id="Rol-edit" class="form-select" required>
+                <option selected>Seleccionar Rol</option>
+                <option value="1">Cliente</option>
+                <option value="2">Empleado</option>
+                <option value="3">Administrador</option>
               </select>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-success">Actualizar Usuario</button>
-          </div>
-        </form>
+            <div class="col-md-6">
+              <label for="Telefono-edit" class="form-label">Teléfono</label>
+              <input type="text" class="form-control" id="Telefono-edit" placeholder="Ingrese su número telefónico"
+                required>
+            </div>
+            <div class="col-md-6">
+              <label for="Direccion-edit" class="form-label">Dirección</label>
+              <input type="text" class="form-control" id="Direccion-edit" placeholder="Av. Grau 123" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-warning">Guardar cambios</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
