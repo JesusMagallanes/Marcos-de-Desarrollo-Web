@@ -50,6 +50,6 @@ public class UsuarioController {
     @PostMapping("/eliminar/{id}")
     public String eliminarUsuario(@PathVariable Long id) {
         usuarioService.eliminarUsuario(id);
-        return "Redirect:/VistaAdmin";
+        return "redirect:/VistaAdmin";
     }
 }
