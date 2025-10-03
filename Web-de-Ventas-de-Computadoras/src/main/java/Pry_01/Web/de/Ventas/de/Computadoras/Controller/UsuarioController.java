@@ -43,7 +43,6 @@ public class UsuarioController {
             @ModelAttribute("usuario") UsuarioModel usuario) {
         usuario.setId(id);
         usuarioService.actualizarUsuario(usuario);
-        System.out.println("Rol del usuario: " + usuario.getRol());
         return "redirect:/VistaAdmin";
     }
 
