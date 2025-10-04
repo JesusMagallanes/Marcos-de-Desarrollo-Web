@@ -97,6 +97,18 @@
   transition: 350ms;
 }
 
+.faq .accordion-button:not(.collapsed) {
+  background-color: lightgreen;
+  box-shadow: none;
+}
+
+.faq .accordion-button.collapsed:focus {
+  box-shadow: 0 0 0 0.25rem rgba(53, 199, 53, 0.405);
+}
+
+.faq .accordion-body{
+  background-color: rgb(229, 255, 229);
+}
 
 .productostop {
   margin-top: 50px;
