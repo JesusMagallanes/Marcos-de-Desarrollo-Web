@@ -3,6 +3,7 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+
 @Controller
 public class HomeController {
 
@@ -24,11 +25,6 @@ public class HomeController {
     @GetMapping("/EnviosPag")
     public String Envios() {
         return "EnviosPag";
-    }
-
-    @GetMapping("/Gest-admin")
-    public String Admin() {
-        return "Gest-admin";
     }
 
     @GetMapping("/Detalles")

@@ -20,10 +20,19 @@ public class UsuarioDto {
 
     private Roles rol;
 
+    private String password; 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public UsuarioDto() {
     }
 
-    public UsuarioDto(Long id, String name, String lastname, String emailAddress, String phoneNumber, String address, Roles rol) {
+    public UsuarioDto(Long id, String name, String lastname, String emailAddress, String phoneNumber, String address, Roles rol,String password) {
         this.id = id;
         this.name = name;
         this.lastname = lastname;
@@ -31,6 +40,7 @@ public class UsuarioDto {
         this.address = address;
         this.phoneNumber = phoneNumber;
         this.rol = rol;
+        this.password = password;
     }
 
     public Long getId() {

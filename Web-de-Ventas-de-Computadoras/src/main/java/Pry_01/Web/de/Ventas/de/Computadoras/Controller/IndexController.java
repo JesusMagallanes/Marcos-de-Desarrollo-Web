@@ -17,7 +17,7 @@ public class IndexController {
         this.categoriaService = categoriaService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/Index")
     public String mostrarIndex(Model model) {
         List<CategoriaModel> categorias = categoriaService.listarCategoria();
         model.addAttribute("categorias", categorias);
