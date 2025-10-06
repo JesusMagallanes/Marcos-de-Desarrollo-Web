@@ -1,0 +1,71 @@
+<div class="modal fade" id="register" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+    th:fragment="register">
+    <div class="modal-dialog">
+        <div class="modal-content"
+            style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Registrar</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row g-3" th:action="@{/usuarios/registrar}" method="post">
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">Nombre Completo</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="lastname" class="form-label">Apellidos</label>
+                        <input type="text" class="form-control" id="lastname" name="lastname" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="emailAddress" class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="emailAddress" name="emailAddress" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="address" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="address" name="address" placeholder="Av. Grau 123"
+                            required>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="phoneNumber" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="phoneNumber" name="phoneNumber"
+                            placeholder="Ingrese su número telefónico" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="city" class="form-label">Ciudad</label>
+                        <input type="text" class="form-control" id="city" name="address" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="age" class="form-label">Edad</label>
+                        <input type="number" class="form-control" id="age" required>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="gridCheck" required>
+                            <label class="form-check-label" for="gridCheck">
+                                Aceptar Términos y Condiciones
+                            </label>
+                        </div>
+                    </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-bs-toggle="modal"
+                    data-bs-target="#login">Regresar</button>
+                <button type="submit" class="btn btn-primary">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>

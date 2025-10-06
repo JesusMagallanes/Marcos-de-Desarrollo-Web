@@ -13,53 +13,50 @@
 
 <body class="d-flex flex-column h-100">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
-        <div class="container-fluid">
-            <a class="navbar-brand" th:href="@{/Index}">
-                <img src="/Img/logo.png" alt="Logo" height="35px">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/Index}">
+            <img src="/Img/logo.png" alt="Logo" height="35px">
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#opciones">
+            <img src="/Img/icon-burguer.svg" width="40px" alt="Menú">
+        </button>
+
+        <div class="collapse navbar-collapse" id="opciones">
+            <a class="btn btn-primary me-2" data-bs-toggle="offcanvas" href="#cat1" role="button"
+                aria-controls="cat1" style="margin-top: 10px; margin-bottom: 10px;">
+                Categorías
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#opciones">
-                <img src="/Img/icon-burguer.svg" width="40px" alt="Menú">
-            </button>
 
-            <div class="collapse navbar-collapse" id="opciones">
-                <!-- Botón para abrir el offcanvas -->
-                <a class="btn btn-primary me-2" data-bs-toggle="offcanvas" href="#cat1" role="button"
-                    aria-controls="cat1" style="margin-top: 10px; margin-bottom: 10px;">
-                    Categorías
+            <form class="d-flex flex-grow-1 me-2" role="search">
+                <input class="form-control me-2" type="search" placeholder="Busca en nuestro catálogo..." aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Buscar</button>
+            </form>
+
+            <!-- Mostrar "Hola {nombre}" si hay usuario -->
+            <div th:if="${usuario != null}">
+                <a class="btn btn-outline-light me-2" href="#">
+                    Hola <span th:text="${usuario.nombre}">Usuario</span>
                 </a>
-                <!-- Formulario de búsqueda -->
-                <form class="d-flex flex-grow-1 me-2" role="search">
-                    <input class="form-control me-2" type="search" placeholder="Busca en nuestro catálogo..."
-                        aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit">Buscar</button>
-                </form>
+            </div>
 
+            <!-- Mostrar botón de inicio si NO hay usuario -->
+            <div th:if="${usuario == null}">
                 <a class="btn btn-outline-success me-2" href="#" data-bs-toggle="modal" data-bs-target="#login">
                     Iniciar Sesión
                 </a>
-
-                <a class="btn btn-outline-light" th:href="@{/Carrito}">
-                    <img src="/Img/Icon-Carrito.svg" alt="Carrito" width="35">
-                </a>
             </div>
+
+            <a class="btn btn-outline-light" th:href="@{/Carrito}">
+                <img src="/Img/Icon-Carrito.svg" alt="Carrito" width="35">
+            </a>
         </div>
-    </nav>
+    </div>
+</nav>
+
     <div th:replace="fragments/Categoria :: categoria"></div>
     <div th:replace="fragments/Login-Register/Login :: login"></div>
     <div th:replace="fragments/Login-Register/Register :: register"></div>
-
-    <div class="container mt-3">
-        <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show text-center" role="alert">
-            <span th:text="${mensaje}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show text-center" role="alert">
-            <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </div>
-
 
 
     <main class="flex-shrink-0">
