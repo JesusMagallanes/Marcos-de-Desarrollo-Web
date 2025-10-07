@@ -13,7 +13,7 @@
 
 <body class="d-flex flex-column h-100">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
-        <div class="container-fluid">
+        <div class="contenido-nav container-fluid">
             <a class="navbar-brand" th:href="@{/Index}">
                 <img src="/Img/logo.png" alt="Logo" height="35px">
             </a>
@@ -28,19 +28,44 @@
                     Categorías
                 </a>
                 <!-- Formulario de búsqueda -->
-                <form class="d-flex flex-grow-1 me-2" role="search">
-                    <input class="form-control me-2" type="search" placeholder="Busca en nuestro catálogo..."
+                <form class="d-flex flex-grow-1 me-2 position-relative" role="search">
+                    <input class="form-control pe-5" type="search" placeholder="Busca en nuestro catálogo..."
                         aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit">Buscar</button>
+                    <img src="/Img/lupa.svg" alt="Buscar" width="18" height="18"
+                        class="position-absolute top-50 end-0 translate-middle-y me-3 opacity-75">
                 </form>
 
-                <a class="btn btn-outline-success me-2" href="#" data-bs-toggle="modal" data-bs-target="#login">
-                    Iniciar Sesión
-                </a>
 
-                <a class="btn btn-outline-light" th:href="@{/Carrito}">
-                    <img src="/Img/Icon-Carrito.svg" alt="Carrito" width="35">
-                </a>
+                <div class="row justify-content-center align-items-center text-center">
+                    <div class="col-auto d-flex justify-content-center border-end">
+                        <div class="btn-nav d-flex align-items-center gap-1" data-bs-toggle="modal"
+                            data-bs-target="#login">
+                            <img src="/Img/avatar-user.svg" alt="Avatar" class="img-fluid"
+                                style="width: 24px; height: 24px;">
+                            <p class="mb-0 lh-sm small">Iniciar <br> Sesión</p>
+                        </div>
+                    </div>
+
+                    <div class="col-auto d-flex justify-content-center border-end">
+                        <div class="btn-nav d-flex align-items-center gap-1" data-bs-toggle="modal"
+                            data-bs-target="#login">
+                            <img src="/Img/buys-icon.svg" alt="Cartera" class="img-fluid"
+                                style="width: 24px; height: 24px;">
+                            <p class="mb-0 lh-sm small">Mis <br> Compras</p>
+                        </div>
+                    </div>
+
+                    <div class="col-auto d-flex justify-content-center">
+                        <div class="btn-nav d-flex align-items-center gap-1">
+                            <a th:href="@{/Carrito}">
+                                <img src="/Img/icon-carrito.svg" alt="Carrito" width="26">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+
+
             </div>
         </div>
     </nav>

@@ -53,12 +53,27 @@
   border: none;
 }
 
-.btn-outline-light:hover {
-  -webkit-mask: url("/Img/Icon-Carrito.svg") no-repeat center;
-  mask: url("/Img/Icon-Carrito.svg") no-repeat center;
-  background-color: #035e38;
-
+.btn-nav {
+  padding: 8px 12px;
+  transition: 350ms;
 }
+
+.btn-nav img {
+  filter: opacity(65%);
+  transition: 350ms;
+}
+
+.btn-nav:hover {
+  cursor: pointer;
+  border-radius: 5px;
+  background-color: #dadada;
+}
+
+.border-end {
+  border-color: #dadada !important;
+  border-width: 1.8px !important;
+}
+
 
 #carousel-resena .carousel-inner {
   padding-top: 24px;
@@ -68,7 +83,12 @@
 .navbar {
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.199);
   margin-bottom: 15px;
-  background-image: url("/Img/head.png");
+  background-color: #F8F8F8 !important;
+}
+
+.contenido-nav{
+  margin-left: 25px;
+  margin-right: 25px;
 }
 
 #cat1 {
