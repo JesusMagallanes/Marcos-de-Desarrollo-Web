@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Document</title>
+    <link rel="stylesheet" href="\Web-de-Ventas-de-Computadoras\src\main\resources\static\Css\Style.css">
+    <link rel="icon" href="/Img/img.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="container-fluid px-lg-5" style="background-color: aqua; height: 5rem;">
+        <div class="row">
+            <div class="col-4 d-flex align-items-center" style="background-color: rgb(163, 227, 252); height: 5rem; gap: 0.5rem;">
+                <a class="navbar-brand" th:href="@{/Index}">
+                    <img src="\Web-de-Ventas-de-Computadoras\src\main\resources\static\Img\logo.png" alt="Logo" height="35px">
+                </a>
+                <a class="btn btn-primary me-2 d-flex align-items-center justify-content-center gap-1" data-bs-toggle="offcanvas" href="#cat1" role="button" aria-controls="cat1" style="margin-top: 10px; margin-bottom: 10px;">
+                    <i class="fa-solid fa-bars"></i>Categorías
+                </a>
+            </div>
+            <div class="col-4 d-flex align-items-center" style="background-color:yellow; height: 5rem;">
+                <!-- Formulario de búsqueda -->
+                <form class="d-flex flex-grow-1 me-2 position-relative" role="search">
+                    <input class="form-control pe-5" type="search" placeholder="¿Que estas buscando?"
+                        aria-label="Search">
+                    <img src="\Web-de-Ventas-de-Computadoras\src\main\resources\static\Img\lupa.svg" alt="Buscar" width="18" height="18"
+                        class="position-absolute top-50 end-0 translate-middle-y me-3 opacity-75">
+                </form>
+            </div>
+            <div class="col-4" style="background-color: yellowgreen; height: 5rem;"></div>
+        </div>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
