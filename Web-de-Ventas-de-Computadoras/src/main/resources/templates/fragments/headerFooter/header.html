@@ -1,39 +1,34 @@
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Document</title>
-    
-    <link rel="icon" href="/Img/img.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-<body>
-    <header class="header-principal container-fluid px-lg-5 p-0" style="background-color: #F8F8F8;"> 
-        <nav class="navbar navbar-expand-lg" style="height: 4rem; box-shadow: none; background-color: #F8F8F8;">
-            <button class="navbar p-2 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu" aria-expanded="false" aria-label="Toggle navigation" style="border: none; font-size: 1.4rem; background-color:transparent; color: #505050;">
+<div th:fragment="header">
+    <header class="header-principal container-fluid px-lg-5" style="background-color: #F8F8F8;">
+        <nav class="navbar navbar-expand-lg m-0"  style="height: 4rem; box-shadow: none; background-color: #F8F8F8;">
+            <button class="navbar p-2 d-flex d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu"
+                aria-controls="offcanvasMenu" aria-expanded="false" aria-label="Toggle navigation"
+                style="border: none; font-size: 1.4rem; background-color:transparent; color: #505050;">
                 <i class="fa-solid fa-bars"></i>
             </button>
+
             <a class="navbar-brand me-4" th:href="@{/Index}" style="cursor: pointer;">
-                <img src="\Web-de-Ventas-de-Computadoras\src\main\resources\static\Img\logo.png" alt="Logo" height="35px">
+                <img src="/Img/logo.png" alt="Logo"
+                    height="35px">
             </a>
-            
+
             <div class="d-flex align-items-center d-lg-none ms-auto">
-                <button class="btn btn-sm me-2 " type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" aria-expanded="false" aria-controls="searchCollapse" style="border: none;width: 1.5rem;">
+                <button class="btn btn-sm me-2" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse"
+                    aria-expanded="false" aria-controls="searchCollapse" style="border: none;">
                     <i class="fas fa-search"></i>
                 </button>
                 <a th:href="@{/Carrito}" class="nav-link">
                     <i class="fa-solid fa-cart-shopping"></i>
                 </a>
             </div>
-            
+
             <div class="collapse navbar-collapse d-none d-lg-flex justify-content-between" id="navbarNav">
-                
+
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="btn btn-primary d-flex align-items-center justify-content-center gap-1" data-bs-toggle="offcanvas" href="#cat1" role="button" aria-controls="cat1" style="background-color: #28AA00; border: none; height: 2.8rem; font-size: 1rem;">
+                        <a class="btn btn-primary d-flex align-items-center justify-content-center gap-1"
+                            data-bs-toggle="offcanvas" href="#cat1" role="button" aria-controls="cat1"
+                            style="background-color: #28AA00; border: none; height: 2.8rem; font-size: 1rem;">
                             <i class="fa-solid fa-bars"></i>Categorías
                         </a>
                     </li>
@@ -41,20 +36,23 @@
 
                 <form class="d-flex mx-4 flex-grow-1" role="search" style="max-width: 100%;">
                     <div class="input-group">
-                        <input class="form-control" type="search" placeholder="¿Qué estás buscando?" aria-label="Search" style="border: none;">
+                        <input class="form-control" type="search" placeholder="¿Qué estás buscando?" aria-label="Search"
+                            style="border: none;">
                         <button class="btn" type="submit" style="background-color: white; color: #B3B3B3;">
-                            <i class="fas fa-search"></i> 
+                            <i class="fas fa-search"></i>
                         </button>
                     </div>
                 </form>
 
                 <div class="d-flex align-items-center text-center flex-nowrap gap-3">
-                    <div class="btn-nav d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#login" style="cursor: pointer;">
+                    <div class="btn-nav d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#login"
+                        style="cursor: pointer;">
                         <i class="fa-solid fa-user" style="color: #505050; font-size: 1.2rem;"></i>
                         <p class="mb-0 lh-sm small text-start" style="color: #505050;">Iniciar <br> Sesión</p>
                     </div>
 
-                    <div class="btn-nav d-flex align-items-center gap-1 border-start px-3 border-end " data-bs-toggle="modal" data-bs-target="#login" style="cursor: pointer;">
+                    <div class="btn-nav d-flex align-items-center gap-1 border-start px-3 border-end "
+                        data-bs-toggle="modal" data-bs-target="#login" style="cursor: pointer;">
                         <i class="fa-solid fa-bag-shopping" style="color: #505050; font-size: 1.2rem;"></i>
                         <p class="mb-0 lh-sm small text-start" style="color: #505050;">Mis <br> Compras</p>
                     </div>
@@ -65,7 +63,7 @@
                 </div>
             </div>
         </nav>
-        
+
         <div class="collapse d-lg-none pb-2" id="searchCollapse">
             <form class="d-flex" role="search">
                 <div class="input-group">
@@ -76,20 +74,21 @@
         </div>
     </header>
 
-    <header class="header-secundario d-lg-flex container-fluid px-lg-5 align-items-center " style="background-color: #ECECEC; height: 2.5rem;">
-        <nav class="navbar navbar-expand-lg d-flex justify-content-between w-100" style="height: 2.5rem; box-shadow: none; background-color: #ECECEC; font-size: 0.9rem; color: #505050;">
-        <!--te quedaste aqui por ahora, guardar progreso, Y/N, terminar el segun header-->
-           <div class="d-flex align-items-center">
+    <header class="d-none d-lg-flex container-fluid px-lg-5 align-items-center "
+        style="background-color: #ECECEC; height: 2.5rem;">
+        <nav class="navbar navbar-expand-lg m-0 d-flex justify-content-between w-100"
+            style="height: 2.5rem; box-shadow: none; background-color:#ECECEC ; font-size: 0.9rem; color: #505050;">
+            <!--te quedaste aqui por ahora, guardar progreso, Y/N, terminar el segun header-->
             <div>
                 <i class="fa-solid fa-location-dot"></i>
                 <span class="ms-2" style="font-size: 0.9rem;">Ingresar ubicación</span>
             </div>    
                 <i class="fa-solid fa-chevron-right"></i>
-           </div>
-            <div class=" flex-row gap-2 d-none d-lg-flex">
-                <div class="marcas">
+            </div>
+            <div class="marcas">
 
-                </div>
+            </div>
+            <div class="d-flex flex-row gap-2">
                 <div>
                     <i class="fa-solid fa-map-location"></i>
                     <span>Nuestras tiendas</span>
@@ -111,8 +110,10 @@
         </div>
         <div class="offcanvas-body">
             <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-                <li class="nav-item mb-2"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#login" style="cursor: pointer;"><i class="fa-solid fa-user me-2"></i> Iniciar Sesión</a></li>
-                <li class="nav-item mb-2"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#login" style="cursor: pointer;"><i class="fa-solid fa-bag-shopping me-2"></i> Mis Compras</a></li>
+                <li class="nav-item mb-2"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#login"
+                        style="cursor: pointer;"><i class="fa-solid fa-user me-2"></i> Iniciar Sesión</a></li>
+                <li class="nav-item mb-2"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#login"
+                        style="cursor: pointer;"><i class="fa-solid fa-bag-shopping me-2"></i> Mis Compras</a></li>
                 <hr>
                 <li class="nav-item"><a class="nav-link fw-bold" th:href="@{/ofertas}">Ofertas</a></li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/novedades}">Novedades</a></li>
@@ -120,14 +121,12 @@
                 <li class="nav-item"><a class="nav-link" th:href="@{/contacto}">Contacto</a></li>
                 <hr>
                 <li class="nav-item mb-2">
-                    <a class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-1" data-bs-toggle="offcanvas" href="#cat1" role="button" aria-controls="cat1">
+                    <a class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-1"
+                        data-bs-toggle="offcanvas" href="#cat1" role="button" aria-controls="cat1">
                         <i class="fa-solid fa-bars"></i>Ver todas las Categorías
                     </a>
                 </li>
             </ul>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>

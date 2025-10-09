@@ -1,0 +1,32 @@
+<div th:fragment="footer">
+    <footer class="bg-dark text-light pt-4 mt-auto">
+        <div class="container">
+            <div class="row">
+                <!-- Columna 1 -->
+                <div class="col-md-4 mb-3">
+                    <h6 style="color: var(--bs-primary);">SmartZone</h6>
+                    <p>Innovación y exclusividad en productos tecnológicos.</p>
+                    <p>Horario de Atención: L-S : 8 am - 8 pm </p>
+                </div>
+                <!-- Columna 2 -->
+                <div class="col-md-4 mb-3 text-center">
+                    <h6>Sobre Nosotros</h6>
+                    <a th:href="@{/Somos}">¿Quiénes somos?
+                    </a> <br>
+                    <a th:href="@{/Canales}">Canales
+                        de Atención</a>
+                </div>
+                <!-- Columna 3 -->
+                <div class="col-md-4 mb-3 text-center">
+                    <h6>Redes Sociales</h6>
+                    <a href="https://www.facebook.com/"><img src="Img/Icon-Facebook.svg" alt="Facebook"></a>
+                    <a href="https://www.instagram.com/"><img src="Img/Icon-Instagram.svg" alt="Instragram"></a>
+                    <a href="https://www.tiktok.com/es/"><img src="Img/Icon-TikTok.svg" alt="Tiktok"></a>
+                </div>
+            </div>
+            <div class="text-center py-3 border-top border-secondary">
+                &copy; 2025 SmartZone
+            </div>
+        </div>
+    </footer>
+</div>
