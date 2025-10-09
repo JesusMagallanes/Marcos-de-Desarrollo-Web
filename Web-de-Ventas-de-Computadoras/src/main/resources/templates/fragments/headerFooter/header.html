@@ -11,9 +11,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-    <header class="header-principal container-fluid px-lg-5" style="background-color: #F8F8F8;"> 
+    <header class="header-principal container-fluid px-lg-5 p-0" style="background-color: #F8F8F8;"> 
         <nav class="navbar navbar-expand-lg" style="height: 4rem; box-shadow: none; background-color: #F8F8F8;">
-            <button class="navbar p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu" aria-expanded="false" aria-label="Toggle navigation" style="border: none; font-size: 1.4rem; background-color:transparent; color: #505050;">
+            <button class="navbar p-2 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu" aria-expanded="false" aria-label="Toggle navigation" style="border: none; font-size: 1.4rem; background-color:transparent; color: #505050;">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <a class="navbar-brand me-4" th:href="@{/Index}" style="cursor: pointer;">
@@ -21,7 +21,7 @@
             </a>
             
             <div class="d-flex align-items-center d-lg-none ms-auto">
-                <button class="btn btn-sm me-2" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" aria-expanded="false" aria-controls="searchCollapse" style="border: none;">
+                <button class="btn btn-sm me-2 " type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" aria-expanded="false" aria-controls="searchCollapse" style="border: none;width: 1.5rem;">
                     <i class="fas fa-search"></i>
                 </button>
                 <a th:href="@{/Carrito}" class="nav-link">
@@ -76,18 +76,20 @@
         </div>
     </header>
 
-    <header class="header-secundario d-none d-lg-flex container-fluid px-lg-5 align-items-center " style="background-color: #ECECEC; height: 2.5rem;">
+    <header class="header-secundario d-lg-flex container-fluid px-lg-5 align-items-center " style="background-color: #ECECEC; height: 2.5rem;">
         <nav class="navbar navbar-expand-lg d-flex justify-content-between w-100" style="height: 2.5rem; box-shadow: none; background-color: #ECECEC; font-size: 0.9rem; color: #505050;">
         <!--te quedaste aqui por ahora, guardar progreso, Y/N, terminar el segun header-->
-           <div>
+           <div class="d-flex align-items-center">
+            <div>
                 <i class="fa-solid fa-location-dot"></i>
                 <span class="ms-2" style="font-size: 0.9rem;">Ingresar ubicación</span>
+            </div>    
                 <i class="fa-solid fa-chevron-right"></i>
            </div>
-           <div class="marcas">
+            <div class=" flex-row gap-2 d-none d-lg-flex">
+                <div class="marcas">
 
-           </div>
-            <div class="d-flex flex-row gap-2">
+                </div>
                 <div>
                     <i class="fa-solid fa-map-location"></i>
                     <span>Nuestras tiendas</span>
