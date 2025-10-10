@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
@@ -12,39 +12,39 @@
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <link rel="stylesheet" href="/css/Chat-Bot.css">
-</head>
+        <link rel="stylesheet" href="/css/Chat-Bot.css">
+    </head>
 
-<body class="d-flex flex-column h-100">
-    <div th:replace="~{fragments/headerFooter/header :: header}"></div>
-    <div th:replace="fragments/Categoria :: categoria"></div>
-    <div th:replace="fragments/Login-Register/Login :: login"></div>
-    <div th:replace="fragments/Login-Register/Register :: register"></div>
+    <body class="d-flex flex-column h-100">
+        <div th:replace="~{fragments/headerFooter/header :: header}"></div>
+        <div th:replace="fragments/Categoria :: categoria"></div>
+        <div th:replace="fragments/Login-Register/Login :: login"></div>
+        <div th:replace="fragments/Login-Register/Register :: register"></div>
 
-    <main class="flex-shrink-0" style="margin: 30px;">
-        <div id="product-root" class="container text-center"
-            style="background-color: white; padding: 10px; border-radius: 10px; box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179)">
-            <!-- Aquí se inyecta todo el contenido dinámico -->
-        </div>
-        <div id="payments-placeholder" style="display:none;">
-            <div class="container text-center mt-4">
-                <div class="row justify-content-center">
-                    <div class="col-4 col-md-2">
-                        <img src="https://images.seeklogo.com/logo-png/39/3/yape-app-logo-png_seeklogo-399697.png"
-                            width="60px" class="img-fluid rounded" alt="yape">
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <img src="https://img.icons8.com/?size=512&id=13608&format=png" width="60px"
-                            class="img-fluid rounded" alt="visa">
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/88/MasterCard_early_1990s_logo.svg"
-                            width="60px" style="margin-top: 15px;" class="img-fluid rounded" alt="mastercard">
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaft1EtwutCeXGzg0hfXfXubaH1jXMJeb-Rg&s"
-                            width="60px" class="img-fluid rounded" alt="paypal">
-                    </div>
+        <main class="flex-shrink-0" style="margin: 30px;">
+            <div id="product-root" class="container text-center"
+                style="background-color: white; padding: 10px; border-radius: 10px; box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179)">
+                <!-- Aquí se inyecta todo el contenido dinámico -->
+            </div>
+            <div id="payments-placeholder" style="display:none;">
+                <div class="container text-center mt-4">
+                    <div class="row justify-content-center">
+                        <div class="col-4 col-md-2">
+                            <img src="https://images.seeklogo.com/logo-png/39/3/yape-app-logo-png_seeklogo-399697.png"
+                                width="60px" class="img-fluid rounded" alt="yape">
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <img src="https://img.icons8.com/?size=512&id=13608&format=png" width="60px"
+                                class="img-fluid rounded" alt="visa">
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/88/MasterCard_early_1990s_logo.svg"
+                                width="60px" style="margin-top: 15px;" class="img-fluid rounded" alt="mastercard">
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaft1EtwutCeXGzg0hfXfXubaH1jXMJeb-Rg&s"
+                                width="60px" class="img-fluid rounded" alt="paypal">
+                        </div>
                 </div>
             </div>
         </div>
