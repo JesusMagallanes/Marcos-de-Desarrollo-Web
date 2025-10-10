@@ -1,27 +1,74 @@
 <div th:fragment="footer">
-    <footer class="bg-dark text-light pt-4 mt-auto">
+    <footer class=" pt-4 mt-auto" style="background-color: #363636; color: white;">
         <div class="container">
             <div class="row">
                 <!-- Columna 1 -->
-                <div class="col-md-4 mb-3">
-                    <h6 style="color: var(--bs-primary);">SmartZone</h6>
-                    <p>Innovación y exclusividad en productos tecnológicos.</p>
-                    <p>Horario de Atención: L-S : 8 am - 8 pm </p>
+                <div class="col">
+                    <img src="\Img\logoSZ-blanco.png" alt="Logo" height="48px">
+                    <div>
+                        <h5 class="fw-bold">Contáctanos</h5>
+                        <div class="d-flex flex-column gap-2">
+                            <a href=""><i class="fa-brands fa-whatsapp"></i> Atención por WhatsApp</a>
+                            <span href=""><i class="fa-solid fa-phone"></i>+51 905 187 817</span>
+                            <span href=""><i class="fa-solid fa-calendar"></i>Lun - Sab 9:00 am a 6:00 pm</span>
+                            <span href=""><i class="fa-solid fa-envelope"></i>servicioalcliente@gmail.com</span>
+                            <img src="\Img\libroReclamaciones.webp" alt="Libro de reclamaciones" height="65px" width="110px" style="border-radius: 8px;">
+                        </div>
+                    </div>
+                    
                 </div>
                 <!-- Columna 2 -->
-                <div class="col-md-4 mb-3 text-center">
-                    <h6>Sobre Nosotros</h6>
-                    <a th:href="@{/Somos}">¿Quiénes somos?
-                    </a> <br>
-                    <a th:href="@{/Canales}">Canales
-                        de Atención</a>
+                <div class="col">
+                    <h5 class="fw-bold">Sobre nosotros</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a th:href="@{/Somos}">¿Quiénes somos?</a>
+                        <a th:href="@{/Canales}">Canales de Atención</a>
+                        <a href="">Metodos de Pago</a>
+                        <a href="">Nuestra tiendas</a>
+                        <a href="">Cobertura delivery</a>
+                    </div>
+                    
                 </div>
                 <!-- Columna 3 -->
-                <div class="col-md-4 mb-3 text-center">
-                    <h6>Redes Sociales</h6>
-                    <a href="https://www.facebook.com/"><img src="Img/Icon-Facebook.svg" alt="Facebook"></a>
-                    <a href="https://www.instagram.com/"><img src="Img/Icon-Instagram.svg" alt="Instragram"></a>
-                    <a href="https://www.tiktok.com/es/"><img src="Img/Icon-TikTok.svg" alt="Tiktok"></a>
+                <div class="col">
+                    <h5>Marcas populares</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="">Asus</a>
+                        <a href="">Acer</a>
+                        <a href="">MSI</a>
+                        <a href="">HP</a>
+                        <a href="">JBL</a>
+                        <a href="">Xiaomi</a>
+                    </div>
+                </div>
+                <div class="col">
+                    <h5>Nuestras categorias</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="">Laptops</a>
+                        <a href="">Computadoras</a>
+                        <a href="">Consolas</a>
+                        <a href="">Consolas</a>
+                        <a href="">Videojuegos</a>
+                        <a href="">Celulares</a>
+                    </div>
+                </div>
+                <div class="col">
+                    <h5>Aprende con nosotros</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="">¿Cómo comprar online?</a>
+                        <a href="">¿cómo registrarse en nuestra web?</a>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col d-flex flex-row gap-2">
+                    <div class="p-2 " style="border-radius: 100%; background-color: #ABABAB;"><i class="fa-brands fa-facebook"></i></div>
+                    <div class="p-2 " style="border-radius: 100%; background-color: #ABABAB;"><i class="fa-brands fa-instagram"></i></div>
+                    <div class="p-2 " style="border-radius: 100%; background-color: #ABABAB;"><i class="fa-brands fa-youtube"></i></div>
+                    <div class="p-2 " style="border-radius: 100%; background-color: #ABABAB;"><i class="fa-brands fa-x-twitter"></i></div>
+                </div>
+                <div class="col">
+                    
                 </div>
             </div>
             <div class="text-center py-3 border-top border-secondary">
@@ -30,3 +77,4 @@
         </div>
     </footer>
 </div>
+
