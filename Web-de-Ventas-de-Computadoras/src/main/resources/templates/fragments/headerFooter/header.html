@@ -43,20 +43,20 @@
                     </div>
                 </form>
 
-                <div class="d-flex align-items-center text-center flex-nowrap gap-3">
+                <div class="d-flex align-items-center text-center flex-nowrap gap-1">
                     <div class="btn-nav d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#login"
                         style="cursor: pointer;">
                         <i class="fa-solid fa-user" style="color: #505050; font-size: 1.2rem;"></i>
                         <p class="mb-0 lh-sm small text-start" style="color: #505050;">Iniciar <br> Sesión</p>
                     </div>
 
-                    <div class="btn-nav d-flex align-items-center gap-1 border-start px-3 border-end "
+                    <div class="btn-nav d-flex align-items-center gap-1 border-start border-end "
                         data-bs-toggle="modal" data-bs-target="#login" style="cursor: pointer;">
                         <i class="fa-solid fa-bag-shopping" style="color: #505050; font-size: 1.2rem;"></i>
                         <p class="mb-0 lh-sm small text-start" style="color: #505050;">Mis <br> Compras</p>
                     </div>
 
-                    <div th:href="@{/Carrito}" class="bt-nav">
+                    <div class="btn-nav-carrito" th:href="@{/Carrito}">
                         <i class="fa-solid fa-cart-shopping" style="color: #505050; font-size: 1.2rem;"></i>
                     </div>
                 </div>
@@ -90,17 +90,17 @@
     style="background-color: #ECECEC; height: 2.5rem;">
     <nav class="navbar navbar-expand-lg m-0 d-flex justify-content-between w-100"
         style="height: 2.5rem; box-shadow: none; background-color:#ECECEC ; font-size: 0.9rem; color: #505050;">
-        <a href="" class="d-flex align-items-center nav-link" style="cursor: pointer;">
+        <a href="" class="d-flex align-items-center nav-link btn-nav py-1" style="cursor: pointer;">
             <i class="fa-solid fa-location-dot"></i>
             <span class="ms-2" style="font-size: 0.9rem;">Ingresar ubicación</span>
             <i class="fa-solid fa-chevron-right ms-2"></i>
         </a>
-        <div class="d-flex flex-row gap-4">
-            <div>
+        <div class="d-flex flex-row gap-1">
+            <div style="color: #28AA00;" class="btn-nav py-1">
                 <i class="fa-solid fa-map-location"></i>
                 <span>Nuestras tiendas</span>
             </div>
-            <div>
+            <div class="btn-nav py-1">
                 <i class="fa-solid fa-circle-question"></i>
                 <span>Ayuda</span>
                 <i class="fa-solid fa-chevron-down ms-1"></i>

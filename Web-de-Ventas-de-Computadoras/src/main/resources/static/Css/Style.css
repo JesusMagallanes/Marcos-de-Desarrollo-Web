@@ -61,6 +61,15 @@ a{
   padding: 8px 12px;
   transition: 350ms;
 }
+.btn-nav-carrito{
+  padding: 14px 12px;
+  transition: 350ms;
+}
+.btn-nav-carrito:hover {
+  cursor: pointer;
+  border-radius: 5px;
+  background-color: #dadada;
+}
 
 .btn-nav img {
   filter: opacity(65%);
