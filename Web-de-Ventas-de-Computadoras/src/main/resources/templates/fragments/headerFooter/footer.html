@@ -1,17 +1,17 @@
 <div th:fragment="footer">
-    <footer class=" pt-4 mt-auto" style="background-color: #363636; color: white;">
-        <div class="container">
+    <footer class=" p-4 mt-auto" style="background-color: #363636; color: white;">
+        <div class="container gap-5">
             <div class="row">
                 <!-- Columna 1 -->
                 <div class="col">
                     <img src="\Img\logoSZ-blanco.png" alt="Logo" height="48px">
                     <div>
-                        <h5 class="fw-bold">Contáctanos</h5>
+                        <h5 class="fw-bold pt-2" style="font-size: 17px; color: white;">Contáctanos</h5>
                         <div class="d-flex flex-column gap-2">
-                            <a href=""><i class="fa-brands fa-whatsapp"></i> Atención por WhatsApp</a>
-                            <span href=""><i class="fa-solid fa-phone"></i>+51 905 187 817</span>
-                            <span href=""><i class="fa-solid fa-calendar"></i>Lun - Sab 9:00 am a 6:00 pm</span>
-                            <span href=""><i class="fa-solid fa-envelope"></i>servicioalcliente@gmail.com</span>
+                            <a href="" style="font-size: 13px; color: white;"><i class="fa-brands fa-whatsapp"></i> Atención por WhatsApp</a>
+                            <span href="" style="font-size: 13px; color: white;"><i class="fa-solid fa-phone"></i> +51 905 187 817</span>
+                            <span href="" style="font-size: 13px; color: white;"><i class="fa-solid fa-calendar"></i> Lun - Sab 9:00 am a 6:00 pm</span>
+                            <span href="" style="font-size: 13px; color: white;"><i class="fa-solid fa-envelope"></i> servicioalcliente@gmail.com</span>
                             <img src="\Img\libroReclamaciones.webp" alt="Libro de reclamaciones" height="65px" width="110px" style="border-radius: 8px;">
                         </div>
                     </div>
@@ -19,60 +19,79 @@
                 </div>
                 <!-- Columna 2 -->
                 <div class="col">
-                    <h5 class="fw-bold">Sobre nosotros</h5>
+                    <h5 class="fw-bold" style="font-size: 17px; color: white;">Sobre nosotros</h5>
                     <div class="d-flex flex-column gap-2">
-                        <a th:href="@{/Somos}">¿Quiénes somos?</a>
-                        <a th:href="@{/Canales}">Canales de Atención</a>
-                        <a href="">Metodos de Pago</a>
-                        <a href="">Nuestra tiendas</a>
-                        <a href="">Cobertura delivery</a>
+                        <a th:href="@{/Somos}" style="font-size: 13px; color: white;">¿Quiénes somos?</a>
+                        <a th:href="@{/Canales}" style="font-size: 13px; color: white;">Canales de Atención</a>
+                        <a href="" style="font-size: 13px; color: white;">Metodos de Pago</a>
+                        <a href="" style="font-size: 13px; color: white;">Nuestra tiendas</a>
+                        <a href="" style="font-size: 13px; color: white;">Cobertura delivery</a>
                     </div>
                     
                 </div>
                 <!-- Columna 3 -->
                 <div class="col">
-                    <h5>Marcas populares</h5>
+                    <h5 style="font-size: 17px; color: white;">Marcas populares</h5>
                     <div class="d-flex flex-column gap-2">
-                        <a href="">Asus</a>
-                        <a href="">Acer</a>
-                        <a href="">MSI</a>
-                        <a href="">HP</a>
-                        <a href="">JBL</a>
-                        <a href="">Xiaomi</a>
+                        <a href="" style="font-size: 13px; color: white;" >Asus</a>
+                        <a href="" style="font-size: 13px; color: white;">Acer</a>
+                        <a href="" style="font-size: 13px; color: white;">MSI</a>
+                        <a href="" style="font-size: 13px; color: white;">HP</a>
+                        <a href="" style="font-size: 13px; color: white;">JBL</a>
+                        <a href="" style="font-size: 13px; color: white;">Xiaomi</a>
                     </div>
                 </div>
                 <div class="col">
-                    <h5>Nuestras categorias</h5>
+                    <h5 style="font-size: 17px; color: white;">Nuestras categorias</h5>
                     <div class="d-flex flex-column gap-2">
-                        <a href="">Laptops</a>
-                        <a href="">Computadoras</a>
-                        <a href="">Consolas</a>
-                        <a href="">Consolas</a>
-                        <a href="">Videojuegos</a>
-                        <a href="">Celulares</a>
+                        <a href="" style="font-size: 13px; color: white;">Laptops</a>
+                        <a href="" style="font-size: 13px; color: white;">Computadoras</a>
+                        <a href="" style="font-size: 13px; color: white;">Consolas</a>
+                        <a href="" style="font-size: 13px; color: white;">Consolas</a>
+                        <a href="" style="font-size: 13px; color: white;">Videojuegos</a>
+                        <a href="" style="font-size: 13px; color: white;">Celulares</a>
                     </div>
                 </div>
                 <div class="col">
-                    <h5>Aprende con nosotros</h5>
+                    <h5 style="font-size: 17px; color: white;">Aprende con nosotros</h5>
                     <div class="d-flex flex-column gap-2">
-                        <a href="">¿Cómo comprar online?</a>
-                        <a href="">¿cómo registrarse en nuestra web?</a>
+                        <a href="" style="font-size: 13px; color: white;">¿Cómo comprar online?</a>
+                        <a href="" style="font-size: 13px; color: white;">¿cómo registrarse en nuestra web?</a>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col d-flex flex-row gap-2">
-                    <div class="p-2 " style="border-radius: 100%; background-color: #ABABAB;"><i class="fa-brands fa-facebook"></i></div>
-                    <div class="p-2 " style="border-radius: 100%; background-color: #ABABAB;"><i class="fa-brands fa-instagram"></i></div>
-                    <div class="p-2 " style="border-radius: 100%; background-color: #ABABAB;"><i class="fa-brands fa-youtube"></i></div>
-                    <div class="p-2 " style="border-radius: 100%; background-color: #ABABAB;"><i class="fa-brands fa-x-twitter"></i></div>
+        </div>
+    </footer>
+    <footer style="background-color: #2D2D2D;">
+        <div class="container">
+            <div class="row py-2" >
+                <div class="col-3 d-flex flex-row gap-2 align-items-center" >
+                    <a class="p-2 d-flex align-items-center justify-content-center" style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;" href=""><i class="fa-brands fa-facebook-f" style="font-size: 16px;"></i></a>
+                    <a class="p-2 d-flex align-items-center justify-content-center" style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;" href=""><i class="fa-brands fa-instagram" style="font-size: 16px;"></i></a>
+                    <a class="p-2 d-flex align-items-center justify-content-center" style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;" href=""><i class="fa-brands fa-youtube" style="font-size: 16px;"></i></a>
+                    <a class="p-2 d-flex align-items-center justify-content-center" style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;" href=""><i class="fa-brands fa-x-twitter" style="font-size: 16px;"></i></a>
                 </div>
-                <div class="col">
-                    
+                <div class="col-9">
+                    <div class="d-flex flex-row p-2 my-2 justify-content-center align-items-center" style="background-color: #3E3E3E; border-radius: 5px;">
+                        <h6 class="m-0" style="color: #8C8C8C; font-size: 13px;">Metodos de pago: </h6>
+                        <div class="px-2">
+                            <img src="\Img\mastercard-icon.svg" alt="Mastercard" height="25px" width="40px">
+                            <img src="\Img\visa-icon.svg" alt="Visa" height="25px" width="40px">
+                            <img src="\Img\yape-icon.svg" alt="Yape" height="25px" width="40px">
+                            <img src="\Img\plin-icon.svg" alt="Plin" height="25px" width="40px">
+                            <img src="\Img\pefectivo-icon.svg" alt="PagoEfectivo" height="25px" width="40px">
+                            <img src="\Img\paypal-icon.svg" alt="Paypal" height="25px" width="40px">
+                        </div>
+                        <h6 class="m-0" style="color: #8C8C8C; font-size: 13px;">Realiza tus compras de manera segura: </h6>
+                        <div class="px-2">
+                            <img src="\Img\pivprotegida-icon.svg" alt="PrivacidadProtegida" height="25px" width="40px" >
+                        </div>
+                        
+                    </div>
                 </div>
             </div>
-            <div class="text-center py-3 border-top border-secondary">
-                &copy; 2025 SmartZone
+            <div class="text-center py-3 border-top border-secondary" style="color: #FFFFFF;">
+                &copy; 2025 SmartZone. Todos los derechos recercados
             </div>
         </div>
     </footer>
