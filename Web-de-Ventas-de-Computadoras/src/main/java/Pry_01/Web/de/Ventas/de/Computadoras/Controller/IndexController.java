@@ -26,6 +26,6 @@ public class IndexController {
 
     @GetMapping("/header")
     public String mostrarHeader() {
-    return "fragments/headerFooter/header";  // Asegúrate de que la ruta sea correcta
+    return "fragments/headerFooter/header";
     }
 }
