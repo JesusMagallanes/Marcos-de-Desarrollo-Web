@@ -44,21 +44,21 @@
                 </form>
 
                 <div class="d-flex align-items-center text-center flex-nowrap gap-1">
-                    <div class="btn-nav d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#login"
+                    <div class="btn-nav d-flex align-items-center gap-1 px-3" data-bs-toggle="modal" data-bs-target="#login"
                         style="cursor: pointer;">
                         <i class="fa-solid fa-user" style="color: #505050; font-size: 1.2rem;"></i>
                         <p class="mb-0 lh-sm small text-start" style="color: #505050;">Iniciar <br> Sesión</p>
                     </div>
 
-                    <div class="btn-nav d-flex align-items-center gap-1 border-start border-end "
-                        data-bs-toggle="modal" data-bs-target="#login" style="cursor: pointer;">
+                    <div class="btn-nav d-flex align-items-center gap-1 border-start border-end" data-bs-toggle="modal" data-bs-target="#login" style="cursor: pointer;">
                         <i class="fa-solid fa-bag-shopping" style="color: #505050; font-size: 1.2rem;"></i>
                         <p class="mb-0 lh-sm small text-start" style="color: #505050;">Mis <br> Compras</p>
                     </div>
 
-                    <div class="btn-nav-carrito" th:href="@{/Carrito}">
+                    <div class="btn-nav-carrito" data-bs-toggle="offcanvas" href="#carritoModal" role="button" aria-controls="carritoModal" style="cursor: pointer;">
                         <i class="fa-solid fa-cart-shopping" style="color: #505050; font-size: 1.2rem;"></i>
                     </div>
+
                 </div>
             </div>
         </nav>
@@ -74,8 +74,8 @@
     </header>
 
     <!-- Versión móvil: SOLO visible en pantallas chicas -->
-<header class="container-fluid px-3 align-items-center d-flex d-lg-none"
-    style="background-color: #ECECEC; height: 2.5rem;">
+<a class="container-fluid px-3 align-items-center d-flex d-lg-none"
+    style="background-color: #ECECEC; height: 2.5rem;" href="">
     <nav class="w-100 d-flex justify-content-between align-items-center" style="height: 2.5rem; font-size: 0.9rem; color: #505050;">
         <div class="d-flex align-items-center">
             <i class="fa-solid fa-location-dot"></i>
@@ -83,7 +83,7 @@
         </div>
         <i class="fa-solid fa-chevron-right ms-2"></i>
     </nav>
-</header>
+</a>
 
 <!-- Versión escritorio: SOLO visible en pantallas grandes -->
 <header class="d-none d-lg-flex container-fluid px-lg-5 align-items-center"
@@ -100,7 +100,7 @@
                 <i class="fa-solid fa-map-location"></i>
                 <span>Nuestras tiendas</span>
             </div>
-            <div class="btn-nav py-1">
+            <div class="btn-nav py-1 px-2">
                 <i class="fa-solid fa-circle-question"></i>
                 <span>Ayuda</span>
                 <i class="fa-solid fa-chevron-down ms-1"></i>

@@ -23,4 +23,5 @@ public class HomeController {
        }
        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
    }
+
 }
