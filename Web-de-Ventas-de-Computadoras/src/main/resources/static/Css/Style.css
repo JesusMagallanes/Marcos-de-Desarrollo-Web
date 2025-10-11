@@ -87,6 +87,11 @@ a{
   border-width: 1.8px !important;
 }
 
+/*iconos footer*/
+.icon-footer {
+  filter: invert(88%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%) contrast(90%);
+}
+
 
 
 #carousel-resena .carousel-inner {
