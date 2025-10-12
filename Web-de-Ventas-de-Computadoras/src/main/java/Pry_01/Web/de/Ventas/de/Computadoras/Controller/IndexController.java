@@ -28,4 +28,9 @@ public class IndexController {
     public String mostrarHeader() {
     return "fragments/headerFooter/header";
     }
+
+    @GetMapping("/Carrito")
+    public String mostrarCarrito() {
+    return "Carrito";
+    }
 }
