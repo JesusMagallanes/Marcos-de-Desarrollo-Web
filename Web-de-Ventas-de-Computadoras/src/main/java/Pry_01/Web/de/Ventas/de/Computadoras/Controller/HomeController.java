@@ -9,7 +9,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class HomeController {
-    private static final String[] USER = {"Canales","Detalles","Somos","Canales"};
+
+    private static final String[] USER = {"Canales","Detalles","Somos"};
 
     @GetMapping("/")
    public String Principal() {
