@@ -11,10 +11,138 @@
   /* Blanco puro */
 }
 
-a{
+#carouselProductosTop .card-body h6 {
+  font-size: 15px;
+}
+
+#carouselProductosTop .card-body p.fw-semibold {
+  font-size: 12px;
+}
+
+#carouselProductosTop .card-body p.fw-bold {
+  font-size: 20px;
+}
+
+#carouselProductosTop .card {
+  height: 100%;
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#carouselProductosTop .card-img-top {
+  height: 200px;
+  object-fit: contain;
+  padding: 10px;
+}
+
+#carouselProductosTop .card-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+
+#carouselProductosTop .card img {
+  height: 220px;
+  width: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  padding: 10px;
+  background-color: #fff;
+}
+
+
+#carouselProductosTop .carousel-control-prev,
+#carouselProductosTop .carousel-control-next {
+  width: 45px;
+  height: 45px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0.95;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+#carouselProductosTop .carousel-control-prev {
+  left: -20px;
+}
+
+#carouselProductosTop .carousel-control-next {
+  right: -20px;
+}
+
+#carouselProductosTop .carousel-control-prev:hover,
+#carouselProductosTop .carousel-control-next:hover {
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+#carouselProductosTop .carousel-control-prev-icon,
+#carouselProductosTop .carousel-control-next-icon {
+  filter: invert(0);
+  width: 20px;
+  height: 20px;
+}
+
+#carouselProductosTop .carousel-control-prev-icon,
+#carouselProductosTop .carousel-control-next-icon {
+  filter: invert(1) brightness(0);
+  width: 20px;
+  height: 20px;
+}
+
+#carouselProductosTop .card-promo {
+  background-color: #2DB500;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#carouselProductosTop .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+}
+
+#carouselProductosTop .card-promo:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+}
+
+#carouselProductosTop .card-promo img {
+  max-height: 150px;
+  object-fit: contain;
+}
+
+#carouselProductosTop .card-promo .card-body {
+  padding: 10px;
+}
+
+#carouselProductosTop .card-promo h6,
+#carouselProductosTop .card-promo p {
+  color: #fff;
+  margin: 0;
+}
+
+#carouselProductosTop .carousel-inner,
+#carouselProductosTop .row {
+  overflow: visible !important;
+}
+
+
+a {
   text-decoration: none;
   color: inherit;
 }
+
 .imgprod img {
   padding: 30px;
 }
@@ -61,10 +189,12 @@ a{
   padding: 8px 12px;
   transition: 350ms;
 }
-.btn-nav-carrito{
+
+.btn-nav-carrito {
   padding: 14px 12px;
   transition: 350ms;
 }
+
 .btn-nav-carrito:hover {
   cursor: pointer;
   border-radius: 5px;
@@ -108,7 +238,7 @@ a{
 
 
 
-.contenido-nav{
+.contenido-nav {
   margin-left: 25px;
   margin-right: 25px;
 }
@@ -148,11 +278,18 @@ a{
   box-shadow: 0 0 0 0.25rem rgba(53, 199, 53, 0.405);
 }
 
-.faq .accordion-body{
+.faq .accordion-body {
   background-color: rgb(229, 255, 229);
 }
 
 .productostop {
+  margin-top: 50px;
+  margin-bottom: 50px;
+  padding-left: 50px;
+  padding-right: 50px;
+}
+
+.mas-vendidos {
   margin-top: 50px;
   margin-bottom: 50px;
   padding-left: 50px;
@@ -171,14 +308,20 @@ a{
   height: 360px;
 }
 
-.card:hover {
+.mas-vendidos .card img {
+  margin-top: 15px;
+  height: 360px;
+}
+
+
+.productostop .card:hover {
   transition: 350ms;
   border-color: #06b56c;
   transform: scale(1.005);
   box-shadow: 0px 4px 10px #048f5532;
 }
 
-.card.no-hover:hover {
+.productostop .card.no-hover:hover {
   transform: none !important;
 }
 
