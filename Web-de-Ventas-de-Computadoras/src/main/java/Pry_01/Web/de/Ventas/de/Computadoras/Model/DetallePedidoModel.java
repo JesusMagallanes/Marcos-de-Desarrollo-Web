@@ -2,10 +2,8 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,10 +16,17 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "detalle_pedido")
 public class DetallePedidoModel {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -67,62 +72,4 @@ public class DetallePedidoModel {
         }
     }
 
-    public DetallePedidoModel() {}
-
-    public DetallePedidoModel(PedidoModel pedido, ProductoModel producto, Integer cantidad, BigDecimal precioUnitario) {
-        this.pedido = pedido;
-        this.producto = producto;
-        this.cantidad = cantidad;
-        this.precioUnitario = precioUnitario;
-        calcularTotal();
-    }
-
-    // Getters y setters
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public PedidoModel getPedido() {
-        return pedido;
-    }
-    public void setPedido(PedidoModel pedido) {
-        this.pedido = pedido;
-    }
-
-    public ProductoModel getProducto() {
-        return producto;
-    }
-    public void setProducto(ProductoModel producto) {
-        this.producto = producto;
-    }
-
-    public Integer getCantidad() {
-        return cantidad;
-    }
-    public void setCantidad(Integer cantidad) {
-        this.cantidad = cantidad;
-        calcularTotal();
-    }
-
-    public BigDecimal getPrecioUnitario() {
-        return precioUnitario;
-    }
-    public void setPrecioUnitario(BigDecimal precioUnitario) {
-        this.precioUnitario = precioUnitario;
-        calcularTotal();
-    }
-
-    public BigDecimal getTotal() {
-        return total;
-    }
-
-    public LocalDateTime getCreadoEn() {
-        return creadoEn;
-    }
-    public void setCreadoEn(LocalDateTime creadoEn) {
-        this.creadoEn = creadoEn;
-    }
 }

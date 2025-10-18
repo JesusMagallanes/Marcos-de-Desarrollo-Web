@@ -1,10 +1,8 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 
 import java.time.LocalDateTime;
-
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,7 +17,14 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "envios")
 public class EnviosModel {
@@ -57,66 +62,9 @@ public class EnviosModel {
         }
     }
 
-    public EnviosModel() {
-    }
-
-    public EnviosModel(PedidoModel pedido, String direccion, LocalDateTime fechaEnvioProgramado) {
-        this.pedido = pedido;
-        this.direccion = direccion;
-        this.estadoEnvio = EstadoEnvio.PENDIENTE;
-        this.fechaEnvioProgramado = fechaEnvioProgramado;
-    }
-
     public void marcarComoEntregado() {
         this.fechaEnvioEntregado = LocalDateTime.now();
         this.estadoEnvio = EstadoEnvio.ENTREGADO;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public PedidoModel getPedido() {
-        return pedido;
-    }
-
-    public void setPedido(PedidoModel pedido) {
-        this.pedido = pedido;
-    }
-
-    public String getDireccion() {
-        return direccion;
-    }
-
-    public void setDireccion(String direccion) {
-        this.direccion = direccion;
-    }
-
-    public EstadoEnvio getEstadoEnvio() {
-        return estadoEnvio;
-    }
-
-    public void setEstadoEnvio(EstadoEnvio estadoEnvio) {
-        this.estadoEnvio = estadoEnvio;
-    }
-
-    public LocalDateTime getFechaEnvioProgramado() {
-        return fechaEnvioProgramado;
-    }
-
-    public void setFechaEnvioProgramado(LocalDateTime fechaEnvioProgramado) {
-        this.fechaEnvioProgramado = fechaEnvioProgramado;
-    }
-
-    public LocalDateTime getFechaEnvioEntregado() {
-        return fechaEnvioEntregado;
-    }
-
-    public void setFechaEnvioEntregado(LocalDateTime fechaEnvioEntregado) {
-        this.fechaEnvioEntregado = fechaEnvioEntregado;
-    }
 }
