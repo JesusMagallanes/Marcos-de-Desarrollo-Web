@@ -1,8 +1,9 @@
-<div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" th:fragment="login">
+<div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+    th:fragment="login">
     <div class="modal-dialog">
         <div class="modal-content"
             style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
-            
+
             <div class="modal-header">
                 <h1 class="modal-title fs-5" id="exampleModalLabel">Inicia Sesión</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -13,7 +14,7 @@
 
                     <div class="mb-3">
                         <label for="emailAddress" class="form-label">Correo Electrónico</label>
-                        <input type="email" class="form-control" id="emailAddress" name="emailAddress" required>
+                        <input type="email" class="form-control" id="email" name="email" required>
                         <div class="form-text">Nunca compartiremos tu correo electrónico con nadie más.</div>
                     </div>
 
@@ -26,9 +27,7 @@
                         <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
                         <label class="form-check-label" for="rememberMe">Guardar en este dispositivo</label>
                     </div>
-
-                    <div th:if="${errorl}" class="alert alert-danger text-center" th:text="${error}"></div>
-
+                    <div th:if="${error}" class="alert alert-danger text-center" th:text="${error}"></div>
                     <button type="submit" class="btn btn-primary w-100">Iniciar</button>
                 </div>
 
