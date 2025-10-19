@@ -32,7 +32,7 @@
             data-bs-toggle="modal">
             Editar
           </button>
-          <form th:action="@{'/admin/usuarios/eliminar/' + ${usuario.id}}" method="post" style="display:inline;">
+          <form th:action="@{'/usuarios/eliminar/' + ${usuario.id}}" method="post" style="display:inline;">
             <input type="hidden" name="_method" value="delete" />
             <button class="btn btn-sm btn-danger" type="submit"
               onclick="return confirm('¿Seguro que quieres eliminar este usuario?');">
@@ -55,7 +55,7 @@
           <h1 class="modal-title fs-5" id="gestUserLabel">Añadir nuevo usuario</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
-        <form th:action="@{/admin/usuarios/registrar}" method="post" th:object="${usuario}">
+        <form th:action="@{/usuarios}" method="post" th:object="${usuario}">
           <div class="modal-body">
             <div class="row g-3">
               <div class="col-md-6">
@@ -113,7 +113,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
           </div>
 
-          <form class="row g-3" th:action="@{'/admin/usuarios/editar/' + ${usuario.id}}" method="post">
+          <form class="row g-3" th:action="@{'/usuarios/editar/' + ${usuario.id}}" method="post">
             <div class="modal-body row g-3">
               <div class="col-md-6">
                 <label for="Nombre-edit" class="form-label">Nombre</label>
