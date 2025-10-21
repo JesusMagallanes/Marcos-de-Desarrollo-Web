@@ -20,20 +20,25 @@ public class IndexController {
         this.categoriaService = categoriaService;
     }
 
-    @GetMapping("/")
-    public String Principal() {
-        return "redirect:/Index";
-    }
+//   @GetMapping("/")
+//    public String Principal() {
+//        return "redirect:/Index";
+//    }
 
-    @GetMapping("/{view}")
-    public String page(@PathVariable String view) {
-        for (String u : USER) {
-            if (u.equals(view))
-                return view;
-        }
-        return "redirect:/Index";
-    }
+//    @GetMapping("/{view}")
+//    public String page(@PathVariable String view) {
+//       for (String u : USER) {
+//           if (u.equals(view))
+//              return view;
+//     }
+//     return "redirect:/Index";
+//   }
 
+    @GetMapping("/header")
+    public String mostrarHeader() {
+    return "fragments/headerFooter/header";
+    }
+    
     @GetMapping("/Index")
     public String mostrarIndex(Model model) {
         List<CategoriaModel> categorias = categoriaService.listarCategoria();
@@ -41,3 +46,5 @@ public class IndexController {
         return "Index";
     }
 }
+
+
