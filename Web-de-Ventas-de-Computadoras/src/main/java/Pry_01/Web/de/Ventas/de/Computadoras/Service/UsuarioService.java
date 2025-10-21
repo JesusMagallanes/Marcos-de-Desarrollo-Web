@@ -35,22 +35,8 @@ public class UsuarioService {
         usuarioRepository.deleteById(id);
     }
 
-    public UsuarioModel actualizarUsuario(Long id, UsuarioModel usuarioActualizado) {
-        UsuarioModel usuarioExistente = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        usuarioExistente.setName(usuarioActualizado.getName());
-        usuarioExistente.setLastname(usuarioActualizado.getLastname());
-        usuarioExistente.setEmailAddress(usuarioActualizado.getEmailAddress());
-        usuarioExistente.setPhoneNumber(usuarioActualizado.getPhoneNumber());
-        usuarioExistente.setAddress(usuarioActualizado.getAddress());
-        if (usuarioActualizado.getPassword() == null || usuarioActualizado.getPassword().isBlank()) {
-            throw new IllegalArgumentException("La contraseña no puede estar vacía");
-        }
-        usuarioExistente.setPassword(passwordEncoder.encode(usuarioActualizado.getPassword()));
-        if (usuarioActualizado.getRol() != null) {
-            usuarioExistente.setRol(usuarioActualizado.getRol());
-        }
-        return usuarioRepository.save(usuarioExistente);
+    public void actualizarUsuario(UsuarioModel usuario) {
+        usuarioRepository.save(usuario);
     }
 
     public UsuarioModel registrarUsuario(UsuarioModel usuario) {

@@ -11,10 +11,6 @@
   /* Blanco puro */
 }
 
-a{
-  text-decoration: none;
-  color: inherit;
-}
 .imgprod img {
   padding: 30px;
 }
@@ -61,15 +57,6 @@ a{
   padding: 8px 12px;
   transition: 350ms;
 }
-.btn-nav-carrito{
-  padding: 14px 12px;
-  transition: 350ms;
-}
-.btn-nav-carrito:hover {
-  cursor: pointer;
-  border-radius: 5px;
-  background-color: #dadada;
-}
 
 .btn-nav img {
   filter: opacity(65%);
@@ -87,19 +74,17 @@ a{
   border-width: 1.8px !important;
 }
 
-/*iconos footer*/
-.icon-footer {
-  filter: invert(88%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%) contrast(90%);
-}
-
-
 
 #carousel-resena .carousel-inner {
   padding-top: 24px;
   padding-bottom: 24px;
 }
 
-
+.navbar {
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.199);
+  margin-bottom: 15px;
+  background-color: #F8F8F8 !important;
+}
 
 .contenido-nav{
   margin-left: 25px;
