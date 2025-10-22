@@ -1,28 +1,43 @@
-<div class="offcanvas offcanvas-start" tabindex="-1" id="cat1" aria-labelledby="cat1"
-     style="background-color: #2A2A2A;" th:fragment="categoria">
-    <div class="offcanvas-header"
-        style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
-        <h5 class="offcanvas-title text-light" id="cat1">Categorías</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+<div class="offcanvas offcanvas-end bg-dark" id="carritoModal" tabindex="-1" aria-labelledby="carritoModal" style="background-image: #2A2A2A; --bs-offcanvas-width: 400px;" th:fragment="carritoModalFragment">
+    <div class="offcanvas-header " style="padding-left: 0; padding-right: 0; padding: 20px; background-color: #ECECEC; color: #505050;" >
+        <h5 class="offcanvas-title" id="cat1" style="color: #505050; font-size: 18px;">Tu carrito</h5>
+        <button type="button" class="btn-close btn-close" data-bs-dismiss="offcanvas" aria-label="Close" style="color: #505050;"></button>
     </div>
-    <div class="offcanvas-body">
-        <ul style="list-style: none;" th:if="${categorias != null}">
-            <li th:each="categoria : ${categorias}">
-                <button type="button" class="btn btn-outline-success text-light"
-                    style="border: none; margin-bottom: 8px;">
-                    <img style="margin-right: 8px;" th:src="${categoria.urlImage}" alt="icono" />
-                    <span th:text="${categoria.name}">Nombre</span>
-                </button>
-            </li>
-        </ul>
-        <div class="d-flex justify-content-center">
-            <a th:href="@{/EnviosPag}">
-                <button type="button" class="btn btn-primary">Gestionar Envíos</button>
-            </a>
-        </div><br>
-        <div class="d-flex justify-content-center">
-            <a th:href="@{/VistaAdmin}">
-                <button type="button" class="btn btn-primary">Panel Administrador</button>
+    <div class="offcanvas-body p-0" style=" background-color: #F5F5F5;  align-items: center; display: flex; flex-direction: column; justify-content: end;">
+        <div style="height: 100%;">
+            <ul style="list-style: none;" th:if="${categorias != null}">
+                <li th:each="categoria : ${categorias}">
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;">
+                        <img style="margin-right: 8px;" th:src="${categoria.urlImage}" alt="icono" />
+                        <span th:text="${categoria.name}">Nombre</span>
+                    </button>
+                </li>
+            </ul>
+            <div class="d-flex justify-content-center">
+                <a th:href="@{/EnviosPag}">
+                    <button type="button" class="btn btn-primary">Gestionar Envíos</button>
+                </a>
+            </div><br>
+            <div class="d-flex justify-content-center">
+                <a th:href="@{/VistaAdmin}">
+                    <button type="button" class="btn btn-primary">Panel Administrador</button>
+                </a>
+            </div>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 12rem; background-color: #2A2A2A; border-radius: 8px 8px 0px 0px ; width: 100%;" >
+
+            <div class="border-bottom py-2 px-3 d-flex justify-content-between" style="width: 92%; color: white; height: auto;">
+                <h6 class="m-0" style="font-size: 13px;">subtotal</h6>
+                <p class="m-0" style="font-size: 13px;">S/699.00</p>
+            </div>
+            <div class="p-3 d-flex justify-content-between" style="width: 92%; color: white;">
+                <h6 class="m-0" style="font-size: 16px;">Total</h6>
+                <p class="m-0" style="font-size: 16px;">S/699.00</p>
+            </div>
+            <a th:href="@{/Carrito}" style="width: 92%;" class="px-3">
+                <button type="button" class="btn btn-primary" style="width: 100%;" >Ir a pagar</button>
             </a>
         </div>
     </div>

@@ -1,0 +1,230 @@
+<div th:fragment="footer">
+    <footer class="py-5 mt-auto" style="background-color: #363636; color: white;">
+        <div class="container gap-5">
+            <!-- ESTRUCTURA ESCRITORIO  -->
+
+            <div class="row d-none d-xl-flex">
+                <div class="col-xl-3">
+                    <img src="\Img\logoSZ-blanco.png" alt="Logo" height="48px">
+                    <div>
+                        <h5 class="fw-bold pt-2" style="font-size: 17px; color: white;">Contáctanos</h5>
+                        <div class="d-flex flex-column gap-2">
+                            <a href="" style="font-size: 13px; color: white;"><i class="fa-brands fa-whatsapp"></i>
+                                Atención por WhatsApp</a>
+                            <span href="" style="font-size: 13px; color: white;"><i class="fa-solid fa-phone"></i> +51
+                                905 187 817</span>
+                            <span href="" style="font-size: 13px; color: white;"><i class="fa-solid fa-calendar"></i>
+                                Lun - Sab 9:00 am a 6:00 pm</span>
+                            <span href="" style="font-size: 13px; color: white;"><i class="fa-solid fa-envelope"></i>
+                                servicioalcliente@gmail.com</span>
+                            <img src="\Img\libroReclamaciones.webp" alt="Libro de reclamaciones" height="65px"
+                                width="110px" style="border-radius: 8px;">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-2">
+                    <h5 class="fw-bold" style="font-size: 17px; color: white;">Sobre nosotros</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a th:href="@{/Somos}" style="font-size: 13px; color: white;">¿Quiénes somos?</a>
+                        <a th:href="@{/Canales}" style="font-size: 13px; color: white;">Canales de Atención</a>
+                        <a href="" style="font-size: 13px; color: white;">Metodos de Pago</a>
+                        <a href="" style="font-size: 13px; color: white;">Nuestra tiendas</a>
+                        <a href="" style="font-size: 13px; color: white;">Cobertura delivery</a>
+                    </div>
+                </div>
+                <div class="col-xl-2">
+                    <h5 style="font-size: 17px; color: white;">Marcas populares</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="" style="font-size: 13px; color: white;">Asus</a>
+                        <a href="" style="font-size: 13px; color: white;">Acer</a>
+                        <a href="" style="font-size: 13px; color: white;">MSI</a>
+                        <a href="" style="font-size: 13px; color: white;">HP</a>
+                        <a href="" style="font-size: 13px; color: white;">JBL</a>
+                        <a href="" style="font-size: 13px; color: white;">Xiaomi</a>
+                    </div>
+                </div>
+                <div class="col-xl-2">
+                    <h5 style="font-size: 17px; color: white;">Nuestras categorias</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="" style="font-size: 13px; color: white;">Laptops</a>
+                        <a href="" style="font-size: 13px; color: white;">Computadoras</a>
+                        <a href="" style="font-size: 13px; color: white;">Consolas</a>
+                        <a href="" style="font-size: 13px; color: white;">Consolas</a>
+                        <a href="" style="font-size: 13px; color: white;">Videojuegos</a>
+                        <a href="" style="font-size: 13px; color: white;">Celulares</a>
+                    </div>
+                </div>
+                <div class="col-xl-3">
+                    <h5 style="font-size: 17px; color: white;">Aprende con nosotros</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="" style="font-size: 13px; color: white;">¿Cómo comprar online?</a>
+                        <a href="" style="font-size: 13px; color: white;">¿cómo registrarse en nuestra web?</a>
+                    </div>
+                </div>
+
+            </div>
+            <!-- ESTRUCTURA MÓVIL-->
+            <div class="d-block d-xl-none">
+
+                <!-- CONTENEDOR DEL ACORDEÓN -->
+                <div class="accordion accordion-flush" id="footerAccordion" style="--bs-accordion-bg: #363636;">
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-white" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapseContacto" aria-expanded="false"
+                                aria-controls="collapseContacto" style="font-size: 17px; background-color: #363636;">
+                                Contáctanos
+                            </button>
+                        </h2>
+                        <div id="collapseContacto" class="accordion-collapse collapse"
+                            data-bs-parent="#footerAccordion">
+                            <div class="accordion-body d-flex flex-column gap-2" style="padding-top: 5px;">
+                                <img src="\Img\logoSZ-blanco.png" alt="Logo" height="48px" class="mb-2"
+                                    style="width:fit-content;">
+                                <a href="" style="font-size: 13px; color: white;"><i class="fa-brands fa-whatsapp"></i>
+                                    Atención por WhatsApp</a>
+                                <span href="" style="font-size: 13px; color: white;"><i class="fa-solid fa-phone"></i>
+                                    +51 905 187 817</span>
+                                <span href="" style="font-size: 13px; color: white;"><i
+                                        class="fa-solid fa-calendar"></i> Lun - Sab 9:00 am a 6:00 pm</span>
+                                <span href="" style="font-size: 13px; color: white;"><i
+                                        class="fa-solid fa-envelope"></i> servicioalcliente@gmail.com</span>
+                                <img src="\Img\libroReclamaciones.webp" alt="Libro de reclamaciones" height="65px"
+                                    width="110px" style="border-radius: 8px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-white" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapseSobreNosotros" aria-expanded="false"
+                                aria-controls="collapseSobreNosotros"
+                                style="font-size: 17px; background-color: #363636;">
+                                Sobre nosotros
+                            </button>
+                        </h2>
+                        <div id="collapseSobreNosotros" class="accordion-collapse collapse"
+                            data-bs-parent="#footerAccordion">
+                            <div class="accordion-body d-flex flex-column gap-2" style="padding-top: 5px;">
+                                <a th:href="@{/Somos}" style="font-size: 13px; color: white;">¿Quiénes somos?</a>
+                                <a th:href="@{/Canales}" style="font-size: 13px; color: white;">Canales de Atención</a>
+                                <a href="" style="font-size: 13px; color: white;">Metodos de Pago</a>
+                                <a href="" style="font-size: 13px; color: white;">Nuestra tiendas</a>
+                                <a href="" style="font-size: 13px; color: white;">Cobertura delivery</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-white" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapseMarcas" aria-expanded="false"
+                                aria-controls="collapseMarcas" style="font-size: 17px; background-color: #363636;">
+                                Marcas populares
+                            </button>
+                        </h2>
+                        <div id="collapseMarcas" class="accordion-collapse collapse" data-bs-parent="#footerAccordion">
+                            <div class="accordion-body d-flex flex-column gap-2" style="padding-top: 5px;">
+                                <a href="" style="font-size: 13px; color: white;">Asus</a>
+                                <a href="" style="font-size: 13px; color: white;">Acer</a>
+                                <a href="" style="font-size: 13px; color: white;">MSI</a>
+                                <a href="" style="font-size: 13px; color: white;">HP</a>
+                                <a href="" style="font-size: 13px; color: white;">JBL</a>
+                                <a href="" style="font-size: 13px; color: white;">Xiaomi</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-white" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapseCategorias" aria-expanded="false"
+                                aria-controls="collapseCategorias" style="font-size: 17px; background-color: #363636;">
+                                Nuestras categorias
+                            </button>
+                        </h2>
+                        <div id="collapseCategorias" class="accordion-collapse collapse"
+                            data-bs-parent="#footerAccordion">
+                            <div class="accordion-body d-flex flex-column gap-2" style="padding-top: 5px;">
+                                <a href="" style="font-size: 13px; color: white;">Laptops</a>
+                                <a href="" style="font-size: 13px; color: white;">Computadoras</a>
+                                <a href="" style="font-size: 13px; color: white;">Consolas</a>
+                                <a href="" style="font-size: 13px; color: white;">Consolas</a>
+                                <a href="" style="font-size: 13px; color: white;">Videojuegos</a>
+                                <a href="" style="font-size: 13px; color: white;">Celulares</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-white" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapseAprende" aria-expanded="false"
+                                aria-controls="collapseAprende" style="font-size: 17px; background-color: #363636;">
+                                Aprende con nosotros
+                            </button>
+                        </h2>
+                        <div id="collapseAprende" class="accordion-collapse collapse" data-bs-parent="#footerAccordion">
+                            <div class="accordion-body d-flex flex-column gap-2" style="padding-top: 5px;">
+                                <a href="" style="font-size: 13px; color: white;">¿Cómo comprar online?</a>
+                                <a href="" style="font-size: 13px; color: white;">¿cómo registrarse en nuestra web?</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+</div>
+</footer>
+<footer style="background-color: #2D2D2D;">
+    <div class="container">
+        <div class="row py-2">
+            <div
+                class="col-12 col-md-3 d-flex flex-row gap-2 align-items-center justify-content-center justify-content-md-start">
+                <a class="p-2 d-flex align-items-center justify-content-center"
+                    style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;"
+                    href="https://www.facebook.com/"><i class="fa-brands fa-facebook-f" style="font-size: 16px;"></i></a>
+                <a class="p-2 d-flex align-items-center justify-content-center"
+                    style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;"
+                    href="https://www.instagram.com/"><i class="fa-brands fa-instagram" style="font-size: 16px;"></i></a>
+                <a class="p-2 d-flex align-items-center justify-content-center"
+                    style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;"
+                    href="https://www.youtube.com/"><i class="fa-brands fa-youtube" style="font-size: 16px;"></i></a>
+                <a class="p-2 d-flex align-items-center justify-content-center"
+                    style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;"
+                    href="http://x.com/"><i class="fa-brands fa-x-twitter" style="font-size: 16px;"></i></a>
+            </div>
+            <div class="col-12 col-md-9">
+                <div class="d-flex flex-column flex-md-row p-2 my-2 justify-content-center align-items-center"
+                    style="background-color: #3E3E3E; border-radius: 5px;">
+                    <h6 class="m-0" style="color: #8C8C8C; font-size: 13px; white-space: nowrap;">Métodos de pago: </h6>
+                    <div class="px-2 d-flex flex-wrap justify-content-center">
+                        <img class="icon-footer" src="\Img\mastercard-icon.svg" alt="Mastercard" height="25px"
+                            width="40px">
+                        <img class="icon-footer" src="\Img\visa-icon.svg" alt="Visa" height="25px" width="40px">
+                        <img class="icon-footer" src="\Img\yape-icon.svg" alt="Yape" height="25px" width="40px">
+                        <img class="icon-footer" src="\Img\plin-icon.svg" alt="Plin" height="25px" width="40px">
+                        <img class="icon-footer" src="\Img\pefectivo-icon.svg" alt="PagoEfectivo" height="25px"
+                            width="40px">
+                        <img class="icon-footer" src="\Img\paypal-icon.svg" alt="Paypal" height="25px" width="40px">
+                    </div>
+                    <h6 class="m-0" style="color: #8C8C8C; font-size: 13px; white-space: nowrap;">Realiza tus compras de
+                        manera segura: </h6>
+                    <div class="px-2">
+                        <img class="icon-footer" src="\Img\pivprotegida-icon.svg" alt="PrivacidadProtegida"
+                            width="60px">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center py-3 border-top border-secondary" style="color: #FFFFFF;">
+            &copy; 2025 SmartZone. Todos los derechos reservados
+        </div>
+    </div>
+</footer>
+</div>

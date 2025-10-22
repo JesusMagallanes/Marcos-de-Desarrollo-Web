@@ -48,4 +48,6 @@ public class ProductoController {
     public ProductoModel obtenerProducto(@PathVariable Long id) {
         return productoService.obtenerPorId(id);
     }
+
+    
 }

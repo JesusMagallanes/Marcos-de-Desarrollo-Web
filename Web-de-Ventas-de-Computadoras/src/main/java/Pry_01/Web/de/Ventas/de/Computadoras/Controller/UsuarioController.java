@@ -1,16 +1,14 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 @RequestMapping("/usuarios")
@@ -50,5 +48,34 @@ public class UsuarioController {
     public String eliminarUsuario(@PathVariable Long id) {
         usuarioService.eliminarUsuario(id);
         return "redirect:/VistaAdmin";
+    }
+
+    @PostMapping("/registrar")
+    public String registrar(@ModelAttribute UsuarioModel usuario, RedirectAttributes redirectAttributes) {
+        try {
+            usuarioService.registrarUsuario(usuario);
+            redirectAttributes.addFlashAttribute("mensaje", "Usuario registrado correctamente. Puede iniciar sesión.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al registrar usuario");
+        }
+        return "redirect:/Index";
+    }
+
+    @PostMapping("/login")
+    public String login(@RequestParam String email,
+            @RequestParam String password,
+            HttpSession session,
+            Model model) {
+
+        UsuarioModel usuario = usuarioService.login(email, password);
+
+        if (usuario != null) {
+            session.setAttribute("usuario", usuario);
+
+            return "redirect:/usuarios/Index-log";
+        } else {
+            model.addAttribute("errorl", "Correo o contraseña incorrectos");
+            return "/Index";
+        }
     }
 }

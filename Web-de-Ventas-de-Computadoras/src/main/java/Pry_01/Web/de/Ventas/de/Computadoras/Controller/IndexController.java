@@ -23,4 +23,14 @@ public class IndexController {
         model.addAttribute("categorias", categorias);
         return "Index";
     }
+
+    @GetMapping("/header")
+    public String mostrarHeader() {
+    return "fragments/headerFooter/header";
+    }
+
+    @GetMapping("/Carrito")
+    public String mostrarCarrito() {
+    return "Carrito";
+    }
 }

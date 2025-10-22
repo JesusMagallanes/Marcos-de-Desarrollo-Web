@@ -14,12 +14,12 @@ public class VistaAdminController {
         this.usuarioService = usuarioService;
     }
 
-    @GetMapping("/VistaAdmin")
+    @GetMapping("VistaAdmin")
     public String vistaAdmin(Model model) {
         model.addAttribute("usuarios", usuarioService.listarUsuario());
         model.addAttribute("usuario", new UsuarioModel());
 
-        return "VistaAdmin"; 
+        return "admin/VistaAdmin"; 
     }
 }
 
