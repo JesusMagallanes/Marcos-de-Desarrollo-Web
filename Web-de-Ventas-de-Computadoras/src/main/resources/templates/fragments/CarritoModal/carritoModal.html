@@ -3,6 +3,7 @@
         <h5 class="offcanvas-title" id="cat1" style="color: #505050; font-size: 18px;">Tu carrito</h5>
         <button type="button" class="btn-close btn-close" data-bs-dismiss="offcanvas" aria-label="Close" style="color: #505050;"></button>
     </div>
+    
     <div class="offcanvas-body p-0" style=" background-color: #F5F5F5;  align-items: center; display: flex; flex-direction: column; justify-content: end;">
         <div style="height: 100%;">
             <ul style="list-style: none;" th:if="${categorias != null}">
@@ -14,16 +15,6 @@
                     </button>
                 </li>
             </ul>
-            <div class="d-flex justify-content-center">
-                <a th:href="@{/EnviosPag}">
-                    <button type="button" class="btn btn-primary">Gestionar Envíos</button>
-                </a>
-            </div><br>
-            <div class="d-flex justify-content-center">
-                <a th:href="@{/VistaAdmin}">
-                    <button type="button" class="btn btn-primary">Panel Administrador</button>
-                </a>
-            </div>
         </div>
         
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 12rem; background-color: #2A2A2A; border-radius: 8px 8px 0px 0px ; width: 100%;" >
