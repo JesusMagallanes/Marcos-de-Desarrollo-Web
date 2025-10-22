@@ -30,6 +30,15 @@
                         onclick="mostrarSeccion('productos', this)">Productos</button>
                     <button class="btn btn-outline-success mb-2"
                         onclick="mostrarSeccion('pedidos', this)">Pedidos</button>
+                    <button class="btn btn-outline-success mb-2"
+                        onclick="mostrarSeccion('gestionarEnvios', this)">Gestionar envios</button>    
+                        
+                        
+                        <div class="d-flex justify-content-center">
+            <a th:href="@{/EnviosPag}">
+                <button type="button" class="btn btn-primary">Gestionar Envíos</button>
+            </a>
+        </div><br>
                 </ul>
             </nav>
 
@@ -56,6 +65,10 @@
                     <div th:replace="fragments/Admin-gest/Gest-pedidos :: gest-pedidos"></div>
                 </div>
 
+                <div id="gestionarEnvios" class="seccion d-none">
+                    <h2>Gestión de Envios</h2>
+                    <div th:replace="EnviosPag :: enviosPag"></div>
+                </div>
             </main>
         </div>
     </div>
