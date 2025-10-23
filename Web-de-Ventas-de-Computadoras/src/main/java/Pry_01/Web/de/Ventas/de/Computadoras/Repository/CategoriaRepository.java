@@ -1,4 +1,3 @@
-
 package Pry_01.Web.de.Ventas.de.Computadoras.Repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
