@@ -2,6 +2,10 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,6 +18,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "usuario")
 public class UsuarioModel {
@@ -53,85 +61,10 @@ public class UsuarioModel {
     @Column(nullable = false, length = 200)
     private String address;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 200)
     private Roles rol = Roles.CLIENTE;
 
-    public Roles getRol() {
-        return rol;
-    }
 
-    public void setRol(Roles rol) {
-        this.rol = rol;
-    }
-
-    public UsuarioModel() {
-    }
-
-    public UsuarioModel(String name, String lastname, String emailAddress, String password, String phoneNumber,
-            String address) {
-        this.name = name;
-        this.lastname = lastname;
-        this.emailAddress = emailAddress;
-        this.password = password;
-        this.phoneNumber = phoneNumber;
-        this.address = address;
-        this.rol = rol != null ? rol : Roles.CLIENTE;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
-    }
-
-    public String getEmailAddress() {
-        return emailAddress;
-    }
-
-    public void setEmailAddress(String emailAddress) {
-        this.emailAddress = emailAddress;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
 }

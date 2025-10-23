@@ -1,6 +1,5 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,12 +11,19 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "producto")
 public class ProductoModel {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -51,70 +57,4 @@ public class ProductoModel {
     @NotNull(message = "El producto debe pertenecer a una categoría.")
     private CategoriaModel categoria;
 
-    public ProductoModel() {}
-
-    public ProductoModel(String name, String description, double precio, String imageUrl, CategoriaModel categoria, Integer stock) {
-        this.name = name;
-        this.description = description;
-        this.precio = precio;
-        this.imageUrl = imageUrl;
-        this.stock = stock;
-        this.categoria = categoria;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public double getPrecio() {
-        return precio;
-    }
-
-    public void setPrecio(double precio) {
-        this.precio = precio;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public Integer getStock() {
-        return stock;
-    }
-
-    public void setStock(Integer stock) {
-        this.stock = stock;
-    }
-
-    public CategoriaModel getCategoria() {
-        return categoria;
-    }
-
-    public void setCategoria(CategoriaModel categoria) {
-        this.categoria = categoria;
-    }
 }
