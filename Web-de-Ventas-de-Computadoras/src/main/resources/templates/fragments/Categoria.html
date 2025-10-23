@@ -3,7 +3,8 @@
     <div class="offcanvas-header p-2 m-3"
         style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; ">
         <h5 class="offcanvas-title text-light" id="cat1">Categorías</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+            aria-label="Close"></button>
     </div>
     <div class="offcanvas-body py-0">
         <ul style="list-style: none;"  th:if="${categorias != null}">
@@ -24,54 +25,5 @@
             <a class="btn-categorias" href="@{/}"><i class="fa-solid fa-gamepad"></i>gaming</a>
         </div>
 
-    </div>
-</div>
-
-<div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat2" aria-labelledby="cat2"
-    style="background-image: url(Img/fond-pest.png);">
-
-    <div class="offcanvas-header"
-        style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
-        <h5 class="offcanvas-title text-light" id="cat2">Laptops</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-
-    <div style="display: flex; gap: 60px; margin-left: 50px; flex-wrap: wrap;">
-        <div class="list-group" style="background-color: transparent;">
-            <h6 class="offcanvas-title text-light" style="margin-bottom: 7px;">Marcas</h6>
-            <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
-                    href="#">Asus</a></p>
-            <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
-                    href="#">Acer</a></p>
-            <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
-                    href="#">MSI</a></p>
-            <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
-                    href="#">Hp</a></p>
-        </div>
-
-        <div class="list-group" style="background-color: transparent;">
-            <h6 class="offcanvas-title text-light">Accesorios</h6>
-            <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
-                    href="#">Mouse</a></p>
-            <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
-                    href="#">Teclado</a></p>
-            <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
-                    href="#">Audífonos</a></p>
-        </div>
-    </div><br>
-    <div style="display: flex; gap: 60px; margin-left: 50px; flex-wrap: wrap;">
-        <div class="list-group" style="background-color: transparent;">
-            <h6 class="offcanvas-title text-light" style="margin-bottom: 7px;">Modelo</h6>
-            <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
-                    href="#">Gamer</a></p>
-            <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
-                    href="#">Oficina</a></p>
-            <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0"
-                    href="#">Profesional</a></p>
-        </div>
-    </div><br><br>
-    <div class="d-grid gap-2 col-5 mx-auto">
-        <button class="btn btn-primary" data-bs-toggle="offcanvas" href="#cat1" type="button"><img
-                style="filter: invert(1);;" src="Img/arrox-left.svg" alt="volver" width="25px">Volver</button>
     </div>
 </div>
