@@ -34,12 +34,12 @@ public class CategoriaController {
         return "redirect:/VistaAdmin";
     }
 
-    @PostMapping("/editar/{id}")
+    /* @PostMapping("/editar/{id}")
     public String editarUsuario(@PathVariable Long id, @ModelAttribute("categoria") CategoriaModel categoria) {
         categoria.setId(id);
         categoriaService.actualizarCategoria(categoria);
         return "redirect:/VistaAdmin";
     }
-    
+    */
 
 }
