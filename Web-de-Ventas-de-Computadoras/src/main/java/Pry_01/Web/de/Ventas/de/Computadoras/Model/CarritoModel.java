@@ -8,13 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "carrito")
 public class CarritoModel {
@@ -29,7 +23,6 @@ public class CarritoModel {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private UsuarioModel usuario;
 
-
     @Column(name = "creado_en", nullable = false, updatable = false)
     private LocalDateTime creadoEn;
 
@@ -37,7 +30,13 @@ public class CarritoModel {
     @Size(min = 0, message = "El carrito no puede tener una lista inválida de items.")
     private List<CarritoItemModel> items = new ArrayList<>();
 
-   
+    public CarritoModel() {}
+
+    public CarritoModel(UsuarioModel usuario) {
+        this.usuario = usuario;
+    }
+
+ 
     public void addItem(CarritoItemModel item) {
         items.add(item);
         item.setCarrito(this); 
@@ -54,4 +53,35 @@ public class CarritoModel {
         this.creadoEn = LocalDateTime.now();
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public UsuarioModel getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(UsuarioModel usuario) {
+        this.usuario = usuario;
+    }
+
+    public LocalDateTime getCreadoEn() {
+        return creadoEn;
+    }
+
+    public void setCreadoEn(LocalDateTime creadoEn) {
+        this.creadoEn = creadoEn;
+    }
+
+    public List<CarritoItemModel> getItems() {
+        return items;
+    }
+
+    public void setItems(List<CarritoItemModel> items) {
+        this.items = items;
+    }
 }

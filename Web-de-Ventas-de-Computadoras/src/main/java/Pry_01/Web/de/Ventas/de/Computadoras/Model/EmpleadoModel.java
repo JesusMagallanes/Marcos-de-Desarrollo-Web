@@ -10,13 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
+
 @Entity
 @Table(name = "empleado")
 public class EmpleadoModel {
@@ -32,4 +27,35 @@ public class EmpleadoModel {
     @JoinColumn(name = "usuario_id", nullable = false)
     private UsuarioModel usuario;
 
+
+    public EmpleadoModel(){}
+
+    public EmpleadoModel(UsuarioModel usuario){
+        this.cargo = cargo != null  ? cargo : CargoEmpleado.SIN_ASIGNAR;
+        this.usuario = usuario;
+    }
+    
+    public CargoEmpleado getcargo() {
+        return cargo;
+    }
+
+    public void setCargo(CargoEmpleado cargo) {
+        this.cargo = cargo;
+    
+    }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public UsuarioModel getUsuario(){
+        return usuario;
+    }
+    
+    public void setUsuario(UsuarioModel usuario){
+        this.usuario = usuario;
+    }
 }
