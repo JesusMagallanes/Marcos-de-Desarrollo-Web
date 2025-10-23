@@ -31,18 +31,13 @@
                     <button class="btn btn-outline-success mb-2"
                         onclick="mostrarSeccion('pedidos', this)">Pedidos</button>
                     <button class="btn btn-outline-success mb-2"
-                        onclick="mostrarSeccion('gestionarEnvios', this)">Gestionar envios</button>    
-                        
-                        
-                        <div class="d-flex justify-content-center">
-            <a th:href="@{/EnviosPag}">
-                <button type="button" class="btn btn-primary">Gestionar Envíos</button>
-            </a>
-        </div><br>
+                        onclick="mostrarSeccion('gestionarEnvios', this)">Gestionar envios</button>
                 </ul>
             </nav>
 
             <main class="col-md-10 ms-sm-auto col-lg-10 content">
+
+                
                 <div id="bienvenida" class="seccion">
                     <div class="alert alert-success text-center" role="alert">
                         <h3>¡Bienvenido Administrador a SmartZone!</h3>
@@ -50,25 +45,26 @@
                     </div>
                 </div>
 
-                <div id="usuarios" class="seccion d-none">
-                    <h2>Gestión de Usuarios</h2>
-                    <div th:replace="~{fragments/Admin-gest/Gest-usuarios :: gest-usuarios}"></div>
-                </div>
-
                 <div id="productos" class="seccion d-none">
                     <h2>Gestión de Productos</h2>
-                    <div th:replace="fragments/Admin-gest/Gest-productos :: gest-productos"></div>
-                </div>
+                    <div th:replace="~{fragments/Admin-gest/Gest-productos :: gest-productos}">
 
+                    </div>
+                </div>
                 <div id="pedidos" class="seccion d-none">
-                    <h2>Gestión de Pedidos</h2>
-                    <div th:replace="fragments/Admin-gest/Gest-pedidos :: gest-pedidos"></div>
-                </div>
 
-                <div id="gestionarEnvios" class="seccion d-none">
-                    <h2>Gestión de Envios</h2>
-                    <div th:replace="EnviosPag :: enviosPag"></div>
+                    <h2>Gestión de Pedidos</h2>
+                    <div th:replace="~{fragments/Admin-gest/Gest-pedidos :: gest-pedidos}">
+                    </div>
                 </div>
+                <div id="usuarios" class="seccion d-none">
+                    <h2>Gestión de Usuarios</h2>
+                    <div th:replace="~{fragments/Admin-gest/Gest-usuarios :: gest-usuarios}">
+                    </div>
+                </div>
+                
+
+
             </main>
         </div>
     </div>

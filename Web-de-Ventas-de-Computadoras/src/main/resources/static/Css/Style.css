@@ -408,3 +408,24 @@ a {
     margin-bottom: 10px;
   }
 }
+.categorias{
+   display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.btn-categorias{
+ display: flex;
+ gap: 0.2rem;
+ align-items: center;
+  border-radius: 8px;
+  padding: 0.7rem;
+  background-color: #2A2A2A;
+  border: none;
+  color: white;
+  font-size: small;
+}
+.btn-categorias:hover{
+  background-color: #06b56c;
+  color: white;
+  transition: 350ms;
+}
