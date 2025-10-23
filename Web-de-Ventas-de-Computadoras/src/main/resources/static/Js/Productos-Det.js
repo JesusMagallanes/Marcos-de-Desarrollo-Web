@@ -585,3 +585,4 @@ function renderProduct(rootId, data) {
 
     renderProduct('product-root', seleccionado);
 })();
+

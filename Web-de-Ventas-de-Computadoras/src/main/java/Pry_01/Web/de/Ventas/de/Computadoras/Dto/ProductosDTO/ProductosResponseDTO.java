@@ -3,7 +3,7 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 
-@data
+
 public class ProductosResponseDTO {
     private Long id;
 
