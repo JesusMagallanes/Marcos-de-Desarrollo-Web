@@ -4,7 +4,7 @@
             style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
             
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Inicia Sesión</h1>
+                <h1 class="modal-title fs-5" id="exampleModalLabel" >Inicia Sesión</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
@@ -28,8 +28,12 @@
                     </div>
 
                     <div th:if="${errorl}" class="alert alert-danger text-center" th:text="${error}"></div>
-
                     <button type="submit" class="btn btn-primary w-100">Iniciar</button>
+                    <div class="d-flex justify-content-center">
+                        <a th:href="@{/VistaAdmin}">
+                            <button type="button" class="btn btn-primary">Panel Administrador</button>
+                        </a>
+                    </div>
                 </div>
 
                 <div class="text-center my-3">

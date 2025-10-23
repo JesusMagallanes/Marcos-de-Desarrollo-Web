@@ -1,30 +1,29 @@
 <div class="offcanvas offcanvas-start" tabindex="-1" id="cat1" aria-labelledby="cat1"
      style="background-color: #2A2A2A;" th:fragment="categoria">
-    <div class="offcanvas-header"
-        style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
+    <div class="offcanvas-header p-2 m-3"
+        style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; ">
         <h5 class="offcanvas-title text-light" id="cat1">Categorías</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="offcanvas-body">
-        <ul style="list-style: none;" th:if="${categorias != null}">
+    <div class="offcanvas-body py-0">
+        <ul style="list-style: none;"  th:if="${categorias != null}">
             <li th:each="categoria : ${categorias}">
                 <button type="button" class="btn btn-outline-success text-light"
                     style="border: none; margin-bottom: 8px;">
                     <img style="margin-right: 8px;" th:src="${categoria.urlImage}" alt="icono" />
-                    <span th:text="${categoria.name}">Nombre</span>
+                    <span th:text="${categoria.name}" style="font-weight: bold;">fotosintesis</span>
                 </button>
             </li>
         </ul>
-        <div class="d-flex justify-content-center">
-            <a th:href="@{/EnviosPag}">
-                <button type="button" class="btn btn-primary">Gestionar Envíos</button>
-            </a>
-        </div><br>
-        <div class="d-flex justify-content-center">
-            <a th:href="@{/VistaAdmin}">
-                <button type="button" class="btn btn-primary">Panel Administrador</button>
-            </a>
+        <div class="categorias">
+            <a class="btn-categorias" href="@{/}"><i class="fa-solid fa-mobile"></i>Smartphones accesorios</a>
+            <a class="btn-categorias" href="@{/}"><i class="fa-solid fa-laptop"></i>Laptos y perifericos</a>
+            <a class="btn-categorias" href="@{/}"><i class="fa-solid fa-desktop"></i>Componentes de PC</a>
+            <a class="btn-categorias" href="@{/}"><i class="fa-solid fa-headphones"></i>Audio y video</a>
+            <a class="btn-categorias" href="@{/}"><i class="fa-solid fa-house-signal"></i>Hogar inteligente</a>
+            <a class="btn-categorias" href="@{/}"><i class="fa-solid fa-gamepad"></i>gaming</a>
         </div>
+
     </div>
 </div>
 
