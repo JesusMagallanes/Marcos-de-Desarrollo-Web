@@ -3,24 +3,48 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO.CategoriaCreateDTO;
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
+import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
+import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Controller
 public class VistaAdminController {
 
     private final UsuarioService usuarioService;
+    private final ProductoService productoService;
+    private final CategoriaService categoriaService;
 
-    public VistaAdminController(UsuarioService usuarioService) {
+    public VistaAdminController(UsuarioService usuarioService, CategoriaService categoriaService,
+            ProductoService productoService) {
         this.usuarioService = usuarioService;
+        this.categoriaService = categoriaService;
+        this.productoService = productoService;
     }
 
-    @GetMapping("VistaAdmin")
-    public String vistaAdmin(Model model) {
-        model.addAttribute("usuarios", usuarioService.listarUsuario());
-        model.addAttribute("usuario", new UsuarioModel());
+    @GetMapping("/VistaAdmin")
+    public String vistaAdmin(@RequestParam(required = false) String seccion, Model model) {
+        log.info("Cargando VistaAdmin con sección: " + seccion);
+        model.addAttribute("seccion", seccion);
 
-        return "admin/VistaAdmin"; 
+        try {
+            model.addAttribute("usuarios", usuarioService.listarUsuario());
+            model.addAttribute("usuario", new UsuarioModel());
+            model.addAttribute("producto", new ProductosCreateDTO());
+            model.addAttribute("productos", productoService.listarProducto());
+            model.addAttribute("categoria", new CategoriaCreateDTO());
+            model.addAttribute("categorias", categoriaService.listarCategoria());
+        } catch (Exception e) {
+            log.error("Error al preparar VistaAdmin", e);
+            throw e;
+        }
+
+        return "admin/VistaAdmin";
     }
 }
-
-

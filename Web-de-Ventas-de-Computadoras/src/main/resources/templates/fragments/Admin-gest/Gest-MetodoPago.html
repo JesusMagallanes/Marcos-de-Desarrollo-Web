@@ -1,7 +1,7 @@
-<div th:fragment="gest-productos">
+<div th:fragment="gest-metodoPago">
 
     <div class="mb-3">
-        <button class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#gest-product">
+        <button class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#gest-metodoPago">
             Añadir producto
         </button>
     </div>
@@ -45,12 +45,12 @@
         </tbody>
     </table>
 
-    <div class="modal fade" id="gest-product" tabindex="-1" aria-labelledby="gestProductLabel" aria-hidden="true">
+    <div class="modal fade" id="gest-metodoPago" tabindex="-1" aria-labelledby="gestmetodoPagoLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content" style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
                 <form th:action="@{/productos}" method="post" th:object="${producto}">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="gestProductLabel">Añadir nuevo producto</h5>
+                        <h5 class="modal-title" id="gestmetodoPagoLabel">Añadir nuevo producto</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
@@ -149,5 +149,4 @@
             </div>
         </div>
     </div>
-
 </div>

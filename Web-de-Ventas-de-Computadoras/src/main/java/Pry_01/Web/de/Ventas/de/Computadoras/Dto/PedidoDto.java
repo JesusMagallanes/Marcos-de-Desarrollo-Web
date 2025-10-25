@@ -1,4 +1,4 @@
-package Pry_01.Web.de.Ventas.de.Computadoras.Dto;
+/* package Pry_01.Web.de.Ventas.de.Computadoras.Dto;
 
 import java.math.BigDecimal;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.EstadoPedido;
@@ -66,3 +66,5 @@ public class PedidoDto {
         this.estado = estado;
     }
 }
+
+*/
