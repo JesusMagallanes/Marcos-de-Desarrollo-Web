@@ -63,8 +63,7 @@ public class ProductoService {
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
         return convertToResponseDTO(producto);
     }
-
-    private ProductosResponseDTO convertToResponseDTO(ProductoModel producto) {
+      private ProductosResponseDTO convertToResponseDTO(ProductoModel producto) {
         return new ProductosResponseDTO(
                 producto.getId(),
                 producto.getName(),
