@@ -33,4 +33,6 @@ public class IndexController {
     public String mostrarCarrito() {
     return "Carrito";
     }
+    @GetMapping("/metodosPago")
+    public String metodosPago() { return "metodosPago"; }
 }

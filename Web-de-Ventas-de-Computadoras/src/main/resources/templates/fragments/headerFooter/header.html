@@ -88,28 +88,27 @@
 <!-- Versión escritorio: SOLO visible en pantallas grandes -->
 <header class="d-none d-lg-flex container-fluid px-lg-5 align-items-center"
     style="background-color: #ECECEC; height: 2.5rem;">
-    <nav class="navbar navbar-expand-lg m-0 d-flex justify-content-between w-100"
+    <nav class="navbar navbar-expand-lg m-0 d-flex justify-content-end w-100"
         style="height: 2.5rem; box-shadow: none; background-color:#ECECEC ; font-size: 0.9rem; color: #505050;">
-        <a href="" class="d-flex align-items-center nav-link btn-nav py-1" style="cursor: pointer;">
-            <i class="fa-solid fa-location-dot"></i>
-            <span class="ms-2" style="font-size: 0.9rem;">Ingresar ubicación</span>
-            <i class="fa-solid fa-chevron-right ms-2"></i>
-        </a>
-        <div class="d-flex flex-row gap-1">
-            <div style="color: #28AA00;" class="btn-nav py-1">
-                <i class="fa-solid fa-map-location"></i>
-                <span>Nuestras tiendas</span>
-            </div>
+        <div class="d-flex flex-row gap-1 ">
+            
             <div class="btn-nav py-1 px-2 position-relative">
                 <a class="text-decoration-none" data-bs-toggle="collapse" href="#collapseAyuda" role="button" 
-                aria-expanded="false" aria-controls="collapseAyuda">
+                aria-expanded="false" aria-controls="collapseAyuda" >
                     <i class="fa-solid fa-circle-question"></i>
                     <span>Ayuda</span>
                     <i class="fa-solid fa-chevron-down ms-1"></i>
                 </a>
-                <div class="collapse position-absolute end-0" id="collapseAyuda" style="width: 300px; z-index: 1000;">
-                    <div class="card card-body shadow mt-2">
-                        Some placeholder content for the collapse component. This panel is hidden by default but revealed when the user activates the relevant trigger.
+                <div class="collapse position-absolute end-0 p-2" id="collapseAyuda" style="width: 280px; z-index: 1000; padding: 0;">
+                    <div class="card card-body shadow mt-2 p-2">
+                        <ul class="list-unstyled mb-0">
+                            <a th:href="@{/metodosPago}"><li class=" btns-ayuda" >Metodos de pago</li></a>
+                            <a th:href="@{/Canales}"><li class=" btns-ayuda">Canales de atención</li></a>
+                            <hr class="my-2">
+                            <li style="padding: 0.6rem;">¿Tienes dudas? <b>Contáctanos</b>
+                                servicioalcliente@gmail.com
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
