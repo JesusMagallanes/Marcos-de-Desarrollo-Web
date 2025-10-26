@@ -10,7 +10,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class MetodoPagoUpdateDTO {
 
-    private Long id;
     @Size(max = 50, message = "El nombre no puede tener más de 50 caracteres.")
     private String name;
 

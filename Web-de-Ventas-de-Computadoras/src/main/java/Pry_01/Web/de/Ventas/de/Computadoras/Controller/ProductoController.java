@@ -27,7 +27,8 @@ public class ProductoController {
     private final CategoriaService categoriaService;
     private final UsuarioService usuarioService;
 
-    public ProductoController(ProductoService productoService, CategoriaService categoriaService, UsuarioService usuarioService) {
+    public ProductoController(ProductoService productoService, CategoriaService categoriaService,
+            UsuarioService usuarioService) {
         this.productoService = productoService;
         this.categoriaService = categoriaService;
         this.usuarioService = usuarioService;
@@ -87,7 +88,7 @@ public class ProductoController {
             return "admin/VistaAdmin";
         }
 
-        return "redirect:/VistaAdmin?seccion=producto";
+        return "redirect:/VistaAdmin";
     }
 
     // 🟢 Editar producto desde modal
