@@ -77,7 +77,7 @@
         <div class="modal fade" th:id="'edit-categoria-' + ${categoria.id}" tabindex="-1"
             th:attr="aria-labelledby='editCategoriaLabel-' + ${categoria.id}" aria-hidden="true">
             <div class="modal-dialog">
-                <div class="modal-content">
+                <div class="modal-content" style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
                     <form th:action="@{'/categorias/editar/' + ${categoria.id}}" method="post">
                         <div class="modal-header">
                             <h5 class="modal-title" th:id="'editCategoriaLabel-' + ${categoria.id}">Editar categoría

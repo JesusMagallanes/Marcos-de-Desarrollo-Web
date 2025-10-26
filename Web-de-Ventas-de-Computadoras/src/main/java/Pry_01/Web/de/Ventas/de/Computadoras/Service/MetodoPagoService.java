@@ -25,7 +25,7 @@ public class MetodoPagoService {
     public MetodoPagoModel guardarMetodoPago(MetodoPagoCreateDTO dto) {
         MetodoPagoModel metodo = new MetodoPagoModel();
         metodo.setName(dto.getName());
-        metodo.setDescription(dto.getDescripcion());
+        metodo.setDescription(dto.getDescription());
         return metodoPagoRepository.save(metodo);
     }
 
@@ -39,7 +39,7 @@ public class MetodoPagoService {
         MetodoPagoModel metodo = metodoPagoRepository.findById(id)
         .orElseThrow(()-> new RuntimeException("Metodo de pago no encontrado"));
         metodo.setName(dto.getName());
-        metodo.setDescription(dto.getDescripcion());
+        metodo.setDescription(dto.getDescription());
         return metodoPagoRepository.save(metodo);
     }
 

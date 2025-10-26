@@ -12,31 +12,22 @@
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
-                <th>Precio</th>
-                <th>Imagen Url</th>
-                <th>Stock</th>
-                <th>Categoría</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-            <tr th:each="producto : ${productos}">
-                <td th:text="${producto.id}"></td>
-                <td th:text="${producto.name}"></td>
-                <td th:text="${producto.description}"></td>
-                <td th:text="${producto.precio}"></td>
-                <td th:text="${producto.imageUrl}"></td>
-                <td th:text="${producto.stock}"></td>
-                <td th:text="${producto.categoriaName}"></td>
+            <tr th:each="metodoPago : ${metodoPagos}">
+                <td th:text="${metodoPago.id}"></td>
+                <td th:text="${metodoPago.name}"></td>
+                <td th:text="${metodoPago.description}"></td>
                 <td>
                     <button type="button" class="btn btn-warning"
-                        th:attr="data-bs-target='#edit-product-' + ${producto.id}" data-bs-toggle="modal">
+                        th:attr="data-bs-target='#edit-metodoPago-' + ${metodoPago.id}" data-bs-toggle="modal">
                         Editar
                     </button>
-
-                    <form th:action="@{'/productos/eliminar/' + ${producto.id}}" method="post" style="display:inline;">
+                    <form th:action="@{'/metodoPagos/eliminar/' + ${metodoPago.id}}" method="post" style="display:inline;">
                         <button class="btn btn-danger" type="submit"
-                            onclick="return confirm('¿Seguro que quieres eliminar este producto?');">
+                            onclick="return confirm('¿Seguro que quieres eliminar este Método de Pago');">
                             Eliminar
                         </button>
                     </form>
@@ -48,9 +39,9 @@
     <div class="modal fade" id="gest-metodoPago" tabindex="-1" aria-labelledby="gestmetodoPagoLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content" style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
-                <form th:action="@{/productos}" method="post" th:object="${producto}">
+                <form th:action="@{/metodoPagos}" method="post" th:object="${metodoPago}">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="gestmetodoPagoLabel">Añadir nuevo producto</h5>
+                        <h5 class="modal-title" id="gestmetodoPagoLabel">Añadir nuevo Método Pago</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
@@ -62,83 +53,36 @@
                             <label class="form-label">Descripción</label>
                             <textarea class="form-control" th:field="*{description}" rows="3" required></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">URL Imagen</label>
-                            <input type="url" class="form-control" th:field="*{imageUrl}" required>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Stock</label>
-                                <input type="number" class="form-control" th:field="*{stock}" min="0" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Precio</label>
-                                <input type="number" step="0.01" class="form-control" th:field="*{precio}" min="0"
-                                    required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Categoría</label>
-                            <select class="form-select" th:field="*{categoriaId}" required>
-                                <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}">
-                                </option>
-                            </select>
-                        </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Añadir producto</button>
+                        <button type="submit" class="btn btn-primary">Añadir Método Pago</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <div th:each="producto : ${productos}">
-        <div class="modal fade" th:id="'edit-product-' + ${producto.id}" tabindex="-1"
-            aria-labelledby="editProductLabel" aria-hidden="true">
+    <div th:each="metodoPago : ${metodoPagos}">
+        <div class="modal fade" th:id="'edit-metodoPago-' + ${metodoPago.id}" tabindex="-1"
+            aria-labelledby="editMetodoPagoLabel" aria-hidden="true">
             <div class="modal-dialog">
-                <div class="modal-content">
-                    <form th:action="@{'/productos/editar/' + ${producto.id}}" method="post">
+                <div class="modal-content" style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
+                    <form th:action="@{'/metodoPagos/editar/' + ${metodoPago.id}}" method="post">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="editProductLabel">Editar producto</h5>
+                            <h5 class="modal-title" id="editMetodoPagoLabel">Editar Método de Pago</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                 aria-label="Cerrar"></button>
                         </div>
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label class="form-label">Nombre</label>
-                                <input type="text" class="form-control" name="name" th:value="${producto.name}"
+                                <input type="text" class="form-control" name="name" th:value="${metodoPago.name}"
                                     required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Descripción</label>
                                 <textarea class="form-control" name="description" rows="3"
-                                    th:text="${producto.description}" required></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">URL Imagen</label>
-                                <input type="url" class="form-control" name="imageUrl" th:value="${producto.imageUrl}"
-                                    required>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Stock</label>
-                                    <input type="number" class="form-control" name="stock" th:value="${producto.stock}"
-                                        min="0" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Precio</label>
-                                    <input type="number" step="0.01" class="form-control" name="precio"
-                                        th:value="${producto.precio}" min="0" required>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Categoría</label>
-                                <select class="form-select" name="categoriaId" required>
-                                    <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}"
-                                        th:selected="${cat.id == producto.categoriaName}">
-                                    </option>
-                                </select>
+                                    th:text="${metodoPago.description}" required></textarea>
                             </div>
                         </div>
                         <div class="modal-footer">

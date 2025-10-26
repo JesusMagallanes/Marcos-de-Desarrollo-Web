@@ -14,5 +14,5 @@ public class MetodoPagoUpdateDTO {
     private String name;
 
     @Size(max = 200, message = "La descripción no puede tener más de 200 caracteres.")
-    private String descripcion;
+    private String description;
 }

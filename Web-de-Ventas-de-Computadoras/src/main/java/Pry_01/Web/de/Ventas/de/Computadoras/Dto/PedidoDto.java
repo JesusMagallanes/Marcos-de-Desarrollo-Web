@@ -1,10 +1,11 @@
-/* package Pry_01.Web.de.Ventas.de.Computadoras.Dto;
+package Pry_01.Web.de.Ventas.de.Computadoras.Dto;
 
 import java.math.BigDecimal;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.EstadoPedido;
 import jakarta.validation.constraints.DecimalMin;
 
 public class PedidoDto {
+    
     private Long id;
 
     private Long usuarioId;
@@ -66,5 +67,3 @@ public class PedidoDto {
         this.estado = estado;
     }
 }
-
-*/
