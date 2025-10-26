@@ -100,14 +100,27 @@
                 <i class="fa-solid fa-map-location"></i>
                 <span>Nuestras tiendas</span>
             </div>
-            <div class="btn-nav py-1 px-2">
-                <i class="fa-solid fa-circle-question"></i>
-                <span>Ayuda</span>
-                <i class="fa-solid fa-chevron-down ms-1"></i>
+            <div class="btn-nav py-1 px-2 position-relative">
+                <a class="text-decoration-none" data-bs-toggle="collapse" href="#collapseAyuda" role="button" 
+                aria-expanded="false" aria-controls="collapseAyuda">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Ayuda</span>
+                    <i class="fa-solid fa-chevron-down ms-1"></i>
+                </a>
+                <div class="collapse position-absolute end-0" id="collapseAyuda" style="width: 300px; z-index: 1000;">
+                    <div class="card card-body shadow mt-2">
+                        Some placeholder content for the collapse component. This panel is hidden by default but revealed when the user activates the relevant trigger.
+                    </div>
+                </div>
             </div>
+            
         </div>
+        
     </nav>
+            
 </header>
+
+
 
     <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel">
         <div class="offcanvas-header">
