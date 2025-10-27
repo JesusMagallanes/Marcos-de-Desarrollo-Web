@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @Slf4j
 @Controller
-@RequestMapping("/metodoPago")
+@RequestMapping("/metodoPagos")
 public class MetodoPagoController {
 
     private final MetodoPagoService metodoPagoService;

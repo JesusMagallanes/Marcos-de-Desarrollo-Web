@@ -11,5 +11,5 @@ public class MetodoPagoResponseDTO {
 
     private final String name;
 
-    private final String descripcion;
+    private final String description;
 }
