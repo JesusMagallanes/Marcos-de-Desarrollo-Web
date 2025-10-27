@@ -35,4 +35,9 @@ public class IndexController {
     }
     @GetMapping("/metodosPago")
     public String metodosPago() { return "metodosPago"; }
+    
+    @GetMapping("/productosCategoria")
+    public String mostrarProductoCategoria(){
+        return "productosCategoria";
+    }
 }
