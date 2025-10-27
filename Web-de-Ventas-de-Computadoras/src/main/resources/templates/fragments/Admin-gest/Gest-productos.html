@@ -1,14 +1,11 @@
-<!-- Fragmento gestión de productos -->
 <div th:fragment="gest-productos">
 
-    <!-- Botón abrir modal añadir -->
     <div class="mb-3">
         <button class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#gest-product">
             Añadir producto
         </button>
     </div>
 
-    <!-- Tabla de productos -->
     <table class="table table-striped table-bordered">
         <thead class="table-dark">
             <tr>
@@ -17,8 +14,8 @@
                 <th>Descripción</th>
                 <th>Precio</th>
                 <th>Imagen Url</th>
-                <th>Cantidad de Stock</th>
-                <th>Categoria</th>
+                <th>Stock</th>
+                <th>Categoría</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -30,19 +27,16 @@
                 <td th:text="${producto.precio}"></td>
                 <td th:text="${producto.imageUrl}"></td>
                 <td th:text="${producto.stock}"></td>
-                <td th:text="${producto.categoria}"></td>
-                <td class="table-actions">
-                    <!-- Botón editar -->
+                <td th:text="${producto.categoriaName}"></td>
+                <td>
                     <button type="button" class="btn btn-warning"
-                            th:attr="data-bs-target='#edit-product-' + ${producto.id}"
-                            data-bs-toggle="modal">
+                        th:attr="data-bs-target='#edit-product-' + ${producto.id}" data-bs-toggle="modal">
                         Editar
                     </button>
-                    <!-- Botón eliminar -->
+
                     <form th:action="@{'/productos/eliminar/' + ${producto.id}}" method="post" style="display:inline;">
-                        <input type="hidden" name="_method" value="delete" />
-                        <button class="btn btn-sm btn-danger" type="submit"
-                                onclick="return confirm('¿Seguro que quieres eliminar este producto?');">
+                        <button class="btn btn-danger" type="submit"
+                            onclick="return confirm('¿Seguro que quieres eliminar este producto?');">
                             Eliminar
                         </button>
                     </form>
@@ -50,101 +44,110 @@
             </tr>
         </tbody>
     </table>
-</div>
-<!-- FIN tabla de productos -->
 
-<!-- Modal añadir producto -->
-<div class="modal fade" id="gest-product" tabindex="-1" aria-labelledby="gestProductLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content"
-             style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
-            <form th:action="@{/productos}" method="post" th:object="${producto}">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="gestProductLabel">Añadir nuevo producto</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="nombreProducto" class="form-label">Nombre</label>
-                            <input type="text" class="form-control" id="nombreProducto" th:field="*{name}" required>
-                        </div>
-                        <div class="col-md-12">
-                            <label for="descripcionProducto" class="form-label">Descripción</label>
-                            <textarea class="form-control" id="descripcionProducto" th:field="*{description}" rows="3" required></textarea>
-                        </div>
-                        <div class="col-md-12">
-                            <label for="imagenUrl" class="form-label">URL Imagen</label>
-                            <input type="url" class="form-control" id="imagenUrl" th:field="*{imageUrl}" placeholder="http://..." required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="stockProducto" class="form-label">Stock</label>
-                            <input type="number" class="form-control" id="stockProducto" th:field="*{stock}" min="0" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="precioProducto" class="form-label">Precio</label>
-                            <input type="number" step="0.01" class="form-control" th:field="*{precio}" id="precioProducto" min="0" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="categoria" class="form-label">Categoria</label>
-                            <input type="text" class="form-control" th:field="*{categoria}" id="categoria" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Añadir producto</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- FIN Modal añadir producto -->
-
-<!-- Modal editar producto -->
-<div th:each="producto : ${productos}">
-    <div class="modal fade" th:id="'edit-product-' + ${producto.id}" tabindex="-1"
-         aria-labelledby="editProductLabel" aria-hidden="true">
+    <div class="modal fade" id="gest-product" tabindex="-1" aria-labelledby="gestProductLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content"
-                 style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
-                <form class="row g-3" th:action="@{'/productos/editar/' + ${producto.id}}" method="post">
+            <div class="modal-content" style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
+                <form th:action="@{/productos}" method="post" th:object="${producto}">
                     <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="editProductLabel">Editar producto</h1>
+                        <h5 class="modal-title" id="gestProductLabel">Añadir nuevo producto</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="col-md-6">
+                        <div class="mb-3">
                             <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control" name="name" th:value="${producto.name}" required>
+                            <input type="text" class="form-control" th:field="*{name}" required>
                         </div>
-                        <div class="col-md-12">
+                        <div class="mb-3">
                             <label class="form-label">Descripción</label>
-                            <textarea class="form-control" name="description" rows="3" required
-                                      th:text="${producto.description}"></textarea>
+                            <textarea class="form-control" th:field="*{description}" rows="3" required></textarea>
                         </div>
-                        <div class="col-md-12">
+                        <div class="mb-3">
                             <label class="form-label">URL Imagen</label>
-                            <input type="url" class="form-control" name="imageUrl" th:value="${producto.imageUrl}" required>
+                            <input type="url" class="form-control" th:field="*{imageUrl}" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Stock</label>
-                            <input type="number" class="form-control" name="stock" th:value="${producto.stock}" min="0" required>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Stock</label>
+                                <input type="number" class="form-control" th:field="*{stock}" min="0" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Precio</label>
+                                <input type="number" step="0.01" class="form-control" th:field="*{precio}" min="0"
+                                    required>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Precio</label>
-                            <input type="number" step="0.01" class="form-control" name="precio" th:value="${producto.precio}" min="0" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Categoria</label>
-                            <input type="text" class="form-control" name="categoria" th:value="${producto.categoria}" required>
+                        <div class="mb-3">
+                            <label class="form-label">Categoría</label>
+                            <select class="form-select" th:field="*{categoriaId}" required>
+                                <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}">
+                                </option>
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-warning">Guardar cambios</button>
+                        <button type="submit" class="btn btn-primary">Añadir producto</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <div th:each="producto : ${productos}">
+        <div class="modal fade" th:id="'edit-product-' + ${producto.id}" tabindex="-1"
+            aria-labelledby="editProductLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content" style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
+                    <form th:action="@{'/productos/editar/' + ${producto.id}}" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editProductLabel">Editar producto</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" class="form-control" name="name" th:value="${producto.name}"
+                                    required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Descripción</label>
+                                <textarea class="form-control" name="description" rows="3"
+                                    th:text="${producto.description}" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">URL Imagen</label>
+                                <input type="url" class="form-control" name="imageUrl" th:value="${producto.imageUrl}"
+                                    required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Stock</label>
+                                    <input type="number" class="form-control" name="stock" th:value="${producto.stock}"
+                                        min="0" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Precio</label>
+                                    <input type="number" step="0.01" class="form-control" name="precio"
+                                        th:value="${producto.precio}" min="0" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Categoría</label>
+                                <select class="form-select" name="categoriaId" required>
+                                    <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}"
+                                        th:selected="${cat.id == producto.categoriaName}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-warning">Guardar cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
-<!-- FIN Modal editar producto -->
