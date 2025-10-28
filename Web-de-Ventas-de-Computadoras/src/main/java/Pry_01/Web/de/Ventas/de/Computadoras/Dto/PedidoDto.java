@@ -5,7 +5,6 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Model.EstadoPedido;
 import jakarta.validation.constraints.DecimalMin;
 
 public class PedidoDto {
-    
     private Long id;
 
     private Long usuarioId;

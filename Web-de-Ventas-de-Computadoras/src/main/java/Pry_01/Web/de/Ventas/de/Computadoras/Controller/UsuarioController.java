@@ -56,11 +56,7 @@ public class UsuarioController {
             usuarioService.registrarUsuario(usuario);
             redirectAttributes.addFlashAttribute("mensaje", "Usuario registrado correctamente. Puede iniciar sesión.");
         } catch (Exception e) {
-        e.printStackTrace();
-
-        redirectAttributes.addFlashAttribute("error", "Error al registrar usuario");
-
-        return "error/500";
+            redirectAttributes.addFlashAttribute("error", "Error al registrar usuario");
         }
         return "redirect:/Index";
     }

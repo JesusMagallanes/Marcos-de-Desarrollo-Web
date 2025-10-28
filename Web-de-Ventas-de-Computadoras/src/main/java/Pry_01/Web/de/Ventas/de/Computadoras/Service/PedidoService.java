@@ -1,10 +1,9 @@
-
-
-/*package Pry_01.Web.de.Ventas.de.Computadoras.Service;
+package Pry_01.Web.de.Ventas.de.Computadoras.Service;
 
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.PedidoDto;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.MetodoPagoModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.PedidoModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
@@ -74,4 +73,3 @@ public class PedidoService {
         return Optional.of(pedidoActualizado);
     }
 }
-*/
