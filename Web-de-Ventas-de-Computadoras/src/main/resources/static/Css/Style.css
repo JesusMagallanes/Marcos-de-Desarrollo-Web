@@ -429,3 +429,14 @@ a {
   color: white;
   transition: 350ms;
 }
+.btns-ayuda{
+  
+  padding: 0.6rem;
+  margin: 0;
+  width: 100%;
+}
+.btns-ayuda:hover{
+  border-left: 0.2rem solid #06b56c;
+  background-color: #EEEEEE;
+  transition: 1ms;
+}
