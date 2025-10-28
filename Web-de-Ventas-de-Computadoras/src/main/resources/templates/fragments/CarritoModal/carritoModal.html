@@ -5,30 +5,8 @@
     </div>
     
     <div class="offcanvas-body p-0" style=" background-color: #F5F5F5;  align-items: center; display: flex; flex-direction: column; justify-content: end;">
-        <div th:if="${#lists.isEmpty(carrito.items)}">
-            <p>El carrito está vacío.</p>
-        </div>
-        <div style="height: 100%;">
-            <ul style="list-style: none;" th:if="${categorias != null}">
-                <li th:each="categoria : ${categorias}">
-                    <button type="button" class="btn btn-outline-success text-light"
-                        style="border: none; margin-bottom: 8px;">
-                        <img style="margin-right: 8px;" th:src="${categoria.urlImage}" alt="icono" />
-                        <span th:text="${categoria.name}">Nombre</span>
-                    </button>
-                </li>
-            </ul>
-        </div>
-        <div th:each="item : ${carrito.items}">
-        <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
-          <span th:text="${item.producto.nombre}"></span>
-          <span th:text="'x' + ${item.cantidad}"></span>
-          <span th:text="'$' + ${item.producto.precio * item.cantidad}"></span>
-        </div>
-      </div>
+        
 
-      <hr>
-      <p><strong>Total:</strong> <span th:text="'$' + ${total}"></span></p>
         
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 12rem; background-color: #2A2A2A; border-radius: 8px 8px 0px 0px ; width: 100%;" >
 
