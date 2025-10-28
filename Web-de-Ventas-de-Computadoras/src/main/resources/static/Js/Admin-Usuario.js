@@ -14,14 +14,3 @@ function abrirModalEditar(button) {
         });
 }
 
-    function abrirModalEditar(usuario) {
-        document.getElementById("edit-id").value = usuario.id;
-        document.getElementById("edit-nombre").value = usuario.nombre;
-        document.getElementById("edit-apellido").value = usuario.apellido;
-        document.getElementById("edit-email").value = usuario.email;
-        document.getElementById("edit-rol").value = usuario.rol;
-
-        let modal = new bootstrap.Modal(document.getElementById("modalEditarUsuario"));
-        modal.show();
-    }
-

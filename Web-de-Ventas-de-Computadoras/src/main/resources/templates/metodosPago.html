@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>SmartZone</title>
+    <link rel="stylesheet" href="/css/Style.css">
+    <link rel="icon" href="/Img/img.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="/css/Chat-Bot.css">
+</head>
+<body>
+    <div th:replace="~{fragments/headerFooter/header :: header}"></div>
+    <div th:replace="fragments/Categoria :: categoria"></div>
+    <div th:replace="fragments/Login-Register/Login :: login"></div>
+    <div th:replace="fragments/Login-Register/Register :: register"></div>
+    <div th:replace="fragments/CarritoModal/carritoModal :: carritoModalFragment"></div>
+    
+    <div class="container-fluid p-0">
+        <section class="canales-de-atencion">
+            <div class="row ">
+                <div class="col text-start" >
+                    <h3>Metodos de pago</h3>
+                    <p>Te ofrecemos diversos medios de pago, para que compres con total comodidad y con más opciones.
+                    </p>
+                </div>
+            </div>
+            <div class="canales">
+                <div class="row row-cols-1 row-cols-lg-4 g-4">
+                    <div class="col">
+                        <div class="card h-100 d-flex flex-column justify-content-between">
+                            <div class="card-body" style="color: #505050;">
+                                <i class="fa-solid fa-credit-card pt-3" style="font-size: 2.5rem;"></i>
+                                <h5 class="card-title">Tarjetas de Crédito</h5>
+                                <hr>
+                                <p class="card-text">Realiza pagos cómodos y seguros con tu tarjeta de crédito en cualquier momento.</p>
+                            </div>
+                            <div class="p-3">
+                                <hr>
+                                <div class="d-flex flex-row gap-2">
+                                    <img src="/Img/visa-icon.svg" alt="visa" width="45px" style="color: #505050;">
+                                    <img src="/Img/mastercard-icon.svg" alt="mastercard" width="45px">
+                                </div>
+                                
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100 d-flex flex-column justify-content-between">
+                            <div class="card-body" style="color: #505050;">
+                                <i class="fa-solid fa-credit-card pt-3" style="font-size: 2.5rem;"></i>
+                                <h5 class="card-title">Tarjetas de debito</h5>
+                                <hr>
+                                <p class="card-text">Paga directamente desde tu cuenta bancaria de manera rápida y segura.</p>
+                            </div>
+                            <div class="p-3">
+                                <hr>
+                                <div class="d-flex flex-row gap-2">
+                                    <img src="/Img/visa-icon.svg" alt="visa" width="45px">
+                                    <img src="/Img/mastercard-icon.svg" alt="mastercard" width="45px">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100 d-flex flex-column justify-content-between">
+                            <div class="card-body" style="color: #505050;">
+                                <i class="fa-solid fa-money-bills pt-3" style="font-size: 2.5rem;"></i>
+                                <h5 class="card-title">Pago efectivo</h5>
+                                <hr>
+                                <p class="card-text">Realiza el pago mediante alguna de estas modalidades: <br>
+                                        - Depósitos en ventanilla (bancos o agentes autorizados). <br>
+                                        - Transferencias vía banca por internet.</p>
+                            </div>
+                            <div class="p-3">
+                                <hr>
+                                <div class="d-flex flex-row gap-2">
+                                    <img src="/Img/pefectivo-icon.svg" alt="PagoEfectivo" width="65px">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card h-100 d-flex flex-column justify-content-between">
+                            <div class="card-body" style="color: #505050;">
+                                <i class="fa-solid fa-wallet pt-3" style="font-size: 2.5rem;"></i>
+                                <h5 class="card-title">Billeteras virtuales</h5>
+                                <hr>
+                                <p class="card-text">Paga rápido y seguro a través de la APP del banco que prefieras. <br>
+                                    - Escanea el QR desde tu celular. <br>
+                                    - Verifica el monto a pagar. <br>
+                                    - Confirma el pago.</p>
+                            </div>
+                            <div class="p-3">
+                                <hr>
+                                <div class="d-flex flex-row gap-2">
+                                    <img src="/Img/yape-icon.svg" alt="PagoEfectivo" width="25px">
+                                    <img src="/Img/plin-icon.svg" alt="PagoEfectivo" width="25px">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="fragments/headerFooter/footer :: footer"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

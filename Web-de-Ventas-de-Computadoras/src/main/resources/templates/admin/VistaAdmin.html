@@ -28,8 +28,10 @@
                         onclick="mostrarSeccion('usuarios', this)">Usuarios</button>
                     <button class="btn btn-outline-success mb-2"
                         onclick="mostrarSeccion('productos', this)">Productos</button>
-                    <button class="btn btn-outline-success mb-2"
-                        onclick="mostrarSeccion('pedidos', this)">Pedidos</button>
+                    <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('categoria', this)">Categoria
+                        Producto</button>
+                    <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('metodoPago', this)">Método de
+                        Pago</button>
                 </ul>
             </nav>
 
@@ -40,7 +42,6 @@
                         <p>Seleccione una opción en el menú para comenzar a gestionar el sistema.</p>
                     </div>
                 </div>
-
                 <div id="usuarios" class="seccion d-none">
                     <h2>Gestión de Usuarios</h2>
                     <div th:replace="~{fragments/Admin-gest/Gest-usuarios :: gest-usuarios}"></div>
@@ -48,14 +49,16 @@
 
                 <div id="productos" class="seccion d-none">
                     <h2>Gestión de Productos</h2>
-                    <div th:replace="fragments/Admin-gest/Gest-productos :: gest-productos"></div>
+                    <div th:replace="~{fragments/Admin-gest/Gest-productos :: gest-productos}"></div>
                 </div>
-
-                <div id="pedidos" class="seccion d-none">
-                    <h2>Gestión de Pedidos</h2>
-                    <div th:replace="fragments/Admin-gest/Gest-pedidos :: gest-pedidos"></div>
+                <div id="categoria" class="seccion d-none">
+                    <h2>Gestión de Categorías</h2>
+                    <div th:replace="~{fragments/Admin-gest/Gest-categoria :: gest-categoria}"></div>
                 </div>
-
+                <div id="metodoPago" class="seccion d-none">
+                    <h2>Gestión de Método de Pago</h2>
+                    <div th:replace="~{fragments/Admin-gest/Gest-MetodoPago :: gest-metodoPago}"></div>
+                </div>
             </main>
         </div>
     </div>
