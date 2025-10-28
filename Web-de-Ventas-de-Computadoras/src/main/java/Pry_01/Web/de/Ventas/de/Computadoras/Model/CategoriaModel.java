@@ -31,26 +31,25 @@ public class CategoriaModel {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(length = 1000)
     @NotBlank
-    private String urlImage;
+    private String UrlImage;
 
     @NotBlank(message = "La descripción es obligatoria.")
     @Size(max = 500, message = "La descripción no puede exceder 500 caracteres.")
     @Column(nullable = false, length = 500)
     private String description;
 
-    @OneToMany(mappedBy = "categoriaId", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductoModel> productos = new ArrayList<>();
 
     public void addProducto(ProductoModel producto) {
         productos.add(producto);
-        producto.setCategoriaId(this);
+        producto.setCategoria(this);
     }
 
     public void removeProducto(ProductoModel producto) {
         productos.remove(producto);
-        producto.setCategoriaId(null);
+        producto.setCategoria(null);
     }
 
 }
