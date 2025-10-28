@@ -54,60 +54,6 @@
                         <i class="fa-solid fa-bag-shopping" style="color: #505050; font-size: 1.2rem;"></i>
                         <p class="mb-0 lh-sm small text-start" style="color: #505050;">Mis <br> Compras</p>
                     </div>
-
-                    <!-- Botón Carrito en el header -->
-                    <button class="btn btn-outline-primary position-relative" type="button" 
-                            data-bs-toggle="offcanvas" data-bs-target="#carritoOffcanvas">
-                    🛒 Carrito
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                            th:text="${#lists.size(carrito?.items)}">0</span>
-                    </button>
-
-                    <!-- Offcanvas Carrito -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="carritoOffcanvas">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title">Tu carrito</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body">
-        <div th:if="${carrito == null or #lists.isEmpty(carrito.items)}">
-        <p>🛍️ Tu carrito está vacío.</p>
-        </div>
-
-        <div th:if="${carrito != null and !#lists.isEmpty(carrito.items)}">
-        <div th:each="item : ${carrito.items}" class="mb-3 border-bottom pb-2">
-            <div class="d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center">
-                <img th:src="${item.producto.imageUrl}" alt="img" width="60" height="60"
-                    class="rounded me-2">
-                <div>
-                <strong th:text="${item.producto.name}"></strong><br>
-                <small th:text="'Cantidad: ' + ${item.cantidad}"></small><br>
-                <small th:text="'Precio: S/ ' + ${item.producto.precio}"></small>
-                </div>
-            </div>
-            <div>
-                <a th:href="@{'/carrito/eliminar/' + ${item.id}}" 
-                class="btn btn-sm btn-danger">✕</a>
-            </div>
-            </div>
-        </div>
-
-        <hr>
-        <div class="d-flex justify-content-between">
-            <strong>Total:</strong>
-            <span th:text="'S/ ' + ${total}"></span>
-        </div>
-
-        <div class="mt-3">
-            <a href="/carrito/vaciar" class="btn btn-outline-danger w-100 mb-2">Vaciar carrito</a>
-            <a href="/checkout" class="btn btn-success w-100">Finalizar compra</a>
-        </div>
-        </div>
-    </div>
-    </div>
-                    
-
                 </div>
             </div>
         </nav>
