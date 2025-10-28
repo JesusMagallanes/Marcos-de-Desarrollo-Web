@@ -1,23 +1,23 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
+@AllArgsConstructor
 
 public class ProductosResponseDTO {
-    private Long id;
+    private final Long id;
 
-    private String name;
+    private final String name;
 
-    private String description;
+    private final String description;
 
-    @Positive(message = "El precio debe ser mayor que 0.")
-    private double precio;
+    private final double precio;
 
-    private String imageUrl;
+    private final String imageUrl;
 
-    @Min(value = 0, message = "El stock no puede ser negativo.")
-    private Integer stock;
+    private final Integer stock;
 
-    private Long categoriaId;
+    private final String categoriaName;
 }

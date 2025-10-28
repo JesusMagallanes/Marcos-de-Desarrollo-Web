@@ -17,6 +17,21 @@ public class IndexController {
         this.categoriaService = categoriaService;
     }
 
+//   @GetMapping("/")
+//    public String Principal() {
+//        return "redirect:/Index";
+//    }
+
+//    @GetMapping("/{view}")
+//    public String page(@PathVariable String view) {
+//       for (String u : USER) {
+//           if (u.equals(view))
+//              return view;
+//     }
+//     return "redirect:/Index";
+//   }
+
+    
     @GetMapping("/Index")
     public String mostrarIndex(Model model) {
         List<CategoriaModel> categorias = categoriaService.listarCategoria();
@@ -33,4 +48,12 @@ public class IndexController {
     public String mostrarCarrito() {
     return "Carrito";
     }
+    @GetMapping("/metodosPago")
+    public String metodosPago() { return "metodosPago"; }
+    
+    @GetMapping("/productosCategoria")
+    public String mostrarProductoCategoria(){
+        return "productosCategoria";
+    }
 }
+

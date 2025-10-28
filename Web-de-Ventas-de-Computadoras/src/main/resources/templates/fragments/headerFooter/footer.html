@@ -5,11 +5,13 @@
 
             <div class="row d-none d-xl-flex">
                 <div class="col-xl-3">
-                    <img src="\Img\logoSZ-blanco.png" alt="Logo" height="48px">
+                    <a th:href="@{/}">
+                        <img src="\Img\logoSZ-blanco.png" alt="Logo" height="48px">
+                    </a>
                     <div>
                         <h5 class="fw-bold pt-2" style="font-size: 17px; color: white;">Contáctanos</h5>
                         <div class="d-flex flex-column gap-2">
-                            <a href="" style="font-size: 13px; color: white;"><i class="fa-brands fa-whatsapp"></i>
+                            <a href="https://www.whatsapp.com/?lang=es" style="font-size: 13px; color: white;" target="_blank" ><i class="fa-brands fa-whatsapp"></i>
                                 Atención por WhatsApp</a>
                             <span href="" style="font-size: 13px; color: white;"><i class="fa-solid fa-phone"></i> +51
                                 905 187 817</span>
@@ -27,9 +29,7 @@
                     <div class="d-flex flex-column gap-2">
                         <a th:href="@{/Somos}" style="font-size: 13px; color: white;">¿Quiénes somos?</a>
                         <a th:href="@{/Canales}" style="font-size: 13px; color: white;">Canales de Atención</a>
-                        <a href="" style="font-size: 13px; color: white;">Metodos de Pago</a>
-                        <a href="" style="font-size: 13px; color: white;">Nuestra tiendas</a>
-                        <a href="" style="font-size: 13px; color: white;">Cobertura delivery</a>
+                        <a th:href="@{/metodosPago}" style="font-size: 13px; color: white;">Metodos de Pago</a>
                     </div>
                 </div>
                 <div class="col-xl-2">
@@ -46,12 +46,13 @@
                 <div class="col-xl-2">
                     <h5 style="font-size: 17px; color: white;">Nuestras categorias</h5>
                     <div class="d-flex flex-column gap-2">
-                        <a href="" style="font-size: 13px; color: white;">Laptops</a>
-                        <a href="" style="font-size: 13px; color: white;">Computadoras</a>
-                        <a href="" style="font-size: 13px; color: white;">Consolas</a>
-                        <a href="" style="font-size: 13px; color: white;">Consolas</a>
-                        <a href="" style="font-size: 13px; color: white;">Videojuegos</a>
-                        <a href="" style="font-size: 13px; color: white;">Celulares</a>
+                        <a href="" style="font-size: 13px; color: white;">Smartphones y accesorios</a>
+                        <a href="" style="font-size: 13px; color: white;">Laptops y perifericos</a>
+                        <a href="" style="font-size: 13px; color: white;">Componentes de pc</a>
+                        <a href="" style="font-size: 13px; color: white;">Audio y video</a>
+                        <a href="" style="font-size: 13px; color: white;">Hogar inteligente</a>
+                        <a href="" style="font-size: 13px; color: white;">Gaming</a>
+                        
                     </div>
                 </div>
                 <div class="col-xl-3">
@@ -110,9 +111,7 @@
                             <div class="accordion-body d-flex flex-column gap-2" style="padding-top: 5px;">
                                 <a th:href="@{/Somos}" style="font-size: 13px; color: white;">¿Quiénes somos?</a>
                                 <a th:href="@{/Canales}" style="font-size: 13px; color: white;">Canales de Atención</a>
-                                <a href="" style="font-size: 13px; color: white;">Metodos de Pago</a>
-                                <a href="" style="font-size: 13px; color: white;">Nuestra tiendas</a>
-                                <a href="" style="font-size: 13px; color: white;">Cobertura delivery</a>
+                                <a th:href="@{/metodosPago}" style="font-size: 13px; color: white;">Metodos de Pago</a>
                             </div>
                         </div>
                     </div>
@@ -148,12 +147,12 @@
                         <div id="collapseCategorias" class="accordion-collapse collapse"
                             data-bs-parent="#footerAccordion">
                             <div class="accordion-body d-flex flex-column gap-2" style="padding-top: 5px;">
-                                <a href="" style="font-size: 13px; color: white;">Laptops</a>
-                                <a href="" style="font-size: 13px; color: white;">Computadoras</a>
-                                <a href="" style="font-size: 13px; color: white;">Consolas</a>
-                                <a href="" style="font-size: 13px; color: white;">Consolas</a>
-                                <a href="" style="font-size: 13px; color: white;">Videojuegos</a>
-                                <a href="" style="font-size: 13px; color: white;">Celulares</a>
+                                <a href="" style="font-size: 13px; color: white;">Smartphones y accesorios</a>
+                                <a href="" style="font-size: 13px; color: white;">Laptops y perifericos</a>
+                                <a href="" style="font-size: 13px; color: white;">Componentes de pc</a>
+                                <a href="" style="font-size: 13px; color: white;">Audio y video</a>
+                                <a href="" style="font-size: 13px; color: white;">Hogar inteligente</a>
+                                <a href="" style="font-size: 13px; color: white;">Gaming</a>
                             </div>
                         </div>
                     </div>
@@ -188,16 +187,16 @@
                 class="col-12 col-md-3 d-flex flex-row gap-2 align-items-center justify-content-center justify-content-md-start">
                 <a class="p-2 d-flex align-items-center justify-content-center"
                     style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;"
-                    href="https://www.facebook.com/"><i class="fa-brands fa-facebook-f" style="font-size: 16px;"></i></a>
+                    href="https://www.facebook.com/" target="_blank"><i class="fa-brands fa-facebook-f" style="font-size: 16px;"></i></a>
                 <a class="p-2 d-flex align-items-center justify-content-center"
                     style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;"
-                    href="https://www.instagram.com/"><i class="fa-brands fa-instagram" style="font-size: 16px;"></i></a>
+                    href="https://www.instagram.com/" target="_blank"><i class="fa-brands fa-instagram" style="font-size: 16px;"></i></a>
                 <a class="p-2 d-flex align-items-center justify-content-center"
                     style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;"
-                    href="https://www.youtube.com/"><i class="fa-brands fa-youtube" style="font-size: 16px;"></i></a>
+                    href="https://www.youtube.com/" target="_blank"><i class="fa-brands fa-youtube" style="font-size: 16px;"></i></a>
                 <a class="p-2 d-flex align-items-center justify-content-center"
                     style="border-radius: 100%; background-color: #ABABAB; width: 35px; height: 35px ; color: #202020;"
-                    href="http://x.com/"><i class="fa-brands fa-x-twitter" style="font-size: 16px;"></i></a>
+                    href="http://x.com/" target="_blank"><i class="fa-brands fa-x-twitter" style="font-size: 16px;"></i></a>
             </div>
             <div class="col-12 col-md-9">
                 <div class="d-flex flex-column flex-md-row p-2 my-2 justify-content-center align-items-center"
