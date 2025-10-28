@@ -73,5 +73,9 @@ public class ProductoService {
                 producto.getStock(),
                 producto.getCategoriaId().getName());
     }
+    public ProductoModel obtenerPorId(Long id) {
+    return productoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+    }
 
 }
