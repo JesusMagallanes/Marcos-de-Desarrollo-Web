@@ -31,7 +31,10 @@ public class IndexController {
 //     return "redirect:/Index";
 //   }
 
-
+    @GetMapping("/header")
+    public String mostrarHeader() {
+    return "fragments/headerFooter/header";
+    }
     
     @GetMapping("/Index")
     public String mostrarIndex(Model model) {
