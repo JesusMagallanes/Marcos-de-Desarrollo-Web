@@ -4,19 +4,24 @@
         <button type="button" class="btn-close btn-close" data-bs-dismiss="offcanvas" aria-label="Close" style="color: #505050;"></button>
     </div>
     
-    <div class="offcanvas-body p-0" style=" background-color: #F5F5F5;  align-items: center; display: flex; flex-direction: column; justify-content: end;">
-        <!--Me estoy comiendo una teacher-->   
+    <div class="offcanvas-body p-0" style=" background-color: #F5F5F5;  align-items: center; display: flex; flex-direction: column; justify-content: end;">  
         <div style="height: 100%;">
-            <ul style="list-style: none;" th:if="${categorias != null}">
-                <li th:each="categoria : ${categorias}">
-                    <button type="button" class="btn btn-outline-success text-light"
-                        style="border: none; margin-bottom: 8px;">
-                        <img style="margin-right: 8px;" th:src="${categoria.urlImage}" alt="icono" />
-                        <span th:text="${categoria.name}">Nombre</span>
+            <ul style="list-style: none; padding: 0;">
+                <li th:if="${#lists.isEmpty(productos)}">
+                    <p>No hay productos disponibles.</p>
+                </li>
+
+                <li th:each="producto : ${productos}">
+                    <button type="button" class="btn btn-outline-success text-light d-flex align-items-center"
+                            style="border: none; margin-bottom: 8px; width: 100%; text-align: left;"
+                            th:onclick="|window.location.href='/productos/detalle/${producto.id}'|">
+                        <img style="margin-right: 8px; width: 45px;" th:src="${producto.imageUrl}" alt="icono" />
+                        <span th:text="${producto.name}">Nombre</span>
                     </button>
                 </li>
             </ul>
         </div>
+
         
 
         

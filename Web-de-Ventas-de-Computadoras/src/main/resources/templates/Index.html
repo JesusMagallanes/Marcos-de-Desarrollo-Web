@@ -17,11 +17,14 @@
 
 <body class="d-flex flex-column h-100">
 
-    <div th:replace="~{fragments/headerFooter/header :: header}"></div>
+    <div th:replace="fragments/headerFooter/header :: header(productos=${productos})"></div>
     <div th:replace="fragments/Categoria :: categoria"></div>
     <div th:replace="fragments/Login-Register/Login :: login"></div>
     <div th:replace="fragments/Login-Register/Register :: register"></div>
     <div th:replace="fragments/CarritoModal/carritoModal :: carritoModalFragment"></div>
+
+    
+
 
     <div class="container mt-0">
         <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show text-center" role="alert">

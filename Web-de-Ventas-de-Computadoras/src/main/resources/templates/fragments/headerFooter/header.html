@@ -58,7 +58,7 @@
                     <div class="btn-nav-carrito" data-bs-toggle="offcanvas" href="#carritoModal" role="button" aria-controls="carritoModal" style="cursor: pointer;">
                         <i class="fa-solid fa-cart-shopping" style="color: #505050; font-size: 1.2rem;"></i>
                     </div>
-
+                    
                 </div>
             </div>
         </nav>
@@ -147,4 +147,5 @@
             </ul>
         </div>
     </div>
+    <div th:replace="fragments/CarritoModal/carritoModal :: carritoModalFragment(productos=${productos})"></div>
 </div>
