@@ -7,7 +7,6 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO.CategoriaUpdateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.CategoriaRepository;
 
-
 @Service
 public class CategoriaService {
 
@@ -26,6 +25,7 @@ public class CategoriaService {
         categoria.setName(dto.getName());
         categoria.setUrlImage(dto.getUrlImage());
         categoria.setDescription(dto.getDescription());
+        categoria.setSlug(generarSlug(dto.getName()));
         return categoriaRepository.save(categoria);
     }
 
@@ -45,5 +45,16 @@ public class CategoriaService {
             categoria.setDescription(dto.getDescription());
             categoriaRepository.save(categoria);
         }
+    }
+
+    public String generarSlug(String nombre) {
+        return nombre.toLowerCase()
+                .replaceAll("[áéíóú]", "a")
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("^-|-$", "");
+    }
+
+    public CategoriaModel obtenerPorSlug(String slug) {
+        return categoriaRepository.findBySlug(slug).orElse(null);
     }
 }

@@ -17,6 +17,8 @@ public class CategoriaResponseDTO {
     private String urlImage;
 
     private String description;
+    
+    private String slug;
 
     private List<ProductoModel> productos = new ArrayList<>();
 }

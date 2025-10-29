@@ -23,6 +23,8 @@ public class CategoriaUpdateDTO {
     @NotBlank
     private String urlImage;
 
+    private String slug;
+
     @NotBlank(message = "La descripción es obligatoria.")
     @Size(max = 500, message = "La descripción no puede exceder 500 caracteres.")
     private String description;
