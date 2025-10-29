@@ -20,7 +20,7 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
-   @GetMapping("/Index-log")
+   @GetMapping("/Index")
     public String indexLog(HttpSession session, Model model) {
         try {
             Object obj = session.getAttribute("usuario");
@@ -29,7 +29,7 @@ public class UsuarioController {
             }
             UsuarioDTO usuario = (UsuarioDTO) obj;
             model.addAttribute("usuario", usuario);
-            return "user/Index-log";
+            return "/Index";
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("message", "Error interno: " + e.getMessage());
@@ -96,7 +96,7 @@ public class UsuarioController {
             if (usuario != null) {
                 UsuarioDTO usuarioDTO = new UsuarioDTO(usuario);
                 session.setAttribute("usuario", usuarioDTO);
-                return "redirect:/usuarios/Index-log";
+                return "redirect:/usuarios/Index";
             } else {
                 redirectAttributes.addFlashAttribute("errorl", "Correo o contraseña incorrectos");
                 return "redirect:/Index";
