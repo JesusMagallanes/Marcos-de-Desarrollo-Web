@@ -5,6 +5,18 @@
     </div>
     
     <div class="offcanvas-body p-0" style=" background-color: #F5F5F5;  align-items: center; display: flex; flex-direction: column; justify-content: end;">
+        <!--Me estoy comiendo una teacher-->   
+        <div style="height: 100%;">
+            <ul style="list-style: none;" th:if="${categorias != null}">
+                <li th:each="categoria : ${categorias}">
+                    <button type="button" class="btn btn-outline-success text-light"
+                        style="border: none; margin-bottom: 8px;">
+                        <img style="margin-right: 8px;" th:src="${categoria.urlImage}" alt="icono" />
+                        <span th:text="${categoria.name}">Nombre</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
         
 
         

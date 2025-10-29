@@ -2,9 +2,9 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO.CategoriaCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosUpdateDTO;
+import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosResponseDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
@@ -34,13 +35,33 @@ public class ProductoController {
         this.usuarioService = usuarioService;
     }
 
+    @GetMapping("/categoria/{slug}")
+    public String mostrarProductosPorCategoria(@PathVariable String slug,
+                                               @RequestParam(defaultValue = "0") int page,
+                                               Model model) {
+        CategoriaModel categoria = categoriaService.obtenerPorSlug(slug);
+        if (categoria == null) {
+            model.addAttribute("mensajeError", "Categoría no encontrada.");
+            return "error/404";
+        }
+
+        PageRequest pageable = PageRequest.of(page, 12); // 12 productos por página
+        Page<ProductosResponseDTO> productosPage = productoService.listarPorCategoria(categoria, pageable);
+
+        model.addAttribute("categoria", categoria);
+        model.addAttribute("productos", productosPage.getContent());
+        model.addAttribute("totalPages", productosPage.getTotalPages());
+        model.addAttribute("currentPage", productosPage.getNumber());
+        model.addAttribute("totalElements", productosPage.getTotalElements());
+        return "productosCategoria";
+    }
+
     @GetMapping("/api")
     @ResponseBody
     public List<ProductosResponseDTO> listarProductosApi() {
         return productoService.listarProducto();
     }
 
-    // 🟢 Listar productos y preparar formulario vacío
     @GetMapping
     public String listarProductos(Model model) {
         model.addAttribute("producto", new ProductosCreateDTO());
@@ -49,7 +70,6 @@ public class ProductoController {
         return "fragments/Admin-gest/Gest-productos :: gest-productos";
     }
 
-    // 🟢 Guardar nuevo producto desde modal
     @PostMapping
     public String guardarProducto(@Valid @ModelAttribute("producto") ProductosCreateDTO dto,
             BindingResult result,
@@ -91,7 +111,6 @@ public class ProductoController {
         return "redirect:/VistaAdmin";
     }
 
-    // 🟢 Editar producto desde modal
     @PostMapping("/editar/{id}")
     public String editarProducto(@PathVariable Long id,
             @Valid @ModelAttribute("producto") ProductosUpdateDTO dto,
@@ -106,14 +125,12 @@ public class ProductoController {
         return "redirect:/VistaAdmin";
     }
 
-    // 🟢 Eliminar producto
     @PostMapping("/eliminar/{id}")
     public String eliminarProducto(@PathVariable Long id) {
         productoService.eliminarProducto(id);
         return "redirect:/VistaAdmin";
     }
 
-    // 🟢 Obtener producto por ID para precargar modal (opcional si usas JS)
     @GetMapping("/{id}")
     @ResponseBody
     public ProductosResponseDTO obtenerProducto(@PathVariable Long id) {

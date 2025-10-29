@@ -1,7 +1,6 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 
 import java.util.List;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -38,6 +37,7 @@ public class CategoriaController {
     @GetMapping("/api")
     @ResponseBody
     public List<CategoriaModel> listarCategoriasApi() {
+        
         return categoriaService.listarCategoria();
     }
 
