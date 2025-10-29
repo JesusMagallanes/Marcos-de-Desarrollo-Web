@@ -1,6 +1,5 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,14 +15,12 @@ import jakarta.servlet.http.HttpSession;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
-    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioController(UsuarioService usuarioService, PasswordEncoder passwordEncoder) {
+    public UsuarioController(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
-        this.passwordEncoder = passwordEncoder;
     }
 
-    @GetMapping("/Index-log")
+   @GetMapping("/Index-log")
     public String indexLog(HttpSession session, Model model) {
         try {
             Object obj = session.getAttribute("usuario");
@@ -49,7 +46,6 @@ public class UsuarioController {
 
     @PostMapping
     public String guardarUsuario(@ModelAttribute("usuario") UsuarioModel usuarioModel) {
-        usuarioModel.setPassword(passwordEncoder.encode(usuarioModel.getPassword()));
         usuarioService.guardarUsuario(usuarioModel);
         return "redirect:/VistaAdmin";
     }
@@ -73,12 +69,9 @@ public class UsuarioController {
                             RedirectAttributes redirectAttributes,
                             HttpSession session) {
         try {
-            usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
             UsuarioModel usuarioRegistrado = usuarioService.registrarUsuario(usuario);
-
             UsuarioDTO usuarioDTO = new UsuarioDTO(usuarioRegistrado);
             session.setAttribute("usuario", usuarioDTO);
-
             redirectAttributes.addFlashAttribute("mensaje", "Usuario registrado y sesión iniciada.");
             return "redirect:/usuarios/Index-log";
         } catch (Exception e) {
