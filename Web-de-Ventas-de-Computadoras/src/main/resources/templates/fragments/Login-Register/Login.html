@@ -10,11 +10,9 @@
 
             <form th:action="@{/usuarios/login}" method="post">
                 <div class="modal-body">
-
                     <div class="mb-3">
-                        <label for="emailAddress" class="form-label">Correo Electrónico</label>
-                        <input type="email" class="form-control" id="emailAddress" name="emailAddress" required>
-                        <div class="form-text">Nunca compartiremos tu correo electrónico con nadie más.</div>
+                        <label for="email" class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="emailAddress" name="email" required>
                     </div>
 
                     <div class="mb-3">
@@ -27,7 +25,7 @@
                         <label class="form-check-label" for="rememberMe">Guardar en este dispositivo</label>
                     </div>
 
-                    <div th:if="${errorl}" class="alert alert-danger text-center" th:text="${error}"></div>
+                    <div th:if="${errorl}" class="alert alert-danger text-center" th:text="${errorl}"></div>
                     <button type="submit" class="btn btn-primary w-100">Iniciar</button>
                     <div class="d-flex justify-content-center">
                         <a th:href="@{/VistaAdmin}">
