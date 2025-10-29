@@ -22,6 +22,20 @@ public class IndexController {
         this.productoService = productoService;
     }
 
+    @GetMapping("/")
+    public String Principal() {
+        return "redirect:/Index";
+    }
+
+    // @GetMapping("/{view}")
+    // public String page(@PathVariable String view) {
+    // for (String u : USER) {
+    // if (u.equals(view))
+    // return view;
+    // }
+    // return "redirect:/Index";
+    // }
+
     @GetMapping("/Index")
     public String mostrarIndex(Model model) {
         List<CategoriaModel> categorias = categoriaService.listarCategoria();

@@ -1,7 +1,7 @@
 <div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" th:fragment="login">
     <div class="modal-dialog">
         <div class="modal-content"
-            style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
+            style="padding: 25px; background-image: url(/Img/form-fond.png); border: 3px solid #e3e3e3;">
             
             <div class="modal-header">
                 <h1 class="modal-title fs-5" id="exampleModalLabel" >Inicia Sesión</h1>
@@ -10,11 +10,9 @@
 
             <form th:action="@{/usuarios/login}" method="post">
                 <div class="modal-body">
-
                     <div class="mb-3">
-                        <label for="emailAddress" class="form-label">Correo Electrónico</label>
-                        <input type="email" class="form-control" id="emailAddress" name="emailAddress" required>
-                        <div class="form-text">Nunca compartiremos tu correo electrónico con nadie más.</div>
+                        <label for="email" class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="emailAddress" name="email" required>
                     </div>
 
                     <div class="mb-3">
@@ -27,7 +25,7 @@
                         <label class="form-check-label" for="rememberMe">Guardar en este dispositivo</label>
                     </div>
 
-                    <div th:if="${errorl}" class="alert alert-danger text-center" th:text="${error}"></div>
+                    <div th:if="${errorl}" class="alert alert-danger text-center" th:text="${errorl}"></div>
                     <button type="submit" class="btn btn-primary w-100">Iniciar</button>
                     <div class="d-flex justify-content-center">
                         <a th:href="@{/VistaAdmin}">
@@ -40,10 +38,10 @@
                     <label class="form-label" style="font-weight: 600;">Continuar con</label>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                         <button class="btn btn-outline-danger me-md-2" type="button">
-                            <img src="Img/icon-google.png" alt="" width="30px" style="padding-right: 4px;">Google
+                            <img src="/Img/icon-google.png" alt="" width="30px" style="padding-right: 4px;">Google
                         </button>
                         <button class="btn btn-outline-primary" type="button">
-                            <img src="Img/icon-facebook2.png" alt="" width="30px" style="padding-right: 4px;">Facebook
+                            <img src="/Img/icon-facebook2.png" alt="" width="30px" style="padding-right: 4px;">Facebook
                         </button>
                     </div>
                 </div>

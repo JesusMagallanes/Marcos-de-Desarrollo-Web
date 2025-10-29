@@ -27,9 +27,26 @@ public class UsuarioService {
         return usuarioRepository.findAll();
     }
 
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
+    }
+
     public UsuarioModel guardarUsuario(UsuarioModel usuario) {
+        if (usuario.getEmailAddress() != null) {
+            usuario.setEmailAddress(normalizeEmail(usuario.getEmailAddress()));
+        }
+
+        if (usuario.getPassword() != null &&
+            !usuario.getPassword().startsWith("$2a$") &&
+            !usuario.getPassword().startsWith("$2b$") &&
+            !usuario.getPassword().startsWith("$2y$")) {
+            usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        }
+
         return usuarioRepository.save(usuario);
     }
+
+
 
     public UsuarioModel obtenerPorId(Long id) {
         return usuarioRepository.findById(id).orElse(null);
@@ -44,13 +61,37 @@ public class UsuarioService {
     }
 
     public UsuarioModel registrarUsuario(UsuarioModel usuario) {
-        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        if (usuario.getEmailAddress() != null) {
+            usuario.setEmailAddress(normalizeEmail(usuario.getEmailAddress()));
+        }
+
+        String raw = usuario.getPassword();
+        if (raw == null || raw.isBlank()) {
+            throw new IllegalArgumentException("Password vacía");
+        }
+
+        // Protección defensiva: si ya parece ser un hash de BCrypt, no lo codificamos de nuevo.
+        if (raw.startsWith("$2a$") || raw.startsWith("$2b$") || raw.startsWith("$2y$")) {
+            usuario.setPassword(raw);
+        } else {
+            usuario.setPassword(passwordEncoder.encode(raw));
+        }
+
         return usuarioRepository.save(usuario);
     }
 
     public UsuarioModel login(String email, String password) {
-        return usuarioRepository.findByEmailAddress(email)
-                .filter(u -> passwordEncoder.matches(password, u.getPassword()))
-                .orElse(null);
+        if (email == null || password == null) return null;
+        String normalized = normalizeEmail(email);
+
+        Optional<UsuarioModel> opt = usuarioRepository.findByEmailAddress(normalized);
+        if (opt.isEmpty()) {
+            return null;
+        }
+
+        UsuarioModel u = opt.get();
+        String stored = u.getPassword();
+        boolean matches = stored != null && passwordEncoder.matches(password, stored);
+        return matches ? u : null;
     }
 }
