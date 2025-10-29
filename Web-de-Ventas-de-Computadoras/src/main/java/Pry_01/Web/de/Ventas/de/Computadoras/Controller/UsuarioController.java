@@ -73,7 +73,7 @@ public class UsuarioController {
             UsuarioDTO usuarioDTO = new UsuarioDTO(usuarioRegistrado);
             session.setAttribute("usuario", usuarioDTO);
             redirectAttributes.addFlashAttribute("mensaje", "Usuario registrado y sesión iniciada.");
-            return "redirect:/usuarios/Index-log";
+            return "redirect:/usuarios/Index";
         } catch (Exception e) {
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "Error al registrar: " + e.getMessage());
