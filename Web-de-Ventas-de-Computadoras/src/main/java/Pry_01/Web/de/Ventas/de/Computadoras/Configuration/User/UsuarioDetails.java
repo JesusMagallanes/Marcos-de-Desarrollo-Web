@@ -32,6 +32,10 @@ public class UsuarioDetails implements UserDetails {
     public String getUsername() {
         return usuarioModel.getEmailAddress();
     }
+    public String getNombreCompletos() {
+        return usuarioModel.getName() + " " + usuarioModel.getLastname();
+    }
+
     
     @Override
     public boolean isAccountNonExpired() {
