@@ -1,14 +1,15 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 
 import java.util.List;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosResponseDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
+import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
 
 import java.util.regex.Pattern;
 
@@ -16,10 +17,12 @@ import java.util.regex.Pattern;
 public class IndexController {
 
     private final CategoriaService categoriaService;
+    private final ProductoService productoService;
 
     // Inyección por constructor (recomendada)
-    public IndexController(CategoriaService categoriaService) {
+    public IndexController(CategoriaService categoriaService, ProductoService productoService) {
         this.categoriaService = categoriaService;
+        this.productoService = productoService;
     }
 
     // Página principal ("/")
@@ -35,7 +38,11 @@ public class IndexController {
     @GetMapping("/Index")
     public String mostrarIndex(Model model) {
         List<CategoriaModel> categorias = categoriaService.listarCategoria();
+        List<ProductosResponseDTO> productos = productoService.listarProducto();
+
         model.addAttribute("categorias", categorias);
+        model.addAttribute("productos", productos);
+
         return "Index";
     }
 

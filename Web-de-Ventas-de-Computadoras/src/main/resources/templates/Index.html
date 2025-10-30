@@ -6,22 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>SmartZone</title>
-    <link rel="stylesheet" href="/Css/Style.css">
+    <link rel="stylesheet" href="/css/Style.css">
     <link rel="icon" href="/Img/img.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="/Css/Chat-Bot.css">
+    <link rel="stylesheet" href="/css/Chat-Bot.css">
 </head>
 
 
 <body class="d-flex flex-column h-100">
 
-    <div th:replace="fragments/headerFooter/header :: header"></div>
+    <div th:replace="fragments/headerFooter/header :: header(productos=${productos})"></div>
     <div th:replace="fragments/Categoria :: categoria"></div>
     <div th:replace="fragments/Login-Register/Login :: login"></div>
     <div th:replace="fragments/Login-Register/Register :: register"></div>
     <div th:replace="fragments/CarritoModal/carritoModal :: carritoModalFragment"></div>
+
+    
+
 
     <div class="container mt-0">
         <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show text-center" role="alert">
@@ -52,13 +55,13 @@
                 </div>
                 <div class="carousel-inner">
                     <div class="carousel-item active">
-                        <img src="/Img/Prueba1.webp" class="d-block w-100" alt="...">
+                        <img src="Img/Prueba1.webp" class="d-block w-100" alt="...">
                     </div>
                     <div class="carousel-item">
-                        <img src="/Img/Prueba2.webp" class="d-block w-100" alt="...">
+                        <img src="Img/Prueba2.webp" class="d-block w-100" alt="...">
                     </div>
                     <div class="carousel-item">
-                        <img src="/Img/Prueba3.webp" class="d-block w-100" alt="...">
+                        <img src="Img/Prueba3.webp" class="d-block w-100" alt="...">
                     </div>
                 </div>
                 <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators"
@@ -783,14 +786,14 @@
             <button id="send-btn">➤</button>
         </div>
     </div>
-    <button id="chat-toggle"><img src="/Img/logo-bot.svg" class="card-img-top" width="10" height="30" alt="Bot"></button>
+    <button id="chat-toggle"><img src="Img/logo-bot.svg" class="card-img-top" width="10" height="30" alt="Bot"></button>
     <!--FIN CONTENIDO BOT-->
 
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/Js/Chat-Bot.js"></script>
-    <script src="/Js/carritoOffcanvas.js"></script>
+    <script src="Js/Chat-Bot.js"></script>
+    <script src="Js/carritoOffcanvas.js"></script>
 </body>
 
 </html>
