@@ -11,7 +11,7 @@
                 <li th:each="categoria : ${categorias}">
                     <button type="button" class="btn btn-outline-success text-light"
                         style="border: none; margin-bottom: 8px;">
-                        <img style="margin-right: 8px;" th:src="${categoria.urlImage}" alt="icono" />
+                        <img style="margin-right: 8px; width: 45px;" th:src="${categoria.urlImage}" alt="icono" />
                         <span th:text="${categoria.name}">Nombre</span>
                     </button>
                 </li>
