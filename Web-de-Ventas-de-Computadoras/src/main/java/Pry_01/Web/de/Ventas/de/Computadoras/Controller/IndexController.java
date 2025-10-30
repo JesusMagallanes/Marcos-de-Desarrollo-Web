@@ -46,6 +46,11 @@ public class IndexController {
 
         return "Index";
     }
+    
+    @GetMapping("/index")
+    public String index(){
+        return "Index";
+    }
 
     @GetMapping("/header")
     public String mostrarHeader() {
@@ -98,4 +103,8 @@ public class IndexController {
         return "fragments/LogginUserFiles/cuenta :: cuentaFragment";
     }
 
+    @GetMapping("/Detalles")
+    public String mostrarDetalles() {
+        return "Detalles";
+    }
 }

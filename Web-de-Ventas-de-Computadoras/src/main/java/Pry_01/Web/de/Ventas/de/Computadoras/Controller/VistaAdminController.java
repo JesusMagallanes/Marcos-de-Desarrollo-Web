@@ -3,6 +3,7 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO.CategoriaCreateDTO;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
+@RequestMapping("/admin")
 public class VistaAdminController {
 
     private final UsuarioService usuarioService;
