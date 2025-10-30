@@ -2,6 +2,11 @@
     <h3>Mi cuenta</h3>
     <p>Aquí puedes ver y gestionar la información de tu cuenta.</p>
 
+    <div th:if="${param.success}" class="alert alert-success">
+    <span th:text="${param.success == 'updated' ? '¡Cambios guardados exitosamente!' : ''}"></span>
+</div>
+
+
     <form th:action="@{'/usuarios/perfil/editar/' + ${usuario.id}}" method="post">
         <div class="col-md-6">
             <label class="form-label">Nombre</label>

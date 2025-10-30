@@ -8,7 +8,7 @@
                 style="border: none; font-size: 1.4rem; background-color:transparent; color: #505050;">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <a class="navbar-brand m-0 " th:href="@{/Index}" style="cursor: pointer;">
+            <a class="navbar-brand m-0 " th:href="@{/usuarios/Index}" style="cursor: pointer;">
                 <img src="/Img/logo.png" alt="Logo" height="35px">
             </a>
 
@@ -56,8 +56,11 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" th:href="@{/usuarios/Loggin-User}">Mi cuenta</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" th:href="@{/usuarios/logout}">Cerrar sesión</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item text-danger" th:href="@{/usuarios/logout}">Cerrar sesión</a>
+                            </li>
                         </ul>
                     </div>
 
@@ -68,16 +71,27 @@
                         <p class="mb-0 lh-sm small text-start" style="color: #505050;">Iniciar <br> Sesión</p>
                     </div>
 
-                    <div class="btn-nav d-flex align-items-center gap-1 border-start border-end" data-bs-toggle="modal"
+                    <div th:if="${usuario == null}"
+                        class="btn-nav d-flex align-items-center gap-1 border-start border-end" data-bs-toggle="modal"
                         data-bs-target="#login" style="cursor: pointer;">
                         <i class="fa-solid fa-bag-shopping" style="color: #505050; font-size: 1.2rem;"></i>
                         <p class="mb-0 lh-sm small text-start" style="color: #505050;">Mis <br> Compras</p>
                     </div>
-                    
-                    <div class="btn-nav-carrito" data-bs-toggle="offcanvas" href="#carritoModal" role="button" aria-controls="carritoModal" style="cursor: pointer;">
+
+                    <a th:if="${usuario != null}" th:href="@{/usuarios/Carrito}"
+                        class="btn-nav d-flex align-items-center gap-1 border-start border-end text-decoration-none"
+                        style="cursor: pointer;">
+                        <i class="fa-solid fa-bag-shopping" style="color: #505050; font-size: 1.2rem;"></i>
+                        <p class="mb-0 lh-sm small text-start" style="color: #505050;">Mis <br> Compras</p>
+                    </a>
+
+
+
+                    <div class="btn-nav-carrito" data-bs-toggle="offcanvas" href="#carritoModal" role="button"
+                        aria-controls="carritoModal" style="cursor: pointer;">
                         <i class="fa-solid fa-cart-shopping" style="color: #505050; font-size: 1.2rem;"></i>
                     </div>
-                    
+
                 </div>
             </div>
         </nav>
@@ -122,8 +136,12 @@
                         style="width: 280px; z-index: 1000; padding: 0;">
                         <div class="card card-body shadow mt-2 p-2">
                             <ul class="list-unstyled mb-0">
-                                <a th:href="@{/metodosPago}"><li class=" btns-ayuda">Metodos de pago</li></a>
-                                <a th:href="@{/Canales}"><li class=" btns-ayuda">Canales de atención</li></a>
+                                <a th:href="@{/metodosPago}">
+                                    <li class=" btns-ayuda">Metodos de pago</li>
+                                </a>
+                                <a th:href="@{/Canales}">
+                                    <li class=" btns-ayuda">Canales de atención</li>
+                                </a>
                                 <hr class="my-2">
                                 <li style="padding: 0.6rem;">¿Tienes dudas? <b>Contáctanos</b>
                                     servicioalcliente@gmail.com</li>
@@ -149,7 +167,8 @@
                 </li>
 
                 <li class="nav-item mb-2" th:if="${usuario != null}">
-                    <a class="nav-link" th:text="${usuario.name != null ? usuario.name : 'Usuario'}" style="cursor: default;"></a>
+                    <a class="nav-link" th:text="${usuario.name != null ? usuario.name : 'Usuario'}"
+                        style="cursor: default;"></a>
                 </li>
 
                 <li class="nav-item mb-2" th:if="${usuario != null}">
@@ -158,8 +177,18 @@
                     </a>
                 </li>
 
-                <li class="nav-item mb-2"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#login"
-                        style="cursor: pointer;"><i class="fa-solid fa-bag-shopping me-2"></i> Mis Compras</a></li>
+                <li th:if="${usuario == null}" class="nav-item mb-2">
+                    <a class="nav-link" data-bs-toggle="modal" data-bs-target="#login" style="cursor: pointer;">
+                        <i class="fa-solid fa-bag-shopping me-2"></i> Mis Compras
+                    </a>
+                </li>
+
+                <li th:if="${usuario != null}" class="nav-item mb-2">
+                    <a class="nav-link" th:href="@{/usuarios/Carrito}" style="cursor: pointer;">
+                        <i class="fa-solid fa-bag-shopping me-2"></i> Mis Compras
+                    </a>
+                </li>
+
                 <hr>
                 <li class="nav-item"><a class="nav-link fw-bold" th:href="@{/ofertas}">Ofertas</a></li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/novedades}">Novedades</a></li>

@@ -30,4 +30,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+  const defaultLink = document.querySelector(".menu-link[data-fragment='cuenta']");
+  if (defaultLink) {
+    setTimeout(() => {
+      defaultLink.classList.add("active");
+      defaultLink.click();
+    }, 100);
+  }
 });
