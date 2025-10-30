@@ -1,7 +1,6 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 
 import java.util.List;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +20,7 @@ public class IndexController {
     private final ProductoService productoService;
 
     // Inyección por constructor (recomendada)
-    public IndexController(CategoriaService categoriaService) {
+    public IndexController(CategoriaService categoriaService, ProductoService productoService) {
         this.categoriaService = categoriaService;
         this.productoService = productoService;
     }
