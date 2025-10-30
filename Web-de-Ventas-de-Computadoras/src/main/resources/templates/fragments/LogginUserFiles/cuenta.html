@@ -1,4 +1,31 @@
 <div th:fragment="cuentaFragment">
     <h3>Mi cuenta</h3>
     <p>Aquí puedes ver y gestionar la información de tu cuenta.</p>
+
+    <form th:action="@{'/usuarios/perfil/editar/' + ${usuario.id}}" method="post">
+        <div class="col-md-6">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" th:value="${usuario.name}" name="name" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Apellido</label>
+            <input type="text" class="form-control" th:value="${usuario.lastname}" name="lastname" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Correo Electrónico</label>
+            <input type="email" class="form-control" th:value="${usuario.emailAddress}" name="emailAddress" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Teléfono</label>
+            <input type="text" class="form-control" th:value="${usuario.phoneNumber}" name="phoneNumber" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Dirección</label>
+            <input type="text" class="form-control" th:value="${usuario.address}" name="address" required>
+        </div>
+        <br>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        </div>
+    </form>
 </div>

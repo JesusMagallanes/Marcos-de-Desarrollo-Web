@@ -374,7 +374,7 @@ a {
 }
 
 /*PANEL ADMIN*/
-.sidebar {
+#sidebarMenu {
   padding-top: 15px;
   color: black;
   height: 100vh;
@@ -440,7 +440,6 @@ a {
   background-color: #EEEEEE;
   transition: 1ms;
 }
-
 
 .sidebar {
     background: white;

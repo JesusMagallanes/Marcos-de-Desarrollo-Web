@@ -23,9 +23,6 @@
     <div th:replace="fragments/Login-Register/Register :: register"></div>
     <div th:replace="fragments/CarritoModal/carritoModal :: carritoModalFragment"></div>
 
-    
-
-
     <div class="container mt-0">
         <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show text-center" role="alert">
             <span th:text="${mensaje}"></span>
@@ -43,41 +40,45 @@
             <div class="row justify-content-center">
                 <!-- Sidebar -->
                 <div class="col-12 col-md-3 mb-3">
-                <div class="sidebar p-3">
-                    <h6 class="fw-semibold border-bottom pb-2 mb-3">Bienvenido</h6>
-                    <p class="small text-muted mb-3">usuario@gmail.com</p>
+                    <div class="sidebar p-3">
+                        <h6 class="fw-semibold border-bottom pb-2 mb-3">Bienvenido</h6>
+                        <p class="small text-muted mb-3" th:text="${usuario.emailAddress}"></p>
 
-                    <a href="#" class="menu-link active" data-fragment="fragments/LogginUserFiles/cuenta :: cuentaFragment">
-                    <i class="bi bi-person me-2"></i> Mi cuenta
-                    </a>
+                        <a href="#" class="menu-link active"
+                            data-fragment="fragments/LogginUserFiles/cuenta :: cuentaFragment">
+                            <i class="bi bi-person me-2"></i> Mi cuenta
+                        </a>
 
-                    <a href="#" class="menu-link" data-fragment="fragments/LogginUserFiles/misCompras :: comprasFragment">
-                    <i class="bi bi-bag me-2"></i> Mis compras
-                    </a>
+                        <a href="#" class="menu-link"
+                            data-fragment="fragments/LogginUserFiles/misCompras :: comprasFragment">
+                            <i class="bi bi-bag me-2"></i> Mis compras
+                        </a>
 
-                    <a href="#" class="menu-link" data-fragment="fragments/LogginUserFiles/historial :: historialFragment">
-                    <i class="bi bi-clock-history me-2"></i> Historial
-                    </a>
+                        <a href="#" class="menu-link"
+                            data-fragment="fragments/LogginUserFiles/historial :: historialFragment">
+                            <i class="bi bi-clock-history me-2"></i> Historial
+                        </a>
 
-                    <a href="#" class="menu-link" data-fragment="fragments/LogginUserFiles/favoritos :: favoritosFragment">
-                    <i class="bi bi-heart me-2"></i> Favoritos y listas
-                    </a>
+                        <a href="#" class="menu-link"
+                            data-fragment="fragments/LogginUserFiles/favoritos :: favoritosFragment">
+                            <i class="bi bi-heart me-2"></i> Favoritos y listas
+                        </a>
 
-                    <hr>
-
-                    <a href="#" class="text-danger"><i class="bi bi-box-arrow-right me-2"></i> Cerrar sesión</a>
-                </div>
+                        <a th:href="@{/usuarios/logout}" class="text-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i> Cerrar sesión
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Contenedor de contenido dinámico -->
                 <div class="col-12 col-md-7" id="contenido-dinamico">
-                <div th:replace="fragments/LogginUserFiles/cuenta :: cuentaFragment"></div>
+                    <div th:replace="fragments/LogginUserFiles/cuenta :: cuentaFragment"></div>
                 </div>
 
             </div>
         </div>
 
-    
+
     </main>
 
     <div th:replace="fragments/headerFooter/footer :: footer"></div>
