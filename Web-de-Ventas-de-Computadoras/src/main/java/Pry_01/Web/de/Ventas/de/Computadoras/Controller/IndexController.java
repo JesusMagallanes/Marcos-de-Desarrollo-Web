@@ -51,6 +51,16 @@ public class IndexController {
         return "Carrito";
     }
 
+    @GetMapping("/Somos")
+    public String mostrarSomos() {
+        return "Somos";
+    }
+     @GetMapping("/Canales")
+    public String mostrarCanales() {
+        return "Canales";
+    }
+    
+    
     @GetMapping("/metodosPago")
     public String metodosPago() {
         return "metodosPago";
