@@ -45,6 +45,11 @@ public class IndexController {
 
         return "Index";
     }
+    
+    @GetMapping("/index")
+    public String index(){
+        return "Index";
+    }
 
     @GetMapping("/header")
     public String mostrarHeader() {
@@ -62,7 +67,7 @@ public class IndexController {
     public String mostrarSomos() {
         return "Somos";
     }
-     @GetMapping("/Canales")
+     @GetMapping("/canales")
     public String mostrarCanales() {
         return "Canales";
     }
@@ -105,5 +110,9 @@ public class IndexController {
 
         // Devuelve la vista solicitada (ej: "fragments/foo/bar")
         return path;
+    }
+    @GetMapping("/Detalles")
+    public String mostrarDetalles() {
+        return "Detalles";
     }
 }
