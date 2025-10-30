@@ -10,28 +10,28 @@ import org.springframework.web.bind.annotation.RequestParam;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
 
+import java.util.regex.Pattern;
+
 @Controller
 public class IndexController {
+
     private final CategoriaService categoriaService;
 
+    // Inyección por constructor (recomendada)
     public IndexController(CategoriaService categoriaService) {
         this.categoriaService = categoriaService;
     }
 
+    // Página principal ("/")
     @GetMapping("/")
-    public String Principal() {
-        return "redirect:/Index";
+    public String principal(Model model) {
+        // Reutilizamos mostrarIndex para llenar modelo y devolver vista
+        List<CategoriaModel> categorias = categoriaService.listarCategoria();
+        model.addAttribute("categorias", categorias);
+        return "Index";
     }
 
-    // @GetMapping("/{view}")
-    // public String page(@PathVariable String view) {
-    // for (String u : USER) {
-    // if (u.equals(view))
-    // return view;
-    // }
-    // return "redirect:/Index";
-    // }
-
+    // Si quieres URL específica para /Index también la puedes mantener
     @GetMapping("/Index")
     public String mostrarIndex(Model model) {
         List<CategoriaModel> categorias = categoriaService.listarCategoria();
@@ -41,6 +41,8 @@ public class IndexController {
 
     @GetMapping("/header")
     public String mostrarHeader() {
+        // Si usas Thymeleaf y quieres el fragmento concreto: "fragments/headerFooter :: header"
+        // return "fragments/headerFooter :: header";
         return "fragments/headerFooter/header";
     }
 
@@ -58,17 +60,38 @@ public class IndexController {
     public String mostrarProductoCategoria() {
         return "productosCategoria";
     }
+
     @GetMapping("/Loggin-User")
     public String mostrarLogginUser() {
         return "Loggin-User";
     }
-    @GetMapping
+
+    /**
+     * Endpoint seguro para devolver fragmentos. Usa /fragment?path=fragments/...
+     * Validaciones:
+     *  - obligatoriamente debe empezar por "fragments/"
+     *  - no puede contener ".." ni caracteres no permitidos
+     */
+    @GetMapping("/fragment")
     public String cargarFragmento(@RequestParam String path) {
-        // Seguridad básica: evita acceso a rutas no permitidas
-        if (!path.startsWith("fragments/")) {
+        if (path == null) {
             return "error/403";
         }
-        // Devuelve directamente el fragmento solicitado
+
+        // Reglas de saneamiento:
+        // - Debe comenzar con "fragments/"
+        // - No debe contener ".."
+        // - Solo permitir caracteres alfanuméricos, guiones, guión bajo y slash
+        if (!path.startsWith("fragments/") || path.contains("..")) {
+            return "error/403";
+        }
+
+        Pattern allowed = Pattern.compile("^[a-zA-Z0-9_\\-/]+$");
+        if (!allowed.matcher(path).matches()) {
+            return "error/403";
+        }
+
+        // Devuelve la vista solicitada (ej: "fragments/foo/bar")
         return path;
     }
 }
