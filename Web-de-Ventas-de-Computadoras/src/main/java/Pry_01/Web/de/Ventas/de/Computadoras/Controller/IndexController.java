@@ -10,6 +10,7 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosResponseDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
+import jakarta.servlet.http.HttpSession;
 
 import java.util.regex.Pattern;
 
@@ -48,7 +49,8 @@ public class IndexController {
 
     @GetMapping("/header")
     public String mostrarHeader() {
-        // Si usas Thymeleaf y quieres el fragmento concreto: "fragments/headerFooter :: header"
+        // Si usas Thymeleaf y quieres el fragmento concreto: "fragments/headerFooter ::
+        // header"
         // return "fragments/headerFooter :: header";
         return "fragments/headerFooter/header";
     }
@@ -62,12 +64,12 @@ public class IndexController {
     public String mostrarSomos() {
         return "Somos";
     }
-     @GetMapping("/Canales")
+
+    @GetMapping("/Canales")
     public String mostrarCanales() {
         return "Canales";
     }
-    
-    
+
     @GetMapping("/metodosPago")
     public String metodosPago() {
         return "metodosPago";
@@ -85,8 +87,15 @@ public class IndexController {
         if (name == null || name.contains("..")) {
             return "error/403";
         }
-        
+
         return path;
+    }
+
+    @GetMapping("/fragment/cuenta")
+    public String cargarFragmentoCuenta(HttpSession session, Model model) {
+        var usuario = session.getAttribute("usuario");
+        model.addAttribute("usuario", usuario);
+        return "fragments/LogginUserFiles/cuenta :: cuentaFragment";
     }
 
 }
