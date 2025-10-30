@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
@@ -56,5 +57,18 @@ public class IndexController {
     @GetMapping("/productosCategoria")
     public String mostrarProductoCategoria() {
         return "productosCategoria";
+    }
+    @GetMapping("/Loggin-User")
+    public String mostrarLogginUser() {
+        return "Loggin-User";
+    }
+    @GetMapping
+    public String cargarFragmento(@RequestParam String path) {
+        // Seguridad básica: evita acceso a rutas no permitidas
+        if (!path.startsWith("fragments/")) {
+            return "error/403";
+        }
+        // Devuelve directamente el fragmento solicitado
+        return path;
     }
 }
