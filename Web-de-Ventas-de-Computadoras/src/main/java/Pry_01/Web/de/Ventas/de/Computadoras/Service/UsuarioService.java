@@ -2,10 +2,8 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Service;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.UsuarioRepository;
 
@@ -19,6 +17,7 @@ public class UsuarioService {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
     }
+
     public Optional<UsuarioModel> getCorreo(String correo) {
         return usuarioRepository.findByEmailAddress(correo);
     }
@@ -37,16 +36,14 @@ public class UsuarioService {
         }
 
         if (usuario.getPassword() != null &&
-            !usuario.getPassword().startsWith("$2a$") &&
-            !usuario.getPassword().startsWith("$2b$") &&
-            !usuario.getPassword().startsWith("$2y$")) {
+                !usuario.getPassword().startsWith("$2a$") &&
+                !usuario.getPassword().startsWith("$2b$") &&
+                !usuario.getPassword().startsWith("$2y$")) {
             usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         }
 
         return usuarioRepository.save(usuario);
     }
-
-
 
     public UsuarioModel obtenerPorId(Long id) {
         return usuarioRepository.findById(id).orElse(null);
@@ -56,8 +53,28 @@ public class UsuarioService {
         usuarioRepository.deleteById(id);
     }
 
-    public void actualizarUsuario(UsuarioModel usuario) {
-        usuarioRepository.save(usuario);
+    public void actualizarUsuario(UsuarioModel usuarioActualizado) {
+        UsuarioModel usuarioExistente = usuarioRepository.findById(usuarioActualizado.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        // Actualizar solo los campos que vienen del formulario
+        usuarioExistente.setName(usuarioActualizado.getName());
+        usuarioExistente.setLastname(usuarioActualizado.getLastname());
+        usuarioExistente.setEmailAddress(normalizeEmail(usuarioActualizado.getEmailAddress()));
+        usuarioExistente.setPhoneNumber(usuarioActualizado.getPhoneNumber());
+        usuarioExistente.setAddress(usuarioActualizado.getAddress());
+
+        // Solo codificar la contraseña si se envió una nueva
+        String nuevaPassword = usuarioActualizado.getPassword();
+        if (nuevaPassword != null && !nuevaPassword.isBlank()) {
+            if (!nuevaPassword.startsWith("$2a$") && !nuevaPassword.startsWith("$2b$")
+                    && !nuevaPassword.startsWith("$2y$")) {
+                nuevaPassword = passwordEncoder.encode(nuevaPassword);
+            }
+            usuarioExistente.setPassword(nuevaPassword);
+        }
+
+        usuarioRepository.save(usuarioExistente);
     }
 
     public UsuarioModel registrarUsuario(UsuarioModel usuario) {
@@ -70,7 +87,8 @@ public class UsuarioService {
             throw new IllegalArgumentException("Password vacía");
         }
 
-        // Protección defensiva: si ya parece ser un hash de BCrypt, no lo codificamos de nuevo.
+        // Protección defensiva: si ya parece ser un hash de BCrypt, no lo codificamos
+        // de nuevo.
         if (raw.startsWith("$2a$") || raw.startsWith("$2b$") || raw.startsWith("$2y$")) {
             usuario.setPassword(raw);
         } else {
@@ -81,7 +99,8 @@ public class UsuarioService {
     }
 
     public UsuarioModel login(String email, String password) {
-        if (email == null || password == null) return null;
+        if (email == null || password == null)
+            return null;
         String normalized = normalizeEmail(email);
 
         Optional<UsuarioModel> opt = usuarioRepository.findByEmailAddress(normalized);

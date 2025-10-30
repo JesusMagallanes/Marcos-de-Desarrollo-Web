@@ -71,11 +71,6 @@ public class IndexController {
         return "productosCategoria";
     }
 
-    @GetMapping("/Loggin-User")
-    public String mostrarLogginUser() {
-        return "Loggin-User";
-    }
-
     /**
      * Endpoint seguro para devolver fragmentos. Usa /fragment?path=fragments/...
      * Validaciones:

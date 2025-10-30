@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioDTO;
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioUpdateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
@@ -20,7 +21,7 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
-   @GetMapping("/Index")
+    @GetMapping("/Index")
     public String indexLog(HttpSession session, Model model) {
         try {
             Object obj = session.getAttribute("usuario");
@@ -58,6 +59,43 @@ public class UsuarioController {
         return "redirect:/VistaAdmin";
     }
 
+    @PostMapping("/perfil/editar/{id}")
+    public String editarPerfil(@PathVariable Long id,
+            @ModelAttribute UsuarioUpdateDTO datos,
+            HttpSession session) {
+
+        UsuarioDTO usuarioEnSesion = (UsuarioDTO) session.getAttribute("usuario");
+        if (usuarioEnSesion == null || !usuarioEnSesion.getId().equals(id)) {
+            return "redirect:/login";
+        }
+        UsuarioModel usuarioExistente = usuarioService.obtenerPorId(id);
+        if (usuarioExistente == null) {
+            return "redirect:/Loggin-User?error=notfound";
+        }
+        usuarioExistente.setName(datos.getName());
+        usuarioExistente.setLastname(datos.getLastname());
+        usuarioExistente.setEmailAddress(datos.getEmailAddress());
+        usuarioExistente.setPhoneNumber(datos.getPhoneNumber());
+        usuarioExistente.setAddress(datos.getAddress());
+
+        usuarioService.guardarUsuario(usuarioExistente); 
+        
+        session.setAttribute("usuario", new UsuarioDTO(usuarioExistente));
+        return "redirect:/Loggin-User?success=updated";
+    }
+
+    @GetMapping("/Loggin-User")
+    public String mostrarLogginUser(HttpSession session, Model model) {
+        UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
+
+        if (usuarioDTO == null) {
+            return "redirect:/Index";
+        }
+
+        model.addAttribute("usuario", usuarioDTO);
+        return "Loggin-User";
+    }
+
     @PostMapping("/eliminar/{id}")
     public String eliminarUsuario(@PathVariable Long id) {
         usuarioService.eliminarUsuario(id);
@@ -66,8 +104,8 @@ public class UsuarioController {
 
     @PostMapping("/registrar")
     public String registrar(@ModelAttribute UsuarioModel usuario,
-                            RedirectAttributes redirectAttributes,
-                            HttpSession session) {
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
         try {
             UsuarioModel usuarioRegistrado = usuarioService.registrarUsuario(usuario);
             UsuarioDTO usuarioDTO = new UsuarioDTO(usuarioRegistrado);
@@ -83,9 +121,9 @@ public class UsuarioController {
 
     @PostMapping("/login")
     public String login(@RequestParam(value = "email") String email,
-                        @RequestParam(value = "password") String password,
-                        HttpSession session,
-                        RedirectAttributes redirectAttributes) {
+            @RequestParam(value = "password") String password,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
         try {
             if (email == null || password == null || email.isBlank() || password.isBlank()) {
                 redirectAttributes.addFlashAttribute("errorl", "Faltan credenciales");
