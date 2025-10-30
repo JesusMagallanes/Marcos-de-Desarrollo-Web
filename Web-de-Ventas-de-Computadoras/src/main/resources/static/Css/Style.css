@@ -374,7 +374,7 @@ a {
 }
 
 /*PANEL ADMIN*/
-.sidebar {
+#sidebarMenu {
   padding-top: 15px;
   color: black;
   height: 100vh;
