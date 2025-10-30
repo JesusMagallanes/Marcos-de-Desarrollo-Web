@@ -87,8 +87,6 @@ public class UsuarioService {
             throw new IllegalArgumentException("Password vacía");
         }
 
-        // Protección defensiva: si ya parece ser un hash de BCrypt, no lo codificamos
-        // de nuevo.
         if (raw.startsWith("$2a$") || raw.startsWith("$2b$") || raw.startsWith("$2y$")) {
             usuario.setPassword(raw);
         } else {
