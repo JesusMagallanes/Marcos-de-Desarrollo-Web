@@ -78,32 +78,15 @@ public class IndexController {
         return "productosCategoria";
     }
 
-    /**
-     * Endpoint seguro para devolver fragmentos. Usa /fragment?path=fragments/...
-     * Validaciones:
-     *  - obligatoriamente debe empezar por "fragments/"
-     *  - no puede contener ".." ni caracteres no permitidos
-     */
     @GetMapping("/fragment")
-    public String cargarFragmento(@RequestParam String path) {
-        if (path == null) {
+    public String cargarFragmento(@RequestParam("name") String name) {
+        String path = "fragments/LogginUserFiles/" + name;
+
+        if (name == null || name.contains("..")) {
             return "error/403";
         }
-
-        // Reglas de saneamiento:
-        // - Debe comenzar con "fragments/"
-        // - No debe contener ".."
-        // - Solo permitir caracteres alfanuméricos, guiones, guión bajo y slash
-        if (!path.startsWith("fragments/") || path.contains("..")) {
-            return "error/403";
-        }
-
-        Pattern allowed = Pattern.compile("^[a-zA-Z0-9_\\-/]+$");
-        if (!allowed.matcher(path).matches()) {
-            return "error/403";
-        }
-
-        // Devuelve la vista solicitada (ej: "fragments/foo/bar")
+        
         return path;
     }
+
 }

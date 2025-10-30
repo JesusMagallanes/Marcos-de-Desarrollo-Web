@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const fragmentName = link.getAttribute("data-fragment"); // ej: "cuenta"
 
       try {
-        const response = await fetch(`/fragment?name=${encodeURIComponent(fragmentName)}`);
+          const response = await fetch(`/fragment?name=${encodeURIComponent(fragmentName)}`);
         if (!response.ok) throw new Error("Error al cargar el fragmento");
 
         const html = await response.text();
