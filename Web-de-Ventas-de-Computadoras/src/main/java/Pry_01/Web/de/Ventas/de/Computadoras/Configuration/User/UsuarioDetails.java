@@ -1,7 +1,7 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Configuration.User;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,7 +20,8 @@ public class UsuarioDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_"+ usuarioModel.getRol().name()));
+        String roleName = usuarioModel.getRol() != null ? usuarioModel.getRol().name() : "CLIENTE";
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName));
     }
 
     @Override
