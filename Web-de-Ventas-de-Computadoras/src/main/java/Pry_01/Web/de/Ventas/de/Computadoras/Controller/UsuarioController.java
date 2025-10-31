@@ -170,4 +170,5 @@ public class UsuarioController {
         redirectAttributes.addFlashAttribute("mensaje", "Sesión cerrada correctamente.");
         return "redirect:/Index";
     }
+    
 }

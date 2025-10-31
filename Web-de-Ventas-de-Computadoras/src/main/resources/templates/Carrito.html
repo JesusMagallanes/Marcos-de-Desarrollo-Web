@@ -17,12 +17,12 @@
 
 <body class="d-flex flex-column min-vh-100">
 
-    <div th:replace="fragments/headerFooter/header :: header"></div>
+    <div th:replace="fragments/headerFooter/header :: header(productos=${productos})"></div>
     <div th:replace="fragments/Categoria :: categoria"></div>
     <div th:replace="fragments/Login-Register/Login :: login"></div>
     <div th:replace="fragments/Login-Register/Register :: register"></div>
-    
     <div th:replace="fragments/CarritoModal/carritoModal :: carritoModalFragment"></div>
+
 
     <main>
         <div class="container my-4">
