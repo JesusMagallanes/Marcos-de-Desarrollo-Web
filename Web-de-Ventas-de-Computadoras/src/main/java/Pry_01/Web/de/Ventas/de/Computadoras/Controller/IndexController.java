@@ -91,7 +91,7 @@ private final CategoriaService categoriaService;
         if (name == null || name.contains("..")) {
             return "error/403";
         }
-
+        
         return path;
     }
 

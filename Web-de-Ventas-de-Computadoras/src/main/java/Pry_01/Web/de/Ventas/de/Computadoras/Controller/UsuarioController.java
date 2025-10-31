@@ -96,7 +96,7 @@ public class UsuarioController {
         usuarioService.guardarUsuario(usuarioExistente); 
         
         session.setAttribute("usuario", new UsuarioDTO(usuarioExistente));
-        return "redirect:/Loggin-User?success=updated";
+        return "redirect:/usuarios/Loggin-User";
     }
 
     @GetMapping("/Loggin-User")
