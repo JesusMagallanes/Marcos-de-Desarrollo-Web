@@ -9,10 +9,15 @@ document.addEventListener("DOMContentLoaded", () => {
       menuLinks.forEach(l => l.classList.remove("active"));
       link.classList.add("active");
 
-      const fragmentName = link.getAttribute("data-fragment"); // ej: "cuenta"
+      const fragmentName = link.getAttribute("data-fragment");
+      let url = `/fragment?name=${encodeURIComponent(fragmentName)}`;
+
+      if (fragmentName === "cuenta") {
+        url = "/fragment/cuenta";
+      }
 
       try {
-        const response = await fetch(`/fragment?name=${encodeURIComponent(fragmentName)}`);
+        const response = await fetch(url);
         if (!response.ok) throw new Error("Error al cargar el fragmento");
 
         const html = await response.text();
@@ -25,5 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+  const defaultLink = document.querySelector(".menu-link[data-fragment='cuenta']");
+  if (defaultLink) {
+    setTimeout(() => {
+      defaultLink.classList.add("active");
+      defaultLink.click();
+    }, 100);
+  }
 });
 
