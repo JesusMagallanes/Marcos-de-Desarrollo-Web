@@ -45,7 +45,7 @@ public class IndexController {
 
         return "Index";
     }
-
+    
     @GetMapping("/index")
     public String index(){
         return "Index";
@@ -67,16 +67,12 @@ public class IndexController {
     public String mostrarSomos() {
         return "Somos";
     }
-    @GetMapping("/canales")
+     @GetMapping("/canales")
     public String mostrarCanales() {
         return "Canales";
     }
-
-    @GetMapping("/Canales")
-    public String canales(){
-        return "Canales";
-    }
-
+    
+    
     @GetMapping("/metodosPago")
     public String metodosPago() {
         return "metodosPago";
