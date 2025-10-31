@@ -52,6 +52,7 @@ public class ProductoController {
         UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
         model.addAttribute("usuario", usuarioDTO);
         model.addAttribute("categoria", categoria);
+        model.addAttribute("categorias", categoriaService.listarCategoria());
         model.addAttribute("productos", productosPage.getContent());
         model.addAttribute("totalPages", productosPage.getTotalPages());
         model.addAttribute("currentPage", productosPage.getNumber());
