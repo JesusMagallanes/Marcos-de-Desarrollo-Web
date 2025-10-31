@@ -62,8 +62,7 @@ public class UsuarioController {
     @PostMapping("/perfil/editar/{id}")
     public String editarPerfil(@PathVariable Long id,
             @ModelAttribute UsuarioUpdateDTO datos,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
+            HttpSession session) {
 
         UsuarioDTO usuarioEnSesion = (UsuarioDTO) session.getAttribute("usuario");
         if (usuarioEnSesion == null || !usuarioEnSesion.getId().equals(id)) {
@@ -79,11 +78,10 @@ public class UsuarioController {
         usuarioExistente.setPhoneNumber(datos.getPhoneNumber());
         usuarioExistente.setAddress(datos.getAddress());
 
-        usuarioService.guardarUsuario(usuarioExistente);
-
-        redirectAttributes.addFlashAttribute("successMessage", "¡Cambios guardados exitosamente!");
+        usuarioService.guardarUsuario(usuarioExistente); 
+        
         session.setAttribute("usuario", new UsuarioDTO(usuarioExistente));
-        return "redirect:/usuarios/Loggin-User";
+        return "redirect:/Loggin-User?success=updated";
     }
 
     @GetMapping("/Loggin-User")
@@ -154,89 +152,4 @@ public class UsuarioController {
         redirectAttributes.addFlashAttribute("mensaje", "Sesión cerrada correctamente.");
         return "redirect:/Index";
     }
-
-    @GetMapping("/Canales")
-    public String mostrarCanales(HttpSession session, Model model) {
-        UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
-
-        if (usuarioDTO == null) {
-            return "redirect:/Canales";
-        }
-
-        model.addAttribute("usuario", usuarioDTO);
-        return "Canales";
-    }
-
-    @GetMapping("/Carrito")
-    public String mostrarCarrito(HttpSession session, Model model) {
-        UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
-
-        if (usuarioDTO == null) {
-            return "redirect:/Carrito";
-        }
-
-        model.addAttribute("usuario", usuarioDTO);
-        return "Carrito";
-    }
-
-    @GetMapping("/Detalles")
-    public String mostrarDetalles(HttpSession session, Model model) {
-        UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
-
-        if (usuarioDTO == null) {
-            return "redirect:/Detalles";
-        }
-
-        model.addAttribute("usuario", usuarioDTO);
-        return "Detalles";
-    }
-
-    @GetMapping("/EnviosPag")
-    public String mostrarEnviosPag(HttpSession session, Model model) {
-        UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
-
-        if (usuarioDTO == null) {
-            return "redirect:/EnviosPag";
-        }
-
-        model.addAttribute("usuario", usuarioDTO);
-        return "EnviosPag";
-    }
-
-    @GetMapping("/metodosPago")
-    public String mostrarMetodosPago(HttpSession session, Model model) {
-        UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
-
-        if (usuarioDTO == null) {
-            return "redirect:/metodosPago";
-        }
-
-        model.addAttribute("usuario", usuarioDTO);
-        return "metodosPago";
-    }
-
-    @GetMapping("/productosCategoria")
-    public String mostrarProductosCategoria(HttpSession session, Model model) {
-        UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
-
-        if (usuarioDTO == null) {
-            return "redirect:/productosCategoria";
-        }
-
-        model.addAttribute("usuario", usuarioDTO);
-        return "productosCategoria";
-    }
-
-    @GetMapping("/Somos")
-    public String mostrarSomos(HttpSession session, Model model) {
-        UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
-
-        if (usuarioDTO == null) {
-            return "redirect:/Somos";
-        }
-
-        model.addAttribute("usuario", usuarioDTO);
-        return "Somos";
-    }
-
 }
