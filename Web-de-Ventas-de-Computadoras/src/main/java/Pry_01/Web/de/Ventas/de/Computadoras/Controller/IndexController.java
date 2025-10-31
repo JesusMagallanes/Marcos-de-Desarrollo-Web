@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
@@ -23,25 +24,21 @@ private final CategoriaService categoriaService;
         this.categoriaService = categoriaService;
         this.productoService = productoService;
     }
-
-    // Página principal ("/")
-    @GetMapping("/")
-    public String principal(Model model) {
-        // Reutilizamos mostrarIndex para llenar modelo y devolver vista
-        List<CategoriaModel> categorias = categoriaService.listarCategoria();
-        model.addAttribute("categorias", categorias);
-        return "Index";
+    @ModelAttribute
+    public void addUsuarioToModel(HttpSession session, Model model) {
+        var usuario = session.getAttribute("usuario");
+        if (usuario != null) {
+            model.addAttribute("usuario", usuario);
+        }
     }
-
-    // Si quieres URL específica para /Index también la puedes mantener
-    @GetMapping("/Index")
+    
+    // Página principal ("/")
+    @GetMapping({"/", "/Index"})
     public String mostrarIndex(Model model) {
         List<CategoriaModel> categorias = categoriaService.listarCategoria();
         List<ProductosResponseDTO> productos = productoService.listarProducto();
-
         model.addAttribute("categorias", categorias);
         model.addAttribute("productos", productos);
-
         return "Index";
     }
 
