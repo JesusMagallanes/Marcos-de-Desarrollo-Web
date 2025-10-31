@@ -42,6 +42,11 @@ private final CategoriaService categoriaService;
         return "Index";
     }
 
+    @GetMapping("/EnviosPag")
+    public String enviosPag() {
+        return "EnviosPag";
+    }
+
     @GetMapping("/index")
     public String index(){
         return "Index";

@@ -76,7 +76,7 @@ public class SecurityConfiguration {
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
-                                 "/usuarios/registrar", "/Detalles","/Somos","/header","/canales","/Canales","/metodosPago","/productosCategoria","/usuarios/registrar/**").permitAll()
+                                 "/usuarios/registrar", "/EnviosPag","/Detalles","/Somos","/header","/canales","/Canales","/metodosPago","/productosCategoria","/usuarios/registrar/**").permitAll()
                 .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**").hasRole("ADMINISTRADOR")
                 .anyRequest().authenticated()
             )
