@@ -38,15 +38,15 @@ public class Config {
         prov.setPasswordEncoder(passwordEncoder);
         return prov;
     }
+
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
         return new AuthenticationSuccessHandler() {
             @Override
             public void onAuthenticationSuccess(HttpServletRequest request,
-                                            HttpServletResponse response,
-                                            org.springframework.security.core.Authentication authentication)
-                                            throws IOException, ServletException {
-            // establecer DTO en sesión (como ya hacías)
+                                                HttpServletResponse response,
+                                                org.springframework.security.core.Authentication authentication)
+                                                throws IOException, ServletException {
                 Object principal = authentication.getPrincipal();
                 if (principal instanceof UsuarioDetails) {
                     UsuarioDetails ud = (UsuarioDetails) principal;
@@ -54,16 +54,7 @@ public class Config {
                     UsuarioDTO dto = new UsuarioDTO(usuarioModel);
                     request.getSession(true).setAttribute("usuario", dto);
                 }
-
-            // ver autoridades y redirigir según rol
-                boolean isAdmin = authentication.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
-
-                if (isAdmin) {
-                    response.sendRedirect(request.getContextPath() + "/VistaAdmin");
-                } else {
-                    response.sendRedirect(request.getContextPath() + "/usuarios/Index");
-                }
+                response.sendRedirect(request.getContextPath() + "/usuarios/Index");
             }
         };
     }
@@ -78,7 +69,7 @@ public class Config {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
                                  "/usuarios/registrar", "/usuarios/registrar/**").permitAll()
-                .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

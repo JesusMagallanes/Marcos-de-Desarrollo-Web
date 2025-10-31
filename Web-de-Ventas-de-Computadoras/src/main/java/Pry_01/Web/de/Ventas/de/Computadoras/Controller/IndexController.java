@@ -12,6 +12,8 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
 import jakarta.servlet.http.HttpSession;
 
+import java.util.regex.Pattern;
+
 @Controller
 public class IndexController {
 
@@ -67,16 +69,24 @@ public class IndexController {
     public String mostrarSomos() {
         return "Somos";
     }
+<<<<<<< HEAD
     @GetMapping("/canales")
+=======
+
+    @GetMapping("/Canales")
+>>>>>>> 38171a46e2edce450c628b8456df5379b94a61f7
     public String mostrarCanales() {
         return "Canales";
     }
 
+<<<<<<< HEAD
     @GetMapping("/Canales")
     public String canales(){
         return "Canales";
     }
 
+=======
+>>>>>>> 38171a46e2edce450c628b8456df5379b94a61f7
     @GetMapping("/metodosPago")
     public String metodosPago() {
         return "metodosPago";

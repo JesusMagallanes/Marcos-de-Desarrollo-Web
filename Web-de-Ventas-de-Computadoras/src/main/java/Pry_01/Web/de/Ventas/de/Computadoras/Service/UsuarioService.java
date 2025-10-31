@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import Pry_01.Web.de.Ventas.de.Computadoras.Model.Roles;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.UsuarioRepository;
 
@@ -113,27 +111,4 @@ public class UsuarioService {
         boolean matches = stored != null && passwordEncoder.matches(password, stored);
         return matches ? u : null;
     }
-    public UsuarioModel registrarAdmin(UsuarioModel usuario) {
-    if (usuario.getEmailAddress() != null) {
-        usuario.setEmailAddress(normalizeEmail(usuario.getEmailAddress()));
-    }
-
-    String raw = usuario.getPassword();
-    if (raw == null || raw.isBlank()) {
-        throw new IllegalArgumentException("Password vacía");
-    }
-
-    if (raw.startsWith("$2a$") || raw.startsWith("$2b$") || raw.startsWith("$2y$")) {
-        usuario.setPassword(raw);
-    } else {
-        usuario.setPassword(passwordEncoder.encode(raw));
-    }
-
-    // asignar rol de administrador
-    usuario.setRol(Roles.ADMINISTRADOR);
-    // si tu modelo tuviera enabled, asegúrate de activarlo (si no, omite esto)
-    // usuario.setEnabled(true);
-
-    return usuarioRepository.save(usuario);
-}
 }

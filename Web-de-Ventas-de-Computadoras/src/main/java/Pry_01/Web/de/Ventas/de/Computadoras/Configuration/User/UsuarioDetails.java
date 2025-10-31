@@ -1,7 +1,7 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Configuration.User;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,9 +20,7 @@ public class UsuarioDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-         // Mapeamos el enum, por ejemplo Roles.ADMINISTRADOR -> ROLE_ADMINISTRADOR
-        String roleName = usuarioModel.getRol() != null ? usuarioModel.getRol().name() : "CLIENTE";
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName));
+        return List.of(new SimpleGrantedAuthority("ROLE_"+ usuarioModel.getRol().name()));
     }
 
     @Override
