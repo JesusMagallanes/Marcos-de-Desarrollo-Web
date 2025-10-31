@@ -1,5 +1,6 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO.CategoriaCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosUpdateDTO;
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosResponseDTO;
@@ -37,8 +39,8 @@ public class ProductoController {
 
     @GetMapping("/categoria/{slug}")
     public String mostrarProductosPorCategoria(@PathVariable String slug,
-                                               @RequestParam(defaultValue = "0") int page,
-                                               Model model) {
+            @RequestParam(defaultValue = "0") int page,
+            Model model, HttpSession session, UsuarioModel usuario) {
         CategoriaModel categoria = categoriaService.obtenerPorSlug(slug);
         if (categoria == null) {
             model.addAttribute("mensajeError", "Categoría no encontrada.");
@@ -47,7 +49,8 @@ public class ProductoController {
 
         PageRequest pageable = PageRequest.of(page, 12); // 12 productos por página
         Page<ProductosResponseDTO> productosPage = productoService.listarPorCategoria(categoria, pageable);
-
+        UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
+        model.addAttribute("usuario", usuarioDTO);
         model.addAttribute("categoria", categoria);
         model.addAttribute("productos", productosPage.getContent());
         model.addAttribute("totalPages", productosPage.getTotalPages());
