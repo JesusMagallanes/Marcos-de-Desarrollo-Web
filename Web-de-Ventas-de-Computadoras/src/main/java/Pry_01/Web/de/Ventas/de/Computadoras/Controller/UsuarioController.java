@@ -77,7 +77,8 @@ public class UsuarioController {
     @PostMapping("/perfil/editar/{id}")
     public String editarPerfil(@PathVariable Long id,
             @ModelAttribute UsuarioUpdateDTO datos,
-            HttpSession session) {
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
 
         UsuarioDTO usuarioEnSesion = (UsuarioDTO) session.getAttribute("usuario");
         if (usuarioEnSesion == null || !usuarioEnSesion.getId().equals(id)) {
@@ -94,6 +95,8 @@ public class UsuarioController {
         usuarioExistente.setAddress(datos.getAddress());
 
         usuarioService.guardarUsuario(usuarioExistente); 
+
+        redirectAttributes.addFlashAttribute("successMessage", "¡Cambios guardados exitosamente!");
         
         session.setAttribute("usuario", new UsuarioDTO(usuarioExistente));
         return "redirect:/usuarios/Loggin-User";
