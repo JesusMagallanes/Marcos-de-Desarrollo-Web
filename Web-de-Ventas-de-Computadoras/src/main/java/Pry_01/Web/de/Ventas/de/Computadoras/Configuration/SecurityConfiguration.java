@@ -1,6 +1,6 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Configuration;
-import java.io.IOException;
 
+import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -11,7 +11,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-
 import Pry_01.Web.de.Ventas.de.Computadoras.Configuration.User.UsuarioDetails;
 import Pry_01.Web.de.Ventas.de.Computadoras.Configuration.User.UsuarioDetailsService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioDTO;
