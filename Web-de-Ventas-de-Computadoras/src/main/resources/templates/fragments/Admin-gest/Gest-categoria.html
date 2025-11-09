@@ -6,39 +6,44 @@
         </button>
     </div>
 
-    <table class="table table-striped table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Imagen</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="categoria : ${categorias}">
-                <td th:text="${categoria.id}"></td>
-                <td th:text="${categoria.name}"></td>
-                <td th:text="${categoria.description}"></td>
-                <td th:text="${categoria.urlImage}"></td>
-                <td>
-                    <button type="button" class="btn btn-warning"
-                        th:attr="data-bs-target='#edit-categoria-' + ${categoria.id}" data-bs-toggle="modal">
-                        Editar
-                    </button>
-
-                    <form th:action="@{'/categorias/eliminar/' + ${categoria.id}}" method="post"
-                        style="display:inline;">
-                        <button class="btn btn-danger" type="submit"
-                            onclick="return confirm('¿Seguro que quieres eliminar esta categoría?');">
-                            Eliminar
-                        </button>
-                    </form>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Descripción</th>
+                    <th scope="col">Imagen</th>
+                    <th scope="col" style="min-width: 140px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="categoria : ${categorias}">
+                    <td th:text="${categoria.id}"></td>
+                    <td th:text="${categoria.name}" class="text-truncate" style="max-width: 120px;"></td>
+                    <td th:text="${categoria.description}" class="text-truncate" style="max-width: 180px;"></td>
+                    <td>
+                        <img th:src="${categoria.urlImage}" alt="Imagen" class="img-thumbnail" style="max-width: 80px;">
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-center flex-wrap gap-2">
+                            <button type="button" class="btn btn-warning btn-sm"
+                                th:attr="data-bs-target='#edit-categoria-' + ${categoria.id}" data-bs-toggle="modal">
+                                Editar
+                            </button>
+                            <form th:action="@{'/categorias/eliminar/' + ${categoria.id}}" method="post"
+                                onsubmit="return confirm('¿Seguro que quieres eliminar esta categoría?');">
+                                <button class="btn btn-danger btn-sm" type="submit">
+                                    Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
     <div class="modal fade" id="gest-categoria" tabindex="-1" aria-labelledby="gestCategoriaLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -52,17 +57,15 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control" th:field="*{name}" th:id="name-create" required>
+                            <input type="text" class="form-control" th:field="*{name}" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Descripción</label>
-                            <textarea class="form-control" th:field="*{description}" th:id="description-create" rows="3"
-                                required></textarea>
+                            <textarea class="form-control" th:field="*{description}" rows="3" required></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">URL Imagen</label>
-                            <input type="url" class="form-control" th:field="*{urlImage}" th:id="urlImage-create"
-                                required>
+                            <input type="url" class="form-control" th:field="*{urlImage}" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -77,30 +80,26 @@
         <div class="modal fade" th:id="'edit-categoria-' + ${categoria.id}" tabindex="-1"
             th:attr="aria-labelledby='editCategoriaLabel-' + ${categoria.id}" aria-hidden="true">
             <div class="modal-dialog">
-                <div class="modal-content" style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
+                <div class="modal-content"
+                    style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
                     <form th:action="@{'/categorias/editar/' + ${categoria.id}}" method="post">
                         <div class="modal-header">
-                            <h5 class="modal-title" th:id="'editCategoriaLabel-' + ${categoria.id}">Editar categoría
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Cerrar"></button>
+                            <h5 class="modal-title" th:id="'editCategoriaLabel-' + ${categoria.id}">Editar categoría</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                         </div>
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label class="form-label">Nombre</label>
-                                <input type="text" class="form-control" name="name" th:id="'name-' + ${categoria.id}"
-                                    th:value="${categoria.name}" required>
+                                <input type="text" class="form-control" name="name" th:value="${categoria.name}" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Descripción</label>
-                                <textarea class="form-control" name="description"
-                                    th:id="'description-' + ${categoria.id}" rows="3" th:text="${categoria.description}"
-                                    required></textarea>
+                                <textarea class="form-control" name="description" rows="3"
+                                    th:text="${categoria.description}" required></textarea>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">URL Imagen</label>
-                                <input type="url" class="form-control" name="urlImage"
-                                    th:id="'urlImage-' + ${categoria.id}" th:value="${categoria.urlImage}" required>
+                                <input type="url" class="form-control" name="urlImage" th:value="${categoria.urlImage}" required>
                             </div>
                         </div>
                         <div class="modal-footer">

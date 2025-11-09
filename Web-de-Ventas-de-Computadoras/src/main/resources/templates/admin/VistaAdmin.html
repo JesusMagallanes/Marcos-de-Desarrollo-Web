@@ -2,70 +2,106 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>SmartZone</title>
-    <link rel="stylesheet" href="/Css/Style.css">
-    <link rel="icon" href="/Img/img.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>SmartZone</title>
+  <link rel="stylesheet" href="/Css/Style.css">
+  <link rel="icon" href="/Img/img.png">
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row">
+  <div class="container-fluid">
+    <div class="row">
 
-            <nav class="col-md-2 d-none d-md-block sidebar text-center" id="sidebarMenu">
-                <div class="mb-4">
-                    <a class="navbar-brand" th:href="@{/}">
-                        <img src="/Img/img.png" alt="Logo SmartZone" class="img-fluid mx-auto"
-                            style="max-width: 100px;">
-                    </a>
-                </div>
-                <ul class="nav flex-column" >
-                    <button class="btn btn-outline-success mb-2 active"
-                        onclick="mostrarSeccion('bienvenida', this)">Inicio</button>
-                    <button class="btn btn-outline-success mb-2"
-                        onclick="mostrarSeccion('usuarios', this)">Usuarios</button>
-                    <button class="btn btn-outline-success mb-2"
-                        onclick="mostrarSeccion('productos', this)">Productos</button>
-                    <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('categoria', this)">Categoria
-                        Producto</button>
-                    <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('metodoPago', this)">Método de
-                        Pago</button>
-                </ul>
-            </nav>
-
-            <main class="col-md-10 ms-sm-auto col-lg-10 content">
-                <div id="bienvenida" class="seccion">
-                    <div class="alert alert-success text-center" role="alert">
-                        <h3>¡Bienvenido Administrador a SmartZone!</h3>
-                        <p>Seleccione una opción en el menú para comenzar a gestionar el sistema.</p>
-                    </div>
-                </div>
-                <div id="usuarios" class="seccion d-none">
-                    <h2>Gestión de Usuarios</h2>
-                    <div th:replace="~{fragments/Admin-gest/Gest-usuarios :: gest-usuarios}"></div>
-                </div>
-
-                <div id="productos" class="seccion d-none">
-                    <h2>Gestión de Productos</h2>
-                    <div th:replace="~{fragments/Admin-gest/Gest-productos :: gest-productos}"></div>
-                </div>
-                <div id="categoria" class="seccion d-none">
-                    <h2>Gestión de Categorías</h2>
-                    <div th:replace="~{fragments/Admin-gest/Gest-categoria :: gest-categoria}"></div>
-                </div>
-                <div id="metodoPago" class="seccion d-none">
-                    <h2>Gestión de Método de Pago</h2>
-                    <div th:replace="~{fragments/Admin-gest/Gest-MetodoPago :: gest-metodoPago}"></div>
-                </div>
-            </main>
+      <!-- 🔹 Sidebar para escritorio -->
+      <nav class="col-md-2 d-none d-md-block sidebar bg-light text-center" id="sidebarMenu">
+        <div class="mb-4 mt-3">
+          <a class="navbar-brand" th:href="@{/}">
+            <img src="/Img/img.png" alt="Logo SmartZone" class="img-fluid mx-auto" style="max-width: 100px;">
+          </a>
         </div>
-    </div>
+        <ul class="nav flex-column">
+          <button class="btn btn-outline-success mb-2 active" onclick="mostrarSeccion('bienvenida', this)">Inicio</button>
+          <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('usuarios', this)">Usuarios</button>
+          <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('productos', this)">Productos</button>
+          <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('categoria', this)">Categoría Producto</button>
+          <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('metodoPago', this)">Método de Pago</button>
+        </ul>
+      </nav>
 
-    <script src="/Js/Admin-fun.js"></script>
-    <script src="/Js/Admin-Usuario.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+      <!-- 🔹 Navbar con botón para móviles -->
+      <nav class="navbar navbar-light bg-light d-md-none">
+        <div class="container-fluid">
+          <a class="navbar-brand d-flex align-items-center" href="#">
+            <img src="/Img/img.png" alt="Logo SmartZone" width="40" height="40" class="me-2">
+            SmartZone
+          </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar"
+            aria-controls="offcanvasSidebar">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- 🔹 Sidebar tipo offcanvas para móviles -->
+      <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasSidebar"
+        aria-labelledby="offcanvasSidebarLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="offcanvasSidebarLabel">
+            <img src="/Img/img.png" alt="Logo SmartZone" width="40" class="me-2">
+            SmartZone
+          </h5>
+          <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+            aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body text-center">
+          <ul class="nav flex-column">
+            <button class="btn btn-outline-success mb-2 active" onclick="mostrarSeccion('bienvenida', this)"
+              data-bs-dismiss="offcanvas">Inicio</button>
+            <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('usuarios', this)"
+              data-bs-dismiss="offcanvas">Usuarios</button>
+            <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('productos', this)"
+              data-bs-dismiss="offcanvas">Productos</button>
+            <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('categoria', this)"
+              data-bs-dismiss="offcanvas">Categoría Producto</button>
+            <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('metodoPago', this)"
+              data-bs-dismiss="offcanvas">Método de Pago</button>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 🔹 Contenido principal -->
+      <main class="col-md-10 ms-sm-auto col-lg-10 content">
+        <div id="bienvenida" class="seccion">
+          <div class="alert alert-success text-center" role="alert">
+            <h3>¡Bienvenido Administrador a SmartZone!</h3>
+            <p>Seleccione una opción en el menú para comenzar a gestionar el sistema.</p>
+          </div>
+        </div>
+        <div id="usuarios" class="seccion d-none">
+          <h2>Gestión de Usuarios</h2>
+          <div th:replace="~{fragments/Admin-gest/Gest-usuarios :: gest-usuarios}"></div>
+        </div>
+        <div id="productos" class="seccion d-none">
+          <h2>Gestión de Productos</h2>
+          <div th:replace="~{fragments/Admin-gest/Gest-productos :: gest-productos}"></div>
+        </div>
+        <div id="categoria" class="seccion d-none">
+          <h2>Gestión de Categorías</h2>
+          <div th:replace="~{fragments/Admin-gest/Gest-categoria :: gest-categoria}"></div>
+        </div>
+        <div id="metodoPago" class="seccion d-none">
+          <h2>Gestión de Método de Pago</h2>
+          <div th:replace="~{fragments/Admin-gest/Gest-MetodoPago :: gest-metodoPago}"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/Js/Admin-fun.js"></script>
+  <script src="/Js/Admin-Usuario.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
