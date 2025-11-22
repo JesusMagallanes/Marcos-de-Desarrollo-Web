@@ -1,53 +1,70 @@
 <div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" th:fragment="login">
-    <div class="modal-dialog">
-        <div class="modal-content"
-            style="padding: 25px; background-image: url(/Img/form-fond.png); border: 3px solid #e3e3e3;">
-            
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel" >Inicia Sesión</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border: 3px solid #e3e3e3;">
+
+            <div class="modal-body p-0">
+                <div class="row g-0">
+
+                    <!-- Columna Izquierda: Imagen -->
+                    <div class="col-md-5 d-none d-md-block">
+                        <img src="/Img/img-login.png" class="img-fluid h-100 w-100" 
+                             style="object-fit: cover; border-radius: 5px 0 0 5px;">
+                    </div>
+
+                    <!-- Columna Derecha: Formulario -->
+                    <div class="col-md-7 p-4">
+                        <div class="modal-header border-0 p-0 mb-3">
+                            <h1 class="modal-title fs-4">Inicia Sesión</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <form th:action="@{/usuarios/login}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                            <div class="mb-3">
+                                <label for="emailAddress" class="form-label">Correo Electrónico</label>
+                                <input type="email" class="form-control" id="emailAddress" name="email" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me">
+                                <label class="form-check-label" for="remember-me">Guardar en este dispositivo</label>
+                            </div>
+
+                            <div th:if="${errorl}" class="alert alert-danger text-center" th:text="${errorl}"></div>
+
+                            <button type="submit" class="btn btn-primary w-100">Iniciar</button>
+
+                            <div class="text-center my-3">
+                                <label class="form-label fw-semibold">Continuar con</label>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn btn-outline-danger" type="button">
+                                        <img src="/Img/icon-google.png" width="28" class="me-1">Google
+                                    </button>
+                                    <button class="btn btn-outline-primary" type="button">
+                                        <img src="/Img/icon-facebook2.png" width="28" class="me-1">Facebook
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-3">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="button" class="btn btn-primary"
+                                        data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#register">
+                                    Registrarse
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
             </div>
 
-            <form th:action="@{/usuarios/login}" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Correo Electrónico</label>
-                        <input type="email" class="form-control" id="emailAddress" name="email" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Contraseña</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me">
-                        <label class="form-check-label" for="remember-me">Guardar en este dispositivo</label>
-                    </div>
-
-                    <div th:if="${errorl}" class="alert alert-danger text-center" th:text="${errorl}"></div>
-                    <button type="submit" class="btn btn-primary w-100">Iniciar</button>
-                </div>
-
-                <div class="text-center my-3">
-                    <label class="form-label" style="font-weight: 600;">Continuar con</label>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                        <button class="btn btn-outline-danger me-md-2" type="button">
-                            <img src="/Img/icon-google.png" alt="" width="30px" style="padding-right: 4px;">Google
-                        </button>
-                        <button class="btn btn-outline-primary" type="button">
-                            <img src="/Img/icon-facebook2.png" alt="" width="30px" style="padding-right: 4px;">Facebook
-                        </button>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close"
-                        data-bs-toggle="modal" data-bs-target="#register">Registrarse</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
