@@ -77,7 +77,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
                                  "/usuarios/registrar","/Detalles","/Somos","/header","/canales",
                                  "/Canales","/metodosPago","/productosCategoria","/usuarios/registrar/**",
-                                 "/productos/**","/usuarios/logout", "/usuarios/Loggin-User").permitAll()
+                                 "/productos/**").permitAll()
                 .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**").hasRole("ADMINISTRADOR")
                 .anyRequest().authenticated()
             )
@@ -97,7 +97,7 @@ public class SecurityConfiguration {
                 .userDetailsService(usuarioDetailsService)
             )
             .logout(logout -> logout
-                .logoutUrl("/logout")
+                .logoutUrl("/usuarios/logout")
                 .logoutSuccessUrl("/Index?logout=true")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID", "remember-me")

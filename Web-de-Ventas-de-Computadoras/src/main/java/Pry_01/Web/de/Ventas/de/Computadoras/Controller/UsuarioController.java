@@ -2,6 +2,10 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 
 import java.util.List;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,16 +19,20 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/usuarios")
 public class UsuarioController {
+
     private final CategoriaService categoriaService;
     private final ProductoService productoService;
     private final UsuarioService usuarioService;
 
-    public UsuarioController(UsuarioService usuarioService,CategoriaService categoriaService, ProductoService productoService) {
+    public UsuarioController(UsuarioService usuarioService,
+                             CategoriaService categoriaService,
+                             ProductoService productoService) {
         this.categoriaService = categoriaService;
         this.productoService = productoService;
         this.usuarioService = usuarioService;
@@ -37,7 +45,7 @@ public class UsuarioController {
 
         model.addAttribute("categorias", categorias);
         model.addAttribute("productos", productos);
-        
+
         try {
             Object obj = session.getAttribute("usuario");
             if (obj == null || !(obj instanceof UsuarioDTO)) {
@@ -68,36 +76,44 @@ public class UsuarioController {
 
     @PostMapping("/editar/{id}")
     public String editarUsuario(@PathVariable Long id,
-            @ModelAttribute("usuario") UsuarioModel usuario) {
+                                @ModelAttribute("usuario") UsuarioModel usuario) {
         usuario.setId(id);
         usuarioService.actualizarUsuario(usuario);
         return "redirect:/VistaAdmin";
     }
 
+    @PostMapping("/eliminar/{id}")
+    public String eliminarUsuario(@PathVariable Long id) {
+        usuarioService.eliminarUsuario(id);
+        return "redirect:/VistaAdmin";
+    }
+
     @PostMapping("/perfil/editar/{id}")
     public String editarPerfil(@PathVariable Long id,
-            @ModelAttribute UsuarioUpdateDTO datos,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
+                               @ModelAttribute UsuarioUpdateDTO datos,
+                               HttpSession session,
+                               RedirectAttributes redirectAttributes) {
 
         UsuarioDTO usuarioEnSesion = (UsuarioDTO) session.getAttribute("usuario");
         if (usuarioEnSesion == null || !usuarioEnSesion.getId().equals(id)) {
             return "redirect:/login";
         }
+
         UsuarioModel usuarioExistente = usuarioService.obtenerPorId(id);
         if (usuarioExistente == null) {
             return "redirect:/Loggin-User?error=notfound";
         }
+
         usuarioExistente.setName(datos.getName());
         usuarioExistente.setLastname(datos.getLastname());
         usuarioExistente.setEmailAddress(datos.getEmailAddress());
         usuarioExistente.setPhoneNumber(datos.getPhoneNumber());
         usuarioExistente.setAddress(datos.getAddress());
 
-        usuarioService.guardarUsuario(usuarioExistente); 
+        usuarioService.guardarUsuario(usuarioExistente);
 
         redirectAttributes.addFlashAttribute("successMessage", "¡Cambios guardados exitosamente!");
-        
+
         session.setAttribute("usuario", new UsuarioDTO(usuarioExistente));
         return "redirect:/usuarios/Loggin-User";
     }
@@ -114,22 +130,35 @@ public class UsuarioController {
         return "Loggin-User";
     }
 
-    @PostMapping("/eliminar/{id}")
-    public String eliminarUsuario(@PathVariable Long id) {
-        usuarioService.eliminarUsuario(id);
-        return "redirect:/VistaAdmin";
-    }
-
     @PostMapping("/registrar")
     public String registrar(@ModelAttribute UsuarioModel usuario,
-            RedirectAttributes redirectAttributes,
-            HttpSession session) {
+                            RedirectAttributes redirectAttributes,
+                            HttpServletRequest request,
+                            HttpSession session) {
         try {
             UsuarioModel usuarioRegistrado = usuarioService.registrarUsuario(usuario);
+
             UsuarioDTO usuarioDTO = new UsuarioDTO(usuarioRegistrado);
             session.setAttribute("usuario", usuarioDTO);
+
+            String rol = "ROLE_" + usuarioRegistrado.getRol().name();
+
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(
+                            usuarioRegistrado.getEmailAddress(),
+                            null,
+                            List.of(new SimpleGrantedAuthority(rol))
+                    );
+
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(auth);
+            SecurityContextHolder.setContext(context);
+
+            request.getSession().setAttribute("SPRING_SECURITY_CONTEXT", context);
+
             redirectAttributes.addFlashAttribute("mensaje", "Usuario registrado y sesión iniciada.");
             return "redirect:/usuarios/Index";
+
         } catch (Exception e) {
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "Error al registrar: " + e.getMessage());
@@ -139,9 +168,9 @@ public class UsuarioController {
 
     @PostMapping("/login")
     public String login(@RequestParam(value = "email") String email,
-            @RequestParam(value = "password") String password,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
+                        @RequestParam(value = "password") String password,
+                        HttpSession session,
+                        RedirectAttributes redirectAttributes) {
         try {
             if (email == null || password == null || email.isBlank() || password.isBlank()) {
                 redirectAttributes.addFlashAttribute("errorl", "Faltan credenciales");
@@ -170,5 +199,4 @@ public class UsuarioController {
         redirectAttributes.addFlashAttribute("mensaje", "Sesión cerrada correctamente.");
         return "redirect:/Index";
     }
-    
 }
