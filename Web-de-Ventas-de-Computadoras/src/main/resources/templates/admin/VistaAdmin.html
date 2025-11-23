@@ -5,8 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <title>SmartZone</title>
   <link rel="stylesheet" href="/Css/Style.css">
+  <link rel="stylesheet" href="/Css/admin.css">
   <link rel="icon" href="/Img/img.png">
 </head>
 
@@ -14,20 +17,31 @@
   <div class="container-fluid">
     <div class="row">
 
-      <!-- 🔹 Sidebar para escritorio -->
-      <nav class="col-md-2 d-none d-md-block sidebar bg-light text-center" id="sidebarMenu">
-        <div class="mb-4 mt-3">
-          <a class="navbar-brand" th:href="@{/}">
-            <img src="/Img/img.png" alt="Logo SmartZone" class="img-fluid mx-auto" style="max-width: 100px;">
-          </a>
+      <!-- 🔹 Sidebar para escritorio (mejorado) -->
+      <nav class="col-md-2 d-none d-md-block sidebar" id="sidebarMenu">
+        <div class="sidebar-header position-relative text-center py-3">
+          <button id="collapseSidebarBtn" class="btn btn-sm btn-light collapse-btn" onclick="toggleSidebar()"
+            aria-label="Minimizar menú">
+            <i id="collapseSidebarIcon" class="bi bi-chevron-left"></i>
+          </button><br>
         </div>
-        <ul class="nav flex-column">
-          <button class="btn btn-outline-success mb-2 active" onclick="mostrarSeccion('bienvenida', this)">Inicio</button>
-          <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('usuarios', this)">Usuarios</button>
-          <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('productos', this)">Productos</button>
-          <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('categoria', this)">Categoría Producto</button>
-          <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('metodoPago', this)">Método de Pago</button>
-        </ul>
+        <div class="list-group list-group-flush px-2">
+          <button title="Inicio" data-bs-toggle="tooltip" data-bs-placement="right"
+            class="list-group-item list-group-item-action active" onclick="mostrarSeccion('bienvenida', this)"><i
+              class="bi bi-house-door-fill"></i> <span class="label">Inicio</span></button>
+          <button title="Usuarios" data-bs-toggle="tooltip" data-bs-placement="right"
+            class="list-group-item list-group-item-action" onclick="mostrarSeccion('usuarios', this)"><i
+              class="bi bi-people-fill"></i> <span class="label">Usuarios</span></button>
+          <button title="Productos" data-bs-toggle="tooltip" data-bs-placement="right"
+            class="list-group-item list-group-item-action" onclick="mostrarSeccion('productos', this)"><i
+              class="bi bi-box-seam"></i> <span class="label">Productos</span></button>
+          <button title="Categoría" data-bs-toggle="tooltip" data-bs-placement="right"
+            class="list-group-item list-group-item-action" onclick="mostrarSeccion('categoria', this)"><i
+              class="bi bi-tags-fill"></i> <span class="label">Categoría</span></button>
+          <button title="Métodos Pago" data-bs-toggle="tooltip" data-bs-placement="right"
+            class="list-group-item list-group-item-action" onclick="mostrarSeccion('metodoPago', this)"><i
+              class="bi bi-credit-card-2-front-fill"></i> <span class="label">Métodos Pago</span></button>
+        </div>
       </nav>
 
       <!-- 🔹 Navbar con botón para móviles -->
@@ -52,56 +66,107 @@
             <img src="/Img/img.png" alt="Logo SmartZone" width="40" class="me-2">
             SmartZone
           </h5>
-          <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
-            aria-label="Close"></button>
+          <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body text-center">
           <ul class="nav flex-column">
             <button class="btn btn-outline-success mb-2 active" onclick="mostrarSeccion('bienvenida', this)"
-              data-bs-dismiss="offcanvas">Inicio</button>
+              data-bs-dismiss="offcanvas"><i class="bi bi-house-door-fill"></i> Inicio</button>
             <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('usuarios', this)"
-              data-bs-dismiss="offcanvas">Usuarios</button>
+              data-bs-dismiss="offcanvas"><i class="bi bi-people-fill"></i> Usuarios</button>
             <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('productos', this)"
-              data-bs-dismiss="offcanvas">Productos</button>
+              data-bs-dismiss="offcanvas"><i class="bi bi-box-seam"></i> Productos</button>
             <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('categoria', this)"
-              data-bs-dismiss="offcanvas">Categoría Producto</button>
+              data-bs-dismiss="offcanvas"><i class="bi bi-tags-fill"></i> Categoría Producto</button>
             <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('metodoPago', this)"
-              data-bs-dismiss="offcanvas">Método de Pago</button>
+              data-bs-dismiss="offcanvas"><i class="bi bi-credit-card-2-front-fill"></i> Método de Pago</button>
           </ul>
         </div>
       </div>
 
-      <!-- 🔹 Contenido principal -->
+      <!-- 🔹 Contenido principal (mejorado) -->
       <main class="col-md-10 ms-sm-auto col-lg-10 content">
+        <div class="d-flex justify-content-between align-items-center py-3 mb-3 border-bottom">
+          <div class="d-flex align-items-center w-100">
+            <h1 class="h4 mb-0 me-3">Panel de Administración</h1>
+            <div class="d-none d-md-flex ms-1 me-auto" style="min-width:260px;">
+              <div class="input-group">
+                <input type="search" class="form-control form-control-sm" placeholder="Buscar usuarios, productos..."
+                  aria-label="Buscar">
+                <button class="btn btn-sm btn-outline-secondary" type="button"><i class="bi bi-search"></i></button>
+              </div>
+            </div>
+            <div class="ms-auto">
+              <a class="btn btn-sm btn-outline-secondary me-2" th:href="@{/}">Ver sitio</a>
+              <button class="btn btn-sm btn-primary">Cerrar sesión</button>
+            </div>
+          </div>
+        </div>
+
         <div id="bienvenida" class="seccion">
-          <div class="alert alert-success text-center" role="alert">
-            <h3>¡Bienvenido Administrador a SmartZone!</h3>
-            <p>Seleccione una opción en el menú para comenzar a gestionar el sistema.</p>
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="card p-3 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h3 class="mb-1">¡Bienvenido, Administrador!</h3>
+                    <p class="mb-0 text-muted">Usa el menú a la izquierda para gestionar usuarios, productos y pagos.
+                    </p>
+                  </div>
+                  <img src="/Img/img.png" alt="Logo" style="width:72px; opacity:0.9">
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="card text-white bg-success h-100 shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title">Usuarios</h5>
+                  <p class="card-text display-6">--</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card text-white bg-primary h-100 shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title">Productos</h5>
+                  <p class="card-text display-6">--</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card text-white bg-warning h-100 shadow-sm">
+                <div class="card-body text-dark">
+                  <h5 class="card-title">Ventas</h5>
+                  <p class="card-text display-6">--</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div id="usuarios" class="seccion d-none">
-          <h2>Gestión de Usuarios</h2>
+          <h2 class="mb-3">Gestión de Usuarios</h2>
           <div th:replace="~{fragments/Admin-gest/Gest-usuarios :: gest-usuarios}"></div>
         </div>
         <div id="productos" class="seccion d-none">
-          <h2>Gestión de Productos</h2>
+          <h2 class="mb-3">Gestión de Productos</h2>
           <div th:replace="~{fragments/Admin-gest/Gest-productos :: gest-productos}"></div>
         </div>
         <div id="categoria" class="seccion d-none">
-          <h2>Gestión de Categorías</h2>
+          <h2 class="mb-3">Gestión de Categorías</h2>
           <div th:replace="~{fragments/Admin-gest/Gest-categoria :: gest-categoria}"></div>
         </div>
         <div id="metodoPago" class="seccion d-none">
-          <h2>Gestión de Método de Pago</h2>
+          <h2 class="mb-3">Gestión de Métodos de Pago</h2>
           <div th:replace="~{fragments/Admin-gest/Gest-MetodoPago :: gest-metodoPago}"></div>
         </div>
       </main>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/Js/Admin-fun.js"></script>
   <script src="/Js/Admin-Usuario.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
