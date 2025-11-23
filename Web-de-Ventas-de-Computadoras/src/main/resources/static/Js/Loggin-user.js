@@ -12,9 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const fragmentName = link.getAttribute("data-fragment");
       let url = `/fragment?name=${encodeURIComponent(fragmentName)}`;
 
-      if (fragmentName === "cuenta") {
-        url = "/fragment/cuenta";
-      }
 
       try {
         const response = await fetch(url);
@@ -30,11 +27,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-  const defaultLink = document.querySelector(".menu-link[data-fragment='cuenta']");
-  if (defaultLink) {
-    setTimeout(() => {
-      defaultLink.classList.add("active");
-      defaultLink.click();
-    }, 100);
-  }
 });

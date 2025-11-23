@@ -47,11 +47,6 @@ private final CategoriaService categoriaService;
         return "EnviosPag";
     }
 
-    @GetMapping("/index")
-    public String index(){
-        return "Index";
-    }
-
     @GetMapping("/header")
     public String mostrarHeader() {
         // Si usas Thymeleaf y quieres el fragmento concreto: "fragments/headerFooter ::

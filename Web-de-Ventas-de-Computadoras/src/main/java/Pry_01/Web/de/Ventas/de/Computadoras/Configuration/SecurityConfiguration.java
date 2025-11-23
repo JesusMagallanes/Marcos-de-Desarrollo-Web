@@ -77,7 +77,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
                                  "/usuarios/registrar","/Detalles","/Somos","/header","/canales",
                                  "/Canales","/metodosPago","/productosCategoria","/usuarios/registrar/**",
-                                 "/productos/**").permitAll()
+                                 "/productos/**","/usuarios/logout", "/usuarios/Loggin-User").permitAll()
                 .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**").hasRole("ADMINISTRADOR")
                 .anyRequest().authenticated()
             )
