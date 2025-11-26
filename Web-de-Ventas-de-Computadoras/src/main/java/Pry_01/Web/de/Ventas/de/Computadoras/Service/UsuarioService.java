@@ -6,17 +6,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.UsuarioRepository;
+import lombok.AllArgsConstructor;
 
 @Service
+@AllArgsConstructor
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
-        this.usuarioRepository = usuarioRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     public Optional<UsuarioModel> getCorreo(String correo) {
         return usuarioRepository.findByEmailAddress(correo);
@@ -44,7 +42,7 @@ public class UsuarioService {
 
         return usuarioRepository.save(usuario);
     }
-
+    
     public UsuarioModel obtenerPorId(Long id) {
         return usuarioRepository.findById(id).orElse(null);
     }

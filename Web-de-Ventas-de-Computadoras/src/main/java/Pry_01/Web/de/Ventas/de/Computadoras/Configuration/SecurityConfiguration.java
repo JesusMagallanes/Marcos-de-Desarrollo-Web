@@ -36,6 +36,7 @@ public class SecurityConfiguration {
         prov.setPasswordEncoder(passwordEncoder);
         return prov;
     }
+    
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
         return new AuthenticationSuccessHandler() {
