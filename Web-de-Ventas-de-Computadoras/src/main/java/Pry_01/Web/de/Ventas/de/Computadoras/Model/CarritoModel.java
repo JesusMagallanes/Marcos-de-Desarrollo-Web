@@ -48,7 +48,6 @@ public class CarritoModel {
         item.setCarrito(null);
     }
 
-
     @PrePersist
     protected void onCreate() {
         this.creadoEn = LocalDateTime.now();
