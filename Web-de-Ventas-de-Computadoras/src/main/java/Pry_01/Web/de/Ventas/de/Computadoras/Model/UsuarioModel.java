@@ -61,10 +61,9 @@ public class UsuarioModel {
     @Column(nullable = false, length = 200)
     private String address;
 
-    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 200)
-    private Roles rol = Roles.CLIENTE;
+    private Roles rol;
 
 
 }

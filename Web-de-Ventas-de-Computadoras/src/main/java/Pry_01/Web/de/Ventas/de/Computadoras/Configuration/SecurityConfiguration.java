@@ -80,6 +80,7 @@ public class SecurityConfiguration {
                                  "/Canales","/metodosPago","/productosCategoria","/usuarios/registrar/**",
                                  "/productos/**").permitAll()
                 .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/EnviosPag").hasRole("EMPLEADO")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

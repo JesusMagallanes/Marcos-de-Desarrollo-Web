@@ -61,7 +61,7 @@ public class UsuarioService {
         usuarioExistente.setEmailAddress(normalizeEmail(usuarioActualizado.getEmailAddress()));
         usuarioExistente.setPhoneNumber(usuarioActualizado.getPhoneNumber());
         usuarioExistente.setAddress(usuarioActualizado.getAddress());
-
+        usuarioExistente.setRol(usuarioActualizado.getRol());
         // Solo codificar la contraseña si se envió una nueva
         String nuevaPassword = usuarioActualizado.getPassword();
         if (nuevaPassword != null && !nuevaPassword.isBlank()) {
