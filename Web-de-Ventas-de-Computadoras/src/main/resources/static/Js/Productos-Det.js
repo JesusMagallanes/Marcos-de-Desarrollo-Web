@@ -538,13 +538,26 @@ function renderProduct(rootId, data) {
     qtyWrap.appendChild(qtyLabel);
     qtyWrap.appendChild(qtyInput);
 
-    const addBtn = document.createElement('button');
-    addBtn.className = 'btn btn-outline-success';
-    addBtn.style.fontSize = '15px';
-    addBtn.type = 'button';
-    addBtn.textContent = 'Agregar a Carrito';
-        // atributos para el carrito (data-*). Precio en número sin formato.
-        addBtn.setAttribute('data-add-to-cart', 'true');
+    // Clonar el botón desde el snippet HTML (div oculto) si existe, así el texto queda en el HTML
+    let addBtn;
+    try {
+        const snippet = document.getElementById('add-to-cart-snippet');
+        if (snippet && snippet.firstElementChild) {
+            addBtn = snippet.firstElementChild.cloneNode(true);
+        }
+    } catch (err) {
+        addBtn = null;
+    }
+    if (!addBtn) {
+        addBtn = document.createElement('a');
+        addBtn.className = 'btn btn-outline-success';
+        addBtn.style.fontSize = '15px';
+        addBtn.setAttribute('role', 'button');
+        addBtn.href = '#';
+        addBtn.textContent = 'Agregar a Carrito';
+    }
+    // atributos para el carrito (data-*). Precio en número sin formato.
+    addBtn.setAttribute('data-add-to-cart', 'true');
         addBtn.dataset.id = data.id;
         addBtn.dataset.name = data.titulo;
         // función utilitaria para parsear correctamente distintos formatos de precio

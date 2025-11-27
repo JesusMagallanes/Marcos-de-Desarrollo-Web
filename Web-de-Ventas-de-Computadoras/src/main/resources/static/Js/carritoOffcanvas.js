@@ -4,7 +4,14 @@ const subtotalEl = document.getElementById('subtotal');
 const totalEl = document.getElementById('total');
 
 function isLogged() {
-  // Si existe el enlace a /Carrito en el header significa que hay usuario en sesión
+  // Preferir marcador Thymeleaf insertado en la plantilla
+  try {
+    if (document.getElementById('usuario-presente')) return true;
+    if (document.getElementById('usuario-absente')) return false;
+  } catch (e) {
+    // ignore
+  }
+  // Fallback: si el header muestra enlace al carrito asumimos sesión
   return !!document.querySelector('a[href="/Carrito"]');
 }
 
@@ -21,6 +28,44 @@ document.addEventListener('click', (e) => {
     if (toastTime) toastTime.textContent = new Date().toLocaleTimeString();
     const toastEl = document.getElementById('liveToast');
     if (toastEl) new bootstrap.Toast(toastEl).show();
+
+    // Intentar abrir el modal de login si existe en la página (fallbacks incluidos)
+    const loginModalEl = document.getElementById('login');
+    if (loginModalEl) {
+      try {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          const modal = bootstrap.Modal.getOrCreateInstance(loginModalEl);
+          modal.show();
+          return;
+        }
+      } catch (err) {
+        console.debug('Bootstrap Modal API fallo:', err);
+      }
+
+      // intentar disparador existente
+      const trigger = document.querySelector('[data-bs-target="#login"]') || document.querySelector('[data-target="#login"]');
+      if (trigger) {
+        trigger.click();
+        return;
+      }
+
+      // crear trigger temporal
+      try {
+        const tmp = document.createElement('button');
+        tmp.type = 'button';
+        tmp.style.display = 'none';
+        tmp.setAttribute('data-bs-toggle', 'modal');
+        tmp.setAttribute('data-bs-target', '#login');
+        document.body.appendChild(tmp);
+        tmp.click();
+        setTimeout(() => { document.body.removeChild(tmp); }, 1200);
+        return;
+      } catch (err2) {
+        console.error('No fue posible abrir modal de login:', err2);
+      }
+    }
+
+    // último recurso: redirigir a la página de login
     setTimeout(() => { window.location.href = '/usuarios/Loggin-User'; }, 900);
     return;
   }

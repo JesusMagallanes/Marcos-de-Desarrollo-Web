@@ -52,6 +52,14 @@
                 </div>
             </div>
         </div>
+        <!-- Snippet para botón 'Agregar a Carrito' (oculto). Productos-Det.js lo clona desde aquí -->
+        <div id="add-to-cart-snippet" style="display:none;">
+            <a href="#" class="btn btn-outline-success" role="button" data-add-to-cart="true">Agregar a Carrito</a>
+        </div>
+        <!-- Marker de sesión: Thymeleaf insertará uno de estos según exista 'usuario' en sesión -->
+        <div th:if="${usuario != null}" id="usuario-presente" style="display:none;"></div>
+        <div th:if="${usuario == null}" id="usuario-absente" style="display:none;"></div>
+        
         <div class="toast-container position-fixed bottom-0 end-0 p-3">
             <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-header">
