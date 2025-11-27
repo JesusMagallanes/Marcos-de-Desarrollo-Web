@@ -38,108 +38,12 @@
                             </small>
                             <hr>
 
-                            <!-- Producto -->
-                            <div class="row align-items-center">
-
-                                <!-- Imagen de producto -->
-                                <div class="col-2 text-center">
-                                    <input type="checkbox" checked class="form-check-input mb-2">
-                                    <img src="https://media.falabella.com/falabellaPE/143189901_01/w=1500,h=1500,fit=pad"
-                                        class="img-fluid" style="max-height:80px; object-fit:contain;" alt="Producto">
-                                </div>
-
-                                <!-- Informacion de producto -->
-                                <div class="col-6">
-                                    <h6 class="mb-1 fw-bold">Laptop Asus Tuf F15 Gaming FX507VV-LP142</h6>
-                                    <p class="mb-1 text-muted">ASUS</p>
-                                    <p class="mb-1"><strong>Color:</strong> Negro</p>
-                                    <span class="badge bg-light text-success border">Llega mañana</span>
-                                    <span class="badge bg-light text-success border">Retira hoy</span>
-                                </div>
-
-                                <!-- Precio del producto -->
-                                <div class="col-4 text-end">
-                                    <h5 class="fw-bold text-danger mb-1">S/ 189</h5>
-
-                                    <!-- Contador de productos -->
-                                    <div class="d-flex justify-content-end align-items-center mt-2">
-                                        <button class="btn btn-sm btn-outline-secondary">-</button>
-                                        <input type="text" value="1"
-                                            class="form-control form-control-sm text-center mx-2" style="width:50px;">
-                                        <button class="btn btn-sm btn-outline-secondary">+</button>
-                                    </div>
-                                    <small class="text-muted">Máx 10 unidades</small>
-                                </div>
-
+                            <!-- Contenedor que renderiza el carrito mediante JS (misma lógica que el offcanvas) -->
+                            <div id="carrito-page-contenido">
+                                <p class="text-center">Cargando carrito...</p>
                             </div>
-                            <hr>
-                            <div class="row align-items-center">
-
-                                <!-- Imagen de producto -->
-                                <div class="col-2 text-center">
-                                    <input type="checkbox" checked class="form-check-input mb-2">
-                                    <img src="https://media.falabella.com/falabellaPE/143189901_01/w=1500,h=1500,fit=pad"
-                                        class="img-fluid" style="max-height:80px; object-fit:contain;" alt="Producto">
-                                </div>
-
-                                <!-- Informacion de producto -->
-                                <div class="col-6">
-                                    <h6 class="mb-1 fw-bold">Laptop Asus Tuf F15 Gaming FX507VV-LP142</h6>
-                                    <p class="mb-1 text-muted">ASUS</p>
-                                    <p class="mb-1"><strong>Color:</strong> Negro</p>
-                                    <span class="badge bg-light text-success border">Llega mañana</span>
-                                    <span class="badge bg-light text-success border">Retira hoy</span>
-                                </div>
-
-                                <!-- Precio del producto -->
-                                <div class="col-4 text-end">
-                                    <h5 class="fw-bold text-danger mb-1">S/ 189</h5>
-
-                                    <!-- Contador de productos -->
-                                    <div class="d-flex justify-content-end align-items-center mt-2">
-                                        <button class="btn btn-sm btn-outline-secondary">-</button>
-                                        <input type="text" value="1"
-                                            class="form-control form-control-sm text-center mx-2" style="width:50px;">
-                                        <button class="btn btn-sm btn-outline-secondary">+</button>
-                                    </div>
-                                    <small class="text-muted">Máx 10 unidades</small>
-                                </div>
-
-                            </div>
-                            <hr>
-                            <div class="row align-items-center">
-
-                                <!-- Imagen de producto -->
-                                <div class="col-2 text-center">
-                                    <input type="checkbox" checked class="form-check-input mb-2">
-                                    <img src="https://media.falabella.com/falabellaPE/143189901_01/w=1500,h=1500,fit=pad"
-                                        class="img-fluid" style="max-height:80px; object-fit:contain;" alt="Producto">
-                                </div>
-
-                                <!-- Informacion de producto -->
-                                <div class="col-6">
-                                    <h6 class="mb-1 fw-bold">Laptop Asus Tuf F15 Gaming FX507VV-LP142</h6>
-                                    <p class="mb-1 text-muted">ASUS</p>
-                                    <p class="mb-1"><strong>Color:</strong> Negro</p>
-                                    <span class="badge bg-light text-success border">Llega mañana</span>
-                                    <span class="badge bg-light text-success border">Retira hoy</span>
-                                </div>
-
-                                <!-- Precio del producto -->
-                                <div class="col-4 text-end">
-                                    <h5 class="fw-bold text-danger mb-1">S/ 189</h5>
-
-                                    <!-- Contador de productos -->
-                                    <div class="d-flex justify-content-end align-items-center mt-2">
-                                        <button class="btn btn-sm btn-outline-secondary">-</button>
-                                        <input type="text" value="1"
-                                            class="form-control form-control-sm text-center mx-2" style="width:50px;">
-                                        <button class="btn btn-sm btn-outline-secondary">+</button>
-                                    </div>
-                                    <small class="text-muted">Máx 10 unidades</small>
-                                </div>
-
-                            </div>
+                            <!-- Depuración removida: si sigue ocurriendo ERR_INCOMPLETE_CHUNKED_ENCODING,
+                                 revisa logs del servidor y ejecuta fetch('/carrito/items') en la consola. -->
                         </div>
                     </div>
                 </div>
@@ -150,13 +54,13 @@
                         <h6 class="fw-bold mb-3">Resumen de la orden</h6>
 
                         <div class="d-flex justify-content-between">
-                            <span>Productos (1)</span>
-                            <span>S/ 199</span>
+                            <span>Productos (<span id="carrito-page-count">0</span>)</span>
+                            <span id="carrito-page-total">S/ 0.00</span>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between fw-bold">
                             <span>Total:</span>
-                            <span class="text-primary">S/ 189</span>
+                            <span class="text-primary" id="carrito-page-total-strong">S/ 0.00</span>
                         </div>
 
                         <button class="btn btn-dark w-100 rounded-pill mt-3">Continuar compra</button>
@@ -170,6 +74,146 @@
             </div>
         </div>
     </main>
+    <script>
+        (function(){
+            const pageContainer = document.getElementById('carrito-page-contenido');
+            const countEl = document.getElementById('carrito-page-count');
+            const totalEl = document.getElementById('carrito-page-total');
+            const totalStrong = document.getElementById('carrito-page-total-strong');
+
+            function getCsrf() {
+                const tokenMeta = document.querySelector('meta[name="_csrf"]');
+                const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+                return {
+                    token: tokenMeta ? tokenMeta.getAttribute('content') : null,
+                    header: headerMeta ? headerMeta.getAttribute('content') : 'X-CSRF-TOKEN'
+                };
+            }
+
+            function renderItems(json) {
+                const items = (json && json.items) ? json.items : [];
+                if (!items || items.length === 0) {
+                    pageContainer.innerHTML = '<p class="text-center">Tu carrito está vacío.</p>';
+                    countEl.textContent = 0;
+                    totalEl.textContent = 'S/ 0.00';
+                    totalStrong.textContent = 'S/ 0.00';
+                    return;
+                }
+
+                const html = items.map(item => {
+                    const price = Number(item.precio || 0).toFixed(2);
+                    return `
+                        <div class="row align-items-center mb-2">
+                            <div class="col-2 text-center">
+                                <img src="${item.image || '/Img/img.png'}" class="img-fluid" style="max-height:80px; object-fit:contain;" alt="Producto">
+                            </div>
+                            <div class="col-6">
+                                <h6 class="mb-1 fw-bold">${item.nombre}</h6>
+                                <p class="mb-1 text-muted">${item.nombre}</p>
+                            </div>
+                                        <div class="col-4 text-end">
+                                            <h5 class="fw-bold text-danger mb-1">S/ ${price}</h5>
+                                            <div class="d-flex justify-content-end align-items-center mt-2">
+                                                <button data-product-id="${item.productId}" class="btn btn-sm btn-outline-secondary btn-decrease">-</button>
+                                                <input type="text" value="${item.cantidad}" class="form-control form-control-sm text-center mx-2" style="width:50px;" readonly>
+                                                <button data-product-id="${item.productId}" class="btn btn-sm btn-outline-secondary btn-add">+</button>
+                                                <button data-item-id="${item.itemId}" class="btn btn-sm btn-outline-danger ms-2 btn-delete" title="Eliminar item"><i class="fa fa-trash"></i></button>
+                                            </div>
+                                        </div>
+                        </div>
+                        <hr>
+                    `;
+                }).join('\n');
+
+                pageContainer.innerHTML = html;
+                countEl.textContent = items.length;
+                totalEl.textContent = 'S/ ' + (json.subtotal || 0).toFixed(2);
+                totalStrong.textContent = 'S/ ' + (json.subtotal || 0).toFixed(2);
+
+                // attach handlers
+                document.querySelectorAll('.btn-add').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const productId = btn.dataset.productId;
+                        addAjax(productId, 1);
+                    });
+                });
+
+                // disminuir cantidad (usa addAjax con cantidad negativa)
+                document.querySelectorAll('.btn-decrease').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const productId = btn.dataset.productId;
+                        // intentar reducir 1 unidad; el backend debe soportar cantidades negativas como decremento
+                        addAjax(productId, -1);
+                    });
+                });
+
+                // eliminar item por completo
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const itemId = btn.dataset.itemId;
+                        if (!confirm('¿Eliminar este producto del carrito?')) return;
+                        removeAjax(itemId);
+                    });
+                });
+            }
+
+            function loadPageCart() {
+                fetch('/carrito/items', { credentials: 'same-origin' })
+                    .then(r => {
+                        if (r.status === 401) {
+                            pageContainer.innerHTML = '<p class="text-center">Debes iniciar sesión para ver el carrito.</p>';
+                            return null;
+                        }
+                        return r.json();
+                    })
+                    .then(json => {
+                        if (json) renderItems(json);
+                    }).catch(err => {
+                        console.error('Error cargando carrito:', err);
+                        pageContainer.innerHTML = '<p class="text-center text-danger">Error cargando carrito.</p>';
+                    });
+            }
+
+            function addAjax(productId, cantidad) {
+                const csrf = getCsrf();
+                fetch('/carrito/addAjax/' + encodeURIComponent(productId), {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: Object.assign({ 'Content-Type': 'application/json' }, csrf.token ? { [csrf.header]: csrf.token } : {}),
+                    body: JSON.stringify({ cantidad: cantidad })
+                }).then(r => {
+                    if (!r.ok) throw new Error('No autorizado');
+                    return r.json().catch(() => ({ ok: true }));
+                }).then(() => {
+                    loadPageCart();
+                }).catch(err => {
+                    console.error('Error addAjax:', err);
+                    if (err.message && err.message.includes('No autorizado')) {
+                        window.location.href = '/usuarios/Loggin-User';
+                    }
+                });
+            }
+
+            function removeAjax(itemId) {
+                        const csrf = getCsrf();
+                        fetch('/carrito/removeAjax/' + encodeURIComponent(itemId), {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: csrf.token ? { [csrf.header]: csrf.token } : {}
+                        }).then(r => {
+                            if (!r.ok) throw new Error('No autorizado');
+                            return r.json().catch(() => ({ ok: true }));
+                        }).then(() => {
+                            loadPageCart();
+                        }).catch(err => {
+                            console.error('Error removeAjax:', err);
+                        });
+                    }
+
+            // inicializar
+            document.addEventListener('DOMContentLoaded', loadPageCart);
+        })();
+    </script>
     <div th:replace="fragments/headerFooter/footer :: footer"></div>
 
     <!--CONTENIDO BOT-->

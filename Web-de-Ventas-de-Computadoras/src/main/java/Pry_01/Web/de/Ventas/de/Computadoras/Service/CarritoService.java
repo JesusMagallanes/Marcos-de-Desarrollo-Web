@@ -56,21 +56,37 @@ public class CarritoService {
     }
 
     public void agregarProductoConCantidad(UsuarioModel usuario, Long productoId, int cantidad) {
-        if (cantidad <= 0) return;
         CarritoModel carrito = obtenerCarrito(usuario);
         ProductoModel producto = productoService.obtenerPorId(productoId);
 
         Optional<CarritoItemModel> existente = itemRepo.findByCarritoAndProducto(carrito, producto);
-        if (existente.isPresent()) {
-            CarritoItemModel item = existente.get();
-            item.setCantidad(item.getCantidad() + cantidad);
-            itemRepo.save(item);
-        } else {
-            CarritoItemModel nuevo = new CarritoItemModel();
-            nuevo.setCarrito(carrito);
-            nuevo.setProducto(producto);
-            nuevo.setCantidad(cantidad);
-            itemRepo.save(nuevo);
+        if (cantidad > 0) {
+            // incremento normal (o creación)
+            if (existente.isPresent()) {
+                CarritoItemModel item = existente.get();
+                item.setCantidad(item.getCantidad() + cantidad);
+                itemRepo.save(item);
+            } else {
+                CarritoItemModel nuevo = new CarritoItemModel();
+                nuevo.setCarrito(carrito);
+                nuevo.setProducto(producto);
+                nuevo.setCantidad(cantidad);
+                itemRepo.save(nuevo);
+            }
+        } else if (cantidad < 0) {
+            // decremento: sólo si existe el item
+            if (existente.isPresent()) {
+                CarritoItemModel item = existente.get();
+                int nueva = item.getCantidad() + cantidad; // cantidad es negativa
+                if (nueva > 0) {
+                    item.setCantidad(nueva);
+                    itemRepo.save(item);
+                } else {
+                    // eliminar si la cantidad queda en 0 o negativa
+                    itemRepo.deleteById(item.getId());
+                }
+            }
+            // si no existe y la cantidad es negativa, no hacemos nada
         }
     }
 
