@@ -55,6 +55,25 @@ public class CarritoService {
         }
     }
 
+    public void agregarProductoConCantidad(UsuarioModel usuario, Long productoId, int cantidad) {
+        if (cantidad <= 0) return;
+        CarritoModel carrito = obtenerCarrito(usuario);
+        ProductoModel producto = productoService.obtenerPorId(productoId);
+
+        Optional<CarritoItemModel> existente = itemRepo.findByCarritoAndProducto(carrito, producto);
+        if (existente.isPresent()) {
+            CarritoItemModel item = existente.get();
+            item.setCantidad(item.getCantidad() + cantidad);
+            itemRepo.save(item);
+        } else {
+            CarritoItemModel nuevo = new CarritoItemModel();
+            nuevo.setCarrito(carrito);
+            nuevo.setProducto(producto);
+            nuevo.setCantidad(cantidad);
+            itemRepo.save(nuevo);
+        }
+    }
+
     public void eliminarItem(Long itemId) {
         itemRepo.deleteById(itemId);
     }

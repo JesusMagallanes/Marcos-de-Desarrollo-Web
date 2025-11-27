@@ -1,4 +1,6 @@
 <div th:fragment="header">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <header class="header-principal container-fluid px-lg-5 px-0" style="background-color: #F8F8F8;">
         <nav class="navbar navbar-expand-lg m-0" style="height: 4rem; box-shadow: none; background-color: #F8F8F8;">
 

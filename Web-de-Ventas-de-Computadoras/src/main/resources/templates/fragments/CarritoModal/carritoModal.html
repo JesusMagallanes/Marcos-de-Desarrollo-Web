@@ -5,21 +5,11 @@
     </div>
     
     <div class="offcanvas-body p-0" style=" background-color: #F5F5F5;  align-items: center; display: flex; flex-direction: column; justify-content: end;">  
-        <div style="height: 100%;">
-            <ul style="list-style: none; padding: 0;">
-                <li th:if="${#lists.isEmpty(productos)}">
-                    <p>No hay productos disponibles.</p>
-                </li>
-
-                <li th:each="producto : ${productos}">
-                    <button type="button" class="btn btn-outline-success text-light d-flex align-items-center"
-                            style="border: none; margin-bottom: 8px; width: 100%; text-align: left;"
-                            th:onclick="|window.location.href='/productos/detalle/${producto.id}'|">
-                        <img style="margin-right: 8px; width: 45px;" th:src="${producto.imageUrl}" alt="icono" />
-                        <span th:text="${producto.name}">Nombre</span>
-                    </button>
-                </li>
-            </ul>
+        <div style="height: 100%; width: 100%; padding: 12px;">
+            <!-- Contenido del carrito renderizado por JS -->
+            <div id="carrito-contenido">
+                <p class="text-center">Tu carrito está vacío.</p>
+            </div>
         </div>
         
 
@@ -27,12 +17,12 @@
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 12rem; background-color: #2A2A2A; border-radius: 8px 8px 0px 0px ; width: 100%;" >
 
             <div class="border-bottom py-2 px-3 d-flex justify-content-between" style="width: 92%; color: white; height: auto;">
-                <h6 class="m-0" style="font-size: 13px;">subtotal</h6>
-                <p class="m-0" style="font-size: 13px;">S/699.00</p>
+                <h6 class="m-0" style="font-size: 13px;">Subtotal</h6>
+                <p id="subtotal" class="m-0" style="font-size: 13px;">S/0.00</p>
             </div>
             <div class="p-3 d-flex justify-content-between" style="width: 92%; color: white;">
                 <h6 class="m-0" style="font-size: 16px;">Total</h6>
-                <p class="m-0" style="font-size: 16px;">S/699.00</p>
+                <p id="total" class="m-0" style="font-size: 16px;">S/0.00</p>
             </div>
             <a th:href="@{/Carrito}" style="width: 92%;" class="px-3">
                 <button type="button" class="btn btn-primary" style="width: 100%;" >Ir a pagar</button>

@@ -469,14 +469,6 @@ function renderProduct(rootId, data) {
     colRight.appendChild(ELista);
     colRight.appendChild(document.createElement('br'));
 
-    // descripcion
-    const desc = document.createElement('p');
-    desc.className = 'card-text';
-    desc.style.marginRight = '20px';
-    desc.style.textAlign = 'justify';
-    desc.textContent = data.descripcion;
-    colRight.appendChild(desc);
-
     // caja de especificaciones
     const specBox = document.createElement('div');
     specBox.className = 'spec-box';
@@ -484,13 +476,20 @@ function renderProduct(rootId, data) {
     specInner.className = 'text-start';
     specInner.style.margin = '15px';
 
-    data.lista.forEach(s => {
-        const p = document.createElement('p');
-        p.className = 'card-text';
-        p.style.marginTop = '-15px';
-        p.innerHTML = `<span class="fw-semibold">${s.label}:</span> ${s.value}`;
-        specInner.appendChild(p);
-    });
+    // Nota: no mostrar la descripción textual aquí; solo la lista de especificaciones
+
+    // Renderizar las especificaciones como una lista no ordenada
+    if (Array.isArray(data.lista) && data.lista.length > 0) {
+        const ul = document.createElement('ul');
+        ul.className = 'list-unstyled mb-0';
+        data.lista.forEach(s => {
+            const li = document.createElement('li');
+            li.style.marginBottom = '6px';
+            li.innerHTML = `<span class="fw-semibold">${s.label}:</span> ${s.value}`;
+            ul.appendChild(li);
+        });
+        specInner.appendChild(ul);
+    }
 
     specBox.appendChild(specInner);
     colRight.appendChild(specBox);
@@ -544,6 +543,64 @@ function renderProduct(rootId, data) {
     addBtn.style.fontSize = '15px';
     addBtn.type = 'button';
     addBtn.textContent = 'Agregar a Carrito';
+        // atributos para el carrito (data-*). Precio en número sin formato.
+        addBtn.setAttribute('data-add-to-cart', 'true');
+        addBtn.dataset.id = data.id;
+        addBtn.dataset.name = data.titulo;
+        // función utilitaria para parsear correctamente distintos formatos de precio
+        function parsePriceString(price) {
+            if (price == null) return 0;
+            if (typeof price === 'number') return price;
+            let s = String(price).trim();
+            // eliminar moneda y otros caracteres excepto digitos, punto y coma
+            s = s.replace(/[^0-9.,]/g, '');
+            if (s === '') return 0;
+            // si contiene tanto '.' como ',' determinar cuál es decimal (el separador más a la derecha)
+            const hasDot = s.indexOf('.') !== -1;
+            const hasComma = s.indexOf(',') !== -1;
+            if (hasDot && hasComma) {
+                // el que aparece más a la derecha es el separador decimal
+                const lastDot = s.lastIndexOf('.');
+                const lastComma = s.lastIndexOf(',');
+                if (lastDot > lastComma) {
+                    // punto decimal -> quitar comas (miles)
+                    s = s.replace(/,/g, '');
+                } else {
+                    // coma decimal -> quitar puntos (miles) y reemplazar coma por punto
+                    s = s.replace(/\./g, '').replace(/,/g, '.');
+                }
+            } else if (hasComma && !hasDot) {
+                // solo coma: puede ser miles (e.g. 5,499) o decimal (e.g. 5,49)
+                // si hay grupos de 3 después de comma (length % 3 === 0) tratamos como miles
+                const parts = s.split(',');
+                if (parts.length > 1 && parts[parts.length -1].length === 3) {
+                    // probablemente miles -> quitar todas las comas
+                    s = s.replace(/,/g, '');
+                } else {
+                    // tratar coma como decimal
+                    s = s.replace(/,/g, '.');
+                }
+            } else {
+                // solo punto o ninguno: quitar separadores de miles si existen (asumir que puntos intermedios son miles si hay más de 1)
+                if (hasDot) {
+                    const parts = s.split('.');
+                    if (parts.length > 2) {
+                        // borrar todos los puntos (miles)
+                        s = s.replace(/\./g, '');
+                    }
+                }
+            }
+            const n = parseFloat(s);
+            return isNaN(n) ? 0 : n;
+        }
+
+        let numericPrice = parsePriceString(data.precio);
+        // Protegemos contra precios en centavos que aún lleguen aquí (ej. 359900)
+        if (numericPrice >= 10000 && Math.abs(Math.round(numericPrice) % 100) === 0) {
+            numericPrice = numericPrice / 100;
+        }
+        addBtn.dataset.price = numericPrice;
+        addBtn.dataset.image = (data.imagenes && data.imagenes[0]) ? data.imagenes[0] : '';
 
     // Notificación carrito
     addBtn.addEventListener('click', () => {
@@ -593,13 +650,53 @@ function renderProduct(rootId, data) {
             })
             .then(json => {
                 // json corresponde a ProductosResponseDTO
+                // Construir lista de especificaciones para productos del backend.
+                // Si la API ya devuelve un arreglo 'lista' lo usamos; si no,
+                // intentamos extraer pares 'Etiqueta: Valor' desde description;
+                // finalmente, usamos campos disponibles (categoriaName, stock, precio).
+                let listaFromApi = [];
+                if (Array.isArray(json.lista) && json.lista.length > 0) {
+                    listaFromApi = json.lista;
+                } else if (json.description && typeof json.description === 'string') {
+                    // Buscar líneas que contengan ':' para transformarlas en label/value
+                    const lines = json.description.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+                    lines.forEach(line => {
+                        const idx = line.indexOf(':');
+                        if (idx > 0) {
+                            const label = line.substring(0, idx).trim();
+                            const value = line.substring(idx + 1).trim();
+                            if (label && value) listaFromApi.push({ label, value });
+                        }
+                    });
+                }
+
+                // Campos fallback
+                if (listaFromApi.length === 0) {
+                    if (json.categoriaName) listaFromApi.push({ label: 'Categoría', value: json.categoriaName });
+                    if (json.stock != null) listaFromApi.push({ label: 'Stock', value: String(json.stock) });
+                    // no incluir precio aquí si ya se muestra aparte, pero lo dejamos opcional
+                    // if (json.precio != null) listaFromApi.push({ label: 'Precio', value: 'S/. ' + Number(json.precio).toFixed(2) });
+                }
+
+                // Normalizar precio: algunos backends envían el valor en centavos (ej. 359900)
+                // Detectamos y convertimos a unidades si es necesario para evitar multiplicar por 100.
+                let priceNum = (json.precio != null) ? Number(json.precio) : NaN;
+                if (!isNaN(priceNum)) {
+                    // Si el precio es un entero grande y divisible por 100, probablemente está en centavos
+                    if (priceNum >= 10000 && Math.abs(priceNum % 100) === 0) {
+                        priceNum = priceNum / 100;
+                    }
+                } else {
+                    priceNum = 0;
+                }
+
                 const data = {
                     id: json.id,
                     titulo: json.name || 'Producto',
-                    precio: 'S/. ' + (json.precio != null ? Number(json.precio).toFixed(2) : '0.00'),
+                    precio: 'S/. ' + priceNum.toFixed(2),
                     descripcion: json.description || '',
                     imagenes: json.imageUrl ? [json.imageUrl] : [],
-                    lista: []
+                    lista: listaFromApi
                 };
                 renderProduct('product-root', data);
             })
