@@ -37,30 +37,7 @@ public class UsuarioController {
         this.productoService = productoService;
         this.usuarioService = usuarioService;
     }
-
-    @GetMapping("/Index")
-    public String indexLog(HttpSession session, Model model) {
-        List<CategoriaModel> categorias = categoriaService.listarCategoria();
-        List<ProductosResponseDTO> productos = productoService.listarProducto();
-
-        model.addAttribute("categorias", categorias);
-        model.addAttribute("productos", productos);
-
-        try {
-            Object obj = session.getAttribute("usuario");
-            if (obj == null || !(obj instanceof UsuarioDTO)) {
-                return "redirect:/Index";
-            }
-            UsuarioDTO usuario = (UsuarioDTO) obj;
-            model.addAttribute("usuario", usuario);
-            return "/Index";
-        } catch (Exception e) {
-            e.printStackTrace();
-            model.addAttribute("message", "Error interno: " + e.getMessage());
-            return "error/500";
-        }
-    }
-
+    
     @GetMapping
     public String listarUsuarios(Model model) {
         model.addAttribute("usuario", new UsuarioModel());
@@ -157,7 +134,7 @@ public class UsuarioController {
             request.getSession().setAttribute("SPRING_SECURITY_CONTEXT", context);
 
             redirectAttributes.addFlashAttribute("mensaje", "Usuario registrado y sesión iniciada.");
-            return "redirect:/usuarios/Index";
+            return "redirect:/Index";
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -181,7 +158,7 @@ public class UsuarioController {
             if (usuario != null) {
                 UsuarioDTO usuarioDTO = new UsuarioDTO(usuario);
                 session.setAttribute("usuario", usuarioDTO);
-                return "redirect:/usuarios/Index";
+                return "redirect:/Index";
             } else {
                 redirectAttributes.addFlashAttribute("errorl", "Correo o contraseña incorrectos");
                 return "redirect:/Index";

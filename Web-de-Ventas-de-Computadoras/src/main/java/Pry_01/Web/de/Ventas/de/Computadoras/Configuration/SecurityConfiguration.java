@@ -61,7 +61,7 @@ public class SecurityConfiguration {
                 if (isAdmin) {
                     response.sendRedirect(request.getContextPath() + "/VistaAdmin");
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/usuarios/Index");
+                    response.sendRedirect(request.getContextPath() + "/Index");
                 }
             }
         };
