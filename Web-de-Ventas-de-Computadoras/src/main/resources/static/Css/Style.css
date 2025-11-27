@@ -477,3 +477,68 @@ a {
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
+
+/* Estilo reutilizable para tarjetas de producto */
+.card-producto {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(10, 10, 10, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+  min-height: 320px; /* Limita la altura total de la tarjeta */
+}
+
+.card-producto:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 30px rgba(10, 10, 10, 0.12);
+}
+
+.card-producto .card-img-top {
+  height: 140px; /* reducir altura de la imagen para bajar la tarjeta */
+  object-fit: contain;
+  background: #fff;
+  padding: 12px;
+}
+
+.card-producto .card-body {
+  padding: 10px 12px; /* menos padding para ahorrar espacio */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.card-producto h6 {
+  font-size: 0.92rem;
+  letter-spacing: 0.2px;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.card-producto p {
+  font-size: 0.82rem;
+  color: #6b6b6b;
+  margin: 0;
+}
+
+.card-producto .precio {
+  color: #06b56c;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-align: center;
+}
+
+/* Ajustes específicos para dispositivos pequeños */
+@media (max-width: 767px) {
+  .card-producto {
+    min-height: 300px;
+  }
+  .card-producto .card-img-top {
+    height: 120px;
+    padding: 10px;
+  }
+  .card-producto .card-body {
+    padding: 8px 10px;
+  }
+}

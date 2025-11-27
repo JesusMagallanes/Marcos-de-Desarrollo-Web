@@ -39,6 +39,31 @@ private final CategoriaService categoriaService;
         List<ProductosResponseDTO> productos = productoService.listarProducto();
         model.addAttribute("categorias", categorias);
         model.addAttribute("productos", productos);
+        // Agrupar productos por categoría para un renderizado más sencillo en la vista
+        java.util.Map<Long, java.util.List<ProductosResponseDTO>> productosPorCategoria = new java.util.LinkedHashMap<>();
+        for (CategoriaModel cat : categorias) {
+            java.util.List<ProductosResponseDTO> filt = productos.stream()
+                    .filter(p -> p.getCategoriaName() != null && p.getCategoriaName().equals(cat.getName()))
+                    .toList();
+            productosPorCategoria.put(cat.getId(), filt);
+        }
+        model.addAttribute("productosPorCategoria", productosPorCategoria);
+
+        // Crear versiones particionadas (chunks) de tamaño 6 por categoría para las slides del carrusel (desktop)
+        java.util.Map<Long, java.util.List<java.util.List<ProductosResponseDTO>>> productosPorCategoriaChunks = new java.util.LinkedHashMap<>();
+        int chunkSize = 6;
+        for (java.util.Map.Entry<Long, java.util.List<ProductosResponseDTO>> entry : productosPorCategoria.entrySet()) {
+            java.util.List<ProductosResponseDTO> list = entry.getValue();
+            java.util.List<java.util.List<ProductosResponseDTO>> chunks = new java.util.ArrayList<>();
+            if (list != null && !list.isEmpty()) {
+                for (int i = 0; i < list.size(); i += chunkSize) {
+                    int end = Math.min(list.size(), i + chunkSize);
+                    chunks.add(new java.util.ArrayList<>(list.subList(i, end)));
+                }
+            }
+            productosPorCategoriaChunks.put(entry.getKey(), chunks);
+        }
+        model.addAttribute("productosPorCategoriaChunks", productosPorCategoriaChunks);
         return "Index";
     }
 

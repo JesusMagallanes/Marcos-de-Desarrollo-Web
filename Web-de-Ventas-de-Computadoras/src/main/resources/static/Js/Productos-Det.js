@@ -581,8 +581,35 @@ function renderProduct(rootId, data) {
     const parametros = new URLSearchParams(window.location.search);
     const idEnURL = parametros.get('id');
 
-    const seleccionado = (idEnURL && productos[idEnURL]) ? productos[idEnURL] : productData;
+    // Si el id en la URL es numérico asumimos que viene desde la BD (p.id)
+    const isNumericId = idEnURL && /^\d+$/.test(idEnURL);
 
-    renderProduct('product-root', seleccionado);
+    if (isNumericId) {
+        // Llamar a la API REST para obtener el producto por id
+        fetch('/productos/' + idEnURL)
+            .then(res => {
+                if (!res.ok) throw new Error('Producto no encontrado');
+                return res.json();
+            })
+            .then(json => {
+                // json corresponde a ProductosResponseDTO
+                const data = {
+                    id: json.id,
+                    titulo: json.name || 'Producto',
+                    precio: 'S/. ' + (json.precio != null ? Number(json.precio).toFixed(2) : '0.00'),
+                    descripcion: json.description || '',
+                    imagenes: json.imageUrl ? [json.imageUrl] : [],
+                    lista: []
+                };
+                renderProduct('product-root', data);
+            })
+            .catch(err => {
+                console.error('Error al cargar producto desde API:', err);
+                renderProduct('product-root', productData);
+            });
+    } else {
+        const seleccionado = (idEnURL && productos[idEnURL]) ? productos[idEnURL] : productData;
+        renderProduct('product-root', seleccionado);
+    }
 })();
 
