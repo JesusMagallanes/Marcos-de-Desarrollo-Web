@@ -63,7 +63,7 @@ public class UsuarioModel {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 200)
-    private Roles rol;
+    private Roles rol = Roles.CLIENTE;
 
 
 }
