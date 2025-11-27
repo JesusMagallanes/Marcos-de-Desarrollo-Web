@@ -59,6 +59,9 @@
                             <li th:if="${usuario != null and usuario.rol == 'ADMINISTRADOR'}"><a class="dropdown-item"
                                     th:href="@{/VistaAdmin}">Panel Administrador</a></li>
                             <li>
+                            <li th:if="${usuario != null and usuario.rol == 'EMPLEADO'}"><a class="dropdown-item"
+                                    th:href="@{/EnviosPag}">Panel Empleado</a></li>
+                            <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li><a class="dropdown-item text-danger" th:href="@{/usuarios/logout}">Cerrar sesión</a>
