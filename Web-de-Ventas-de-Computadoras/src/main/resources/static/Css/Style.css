@@ -71,12 +71,27 @@
   border: none;
 }
 
-#carouselProductosTop .carousel-control-prev {
+#carouselProductosTop .carousel-control-prev,
+#carouselCat__1 .carousel-control-prev {
   left: -20px;
 }
 
-#carouselProductosTop .carousel-control-next {
+#carouselProductosTop .carousel-control-next,
+#carouselCat__1 .carousel-control-next {
   right: -20px;
+}
+#carouselCat__1 .carousel-control-prev,
+#carouselCat__1 .carousel-control-next {
+  width: 45px;
+  height: 45px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0.95;
+  transition: all 0.3s ease;
+  border: none;
 }
 
 #carouselProductosTop .carousel-control-prev:hover,
@@ -485,22 +500,31 @@ a {
   border-radius: 10px;
   box-shadow: 0 6px 18px rgba(10, 10, 10, 0.06);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
-  overflow: hidden;
+  overflow: visible;
   min-height: 320px; /* Limita la altura total de la tarjeta */
+  
 }
 
 .card-producto:hover {
   transform: translateY(-6px);
   box-shadow: 0 14px 30px rgba(10, 10, 10, 0.12);
 }
+.efectos-targetas{
+   overflow: visible;
+}
 .efectos-targetas a{
   overflow: visible;
 }
 .efectos-targetas .card-producto {
-  
+  text-align: start ;
   max-height: 398px;
+  overflow: visible !important;
   border: 1px solid #cecece;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  
+}
+.efectos-targetas h6{
+  text-align: start;
 }
 .efectos-targetas .card-producto:hover {
   transform: translateY(-6px);
@@ -525,21 +549,23 @@ a {
 .card-producto h6 {
   font-size: 0.92rem;
   letter-spacing: 0.2px;
-  text-align: center;
+  text-align: start;
   margin-bottom: 4px;
 }
 
 .card-producto p {
+  text-align: start;
   font-size: 0.82rem;
   color: #6b6b6b;
   margin: 0;
 }
 
 .card-producto .precio {
-  color: #333;
+
+  color: #222222;
   font-weight: 700;
   font-size: 1.05rem;
-  text-align: center;
+  text-align: start;
 }
 
 /* Ajustes específicos para dispositivos pequeños */
