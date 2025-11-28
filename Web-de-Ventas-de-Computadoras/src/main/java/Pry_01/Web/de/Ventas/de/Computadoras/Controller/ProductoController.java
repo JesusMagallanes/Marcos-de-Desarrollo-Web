@@ -67,11 +67,51 @@ public class ProductoController {
     }
 
     @GetMapping
-    public String listarProductos(Model model) {
-        model.addAttribute("producto", new ProductosCreateDTO());
-        model.addAttribute("productos", productoService.listarProducto());
-        model.addAttribute("categorias", categoriaService.listarCategoria());
-        return "fragments/Admin-gest/Gest-productos :: gest-productos";
+    public String listarProductos(@RequestParam(name = "search", required = false) String search,
+            Model model, HttpSession session) {
+
+        List<ProductosResponseDTO> productos = productoService.listarProducto();
+        if (search != null && !search.isBlank()) {
+            String q = search.toLowerCase();
+            productos = productos.stream()
+                    .filter(p -> (p.getName() != null && p.getName().toLowerCase().contains(q))
+                            || (p.getDescription() != null && p.getDescription().toLowerCase().contains(q)))
+                    .toList();
+        }
+
+        UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
+        model.addAttribute("usuario", usuarioDTO);
+
+        List<CategoriaModel> categorias = categoriaService.listarCategoria();
+        model.addAttribute("categorias", categorias);
+        model.addAttribute("productos", productos);
+
+        java.util.Map<Long, java.util.List<ProductosResponseDTO>> productosPorCategoria = new java.util.LinkedHashMap<>();
+        for (CategoriaModel cat : categorias) {
+            java.util.List<ProductosResponseDTO> filt = productos.stream()
+                    .filter(p -> p.getCategoriaName() != null && p.getCategoriaName().equals(cat.getName()))
+                    .toList();
+            productosPorCategoria.put(cat.getId(), filt);
+        }
+        model.addAttribute("productosPorCategoria", productosPorCategoria);
+
+        java.util.Map<Long, java.util.List<java.util.List<ProductosResponseDTO>>> productosPorCategoriaChunks = new java.util.LinkedHashMap<>();
+        int chunkSize = 6;
+        for (java.util.Map.Entry<Long, java.util.List<ProductosResponseDTO>> entry : productosPorCategoria.entrySet()) {
+            java.util.List<ProductosResponseDTO> list = entry.getValue();
+            java.util.List<java.util.List<ProductosResponseDTO>> chunks = new java.util.ArrayList<>();
+            if (list != null && !list.isEmpty()) {
+                for (int i = 0; i < list.size(); i += chunkSize) {
+                    int end = Math.min(list.size(), i + chunkSize);
+                    chunks.add(new java.util.ArrayList<>(list.subList(i, end)));
+                }
+            }
+            productosPorCategoriaChunks.put(entry.getKey(), chunks);
+        }
+        model.addAttribute("productosPorCategoriaChunks", productosPorCategoriaChunks);
+
+        // Devolver la vista pública (Index)
+        return "redirect:/Index";
     }
 
     @PostMapping
@@ -139,5 +179,12 @@ public class ProductoController {
     @ResponseBody
     public ProductosResponseDTO obtenerProducto(@PathVariable Long id) {
         return productoService.obtenerProductoPorId(id);
+    }
+
+    @GetMapping("/admin/fragment")
+    public String obtenerFragmentoAdmin() {
+        // Endpoint para devolver explícitamente el fragmento del administrador.
+        // Se protegerá a nivel de seguridad para que sólo administradores puedan acceder.
+        return "fragments/Admin-gest/Gest-productos :: gest-productos";
     }
 }
