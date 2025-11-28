@@ -493,6 +493,9 @@ a {
   transform: translateY(-6px);
   box-shadow: 0 14px 30px rgba(10, 10, 10, 0.12);
 }
+.efectos-targetas{
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
 
 .card-producto .card-img-top {
   height: 140px; /* reducir altura de la imagen para bajar la tarjeta */

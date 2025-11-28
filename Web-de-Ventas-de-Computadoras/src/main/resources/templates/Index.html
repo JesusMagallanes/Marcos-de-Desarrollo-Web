@@ -97,7 +97,7 @@
                         <div class="carousel-inner">
                             <div class="carousel-item" th:each="chunk, sChunk : ${productosPorCategoriaChunks[cat.id]}" th:classappend="${sChunk.index == 0} ? ' active' : ''" data-bs-interval="10000">
                                 <div class="row justify-content-center">
-                                    <div class="col-md-2 col-sm-4 mb-3" th:each="p : ${chunk}">
+                                    <div class="col-md-2 efectos-targetas col-sm-4 mb-3" th:each="p : ${chunk}">
                                         <a th:href="@{/Detalles(id=${p.id})}" class="text-decoration-none">
                                             <div class="card card-producto h-100 shadow-sm rounded">
                                                 <img th:src="${p.imageUrl}" class="card-img-top img-fluid" th:alt="${p.name}">
