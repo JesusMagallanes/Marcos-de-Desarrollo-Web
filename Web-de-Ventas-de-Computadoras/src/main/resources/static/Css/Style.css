@@ -493,8 +493,18 @@ a {
   transform: translateY(-6px);
   box-shadow: 0 14px 30px rgba(10, 10, 10, 0.12);
 }
-.efectos-targetas{
+.efectos-targetas a{
+  overflow: visible;
+}
+.efectos-targetas .card-producto {
+  
+  max-height: 398px;
+  border: 1px solid #cecece;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.efectos-targetas .card-producto:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
 }
 
 .card-producto .card-img-top {
@@ -526,7 +536,7 @@ a {
 }
 
 .card-producto .precio {
-  color: #06b56c;
+  color: #333;
   font-weight: 700;
   font-size: 1.05rem;
   text-align: center;
