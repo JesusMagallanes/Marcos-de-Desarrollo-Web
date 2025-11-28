@@ -122,6 +122,31 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Asegurar que la tarjeta promo ocupe todo el alto del slide y el contenido se alinee correctamente */
+#carouselProductosTop .carousel-item .row {
+  align-items: stretch; /* columnas toman todo el alto */
+}
+
+#carouselProductosTop .card-promo {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* empuja el body hacia abajo */
+  height: 100%;
+  box-sizing: border-box;
+}
+
+#carouselProductosTop .card-promo .card-img-top {
+  max-height: 160px; /* ajustar para que imagen ocupe parte superior */
+  object-fit: cover;
+  width: 100%;
+  background: #fff;
+}
+
+#carouselProductosTop .card-promo .card-body {
+  margin-top: auto; /* fuerza que el body quede al fondo y la zona verde llene el espacio */
+  padding: 16px;
+}
+
 #carouselProductosTop .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
@@ -579,5 +604,45 @@ a {
   }
   .card-producto .card-body {
     padding: 8px 10px;
+  }
+}
+
+/* Mobile horizontal scroll cards: control width via class instead of inline style */
+.product-card-item {
+  min-width: 260px;
+  flex: 0 0 auto;
+}
+
+/* Mantener apariencia similar en pantallas pequeñas */
+@media (max-width: 767px) {
+  .card-producto {
+    min-height: 320px;
+    max-width: 260px;
+    margin: 0 auto;
+  }
+  .card-producto .card-img-top {
+    height: 160px;
+    padding: 10px;
+  }
+  .card-producto h6 {
+    font-size: 0.95rem;
+  }
+  .card-producto p {
+    font-size: 0.85rem;
+  }
+  .card-producto .precio {
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 425px) {
+  .product-card-item {
+    min-width: 220px;
+  }
+  .card-producto .card-img-top {
+    height: 140px;
+  }
+  .card-producto {
+    min-height: 300px;
   }
 }

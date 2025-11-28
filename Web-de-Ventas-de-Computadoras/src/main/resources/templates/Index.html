@@ -96,7 +96,7 @@
                     <div th:attr="id=${'carouselCat__' + cat.id}" class="carousel carousel-dark slide d-none d-lg-block" data-bs-ride="carousel">
                         <div class="carousel-inner">
                             <div class="carousel-item" th:each="chunk, sChunk : ${productosPorCategoriaChunks[cat.id]}" th:classappend="${sChunk.index == 0} ? ' active' : ''" data-bs-interval="10000">
-                                <div class="row justify-content-center">
+                                <div class="row justify-content-center mt-3">
                                     <div class="col-md-2 efectos-targetas col-sm-4 mb-3" th:each="p : ${chunk}">
                                         <a th:href="@{/Detalles(id=${p.id})}" class="text-decoration-none">
                                             <div class="card card-producto h-100 rounded">
@@ -125,7 +125,7 @@
 
                 <!-- Scroll horizontal móvil -->
                 <div class="d-lg-none d-flex overflow-auto py-3" th:if="${productosPorCategoria[cat.id] != null and !#lists.isEmpty(productosPorCategoria[cat.id])}">
-                    <div class="flex-shrink-0 me-3" style="min-width: 200px;" th:each="p : ${productosPorCategoria[cat.id]}">
+                    <div class="flex-shrink-0 me-3 product-card-item" th:each="p : ${productosPorCategoria[cat.id]}">
                         <a th:href="@{/Detalles(id=${p.id})}">
                             <div class="card card-producto h-100 shadow-sm rounded">
                                 <img th:src="${p.imageUrl}" class="card-img-top img-fluid" th:alt="${p.name}">

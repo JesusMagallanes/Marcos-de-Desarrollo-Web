@@ -64,6 +64,16 @@ private final CategoriaService categoriaService;
             productosPorCategoriaChunks.put(entry.getKey(), chunks);
         }
         model.addAttribute("productosPorCategoriaChunks", productosPorCategoriaChunks);
+        // Crear chunks para la sección "Productos Top" (promo + 5 productos por slide)
+        int topChunkSize = 5; // 5 productos por slide + 1 promo fijo
+        java.util.List<java.util.List<ProductosResponseDTO>> productosTopChunks = new java.util.ArrayList<>();
+        if (productos != null && !productos.isEmpty()) {
+            for (int i = 0; i < productos.size(); i += topChunkSize) {
+                int end = Math.min(productos.size(), i + topChunkSize);
+                productosTopChunks.add(new java.util.ArrayList<>(productos.subList(i, end)));
+            }
+        }
+        model.addAttribute("productosTopChunks", productosTopChunks);
         return "Index";
     }
 
