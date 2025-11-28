@@ -11,32 +11,21 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosResponseDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioUpdateDTO;
-import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
-import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
-import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/usuarios")
+@RequiredArgsConstructor
 public class UsuarioController {
 
-    private final CategoriaService categoriaService;
-    private final ProductoService productoService;
     private final UsuarioService usuarioService;
 
-    public UsuarioController(UsuarioService usuarioService,
-                             CategoriaService categoriaService,
-                             ProductoService productoService) {
-        this.categoriaService = categoriaService;
-        this.productoService = productoService;
-        this.usuarioService = usuarioService;
-    }
     
     @GetMapping
     public String listarUsuarios(Model model) {

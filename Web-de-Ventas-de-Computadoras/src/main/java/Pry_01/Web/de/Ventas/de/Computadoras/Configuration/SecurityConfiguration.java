@@ -77,9 +77,8 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
                                  "/usuarios/registrar","/Detalles","/Somos","/header","/canales",
-                                 "/Canales","/metodosPago","/productosCategoria","/usuarios/registrar/**",
-                                 "/productos/**").permitAll()
-                .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**").hasRole("ADMINISTRADOR")
+                                 "/Canales","/metodosPago","/productosCategoria","/usuarios/registrar/**").permitAll()
+                .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**","/productos/**").hasRole("ADMINISTRADOR")
                 .requestMatchers("/EnviosPag").hasAnyRole("EMPLEADO", "ADMINISTRADOR")
                 .anyRequest().authenticated()
             )
