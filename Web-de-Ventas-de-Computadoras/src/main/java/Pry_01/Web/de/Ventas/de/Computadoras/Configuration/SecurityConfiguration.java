@@ -75,10 +75,14 @@ public class SecurityConfiguration {
             .csrf(Customizer.withDefaults())
             .authenticationProvider(authenticationProvider)
             .authorizeHttpRequests(auth -> auth
+                
+                .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**", "/productos/admin/**").hasRole("ADMINISTRADOR")
+
                 .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
                                  "/usuarios/registrar","/Detalles","/Somos","/header","/canales",
-                                 "/Canales","/metodosPago","/productosCategoria","/usuarios/registrar/**", "/productos/**").permitAll()
-                .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**").hasRole("ADMINISTRADOR")
+                                 "/Canales","/metodosPago","/productosCategoria","/usuarios/registrar/**",
+                                 "/productos", "/productos/api", "/productos/categoria/**", "/productos/*").permitAll()
+
                 .requestMatchers("/EnviosPag").hasAnyRole("EMPLEADO", "ADMINISTRADOR")
                 .anyRequest().authenticated()
             )
