@@ -23,7 +23,6 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosResponseDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
-import Pry_01.Web.de.Ventas.de.Computadoras.Service.MetodoPagoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
 
@@ -37,7 +36,7 @@ public class ProductoController {
     private final UsuarioService usuarioService;
 
     public ProductoController(ProductoService productoService, CategoriaService categoriaService,
-            UsuarioService usuarioService, MetodoPagoService metodoPagoService) {
+            UsuarioService usuarioService) {
         this.productoService = productoService;
         this.categoriaService = categoriaService;
         this.usuarioService = usuarioService;
