@@ -61,35 +61,51 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Mostrar mensaje de error general -->
+                        <div th:if="${mensajeError}" class="alert alert-danger" role="alert">
+                            <span th:text="${mensajeError}"></span>
+                        </div>
+                        
                         <div class="mb-3">
                             <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control" th:field="*{name}" required>
+                            <input type="text" class="form-control" th:field="*{name}" 
+                                   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Descripción</label>
-                            <textarea class="form-control" th:field="*{description}" rows="3" required></textarea>
+                            <textarea class="form-control" th:field="*{description}" rows="3" 
+                                      th:classappend="${#fields.hasErrors('description')} ? 'is-invalid' : ''" required></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">URL Imagen</label>
-                            <input type="url" class="form-control" th:field="*{imageUrl}" required>
+                            <input type="url" class="form-control" th:field="*{imageUrl}" 
+                                   th:classappend="${#fields.hasErrors('imageUrl')} ? 'is-invalid' : ''" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('imageUrl')}" th:errors="*{imageUrl}"></div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Stock</label>
-                                <input type="number" class="form-control" th:field="*{stock}" min="0" required>
+                                <input type="number" class="form-control" th:field="*{stock}" min="0" 
+                                       th:classappend="${#fields.hasErrors('stock')} ? 'is-invalid' : ''" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Precio</label>
                                 <input type="number" step="0.01" class="form-control" th:field="*{precio}" min="0"
-                                    required>
+                                       th:classappend="${#fields.hasErrors('precio')} ? 'is-invalid' : ''" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('precio')}" th:errors="*{precio}"></div>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Categoría</label>
-                            <select class="form-select" th:field="*{categoriaId}" required>
+                            <select class="form-select" th:field="*{categoriaId}" 
+                                    th:classappend="${#fields.hasErrors('categoriaId')} ? 'is-invalid' : ''" required>
                                 <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}">
                                 </option>
                             </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('categoriaId')}" th:errors="*{categoriaId}"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -99,6 +115,35 @@
             </div>
         </div>
     </div>
+    
+    <!-- Script para reabrir el modal si hay errores -->
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var seccion = /*[[${seccion}]]*/ '';
+            var hasErrors = /*[[${#fields.hasErrors('producto.*')}]]*/ false;
+            
+            console.log('Seccion:', seccion, 'Has Errors:', hasErrors);
+            
+            if (seccion === 'producto') {
+                // Asegurar que la sección de productos esté visible
+                setTimeout(function() {
+                    const productosSection = document.getElementById('productos');
+                    if (productosSection && productosSection.classList.contains('d-none')) {
+                        const botonProductos = document.querySelector("button[onclick*=\"'productos'\"]");
+                        if (botonProductos) {
+                            mostrarSeccion('productos', botonProductos);
+                        }
+                    }
+                    
+                    // Si hay errores, abrir el modal
+                    if (hasErrors) {
+                        var modal = new bootstrap.Modal(document.getElementById('gest-product'));
+                        modal.show();
+                    }
+                }, 100);
+            }
+        });
+    </script>
 
     <div th:each="producto : ${productos}">
         <div class="modal fade" th:id="'edit-product-' + ${producto.id}" tabindex="-1"

@@ -16,6 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO.CategoriaCreateDTO;
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.MetodoPagoDTO.MetodoPagoCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosUpdateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioDTO;
@@ -126,6 +127,7 @@ public class ProductoController {
         log.info("Intentando guardar producto: {}", dto);
 
         if (result.hasErrors()) {
+            log.warn("Errores de validación al crear producto: {}", result.getAllErrors());
             model.addAttribute("seccion", "producto");
             model.addAttribute("usuarios", usuarioService.listarUsuario());
             model.addAttribute("usuario", new UsuarioModel());
@@ -133,9 +135,10 @@ public class ProductoController {
             model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categoria", new CategoriaCreateDTO());
             model.addAttribute("categorias", categoriaService.listarCategoria());
-            
+            model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
+            model.addAttribute("metodoPagos", new java.util.ArrayList<>());
 
-            return "admin/VistaAdmin"; // ← CORRECTO
+            return "admin/VistaAdmin";
         }
 
         try {
@@ -151,12 +154,14 @@ public class ProductoController {
             model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categoria", new CategoriaCreateDTO());
             model.addAttribute("categorias", categoriaService.listarCategoria());
+            model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
+            model.addAttribute("metodoPagos", new java.util.ArrayList<>());
 
             model.addAttribute("mensajeError", "No se pudo guardar el producto: " + e.getMessage());
-            return "admin/VistaAdmin"; // ← CORRECTO
+            return "admin/VistaAdmin";
         }
 
-        return "redirect:/VistaAdmin";
+        return "redirect:/VistaAdmin?seccion=producto";
     }
 
     @PostMapping("/editar/{id}")

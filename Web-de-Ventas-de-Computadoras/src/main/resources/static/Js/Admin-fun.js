@@ -31,6 +31,20 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.classList.add('sidebar-collapsed');
         }
     } catch (e) {}
+    
+    // Mostrar sección específica si viene en URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const seccion = urlParams.get('seccion');
+    if (seccion) {
+        // Buscar el botón correspondiente y activarlo
+        const botones = document.querySelectorAll('#sidebarMenu button, .offcanvas-body button');
+        botones.forEach(btn => {
+            const onclickAttr = btn.getAttribute('onclick');
+            if (onclickAttr && onclickAttr.includes("'" + seccion + "'")) {
+                mostrarSeccion(seccion, btn);
+            }
+        });
+    }
 });
 
 // Actualizar icono del botón de colapso según el estado
