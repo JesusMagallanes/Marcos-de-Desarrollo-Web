@@ -3,7 +3,12 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
@@ -86,24 +91,24 @@ public class ProductoController {
         model.addAttribute("categorias", categorias);
         model.addAttribute("productos", productos);
 
-        java.util.Map<Long, java.util.List<ProductosResponseDTO>> productosPorCategoria = new java.util.LinkedHashMap<>();
+        Map<Long, List<ProductosResponseDTO>> productosPorCategoria = new LinkedHashMap<>();
         for (CategoriaModel cat : categorias) {
-            java.util.List<ProductosResponseDTO> filt = productos.stream()
+            List<ProductosResponseDTO> filt = productos.stream()
                     .filter(p -> p.getCategoriaName() != null && p.getCategoriaName().equals(cat.getName()))
                     .toList();
             productosPorCategoria.put(cat.getId(), filt);
         }
         model.addAttribute("productosPorCategoria", productosPorCategoria);
 
-        java.util.Map<Long, java.util.List<java.util.List<ProductosResponseDTO>>> productosPorCategoriaChunks = new java.util.LinkedHashMap<>();
+        Map<Long, List<List<ProductosResponseDTO>>> productosPorCategoriaChunks = new LinkedHashMap<>();
         int chunkSize = 6;
-        for (java.util.Map.Entry<Long, java.util.List<ProductosResponseDTO>> entry : productosPorCategoria.entrySet()) {
-            java.util.List<ProductosResponseDTO> list = entry.getValue();
-            java.util.List<java.util.List<ProductosResponseDTO>> chunks = new java.util.ArrayList<>();
+        for (Map.Entry<Long, List<ProductosResponseDTO>> entry : productosPorCategoria.entrySet()) {
+            List<ProductosResponseDTO> list = entry.getValue();
+            List<List<ProductosResponseDTO>> chunks = new ArrayList<>();
             if (list != null && !list.isEmpty()) {
                 for (int i = 0; i < list.size(); i += chunkSize) {
                     int end = Math.min(list.size(), i + chunkSize);
-                    chunks.add(new java.util.ArrayList<>(list.subList(i, end)));
+                    chunks.add(new ArrayList<>(list.subList(i, end)));
                 }
             }
             productosPorCategoriaChunks.put(entry.getKey(), chunks);
@@ -121,8 +126,6 @@ public class ProductoController {
         log.info("Intentando guardar producto: {}", dto);
 
         if (result.hasErrors()) {
-            log.warn("Errores de validación al guardar producto: {}", result.getAllErrors());
-
             model.addAttribute("seccion", "producto");
             model.addAttribute("usuarios", usuarioService.listarUsuario());
             model.addAttribute("usuario", new UsuarioModel());
@@ -131,7 +134,7 @@ public class ProductoController {
             model.addAttribute("categoria", new CategoriaCreateDTO());
             model.addAttribute("categorias", categoriaService.listarCategoria());
 
-            return "admin/VistaAdmin";
+            return "VistaAdmin"; // ← CORREGIDO
         }
 
         try {
@@ -149,7 +152,7 @@ public class ProductoController {
             model.addAttribute("categorias", categoriaService.listarCategoria());
 
             model.addAttribute("mensajeError", "No se pudo guardar el producto: " + e.getMessage());
-            return "admin/VistaAdmin";
+            return "VistaAdmin"; // ← CORREGIDO
         }
 
         return "redirect:/VistaAdmin";
@@ -184,7 +187,8 @@ public class ProductoController {
     @GetMapping("/admin/fragment")
     public String obtenerFragmentoAdmin() {
         // Endpoint para devolver explícitamente el fragmento del administrador.
-        // Se protegerá a nivel de seguridad para que sólo administradores puedan acceder.
+        // Se protegerá a nivel de seguridad para que sólo administradores puedan
+        // acceder.
         return "fragments/Admin-gest/Gest-productos :: gest-productos";
     }
 }

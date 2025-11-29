@@ -81,7 +81,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
                                  "/usuarios/registrar","/Detalles","/Somos","/header","/canales",
                                  "/Canales","/metodosPago","/productosCategoria","/usuarios/registrar/**",
-                                 "/productos", "/productos/api", "/productos/categoria/**", "/productos/*").permitAll()
+                                 "/productos", "/productos/api", "/productos/categoria/**", "/productos/**").permitAll()
 
                 .requestMatchers("/EnviosPag").hasAnyRole("EMPLEADO", "ADMINISTRADOR")
                 .anyRequest().authenticated()
