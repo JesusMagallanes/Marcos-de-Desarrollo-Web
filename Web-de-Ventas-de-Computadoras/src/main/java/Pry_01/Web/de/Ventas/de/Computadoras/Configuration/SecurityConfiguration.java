@@ -90,7 +90,8 @@ public class SecurityConfiguration {
                                 "/usuarios/registrar", "/Detalles", "/Somos", "/header", "/canales",
                                 "/Canales", "/metodosPago", "/productosCategoria", "/usuarios/registrar/**",
                                 "/productos", "/productos/api", "/productos/categoria/**", "/productos/**",
-                                "/oauth2/authorization/google", "/login/oauth2/code/google")
+                                "/oauth2/authorization/google", "/login/oauth2/code/google", "/oauth2/authorization/facebook",
+                                "/login/oauth2/code/facebook")
                         .permitAll()
 
                         .requestMatchers("/EnviosPag").hasAnyRole("EMPLEADO", "ADMINISTRADOR")

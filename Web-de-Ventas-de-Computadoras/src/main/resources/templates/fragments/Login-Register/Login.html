@@ -1,4 +1,5 @@
-<div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" th:fragment="login">
+<div class="modal fade" id="login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+    th:fragment="login">
     <div class="modal-dialog modal-lg">
         <div class="modal-content" style="border: 3px solid #e3e3e3;">
 
@@ -7,8 +8,8 @@
 
                     <!-- Columna Izquierda: Imagen -->
                     <div class="col-md-5 d-none d-md-block">
-                        <img src="/Img/img-login.png" class="img-fluid h-100 w-100" 
-                             style="object-fit: cover; border-radius: 5px 0 0 5px;">
+                        <img src="/Img/img-login.png" class="img-fluid h-100 w-100"
+                            style="object-fit: cover; border-radius: 5px 0 0 5px;">
                     </div>
 
                     <!-- Columna Derecha: Formulario -->
@@ -44,10 +45,11 @@
                                 <label class="form-label fw-semibold">Continuar con</label>
                                 <div class="d-flex justify-content-center gap-2">
                                     <button class="btn btn-outline-danger" type="button"
-                                            onclick="window.location.href='/oauth2/authorization/google'">
+                                        onclick="window.location.href='/oauth2/authorization/google'">
                                         <img src="/Img/icon-google.png" width="28" class="me-1">Google
                                     </button>
-                                    <button class="btn btn-outline-primary" type="button">
+                                    <button class="btn btn-outline-primary" type="button"
+                                        onclick="window.location.href='/oauth2/authorization/facebook'">
                                         <img src="/Img/icon-facebook2.png" width="28" class="me-1">Facebook
                                     </button>
                                 </div>
@@ -55,8 +57,8 @@
 
                             <div class="d-flex justify-content-between mt-3">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="button" class="btn btn-primary"
-                                        data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#register">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                                    data-bs-toggle="modal" data-bs-target="#register">
                                     Registrarse
                                 </button>
                             </div>
