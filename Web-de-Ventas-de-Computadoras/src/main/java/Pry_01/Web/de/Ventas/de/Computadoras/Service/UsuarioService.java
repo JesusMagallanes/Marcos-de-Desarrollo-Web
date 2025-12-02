@@ -15,9 +15,14 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
-
     public Optional<UsuarioModel> getCorreo(String correo) {
         return usuarioRepository.findByEmailAddress(correo);
+    }
+
+    public UsuarioModel obtenerPorEmail(String email) {
+        if (email == null) return null;
+        email = email.trim().toLowerCase();
+        return usuarioRepository.findByEmailAddress(email).orElse(null);
     }
 
     public List<UsuarioModel> listarUsuario() {
@@ -42,7 +47,7 @@ public class UsuarioService {
 
         return usuarioRepository.save(usuario);
     }
-    
+
     public UsuarioModel obtenerPorId(Long id) {
         return usuarioRepository.findById(id).orElse(null);
     }
