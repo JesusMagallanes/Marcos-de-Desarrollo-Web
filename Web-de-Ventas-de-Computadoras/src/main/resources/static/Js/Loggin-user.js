@@ -39,6 +39,25 @@ document.addEventListener("DOMContentLoaded", () => {
         // Cargar scripts específicos según el fragmento
         if (fragmentName === 'misCompras') {
           await cargarScript('/Js/misCompras.js');
+        } else if (fragmentName === 'cuenta') {
+          // Esperar a que el DOM esté listo y luego inicializar el mapa
+          setTimeout(() => {
+            const mapElement = document.getElementById('map');
+            if (mapElement && typeof initMap === 'function') {
+              // Asegurarse de que Google Maps API esté cargada
+              if (typeof google !== 'undefined' && google.maps) {
+                initMap();
+              } else {
+                console.log('Esperando a que Google Maps se cargue...');
+                // Intentar nuevamente después de un tiempo
+                setTimeout(() => {
+                  if (typeof google !== 'undefined' && google.maps && typeof initMap === 'function') {
+                    initMap();
+                  }
+                }, 500);
+              }
+            }
+          }, 200);
         }
       } catch (err) {
         contenedor.innerHTML = `

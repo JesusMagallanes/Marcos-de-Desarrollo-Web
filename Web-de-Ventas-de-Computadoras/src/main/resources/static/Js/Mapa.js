@@ -1,14 +1,28 @@
 let map;
-    let marker;
-    let geocoder;
+let marker;
+let geocoder;
 
-    // Función que se ejecuta cuando la API de Google Maps se carga
-    function initMap() {
-        // Obtenemos la dirección actual del usuario (si existe)
-        const direccionInicial = document.getElementById('direccionInput').value;
-        const defaultLocation = { lat: -9.189967, lng: -75.015152 }; // Centro de Perú (ejemplo)
-        
-        geocoder = new google.maps.Geocoder();
+// Función que se ejecuta cuando la API de Google Maps se carga
+function initMap() {
+    // Verificar que el elemento del mapa existe
+    const mapElement = document.getElementById('map');
+    if (!mapElement) {
+        console.warn('Elemento del mapa no encontrado');
+        return;
+    }
+
+    // Verificar que Google Maps está disponible
+    if (typeof google === 'undefined' || !google.maps) {
+        console.warn('Google Maps API no está cargada');
+        return;
+    }
+
+    // Obtenemos la dirección actual del usuario (si existe)
+    const direccionInput = document.getElementById('direccionInput');
+    const direccionInicial = direccionInput ? direccionInput.value : '';
+    const defaultLocation = { lat: -9.189967, lng: -75.015152 }; // Centro de Perú (ejemplo)
+    
+    geocoder = new google.maps.Geocoder();
         
         if (direccionInicial) {
             // Intentar geocodificar la dirección actual del usuario para centrar el mapa
@@ -25,7 +39,18 @@ let map;
     }
 
     function loadMapAndMarker(initialLocation) {
-        map = new google.maps.Map(document.getElementById("map"), {
+        const mapElement = document.getElementById("map");
+        if (!mapElement) return;
+
+        // Limpiar mapa anterior si existe
+        if (map) {
+            google.maps.event.clearInstanceListeners(map);
+        }
+        if (marker) {
+            marker.setMap(null);
+        }
+
+        map = new google.maps.Map(mapElement, {
             zoom: 12,
             center: initialLocation,
         });

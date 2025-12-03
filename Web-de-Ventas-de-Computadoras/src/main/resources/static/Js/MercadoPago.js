@@ -36,7 +36,7 @@
             }
 
             const body = {
-                title: 'Carrito SmartZone',
+                title: 'SmartZone',
                 id: 'carrito-' + Date.now(),
                 quantity: 1,
                 unitPrice: subtotal
