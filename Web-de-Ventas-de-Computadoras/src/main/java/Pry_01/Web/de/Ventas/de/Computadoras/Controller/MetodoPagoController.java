@@ -44,12 +44,12 @@ public class MetodoPagoController {
             log.warn("Errores de validación al guardar metodo de pago: {}", result.getAllErrors());
             model.addAttribute("metodoPago", dto);
             model.addAttribute("metodosPago", metodoPagoService.listarMetodosPago());
-            return "admin/VistaAdmin";
+            return "admin/VistaAdmin?seccion=metodoPago";
         }
 
         metodoPagoService.guardarMetodoPago(dto);
         log.info("Metodo de pago guardado exitosamente: {}", dto);
-        return "redirect:/VistaAdmin";
+        return "redirect:/VistaAdmin?seccion=metodoPago";
     }
 
     @PostMapping("/editar/{id}")
@@ -62,18 +62,18 @@ public class MetodoPagoController {
             log.warn("Errores de validación al editar metodo de pago con ID {}: {}", id, result.getAllErrors());
             model.addAttribute("metodoPago", dto);
             model.addAttribute("metodosPago", metodoPagoService.listarMetodosPago());
-            return "admin/VistaAdmin";
+            return "admin/VistaAdmin?seccion=metodoPago";
         }
 
         metodoPagoService.actualizarMetodoPago(id, dto);
         log.info("Metodo de pago con ID {} editado exitosamente: {}", id, dto);
-        return "redirect:/VistaAdmin";
+        return "redirect:/VistaAdmin?seccion=metodoPago";
     }
 
     @PostMapping("/eliminar/{id}")
     public String eliminarMetodoPago(@PathVariable Long id) {
         metodoPagoService.eliminarMetodoPago(id);
-        return "redirect:/VistaAdmin";
+        return "redirect:/VistaAdmin?seccion=metodoPago";
     }
 
     @GetMapping("/{id}")

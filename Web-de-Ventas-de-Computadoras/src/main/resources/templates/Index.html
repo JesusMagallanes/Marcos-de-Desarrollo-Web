@@ -23,7 +23,7 @@
     <div th:replace="fragments/Login-Register/Register :: register"></div>
     <div th:replace="fragments/CarritoModal/carritoModal :: carritoModalFragment"></div>
 
-    
+
 
 
     <div class="container mt-0">
@@ -92,19 +92,27 @@
                 </div>
 
                 <!-- CARRUSEL (Desktop: agrupado en slides de 6) -->
-                <div th:if="${productosPorCategoriaChunks[cat.id] != null and !#lists.isEmpty(productosPorCategoriaChunks[cat.id])}">
-                    <div th:attr="id=${'carouselCat__' + cat.id}" class="carousel carousel-dark slide d-none d-lg-block" data-bs-ride="carousel">
+                <div
+                    th:if="${productosPorCategoriaChunks[cat.id] != null and !#lists.isEmpty(productosPorCategoriaChunks[cat.id])}">
+                    <div th:attr="id=${'carouselCat__' + cat.id}" class="carousel carousel-dark slide d-none d-lg-block"
+                        data-bs-ride="carousel">
                         <div class="carousel-inner">
-                            <div class="carousel-item" th:each="chunk, sChunk : ${productosPorCategoriaChunks[cat.id]}" th:classappend="${sChunk.index == 0} ? ' active' : ''" data-bs-interval="10000">
+                            <div class="carousel-item" th:each="chunk, sChunk : ${productosPorCategoriaChunks[cat.id]}"
+                                th:classappend="${sChunk.index == 0} ? ' active' : ''" data-bs-interval="10000">
                                 <div class="row justify-content-center mt-3">
                                     <div class="col-md-2 efectos-targetas col-sm-4 mb-3" th:each="p : ${chunk}">
                                         <a th:href="@{/Detalles(id=${p.id})}" class="text-decoration-none">
                                             <div class="card card-producto h-100 rounded">
-                                                <img th:src="${p.imageUrl}" class="card-img-top img-fluid" th:alt="${p.name}">
+                                                <img th:src="${p.imageUrl}" class="card-img-top img-fluid"
+                                                    th:alt="${p.name}">
                                                 <div class="card-body" style="font-size:14px;">
-                                                    <h6 class="fw-bold mb-2 text-uppercase" th:text="${p.name}">Nombre</h6>
-                                                    <p class="fw-semibold mb-1 text-truncate" style="max-height:3rem;overflow:hidden;" th:text="${p.description}">Descripción</p>
-                                                    <p class="fw-bold fs-5 mt-2 precio" th:text="'S/. ' + ${p.precio}">Precio</p>
+                                                    <h6 class="fw-bold mb-2 text-uppercase" th:text="${p.name}">Nombre
+                                                    </h6>
+                                                    <p class="fw-semibold mb-1 text-truncate"
+                                                        style="max-height:3rem;overflow:hidden;"
+                                                        th:text="${p.description}">Descripción</p>
+                                                    <p class="fw-bold fs-5 mt-2 precio" th:text="'S/. ' + ${p.precio}">
+                                                        Precio</p>
                                                 </div>
                                             </div>
                                         </a>
@@ -112,11 +120,13 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="carousel-control-prev" type="button" th:attr="data-bs-target='#carouselCat__' + ${cat.id}" data-bs-slide="prev">
+                        <button class="carousel-control-prev" type="button"
+                            th:attr="data-bs-target='#carouselCat__' + ${cat.id}" data-bs-slide="prev">
                             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                             <span class="visually-hidden">Previous</span>
                         </button>
-                        <button class="carousel-control-next" type="button" th:attr="data-bs-target='#carouselCat__' + ${cat.id}" data-bs-slide="next">
+                        <button class="carousel-control-next" type="button"
+                            th:attr="data-bs-target='#carouselCat__' + ${cat.id}" data-bs-slide="next">
                             <span class="carousel-control-next-icon" aria-hidden="true"></span>
                             <span class="visually-hidden">Next</span>
                         </button>
@@ -124,14 +134,16 @@
                 </div>
 
                 <!-- Scroll horizontal móvil -->
-                <div class="d-lg-none d-flex overflow-auto py-3" th:if="${productosPorCategoria[cat.id] != null and !#lists.isEmpty(productosPorCategoria[cat.id])}">
+                <div class="d-lg-none d-flex overflow-auto py-3"
+                    th:if="${productosPorCategoria[cat.id] != null and !#lists.isEmpty(productosPorCategoria[cat.id])}">
                     <div class="flex-shrink-0 me-3 product-card-item" th:each="p : ${productosPorCategoria[cat.id]}">
                         <a th:href="@{/Detalles(id=${p.id})}">
                             <div class="card card-producto h-100 shadow-sm rounded">
                                 <img th:src="${p.imageUrl}" class="card-img-top img-fluid" th:alt="${p.name}">
                                 <div class="card-body" style="font-size:14px;">
                                     <h6 class="mb-1 fw-bold text-uppercase" th:text="${p.name}">Nombre</h6>
-                                    <p class="fw-semibold mb-1 text-truncate" style="max-height:3rem;overflow:hidden;" th:text="${p.description}">Descripción</p>
+                                    <p class="fw-semibold mb-1 text-truncate" style="max-height:3rem;overflow:hidden;"
+                                        th:text="${p.description}">Descripción</p>
                                     <p class="fw-bold fs-5 mt-2 precio" th:text="'S/. ' + ${p.precio}">Precio</p>
                                 </div>
                             </div>
@@ -139,7 +151,8 @@
                     </div>
                 </div>
 
-                <div th:if="${(productosPorCategoria[cat.id] == null) or #lists.isEmpty(productosPorCategoria[cat.id])}" class="text-center p-4">
+                <div th:if="${(productosPorCategoria[cat.id] == null) or #lists.isEmpty(productosPorCategoria[cat.id])}"
+                    class="text-center p-4">
                     <p>No hay productos en esta categoría.</p>
                 </div>
             </section>
@@ -285,12 +298,18 @@
             <button id="send-btn">➤</button>
         </div>
     </div>
-    <button id="chat-toggle"><img src="/Img/logo-bot.svg" class="card-img-top" width="10" height="30" alt="Bot"></button>
+    <button id="chat-toggle"><img src="/Img/logo-bot.svg" class="card-img-top" width="10" height="30"
+            alt="Bot"></button>
     <!--FIN CONTENIDO BOT-->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/Js/Chat-Bot.js"></script>
     <script src="/Js/carritoOffcanvas.js"></script>
+    <script th:if="${param.error}">
+        const loginModal = new bootstrap.Modal(document.getElementById('login'));
+        loginModal.show();
+    </script>
+
 </body>
 
 </html>

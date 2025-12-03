@@ -17,7 +17,6 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100">
-
     <div th:replace="fragments/headerFooter/header :: header(productos=${productos})"></div>
     <div th:replace="fragments/Categoria :: categoria"></div>
     <div th:replace="fragments/Login-Register/Login :: login"></div>
@@ -65,8 +64,10 @@
                         </div>
 
                         <button class="btn btn-dark w-100 rounded-pill mt-3">Continuar compra</button>
-                        <button id="mp-pay-btn" class="btn btn-success w-100 rounded-pill mt-2">Pagar con MercadoPago</button>
-                        <button id="confirmar-pago-manual" class="btn btn-primary w-100 rounded-pill mt-2" style="display: none;">
+                        <button id="mp-pay-btn" class="btn btn-success w-100 rounded-pill mt-2">Pagar con
+                            MercadoPago</button>
+                        <button id="confirmar-pago-manual" class="btn btn-primary w-100 rounded-pill mt-2"
+                            style="display: none;">
                             <i class="fa fa-check me-2"></i>Confirmar Pago Realizado
                         </button>
                     </div>
@@ -79,7 +80,7 @@
             </div>
         </div>
     </main>
-    
+
     <!-- MercadoPago SDK -->
     <script src="https://sdk.mercadopago.com/js/v2"></script>
     <!-- Scripts separados para mejor organización -->
@@ -103,6 +104,8 @@
         </div>
     </div>
     <button id="chat-toggle"><img src="Img/logo-bot.svg" class="card-img-top" width="10" height="30" alt="Bot"></button>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 
 </html>

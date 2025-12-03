@@ -55,13 +55,13 @@ public class CategoriaController {
             return "admin/VistaAdmin";
         }
         categoriaService.guardarCategoria(dto);
-        return "redirect:/VistaAdmin";
+        return "redirect:/VistaAdmin?seccion=categoria";
     }
 
     @PostMapping("/eliminar/{id}")
     public String eliminarCategoria(@PathVariable Long id) {
         categoriaService.eliminarCategoria(id);
-        return "redirect:/VistaAdmin";
+        return "redirect:/VistaAdmin?seccion=categoria";
     }
 
     @PostMapping("/editar/{id}")
@@ -77,10 +77,10 @@ public class CategoriaController {
             model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categoria", dto);
             model.addAttribute("categorias", categoriaService.listarCategoria());
-            return "admin/VistaAdmin";
+            return "admin/VistaAdmin?seccion=categoria";
         }
 
         categoriaService.actualizarCategoria(id, dto);
-        return "redirect:/VistaAdmin";
+        return "redirect:/VistaAdmin?seccion=categoria";
     }
 }
