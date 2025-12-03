@@ -33,6 +33,14 @@ public class MercadoPagoService {
         item.put("id", req.getId());
         payload.put("items", new Object[]{ item });
 
+        // Configurar URLs de retorno
+        Map<String, String> backUrls = new HashMap<>();
+        backUrls.put("success", "http://localhost:8080/carrito?status=approved");
+        backUrls.put("failure", "http://localhost:8080/carrito?status=failure");
+        backUrls.put("pending", "http://localhost:8080/carrito?status=pending");
+        payload.put("back_urls", backUrls);
+        // No incluir auto_return para evitar errores - el usuario hará clic en "Volver al sitio"
+
         String body = mapper.writeValueAsString(payload);
 
         String token = mpConfig.getAccessToken();

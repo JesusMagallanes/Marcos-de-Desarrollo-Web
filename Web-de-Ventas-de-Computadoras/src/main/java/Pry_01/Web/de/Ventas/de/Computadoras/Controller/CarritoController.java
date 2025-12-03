@@ -11,10 +11,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
+import Pry_01.Web.de.Ventas.de.Computadoras.Model.PedidoModel;
+import Pry_01.Web.de.Ventas.de.Computadoras.Model.MetodoPagoModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
+import Pry_01.Web.de.Ventas.de.Computadoras.Service.PedidoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CarritoModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CarritoService;
+import Pry_01.Web.de.Ventas.de.Computadoras.Repository.MetodoPagoRepository;
 
 @Controller
 @RequestMapping("/carrito")
@@ -22,10 +26,14 @@ public class CarritoController {
 
     private final CarritoService carritoService;
     private final UsuarioService usuarioService;
+    private final PedidoService pedidoService;
+    private final MetodoPagoRepository metodoPagoRepository;
 
-    public CarritoController(CarritoService carritoService, UsuarioService usuarioService) {
+    public CarritoController(CarritoService carritoService, UsuarioService usuarioService, PedidoService pedidoService, MetodoPagoRepository metodoPagoRepository) {
         this.carritoService = carritoService;
         this.usuarioService = usuarioService;
+        this.pedidoService = pedidoService;
+        this.metodoPagoRepository = metodoPagoRepository;
     }
 
     // ➕ Agregar producto al carrito
@@ -138,5 +146,106 @@ public class CarritoController {
 
         carritoService.vaciarCarrito(usuario);
         return "redirect:/carrito";
+    }
+
+    /**
+     * Endpoint para confirmar el pago y crear el pedido
+     * Se llama después de que MercadoPago confirme el pago exitoso
+     */
+    @PostMapping("/confirmarPago")
+    @ResponseBody
+    public Object confirmarPago(HttpSession session) {
+        try {
+            System.out.println("=== INICIO confirmarPago ===");
+            UsuarioDTO dto = (UsuarioDTO) session.getAttribute("usuario");
+            if (dto == null) {
+                System.out.println("ERROR: Usuario no encontrado en sesión");
+                return ResponseEntity.status(401).body(Map.of("success", false, "message", "No autorizado"));
+            }
+            System.out.println("Usuario en sesión: " + dto.getId());
+            
+            UsuarioModel usuario = usuarioService.obtenerPorId(dto.getId());
+            if (usuario == null) {
+                System.out.println("ERROR: Usuario no encontrado en BD");
+                return ResponseEntity.status(401).body(Map.of("success", false, "message", "No autorizado"));
+            }
+            System.out.println("Usuario encontrado: " + usuario.getName());
+
+            // Obtener o crear el método de pago de MercadoPago
+            MetodoPagoModel metodoPago = metodoPagoRepository.findAll().stream()
+                .filter(m -> m.getName().toLowerCase().contains("mercadopago") || 
+                            m.getName().toLowerCase().contains("mercado pago"))
+                .findFirst()
+                .orElseGet(() -> {
+                    System.out.println("Método de pago MercadoPago no encontrado, creando uno nuevo");
+                    MetodoPagoModel nuevoMetodo = new MetodoPagoModel();
+                    nuevoMetodo.setName("MercadoPago");
+                    nuevoMetodo.setDescription("Pago mediante MercadoPago");
+                    return metodoPagoRepository.save(nuevoMetodo);
+                });
+            
+            Long metodoPagoId = metodoPago.getId();
+            System.out.println("Usando método de pago: " + metodoPago.getName() + " (ID: " + metodoPagoId + ")");
+            
+            PedidoModel pedido = pedidoService.crearPedidoDesdeCarrito(usuario, metodoPagoId);
+            System.out.println("Pedido creado exitosamente con ID: " + pedido.getId());
+
+            return ResponseEntity.ok(Map.of(
+                "success", true, 
+                "message", "Pedido creado exitosamente",
+                "pedidoId", pedido.getId()
+            ));
+        } catch (Exception e) {
+            System.out.println("ERROR al crear pedido: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false, 
+                "message", "Error al crear el pedido: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Endpoint para obtener los pedidos del usuario
+     */
+    @GetMapping("/pedidos")
+    @ResponseBody
+    public Object obtenerPedidos(HttpSession session) {
+        try {
+            UsuarioDTO dto = (UsuarioDTO) session.getAttribute("usuario");
+            if (dto == null) {
+                return ResponseEntity.status(401).body(Map.of("error", "No autorizado"));
+            }
+            UsuarioModel usuario = usuarioService.obtenerPorId(dto.getId());
+            if (usuario == null) return ResponseEntity.status(401).body(Map.of("error", "No autorizado"));
+
+            List<PedidoModel> pedidos = pedidoService.listarPedidosPorUsuario(usuario);
+            
+            List<Map<String, Object>> pedidosData = pedidos.stream().map(pedido -> {
+                Map<String, Object> p = new java.util.HashMap<>();
+                p.put("id", pedido.getId());
+                p.put("fecha", pedido.getCreadoEn().toString());
+                p.put("estado", pedido.getEstado().toString());
+                p.put("total", pedido.getTotal());
+                p.put("metodoPago", pedido.getMetodoPago().getName());
+                
+                List<Map<String, Object>> detalles = pedido.getDetalles().stream().map(detalle -> {
+                    Map<String, Object> d = new java.util.HashMap<>();
+                    d.put("productoNombre", detalle.getProducto().getName());
+                    d.put("cantidad", detalle.getCantidad());
+                    d.put("precioUnitario", detalle.getPrecioUnitario());
+                    d.put("total", detalle.getTotal());
+                    d.put("imagen", detalle.getProducto().getImageUrl());
+                    return d;
+                }).collect(Collectors.toList());
+                
+                p.put("detalles", detalles);
+                return p;
+            }).collect(Collectors.toList());
+
+            return ResponseEntity.ok(Map.of("pedidos", pedidosData));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Error al obtener pedidos: " + e.getMessage()));
+        }
     }
 }
