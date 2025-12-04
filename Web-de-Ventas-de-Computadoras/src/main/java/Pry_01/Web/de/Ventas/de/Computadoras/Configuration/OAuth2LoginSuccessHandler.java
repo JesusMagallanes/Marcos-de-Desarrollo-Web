@@ -1,9 +1,14 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Configuration;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -27,11 +32,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
             HttpServletResponse response,
-            Authentication authentication) throws IOException, ServletException {
+            Authentication authentication)
+            throws IOException, ServletException {
 
-        String provider = "unknown";
-        if (authentication instanceof OAuth2AuthenticationToken) {
-            provider = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
+        if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
+
+            String provider = oauthToken.getAuthorizedClientRegistrationId();
 
             DefaultOAuth2User oauthUser = (DefaultOAuth2User) authentication.getPrincipal();
             Map<String, Object> attrs = oauthUser.getAttributes();
@@ -72,16 +78,31 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
                 usuario.setPassword("Aa@12345");
                 usuario.setPhoneNumber("999999999");
-                usuario.setAddress((provider.equals("facebook") ? "Facebook OAuth" : "Google OAuth"));
+                usuario.setAddress(provider.equals("facebook") ? "Facebook OAuth" : "Google OAuth");
                 usuario.setRol(Roles.CLIENTE);
-
                 usuario = usuarioService.guardarUsuario(usuario);
             }
 
             UsuarioDTO dto = new UsuarioDTO(usuario);
             request.getSession(true).setAttribute("usuario", dto);
 
+            Collection<GrantedAuthority> authorities = List.of(
+                    new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name()));
+
+            DefaultOAuth2User nuevoOAuthUser = new DefaultOAuth2User(
+                    authorities,
+                    oauthUser.getAttributes(),
+                    "email");
+
+            OAuth2AuthenticationToken newAuth = new OAuth2AuthenticationToken(
+                    nuevoOAuthUser,
+                    authorities,
+                    oauthToken.getAuthorizedClientRegistrationId());
+
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
+
             boolean isAdmin = usuario.getRol() == Roles.ADMINISTRADOR;
+
             if (isAdmin) {
                 response.sendRedirect("/VistaAdmin");
             } else {
