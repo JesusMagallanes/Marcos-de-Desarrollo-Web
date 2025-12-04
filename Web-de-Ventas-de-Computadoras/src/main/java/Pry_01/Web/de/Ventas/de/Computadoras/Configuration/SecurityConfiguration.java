@@ -79,7 +79,8 @@ public class SecurityConfiguration {
             UsuarioDetailsService usuarioDetailsService,
             OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) throws Exception {
         http
-                .csrf(Customizer.withDefaults())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/chatbot/**"))
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(auth -> auth
 
@@ -90,6 +91,7 @@ public class SecurityConfiguration {
                                 "/usuarios/registrar", "/Detalles", "/Somos", "/header", "/canales",
                                 "/Canales", "/metodosPago", "/productosCategoria", "/usuarios/registrar/**",
                                 "/productos", "/productos/api", "/productos/categoria/**", "/productos/**",
+                                "/api/chatbot/**",
                                 "/oauth2/authorization/google", "/login/oauth2/code/google", "/oauth2/authorization/facebook",
                                 "/login/oauth2/code/facebook")
                         .permitAll()

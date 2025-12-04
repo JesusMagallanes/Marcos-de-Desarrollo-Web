@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-
     <link rel="stylesheet" href="/Css/Chat-Bot.css">
+    <link rel="stylesheet" href="/Css/productosCategoria.css">
 </head>
 
 <body>
@@ -22,303 +22,280 @@
     <div th:replace="fragments/Login-Register/Register :: register"></div>
     <div th:replace="fragments/CarritoModal/carritoModal :: carritoModalFragment"></div>
 
+    <!-- Botón flotante para mostrar filtros en móvil -->
+    <button class="btn btn-success btn-filtros-mobile d-lg-none" type="button" data-bs-toggle="offcanvas" 
+            data-bs-target="#offcanvasFiltros" aria-controls="offcanvasFiltros">
+        <i class="fas fa-filter"></i>
+    </button>
 
-    <div class="container-fluid">
-        <div class="row" style="padding-inline: 9rem;">
-            <div class="col-3 mt-4 p-3 mb-4" style="background-color: white; border-radius: 10px;">
-                <h5 th:text="${categoria.name}">Nombre de categoría</h5>
-                <div class="accordion" id="accordionPanelsStayOpenExample">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="false"
-                                aria-controls="panelsStayOpen-collapseOne">
-                                Marca
-                            </button>
-                        </h2>
-                        <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
-                            <div class="accordion-body">
-                                <strong>This is the first item’s accordion body.</strong> It is shown by default, until
-                                the
-                                collapse plugin adds the appropriate classes that we use to style each element. These
-                                classes control the overall appearance, as well as the showing and hiding via CSS
-                                transitions. You can modify any of this with custom CSS or overriding our default
-                                variables.
-                                It’s also worth noting that just about any HTML can go within the
-                                <code>.accordion-body</code>, though the transition does limit overflow.
+    <div class="container-fluid" style="padding-inline: 9rem;">
+        <div class="row">
+            <!-- SIDEBAR DE FILTROS (Desktop) -->
+            <div class="col-lg-3 mt-4 mb-4 d-none d-lg-block filtros-sidebar">
+                <div class="filtros-container">
+                    <!-- TÍTULO -->
+                    <h4 class="mb-4" style="color: #5a5a5a; font-weight: 600;" th:text="${categoria.name}">Convertidores</h4>
+                    
+                    <!-- FILTRO DE MARCA -->
+                    <div class="mb-4">
+                        <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMarca">
+                            Marca
+                            <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+                        </button>
+                        <div class="collapse show" id="collapseMarca">
+                            <div class="filtro-content">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input filter-checkbox" type="checkbox" value="Apple" data-filter="marca" id="marca1" onchange="aplicarFiltros()">
+                                    <label class="form-check-label" for="marca1" style="color: #5a5a5a; font-size: 0.95rem;">Apple</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input filter-checkbox" type="checkbox" value="Samsung" data-filter="marca" id="marca2" onchange="aplicarFiltros()">
+                                    <label class="form-check-label" for="marca2" style="color: #5a5a5a; font-size: 0.95rem;">Samsung</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input filter-checkbox" type="checkbox" value="Xiaomi" data-filter="marca" id="marca3" onchange="aplicarFiltros()">
+                                    <label class="form-check-label" for="marca3" style="color: #5a5a5a; font-size: 0.95rem;">Xiaomi</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input filter-checkbox" type="checkbox" value="Motorola" data-filter="marca" id="marca4" onchange="aplicarFiltros()">
+                                    <label class="form-check-label" for="marca4" style="color: #5a5a5a; font-size: 0.95rem;">Motorola</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-checkbox" type="checkbox" value="Huawei" data-filter="marca" id="marca5" onchange="aplicarFiltros()">
+                                    <label class="form-check-label" for="marca5" style="color: #5a5a5a; font-size: 0.95rem;">Huawei</label>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false"
-                                aria-controls="panelsStayOpen-collapseTwo">
-                                Memoria Interna
-                            </button>
-                        </h2>
-                        <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <strong>This is the second item’s accordion body.</strong> It is hidden by default,
-                                until
-                                the collapse plugin adds the appropriate classes that we use to style each element.
-                                These
-                                classes control the overall appearance, as well as the showing and hiding via CSS
-                                transitions. You can modify any of this with custom CSS or overriding our default
-                                variables.
-                                It’s also worth noting that just about any HTML can go within the
-                                <code>.accordion-body</code>, though the transition does limit overflow.
+
+                    <!-- FILTRO DE DISPONIBILIDAD -->
+                    <div class="mb-4">
+                        <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStock">
+                            Disponible en catálogo extendido
+                            <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+                        </button>
+                        <div class="collapse" id="collapseStock">
+                            <div class="filtro-content">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input filter-checkbox" type="checkbox" value="disponible" 
+                                           data-filter="stock" id="stock1" onchange="aplicarFiltros()">
+                                    <label class="form-check-label" for="stock1" style="color: #5a5a5a; font-size: 0.95rem;">En stock</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-checkbox" type="checkbox" value="agotado" 
+                                           data-filter="stock" id="stock2" onchange="aplicarFiltros()">
+                                    <label class="form-check-label" for="stock2" style="color: #5a5a5a; font-size: 0.95rem;">Agotado</label>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="false"
-                                aria-controls="panelsStayOpen-collapseThree">
-                                Memoria RAM
-                            </button>
-                        </h2>
-                        <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <strong>This is the third item’s accordion body.</strong> It is hidden by default, until
-                                the
-                                collapse plugin adds the appropriate classes that we use to style each element. These
-                                classes control the overall appearance, as well as the showing and hiding via CSS
-                                transitions. You can modify any of this with custom CSS or overriding our default
-                                variables.
-                                It’s also worth noting that just about any HTML can go within the
-                                <code>.accordion-body</code>, though the transition does limit overflow.
+
+                    <!-- FILTRO DE PRECIO -->
+                    <div class="mb-4">
+                        <h6 class="mb-3" style="color: #5a5a5a; font-weight: 600;">Gama de Precios</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small" style="color: #888;">Min</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
+                                    <input type="number" class="form-control precio-input" id="precioMin" value="0" min="0" 
+                                           onchange="aplicarFiltros()">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small" style="color: #888;">Max</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
+                                    <input type="number" class="form-control precio-input" id="precioMax" value="10000" max="10000" 
+                                           onchange="aplicarFiltros()">
+                                </div>
                             </div>
                         </div>
+                        <input type="range" class="form-range" min="0" max="10000" step="100" value="10000" 
+                               id="rangoPrecio" oninput="actualizarPrecio(this.value)">
                     </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#panelsStayOpen-collapsecuatro" aria-expanded="false"
-                                aria-controls="panelsStayOpen-collapsecuatro">
-                                Camara principal
-                            </button>
-                        </h2>
-                        <div id="panelsStayOpen-collapsecuatro" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <strong>This is the second item’s accordion body.</strong> It is hidden by default,
-                                until
-                                the collapse plugin adds the appropriate classes that we use to style each element.
-                                These
-                                classes control the overall appearance, as well as the showing and hiding via CSS
-                                transitions. You can modify any of this with custom CSS or overriding our default
-                                variables.
-                                It’s also worth noting that just about any HTML can go within the
-                                <code>.accordion-body</code>, though the transition does limit overflow.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#panelsStayOpen-collapsecinco" aria-expanded="false"
-                                aria-controls="panelsStayOpen-collapsecinco">
-                                camara frontal
-                            </button>
-                        </h2>
-                        <div id="panelsStayOpen-collapsecinco" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <strong>This is the second item’s accordion body.</strong> It is hidden by default,
-                                until
-                                the collapse plugin adds the appropriate classes that we use to style each element.
-                                These
-                                classes control the overall appearance, as well as the showing and hiding via CSS
-                                transitions. You can modify any of this with custom CSS or overriding our default
-                                variables.
-                                It’s also worth noting that just about any HTML can go within the
-                                <code>.accordion-body</code>, though the transition does limit overflow.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#panelsStayOpen-collapseseis" aria-expanded="false"
-                                aria-controls="panelsStayOpen-collapseseis">
-                                pantalla (pulgadas)
-                            </button>
-                        </h2>
-                        <div id="panelsStayOpen-collapseseis" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <strong>This is the second item’s accordion body.</strong> It is hidden by default,
-                                until
-                                the collapse plugin adds the appropriate classes that we use to style each element.
-                                These
-                                classes control the overall appearance, as well as the showing and hiding via CSS
-                                transitions. You can modify any of this with custom CSS or overriding our default
-                                variables.
-                                It’s also worth noting that just about any HTML can go within the
-                                <code>.accordion-body</code>, though the transition does limit overflow.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#panelsStayOpen-collapsesiete" aria-expanded="false"
-                                aria-controls="panelsStayOpen-collapsesiete">
-                                Procesador (marcas)
-                            </button>
-                        </h2>
-                        <div id="panelsStayOpen-collapsesiete" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <strong>This is the second item’s accordion body.</strong> It is hidden by default,
-                                until
-                                the collapse plugin adds the appropriate classes that we use to style each element.
-                                These
-                                classes control the overall appearance, as well as the showing and hiding via CSS
-                                transitions. You can modify any of this with custom CSS or overriding our default
-                                variables.
-                                It’s also worth noting that just about any HTML can go within the
-                                <code>.accordion-body</code>, though the transition does limit overflow.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#panelsStayOpen-collapseocho" aria-expanded="false"
-                                aria-controls="panelsStayOpen-collapseocho">
-                                Tecnologia movil
-                            </button>
-                        </h2>
-                        <div id="panelsStayOpen-collapseocho" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <strong>This is the second item’s accordion body.</strong> It is hidden by default,
-                                until
-                                the collapse plugin adds the appropriate classes that we use to style each element.
-                                These
-                                classes control the overall appearance, as well as the showing and hiding via CSS
-                                transitions. You can modify any of this with custom CSS or overriding our default
-                                variables.
-                                It’s also worth noting that just about any HTML can go within the
-                                <code>.accordion-body</code>, though the transition does limit overflow.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#panelsStayOpen-collapsenueve" aria-expanded="false"
-                                aria-controls="panelsStayOpen-collapsenueve">
-                                Dual SIM
-                            </button>
-                        </h2>
-                        <div id="panelsStayOpen-collapsenueve" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <strong>This is the second item’s accordion body.</strong> It is hidden by default,
-                                until
-                                the collapse plugin adds the appropriate classes that we use to style each element.
-                                These
-                                classes control the overall appearance, as well as the showing and hiding via CSS
-                                transitions. You can modify any of this with custom CSS or overriding our default
-                                variables.
-                                It’s also worth noting that just about any HTML can go within the
-                                <code>.accordion-body</code>, though the transition does limit overflow.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#panelsStayOpen-collapsediez" aria-expanded="false"
-                                aria-controls="panelsStayOpen-collapsediez">
-                                Color
-                            </button>
-                        </h2>
-                        <div id="panelsStayOpen-collapsediez" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <strong>This is the second item’s accordion body.</strong> It is hidden by default,
-                                until
-                                the collapse plugin adds the appropriate classes that we use to style each element.
-                                These
-                                classes control the overall appearance, as well as the showing and hiding via CSS
-                                transitions. You can modify any of this with custom CSS or overriding our default
-                                variables.
-                                It’s also worth noting that just about any HTML can go within the
-                                <code>.accordion-body</code>, though the transition does limit overflow.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#panelsStayOpen-collapseonce" aria-expanded="false"
-                                aria-controls="panelsStayOpen-collapseonce">
-                                Serie
-                            </button>
-                        </h2>
-                        <div id="panelsStayOpen-collapseonce" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <strong>This is the second item’s accordion body.</strong> It is hidden by default,
-                                until
-                                the collapse plugin adds the appropriate classes that we use to style each element.
-                                These
-                                classes control the overall appearance, as well as the showing and hiding via CSS
-                                transitions. You can modify any of this with custom CSS or overriding our default
-                                variables.
-                                It’s also worth noting that just about any HTML can go within the
-                                <code>.accordion-body</code>, though the transition does limit overflow.
-                            </div>
-                        </div>
-                    </div>
-                    <hr>
+
+                    <!-- BOTÓN LIMPIAR -->
+                    <button class="btn btn-outline-success w-100 mt-2" onclick="limpiarFiltros()" 
+                            style="border-radius: 8px; font-weight: 500;">
+                        <i class="fas fa-times me-2"></i>Limpiar filtros
+                    </button>
                 </div>
             </div>
-            <div class="col-9 pt-4">
-                <div class="d-flex justify-content-between flex-row p-3 align-items-center "
-                    style="background-color: white; border-radius: 10px;">
-                    <p class="d-flex text-center align-items-center m-0"
-                        th:text="${productos.size()} + ' de ' + ${totalElements} + ' resultados'">Resultados</p>
+
+            <!-- ÁREA DE PRODUCTOS -->
+            <div class="col-lg-9 col-12 pt-4">
+                <!-- HEADER CON CONTADOR Y ORDENAR -->
+                <div class="d-flex justify-content-between flex-wrap p-3 align-items-center mb-3 resultados-header">
+                    <div>
+                        <p class="m-0 fw-bold" id="resultado-contador">
+                            <span th:text="${productos.size()}">0</span> de 
+                            <span th:text="${totalElements}">0</span> resultados
+                        </p>
+                    </div>
                     <div class="dropdown">
                         <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown"
                             aria-expanded="false">
-                            Relevancia
+                            <i class="fas fa-sort me-2"></i>Ordenar
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Relevancia</a></li>
-                            <li><a class="dropdown-item" href="#">Mas reciente</a></li>
-                            <li><a class="dropdown-item" href="#">Mayor descuento</a></li>
-                            <li><a class="dropdown-item" href="#">Precio más alto</a></li>
-                            <li><a class="dropdown-item" href="#">Precio más bajo</a></li>
-                            <li><a class="dropdown-item" href="#">Nombre, creciente</a></li>
-                            <li><a class="dropdown-item" href="#">Nombre, decreciente</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="ordenarProductos('relevancia'); return false;">
+                                <i class="fas fa-star me-2"></i>Relevancia</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="ordenarProductos('nombre-asc'); return false;">
+                                <i class="fas fa-sort-alpha-down me-2"></i>Nombre A-Z</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="ordenarProductos('nombre-desc'); return false;">
+                                <i class="fas fa-sort-alpha-up me-2"></i>Nombre Z-A</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="ordenarProductos('precio-asc'); return false;">
+                                <i class="fas fa-arrow-up me-2"></i>Precio: Menor a Mayor</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="ordenarProductos('precio-desc'); return false;">
+                                <i class="fas fa-arrow-down me-2"></i>Precio: Mayor a Menor</a></li>
                         </ul>
                     </div>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-md-4 mb-4" th:each="producto : ${productos}">
-                        <div class="card h-100">
-                            <img th:src="${producto.imageUrl}" class="card-img-top" alt="Imagen del producto"
-                                style="width: 100%; height: 200px; object-fit: cover;">
-                            <div class="card-body">
+
+                <!-- GRID DE PRODUCTOS -->
+                <div class="row mt-3" id="productos-container">
+                    <div class="col-lg-4 col-md-6 col-12 mb-4 producto-item producto-col" 
+                         th:each="producto : ${productos}"
+                         th:attr="data-nombre=${producto.name}, data-precio=${producto.precio}, data-stock=${producto.stock}, data-descripcion=${producto.description}, data-id=${producto.id}">
+                        <div class="card producto-card shadow-sm hover-card">
+                            <img th:src="${producto.imageUrl}" class="card-img-top producto-img" alt="Imagen del producto">
+                            <div class="card-body d-flex flex-column">
                                 <h5 class="card-title" th:text="${producto.name}">Nombre</h5>
-                                <p class="card-text" th:text="${producto.description}">Descripción</p>
-                                <p class="card-text">
-                                    <strong>Precio:</strong> S/ <span th:text="${producto.precio}">0.00</span>
-                                </p>
-                                <p class="card-text">
-                                    <strong>Stock:</strong> <span th:text="${producto.stock}">0</span>
-                                </p>
-                                <a href="#" class="btn btn-success">Ver más</a>
+                                <p class="card-text text-muted producto-descripcion" th:text="${producto.description}">Descripción</p>
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h4 class="text-success mb-0">
+                                            <small>S/</small> <span th:text="${producto.precio}">0.00</span>
+                                        </h4>
+                                        <span class="badge" 
+                                              th:classappend="${producto.stock > 0 ? 'bg-success' : 'bg-danger'}" 
+                                              th:text="${producto.stock > 0 ? 'Stock: ' + producto.stock : 'Agotado'}">Stock</span>
+                                    </div>
+                                    <a th:href="@{/Detalles(id=${producto.id})}" class="btn btn-success w-100">
+                                        <i class="fas fa-eye me-2"></i>Ver más
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- MENSAJE DE NO RESULTADOS -->
+                <div id="no-results" class="alert alert-info text-center mt-3" style="display: none;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>No se encontraron productos</strong> que coincidan con los filtros seleccionados.
+                    <br>
+                    <small>Intenta ajustar los filtros o <a href="#" onclick="limpiarFiltros(); return false;">limpiar todos</a></small>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- OFFCANVAS PARA FILTROS EN MÓVIL -->
+    <div class="offcanvas offcanvas-start offcanvas-filtros" tabindex="-1" id="offcanvasFiltros" aria-labelledby="offcanvasFiltrosLabel">
+        <div class="offcanvas-header" style="background-color: #198754; color: white;">
+            <h5 class="offcanvas-title" id="offcanvasFiltrosLabel">
+                <i class="fas fa-filter me-2"></i>Filtros
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div class="filtros-container">
+                <!-- FILTRO DE MARCA -->
+                <div class="mb-4">
+                    <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMarcaMobile">
+                        Marca
+                        <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+                    </button>
+                    <div class="collapse show" id="collapseMarcaMobile">
+                        <div class="filtro-content">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input filter-checkbox" type="checkbox" value="Apple" data-filter="marca" id="marca1m" onchange="aplicarFiltros()">
+                                <label class="form-check-label" for="marca1m" style="color: #5a5a5a; font-size: 0.95rem;">Apple</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input filter-checkbox" type="checkbox" value="Samsung" data-filter="marca" id="marca2m" onchange="aplicarFiltros()">
+                                <label class="form-check-label" for="marca2m" style="color: #5a5a5a; font-size: 0.95rem;">Samsung</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input filter-checkbox" type="checkbox" value="Xiaomi" data-filter="marca" id="marca3m" onchange="aplicarFiltros()">
+                                <label class="form-check-label" for="marca3m" style="color: #5a5a5a; font-size: 0.95rem;">Xiaomi</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input filter-checkbox" type="checkbox" value="Motorola" data-filter="marca" id="marca4m" onchange="aplicarFiltros()">
+                                <label class="form-check-label" for="marca4m" style="color: #5a5a5a; font-size: 0.95rem;">Motorola</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input filter-checkbox" type="checkbox" value="Huawei" data-filter="marca" id="marca5m" onchange="aplicarFiltros()">
+                                <label class="form-check-label" for="marca5m" style="color: #5a5a5a; font-size: 0.95rem;">Huawei</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FILTRO DE DISPONIBILIDAD -->
+                <div class="mb-4">
+                    <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStockMobile">
+                        Disponibilidad
+                        <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+                    </button>
+                    <div class="collapse" id="collapseStockMobile">
+                        <div class="filtro-content">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input filter-checkbox" type="checkbox" value="disponible" 
+                                       data-filter="stock" id="stock1m" onchange="aplicarFiltros()">
+                                <label class="form-check-label" for="stock1m" style="color: #5a5a5a; font-size: 0.95rem;">En stock</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input filter-checkbox" type="checkbox" value="agotado" 
+                                       data-filter="stock" id="stock2m" onchange="aplicarFiltros()">
+                                <label class="form-check-label" for="stock2m" style="color: #5a5a5a; font-size: 0.95rem;">Agotado</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FILTRO DE PRECIO -->
+                <div class="mb-4">
+                    <h6 class="mb-3" style="color: #5a5a5a; font-weight: 600;">Gama de Precios</h6>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small" style="color: #888;">Min</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
+                                <input type="number" class="form-control precio-input" id="precioMinMobile" value="0" min="0" 
+                                       onchange="sincronizarPrecio('min', this.value); aplicarFiltros()">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small" style="color: #888;">Max</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
+                                <input type="number" class="form-control precio-input" id="precioMaxMobile" value="10000" max="10000" 
+                                       onchange="sincronizarPrecio('max', this.value); aplicarFiltros()">
+                            </div>
+                        </div>
+                    </div>
+                    <input type="range" class="form-range" min="0" max="10000" step="100" value="10000" 
+                           id="rangoPrecioMobile" oninput="sincronizarPrecio('max', this.value); aplicarFiltros()">
+                </div>
+
+                <!-- BOTONES -->
+                <button class="btn btn-success w-100 mb-2" onclick="aplicarFiltros()" data-bs-dismiss="offcanvas">
+                    <i class="fas fa-check me-2"></i>Aplicar Filtros
+                </button>
+                <button class="btn btn-outline-success w-100" onclick="limpiarFiltros()">
+                    <i class="fas fa-times me-2"></i>Limpiar filtros
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div th:replace="fragments/headerFooter/footer :: footer"></div>
-    <!--CONTENIDO BOT-->
+    
+    <!-- CHATBOT -->
     <div id="chatbot-container">
         <div id="chat-header">
             <div class="brand">
@@ -333,12 +310,30 @@
             <button id="send-btn">➤</button>
         </div>
     </div>
-    <button id="chat-toggle"><img src="Img/logo-bot.svg" class="card-img-top" width="10" height="30" alt="Bot"></button>
-    <!--FIN CONTENIDO BOT-->
+    <button id="chat-toggle"><img src="/Img/logo-bot.svg" class="card-img-top" width="10" height="30" alt="Bot"></button>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="Js/Chat-Bot.js"></script>
-    <script src="Js/Productos-Det.js"></script>
+    <script src="/Js/Chat-Bot.js"></script>
+    <script src="/Js/Productos-Det.js"></script>
+    <script src="/Js/productosCategoria.js"></script>
+    
+    <script>
+        // Sincronizar precios entre desktop y móvil
+        function sincronizarPrecio(tipo, valor) {
+            valor = parseInt(valor);
+            if (tipo === 'min') {
+                precioMinimo = valor;
+                const inputs = document.querySelectorAll('#precioMin, #precioMinMobile');
+                inputs.forEach(input => input.value = valor);
+            } else {
+                precioMaximo = valor;
+                const inputs = document.querySelectorAll('#precioMax, #precioMaxMobile');
+                inputs.forEach(input => input.value = valor);
+                const sliders = document.querySelectorAll('#rangoPrecio, #rangoPrecioMobile');
+                sliders.forEach(slider => slider.value = valor);
+            }
+        }
+    </script>
 </body>
 
 </html>
