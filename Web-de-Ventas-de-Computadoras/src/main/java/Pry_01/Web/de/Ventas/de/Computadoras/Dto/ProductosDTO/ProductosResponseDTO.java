@@ -5,21 +5,19 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
+
 public class ProductosResponseDTO {
+    private final Long id;
 
-    private Long id;
+    private final String name;
 
-    private String name;
+    private final String description;
 
-    private String description;
+    private final double precio;
 
-    private double precio;
+    private final String imageUrl;
 
-    private String imageUrl;
+    private final Integer stock;
 
-    private Integer stock;
-
-    private String marcaNombre;
-
-    private String categoriaNombre;
+    private final String categoriaName;
 }

@@ -14,25 +14,25 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ProductosUpdateDTO {
 
-    @NotBlank
-    @Size(min = 2, max = 50)
+    @NotBlank(message = "El nombre no puede estar vacío.")
+    @Size(min = 2, max = 50, message = "El nombre debe tener entre 2 y 50 caracteres.")
     private String name;
 
-    @NotBlank
-    @Size(min = 10, max = 500)
+    @NotBlank(message = "La descripción no puede estar vacía.")
+    @Size(min = 10, max = 500, message = "La descripción debe tener entre 10 y 500 caracteres.")
     private String description;
 
-    @Positive
+    @Positive(message = "El precio debe ser mayor que 0.")
     private double precio;
 
-    @NotBlank
-    @Size(max = 255)
+    @NotBlank(message = "La URL de la imagen no puede estar vacía.")
+    @Size(max = 255, message = "La URL de la imagen no debe superar los 255 caracteres.")
     private String imageUrl;
 
-    @NotNull
-    @Min(0)
+    @NotNull(message = "El stock no puede ser nulo.")
+    @Min(value = 0, message = "El stock no puede ser negativo.")
     private Integer stock;
 
-    @NotNull
-    private Long marcaId;
+    @NotNull(message = "El producto debe pertenecer a una categoría.")
+    private Long categoriaId;
 }

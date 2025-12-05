@@ -22,37 +22,37 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "categoria")
 public class CategoriaModel {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Size(max = 100)
+    @NotBlank(message = "El nombre de la categoría es obligatorio.")
+    @Size(max = 100, message = "El nombre no puede exceder 100 caracteres.")
     @Column(nullable = false, length = 100)
     private String name;
 
-    @NotBlank
     @Column(length = 1000)
+    @NotBlank
     private String urlImage;
 
     private String slug;
-
-    @NotBlank
-    @Size(max = 500)
+    
+    @NotBlank(message = "La descripción es obligatoria.")
+    @Size(max = 500, message = "La descripción no puede exceder 500 caracteres.")
     @Column(nullable = false, length = 500)
     private String description;
 
-    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MarcaModel> marcas = new ArrayList<>();
+    @OneToMany(mappedBy = "categoriaId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductoModel> productos = new ArrayList<>();
 
-    public void addMarca(MarcaModel marca) {
-        marcas.add(marca);
-        marca.setCategoria(this);
+    public void addProducto(ProductoModel producto) {
+        productos.add(producto);
+        producto.setCategoriaId(this);
     }
 
-    public void removeMarca(MarcaModel marca) {
-        marcas.remove(marca);
-        marca.setCategoria(null);
+    public void removeProducto(ProductoModel producto) {
+        productos.remove(producto);
+        producto.setCategoriaId(null);
     }
+
 }

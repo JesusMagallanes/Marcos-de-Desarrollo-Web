@@ -43,7 +43,7 @@ private final CategoriaService categoriaService;
         java.util.Map<Long, java.util.List<ProductosResponseDTO>> productosPorCategoria = new java.util.LinkedHashMap<>();
         for (CategoriaModel cat : categorias) {
             java.util.List<ProductosResponseDTO> filt = productos.stream()
-                    .filter(p -> p.getCategoriaNombre() != null && p.getCategoriaNombre().equals(cat.getName()))
+                    .filter(p -> p.getCategoriaName() != null && p.getCategoriaName().equals(cat.getName()))
                     .toList();
             productosPorCategoria.put(cat.getId(), filt);
         }
