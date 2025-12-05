@@ -205,8 +205,8 @@ public class ChatBotController {
         }
         
         List<ProductosResponseDTO> productos = productoService.listarProducto().stream()
-            .filter(p -> p.getCategoriaNombre() != null && 
-                        p.getCategoriaNombre().equalsIgnoreCase(categoria.getName()))
+            .filter(p -> p.getCategorias() != null && 
+                        p.getCategorias().stream().anyMatch(c -> c.equalsIgnoreCase(categoria.getName())))
             .limit(5)
             .collect(Collectors.toList());
         
@@ -262,7 +262,7 @@ public class ChatBotController {
             .filter(p -> 
                 (p.getName() != null && p.getName().toLowerCase().contains(query)) ||
                 (p.getDescription() != null && p.getDescription().toLowerCase().contains(query)) ||
-                (p.getCategoriaNombre() != null && p.getCategoriaNombre().toLowerCase().contains(query))
+                (p.getCategorias() != null && p.getCategorias().stream().anyMatch(c -> c.toLowerCase().contains(query)))
             )
             .limit(5)
             .collect(Collectors.toList());
