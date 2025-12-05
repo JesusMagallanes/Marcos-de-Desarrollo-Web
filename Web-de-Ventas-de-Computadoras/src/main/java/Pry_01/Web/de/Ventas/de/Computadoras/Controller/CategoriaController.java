@@ -12,48 +12,45 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO.CategoriaCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO.CategoriaUpdateDTO;
-import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
-import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
 import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/categorias")
 public class CategoriaController {
+
     private final UsuarioService usuarioService;
     private final CategoriaService categoriaService;
-    private final ProductoService productoService;
 
-    public CategoriaController(CategoriaService categoriaService, UsuarioService usuarioService,
-            ProductoService productoService) {
+    public CategoriaController(CategoriaService categoriaService,
+                               UsuarioService usuarioService) {
         this.categoriaService = categoriaService;
         this.usuarioService = usuarioService;
-        this.productoService = productoService;
     }
 
     @GetMapping("/api")
     @ResponseBody
     public List<CategoriaModel> listarCategoriasApi() {
-        
         return categoriaService.listarCategoria();
     }
 
     @PostMapping
-    public String guardarCategoria(@Valid @ModelAttribute("categoria") CategoriaCreateDTO dto, BindingResult result,
-            Model model) {
+    public String guardarCategoria(@Valid @ModelAttribute("categoria") CategoriaCreateDTO dto,
+                                   BindingResult result,
+                                   Model model) {
+
         if (result.hasErrors()) {
             model.addAttribute("seccion", "categoria");
             model.addAttribute("usuarios", usuarioService.listarUsuario());
             model.addAttribute("usuario", new UsuarioModel());
-            model.addAttribute("producto", new ProductosCreateDTO());
-            model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categoria", dto);
             model.addAttribute("categorias", categoriaService.listarCategoria());
             return "admin/VistaAdmin";
         }
+
         categoriaService.guardarCategoria(dto);
         return "redirect:/VistaAdmin?seccion=categoria";
     }
@@ -66,18 +63,18 @@ public class CategoriaController {
 
     @PostMapping("/editar/{id}")
     public String editarCategoria(@PathVariable Long id,
-            @Valid @ModelAttribute("categoria") CategoriaUpdateDTO dto,
-            BindingResult result,
-            Model model) {
+                                  @Valid @ModelAttribute("categoria") CategoriaUpdateDTO dto,
+                                  BindingResult result,
+                                  Model model) {
+
         if (result.hasErrors()) {
             model.addAttribute("seccion", "categoria");
             model.addAttribute("usuarios", usuarioService.listarUsuario());
             model.addAttribute("usuario", new UsuarioModel());
-            model.addAttribute("producto", new ProductosCreateDTO());
-            model.addAttribute("productos", productoService.listarProducto());
-            model.addAttribute("categoria", dto);
             model.addAttribute("categorias", categoriaService.listarCategoria());
-            return "admin/VistaAdmin?seccion=categoria";
+            model.addAttribute("categoria", dto);
+
+            return "admin/VistaAdmin";
         }
 
         categoriaService.actualizarCategoria(id, dto);

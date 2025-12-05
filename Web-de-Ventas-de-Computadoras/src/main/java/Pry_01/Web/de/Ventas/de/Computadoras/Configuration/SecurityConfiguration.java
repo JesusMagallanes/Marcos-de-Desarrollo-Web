@@ -83,15 +83,25 @@ public class SecurityConfiguration {
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**", "/productos/admin/**")
+                        .requestMatchers(
+                                "/VistaAdmin/**",
+                                "/fragments/Admin-gest/**",
+                                "/categorias",
+                                "/categorias/**",
+                                "/marcas",
+                                "/marcas/**",
+                                "/productos/admin/**",
+                                "/productos/eliminar/**",
+                                "/productos/editar/**",
+                                "/productos/guardar/**")
                         .hasRole("ADMINISTRADOR")
-
                         .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
                                 "/usuarios/registrar", "/Detalles", "/Somos", "/header", "/canales",
                                 "/Canales", "/metodosPago", "/productosCategoria", "/usuarios/registrar/**",
                                 "/productos", "/productos/api", "/productos/categoria/**", "/productos/**",
                                 "/api/chatbot/**",
-                                "/oauth2/authorization/google", "/login/oauth2/code/google", "/oauth2/authorization/facebook",
+                                "/oauth2/authorization/google", "/login/oauth2/code/google",
+                                "/oauth2/authorization/facebook",
                                 "/login/oauth2/code/facebook")
                         .permitAll()
 

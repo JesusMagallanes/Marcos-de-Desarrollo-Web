@@ -2,12 +2,15 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
@@ -16,12 +19,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "categoria")
-public class CategoriaModel {
+@Table(name = "marca")
+public class MarcaModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,29 +33,24 @@ public class CategoriaModel {
     @NotBlank
     @Size(max = 100)
     @Column(nullable = false, length = 100)
-    private String name;
+    private String nombre;
 
-    @NotBlank
-    @Column(length = 1000)
-    private String urlImage;
+    @ManyToOne
+    @JoinColumn(name = "categoria_id", nullable = false)
+    private CategoriaModel categoria;
 
-    private String slug;
+    @OneToMany(mappedBy = "marca", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductoModel> productos = new ArrayList<>();
 
-    @NotBlank
-    @Size(max = 500)
-    @Column(nullable = false, length = 500)
-    private String description;
-
-    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MarcaModel> marcas = new ArrayList<>();
-
-    public void addMarca(MarcaModel marca) {
-        marcas.add(marca);
-        marca.setCategoria(this);
+    public void addProducto(ProductoModel producto) {
+        productos.add(producto);
+        producto.setMarca(this);
     }
 
-    public void removeMarca(MarcaModel marca) {
-        marcas.remove(marca);
-        marca.setCategoria(null);
+    public void removeProducto(ProductoModel producto) {
+        productos.remove(producto);
+        producto.setMarca(null);
     }
 }
+
+

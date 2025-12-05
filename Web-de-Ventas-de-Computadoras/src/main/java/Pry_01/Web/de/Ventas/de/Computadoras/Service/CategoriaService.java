@@ -43,6 +43,7 @@ public class CategoriaService {
             categoria.setName(dto.getName());
             categoria.setUrlImage(dto.getUrlImage());
             categoria.setDescription(dto.getDescription());
+            categoria.setSlug(generarSlug(dto.getName()));
             categoriaRepository.save(categoria);
         }
     }
