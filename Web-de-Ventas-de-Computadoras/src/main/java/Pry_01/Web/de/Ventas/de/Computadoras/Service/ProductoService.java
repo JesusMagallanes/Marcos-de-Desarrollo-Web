@@ -88,7 +88,9 @@ public class ProductoService {
                 producto.getImageUrl(),
                 producto.getStock(),
                 producto.getMarca().getNombre(),
-                producto.getMarca().getCategoria().getName());
+                producto.getMarca().getCategoria().getName(),
+                producto.getMarca().getId(),
+                producto.getMarca().getCategoria().getId());
     }
 
     public ProductoModel obtenerPorId(Long id) {

@@ -13,14 +13,18 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO.CategoriaCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.MarcaDTO.MarcaCreateDTO;
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.MetodoPagoDTO.MetodoPagoCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosUpdateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.MarcaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosResponseDTO;
+import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.MarcaService;
+import Pry_01.Web.de.Ventas.de.Computadoras.Service.MetodoPagoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
 
@@ -32,6 +36,8 @@ public class ProductoController {
 
     private final ProductoService productoService;
     private final MarcaService marcaService;
+    private final CategoriaService categoriaService;
+    private final MetodoPagoService metodoPagoService;
     private final UsuarioService usuarioService;
 
     @GetMapping("/marca/{marcaId}")
@@ -96,35 +102,50 @@ public class ProductoController {
                                   Model model) {
 
         if (result.hasErrors()) {
-            model.addAttribute("seccion", "producto");
+            log.warn("Errores de validación al crear producto: {}", result.getAllErrors());
+            model.addAttribute("seccion", "productos");
             model.addAttribute("usuarios", usuarioService.listarUsuario());
             model.addAttribute("usuario", new UsuarioModel());
             model.addAttribute("producto", dto);
             model.addAttribute("productos", productoService.listarProducto());
-
-            model.addAttribute("marcas", marcaService.listarMarcas());
+            model.addAttribute("categoria", new CategoriaCreateDTO());
+            model.addAttribute("categorias", categoriaService.listarCategoria());
             model.addAttribute("marca", new MarcaCreateDTO());
+            model.addAttribute("marcas", marcaService.listarMarcas());
+            model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
+            model.addAttribute("metodoPagos", metodoPagoService.listarMetodosPago());
 
             return "admin/VistaAdmin";
         }
 
         try {
             productoService.guardarProducto(dto);
+            log.info("Producto guardado exitosamente: {}", dto.getName());
         } catch (Exception e) {
-            log.error("Error guardando producto", e);
+            log.error("Error guardando producto: {}", dto, e);
 
-            model.addAttribute("seccion", "producto");
-            model.addAttribute("usuarios", usuarioService.listarUsuario());
-            model.addAttribute("usuario", new UsuarioModel());
-            model.addAttribute("producto", dto);
-            model.addAttribute("productos", productoService.listarProducto());
-            model.addAttribute("marcas", marcaService.listarMarcas());
+            try {
+                model.addAttribute("seccion", "productos");
+                model.addAttribute("usuarios", usuarioService.listarUsuario());
+                model.addAttribute("usuario", new UsuarioModel());
+                model.addAttribute("producto", dto);
+                model.addAttribute("productos", productoService.listarProducto());
+                model.addAttribute("categoria", new CategoriaCreateDTO());
+                model.addAttribute("categorias", categoriaService.listarCategoria());
+                model.addAttribute("marca", new MarcaCreateDTO());
+                model.addAttribute("marcas", marcaService.listarMarcas());
+                model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
+                model.addAttribute("metodoPagos", metodoPagoService.listarMetodosPago());
 
-            model.addAttribute("mensajeError", "No se pudo guardar el producto: " + e.getMessage());
-            return "admin/VistaAdmin";
+                model.addAttribute("mensajeError", "No se pudo guardar el producto: " + e.getMessage());
+                return "admin/VistaAdmin";
+            } catch (Exception ex) {
+                log.error("Error cargando datos del modelo", ex);
+                throw new RuntimeException("Error al procesar la solicitud", ex);
+            }
         }
 
-        return "redirect:/VistaAdmin?seccion=producto";
+        return "redirect:/VistaAdmin?seccion=productos";
     }
     
     @PostMapping("/editar/{id}")
@@ -134,19 +155,49 @@ public class ProductoController {
                                  Model model) {
 
         if (result.hasErrors()) {
+            log.warn("Errores de validación al editar producto {}: {}", id, result.getAllErrors());
+            model.addAttribute("seccion", "productos");
+            model.addAttribute("usuarios", usuarioService.listarUsuario());
+            model.addAttribute("usuario", new UsuarioModel());
+            model.addAttribute("producto", new ProductosCreateDTO());
             model.addAttribute("productos", productoService.listarProducto());
+            model.addAttribute("categoria", new CategoriaCreateDTO());
+            model.addAttribute("categorias", categoriaService.listarCategoria());
+            model.addAttribute("marca", new MarcaCreateDTO());
             model.addAttribute("marcas", marcaService.listarMarcas());
-            return "fragments/Admin-gest/Gest-productos :: gest-productos";
+            model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
+            model.addAttribute("metodoPagos", metodoPagoService.listarMetodosPago());
+            model.addAttribute("mensajeError", "Error al actualizar el producto");
+            return "admin/VistaAdmin";
         }
 
-        productoService.actualizarProducto(id, dto);
-        return "redirect:/VistaAdmin?seccion=producto";
+        try {
+            productoService.actualizarProducto(id, dto);
+            log.info("Producto {} actualizado exitosamente", id);
+        } catch (Exception e) {
+            log.error("Error actualizando producto {}", id, e);
+            model.addAttribute("seccion", "productos");
+            model.addAttribute("usuarios", usuarioService.listarUsuario());
+            model.addAttribute("usuario", new UsuarioModel());
+            model.addAttribute("producto", new ProductosCreateDTO());
+            model.addAttribute("productos", productoService.listarProducto());
+            model.addAttribute("categoria", new CategoriaCreateDTO());
+            model.addAttribute("categorias", categoriaService.listarCategoria());
+            model.addAttribute("marca", new MarcaCreateDTO());
+            model.addAttribute("marcas", marcaService.listarMarcas());
+            model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
+            model.addAttribute("metodoPagos", metodoPagoService.listarMetodosPago());
+            model.addAttribute("mensajeError", "Error al actualizar el producto: " + e.getMessage());
+            return "admin/VistaAdmin";
+        }
+        
+        return "redirect:/VistaAdmin?seccion=productos";
     }
 
     @PostMapping("/eliminar/{id}")
     public String eliminarProducto(@PathVariable Long id) {
         productoService.eliminarProducto(id);
-        return "redirect:/VistaAdmin?seccion=producto";
+        return "redirect:/VistaAdmin?seccion=productos";
     }
 
 
