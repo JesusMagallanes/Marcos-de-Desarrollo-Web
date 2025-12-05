@@ -1,7 +1,5 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -25,8 +23,7 @@ public class ProductosResponseDTO {
 
     private String categoriaNombre;
 
-    private List<Long> marcaIds;
-    
-    private List<Long> categoriaIds;
+    private Long marcaId;
 
+    private Long categoriaId;
 }

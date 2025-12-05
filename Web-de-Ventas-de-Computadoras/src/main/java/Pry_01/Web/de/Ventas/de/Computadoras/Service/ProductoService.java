@@ -18,32 +18,27 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ProductoService {
-
     private final MarcaRepository marcaRepository;
     private final ProductoRepository productoRepository;
-
-    // Listar todos los productos
+    
     public List<ProductosResponseDTO> listarProducto() {
-        return productoRepository.findAll().stream()
+        List<ProductoModel> productos = productoRepository.findAll();
+
+        return productos.stream()
                 .map(this::convertToResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    // Listar productos por lista de marcas (paginado)
-    public Page<ProductosResponseDTO> listarPorMarcas(List<Long> marcaIds, Pageable pageable) {
-        List<MarcaModel> marcas = marcaRepository.findAllById(marcaIds);
-        if (marcas.isEmpty())
-            return Page.empty(pageable);
+    public Page<ProductosResponseDTO> listarPorMarca(MarcaModel marca, Pageable pageable) {
+        Page<ProductoModel> productosPage = productoRepository.findByMarca(marca, pageable);
 
-        Page<ProductoModel> productosPage = productoRepository.findDistinctByMarcasIn(marcas, pageable);
         return productosPage.map(this::convertToResponseDTO);
     }
 
-    // Guardar producto con varias marcas
     public ProductoModel guardarProducto(ProductosCreateDTO dto) {
-        List<MarcaModel> marcas = marcaRepository.findAllById(dto.getMarcaIds());
-        if (marcas.isEmpty())
-            throw new RuntimeException("No se encontraron marcas para los IDs proporcionados");
+
+        MarcaModel marca = marcaRepository.findById(dto.getMarcaId())
+                .orElseThrow(() -> new RuntimeException("Marca no encontrada"));
 
         ProductoModel producto = new ProductoModel();
         producto.setName(dto.getName());
@@ -51,68 +46,40 @@ public class ProductoService {
         producto.setPrecio(dto.getPrecio());
         producto.setImageUrl(dto.getImageUrl());
         producto.setStock(dto.getStock());
-        producto.setMarcas(marcas);
+        producto.setMarca(marca);
 
         return productoRepository.save(producto);
     }
 
-    // Actualizar producto con varias marcas
+    public void eliminarProducto(Long id) {
+        productoRepository.deleteById(id);
+    }
+
     public ProductoModel actualizarProducto(Long id, ProductosUpdateDTO dto) {
+
         ProductoModel producto = productoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
-        List<MarcaModel> marcas = marcaRepository.findAllById(dto.getMarcaIds());
-        if (marcas.isEmpty())
-            throw new RuntimeException("No se encontraron marcas para los IDs proporcionados");
+        MarcaModel marca = marcaRepository.findById(dto.getMarcaId())
+                .orElseThrow(() -> new RuntimeException("Marca no encontrada"));
 
         producto.setName(dto.getName());
         producto.setDescription(dto.getDescription());
         producto.setPrecio(dto.getPrecio());
         producto.setImageUrl(dto.getImageUrl());
         producto.setStock(dto.getStock());
-        producto.setMarcas(marcas);
+        producto.setMarca(marca);
 
         return productoRepository.save(producto);
     }
 
-    // Eliminar producto
-    public void eliminarProducto(Long id) {
-        productoRepository.deleteById(id);
-    }
-
-    // Obtener producto por ID
     public ProductosResponseDTO obtenerProductoPorId(Long id) {
         ProductoModel producto = productoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
         return convertToResponseDTO(producto);
     }
 
-    public ProductoModel obtenerPorId(Long id) {
-        return productoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-    }
-
-    // Convertir ProductoModel a DTO
     private ProductosResponseDTO convertToResponseDTO(ProductoModel producto) {
-
-        String marcasNombres = producto.getMarcas().stream()
-                .map(MarcaModel::getNombre)
-                .collect(Collectors.joining(", "));
-
-        String categoriasNombres = producto.getMarcas().stream()
-                .map(m -> m.getCategoria().getName())
-                .distinct()
-                .collect(Collectors.joining(", "));
-
-        List<Long> marcaIds = producto.getMarcas().stream()
-                .map(MarcaModel::getId)
-                .collect(Collectors.toList());
-
-        List<Long> categoriaIds = producto.getMarcas().stream()
-                .map(m -> m.getCategoria().getId())
-                .distinct()
-                .collect(Collectors.toList());
-
         return new ProductosResponseDTO(
                 producto.getId(),
                 producto.getName(),
@@ -120,10 +87,14 @@ public class ProductoService {
                 producto.getPrecio(),
                 producto.getImageUrl(),
                 producto.getStock(),
-                marcasNombres,
-                categoriasNombres,
-                marcaIds,
-                categoriaIds);
+                producto.getMarca().getNombre(),
+                producto.getMarca().getCategoria().getName(),
+                producto.getMarca().getId(),
+                producto.getMarca().getCategoria().getId());
     }
 
+    public ProductoModel obtenerPorId(Long id) {
+        return productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+    }
 }

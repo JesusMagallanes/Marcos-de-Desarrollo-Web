@@ -1,7 +1,5 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO;
 
-import java.util.List;
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -36,6 +34,5 @@ public class ProductosUpdateDTO {
     private Integer stock;
 
     @NotNull
-    private List<Long> marcaIds;
-
+    private Long marcaId;
 }
