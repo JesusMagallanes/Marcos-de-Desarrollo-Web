@@ -2,6 +2,7 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -21,32 +22,29 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosUpdateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
+import Pry_01.Web.de.Ventas.de.Computadoras.Model.MarcaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosResponseDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
+import Pry_01.Web.de.Ventas.de.Computadoras.Service.MarcaService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
 
 @Slf4j
 @Controller
 @RequestMapping("/productos")
+@RequiredArgsConstructor
 public class ProductoController {
 
     private final ProductoService productoService;
     private final CategoriaService categoriaService;
     private final UsuarioService usuarioService;
-
-    public ProductoController(ProductoService productoService, CategoriaService categoriaService,
-            UsuarioService usuarioService) {
-        this.productoService = productoService;
-        this.categoriaService = categoriaService;
-        this.usuarioService = usuarioService;
-    }
+    private final MarcaService marcaService;
 
     @GetMapping("/categoria/{slug}")
     public String mostrarProductosPorCategoria(@PathVariable String slug,
-            @RequestParam(defaultValue = "0") int page,
-            Model model, HttpSession session, UsuarioModel usuario) {
+                                               @RequestParam(defaultValue = "0") int page,
+                                               Model model, HttpSession session) {
         CategoriaModel categoria = categoriaService.obtenerPorSlug(slug);
         if (categoria == null) {
             model.addAttribute("mensajeError", "Categoría no encontrada.");
@@ -55,6 +53,7 @@ public class ProductoController {
 
         PageRequest pageable = PageRequest.of(page, 12); // 12 productos por página
         Page<ProductosResponseDTO> productosPage = productoService.listarPorCategoria(categoria, pageable);
+
         UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
         model.addAttribute("usuario", usuarioDTO);
         model.addAttribute("categoria", categoria);
@@ -63,6 +62,7 @@ public class ProductoController {
         model.addAttribute("totalPages", productosPage.getTotalPages());
         model.addAttribute("currentPage", productosPage.getNumber());
         model.addAttribute("totalElements", productosPage.getTotalElements());
+
         return "productosCategoria";
     }
 
@@ -72,9 +72,34 @@ public class ProductoController {
         return productoService.listarProducto();
     }
 
+    @GetMapping("/marca/{id}")
+    public String mostrarProductosPorMarca(@PathVariable Long id,
+                                           @RequestParam(defaultValue = "0") int page,
+                                           Model model, HttpSession session) {
+        MarcaModel marca = marcaService.obtenerPorId(id);
+        if (marca == null) {
+            model.addAttribute("mensajeError", "Marca no encontrada.");
+            return "error/404";
+        }
+
+        PageRequest pageable = PageRequest.of(page, 12);
+        Page<ProductosResponseDTO> productosPage = productoService.listarPorMarca(marca, pageable);
+
+        UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
+        model.addAttribute("usuario", usuarioDTO);
+        model.addAttribute("marca", marca);
+        model.addAttribute("categorias", categoriaService.listarCategoria());
+        model.addAttribute("productos", productosPage.getContent());
+        model.addAttribute("totalPages", productosPage.getTotalPages());
+        model.addAttribute("currentPage", productosPage.getNumber());
+        model.addAttribute("totalElements", productosPage.getTotalElements());
+
+        return "productosMarca";
+    }
+    
     @GetMapping
     public String listarProductos(@RequestParam(name = "search", required = false) String search,
-            Model model, HttpSession session) {
+                                  Model model, HttpSession session) {
 
         List<ProductosResponseDTO> productos = productoService.listarProducto();
         if (search != null && !search.isBlank()) {
@@ -92,6 +117,7 @@ public class ProductoController {
         model.addAttribute("categorias", categorias);
         model.addAttribute("productos", productos);
 
+        // Agrupar productos por categoría
         Map<Long, List<ProductosResponseDTO>> productosPorCategoria = new LinkedHashMap<>();
         for (CategoriaModel cat : categorias) {
             List<ProductosResponseDTO> filt = productos.stream()
@@ -101,6 +127,7 @@ public class ProductoController {
         }
         model.addAttribute("productosPorCategoria", productosPorCategoria);
 
+        // Crear chunks de tamaño 6 por categoría
         Map<Long, List<List<ProductosResponseDTO>>> productosPorCategoriaChunks = new LinkedHashMap<>();
         int chunkSize = 6;
         for (Map.Entry<Long, List<ProductosResponseDTO>> entry : productosPorCategoria.entrySet()) {
@@ -120,10 +147,11 @@ public class ProductoController {
         return "redirect:/Index";
     }
 
+    // --- CRUD de productos (sin cambios) ---
     @PostMapping
     public String guardarProducto(@Valid @ModelAttribute("producto") ProductosCreateDTO dto,
-            BindingResult result,
-            Model model) {
+                                  BindingResult result,
+                                  Model model) {
         log.info("Intentando guardar producto: {}", dto);
 
         if (result.hasErrors()) {
@@ -137,7 +165,6 @@ public class ProductoController {
             model.addAttribute("categorias", categoriaService.listarCategoria());
             model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
             model.addAttribute("metodoPagos", new java.util.ArrayList<>());
-
             return "admin/VistaAdmin";
         }
 
@@ -146,7 +173,6 @@ public class ProductoController {
             log.info("Producto guardado correctamente.");
         } catch (Exception e) {
             log.error("Error al guardar producto", e);
-
             model.addAttribute("seccion", "producto");
             model.addAttribute("usuarios", usuarioService.listarUsuario());
             model.addAttribute("usuario", new UsuarioModel());
@@ -156,7 +182,6 @@ public class ProductoController {
             model.addAttribute("categorias", categoriaService.listarCategoria());
             model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
             model.addAttribute("metodoPagos", new java.util.ArrayList<>());
-
             model.addAttribute("mensajeError", "No se pudo guardar el producto: " + e.getMessage());
             return "admin/VistaAdmin";
         }
@@ -166,9 +191,9 @@ public class ProductoController {
 
     @PostMapping("/editar/{id}")
     public String editarProducto(@PathVariable Long id,
-            @Valid @ModelAttribute("producto") ProductosUpdateDTO dto,
-            BindingResult result,
-            Model model) {
+                                 @Valid @ModelAttribute("producto") ProductosUpdateDTO dto,
+                                 BindingResult result,
+                                 Model model) {
         if (result.hasErrors()) {
             model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categorias", categoriaService.listarCategoria());
@@ -192,9 +217,6 @@ public class ProductoController {
 
     @GetMapping("/admin/fragment")
     public String obtenerFragmentoAdmin() {
-        // Endpoint para devolver explícitamente el fragmento del administrador.
-        // Se protegerá a nivel de seguridad para que sólo administradores puedan
-        // acceder.
         return "fragments/Admin-gest/Gest-productos :: gest-productos";
     }
 }

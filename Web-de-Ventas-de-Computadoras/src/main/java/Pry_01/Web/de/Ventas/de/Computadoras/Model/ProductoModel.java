@@ -53,8 +53,8 @@ public class ProductoModel {
     private Integer stock;
 
     @ManyToOne
-    @JoinColumn(name = "categoriaId", nullable = false)
-    @NotNull(message = "El producto debe pertenecer a una categoría.")
-    private CategoriaModel categoriaId;
+    @JoinColumn(name = "marcaId", nullable = false)
+    @NotNull(message = "El producto debe pertenecer a una marca.")
+    private MarcaModel marcaId;
 
 }

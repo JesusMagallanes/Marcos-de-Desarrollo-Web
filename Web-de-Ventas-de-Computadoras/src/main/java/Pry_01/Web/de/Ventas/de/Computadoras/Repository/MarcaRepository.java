@@ -9,17 +9,12 @@ import org.springframework.stereotype.Repository;
 
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.MarcaModel;
-import Pry_01.Web.de.Ventas.de.Computadoras.Model.ProductoModel;
 
 @Repository
-public interface ProductoRepository extends JpaRepository<ProductoModel, Long> {
+public interface MarcaRepository extends JpaRepository<MarcaModel, Long> {
     boolean existsByName(String name);
 
-    Page<ProductoModel> findByMarcaId(MarcaModel marca, Pageable pageable);
-
-    Page<ProductoModel> findByCategoriaId(CategoriaModel categoria, Pageable pageable);
-
-    List<ProductoModel> findByMarcaId(MarcaModel marca);
+    Page<MarcaModel> findByCategoriaId(CategoriaModel categoria, Pageable pageable);
     
-    List<ProductoModel> findByCategoriaId(CategoriaModel categoria);
+    List<MarcaModel> findByCategoriaId(CategoriaModel categoria);
 }

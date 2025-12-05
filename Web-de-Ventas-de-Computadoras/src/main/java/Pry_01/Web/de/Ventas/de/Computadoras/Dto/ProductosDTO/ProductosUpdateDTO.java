@@ -34,5 +34,5 @@ public class ProductosUpdateDTO {
     private Integer stock;
 
     @NotNull(message = "El producto debe pertenecer a una categoría.")
-    private Long categoriaId;
+    private Long marcaId;
 }

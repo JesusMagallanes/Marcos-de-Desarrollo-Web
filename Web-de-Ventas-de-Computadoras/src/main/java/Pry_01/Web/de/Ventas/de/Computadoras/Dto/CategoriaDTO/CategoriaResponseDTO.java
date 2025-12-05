@@ -2,7 +2,8 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO;
 
 import java.util.ArrayList;
 import java.util.List;
-import Pry_01.Web.de.Ventas.de.Computadoras.Model.ProductoModel;
+
+import Pry_01.Web.de.Ventas.de.Computadoras.Model.MarcaModel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -20,5 +21,5 @@ public class CategoriaResponseDTO {
     
     private String slug;
 
-    private List<ProductoModel> productos = new ArrayList<>();
+    private List<MarcaModel> marcas = new ArrayList<>();
 }

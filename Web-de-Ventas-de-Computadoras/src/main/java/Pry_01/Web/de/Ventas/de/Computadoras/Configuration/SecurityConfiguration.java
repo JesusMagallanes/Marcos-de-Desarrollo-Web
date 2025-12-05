@@ -50,7 +50,6 @@ public class SecurityConfiguration {
                     HttpServletResponse response,
                     org.springframework.security.core.Authentication authentication)
                     throws IOException, ServletException {
-                // establecer DTO en sesión (como ya hacías)
                 Object principal = authentication.getPrincipal();
                 if (principal instanceof UsuarioDetails) {
                     UsuarioDetails ud = (UsuarioDetails) principal;
@@ -59,7 +58,6 @@ public class SecurityConfiguration {
                     request.getSession(true).setAttribute("usuario", dto);
                 }
 
-                // ver autoridades y redirigir según rol
                 boolean isAdmin = authentication.getAuthorities().stream()
                         .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
 
@@ -83,20 +81,29 @@ public class SecurityConfiguration {
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**", "/productos/admin/**")
+                        // Rutas de administrador
+                        .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**", 
+                                "/productos/admin/**", "/marcas", "/marcas/editar/**", 
+                                "/marcas/eliminar/**")
                         .hasRole("ADMINISTRADOR")
 
+                        // Rutas públicas
                         .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
                                 "/usuarios/registrar", "/Detalles", "/Somos", "/header", "/canales",
                                 "/Canales", "/metodosPago", "/productosCategoria", "/usuarios/registrar/**",
-                                "/productos", "/productos/api", "/productos/categoria/**", "/productos/**",
+                                "/productos", "/productos/api", "/productos/categoria/**", "/productos/marca/**",
+                                "/productos/**", "/marcas/api", "/marcas/categoria/**",
                                 "/api/chatbot/**",
-                                "/oauth2/authorization/google", "/login/oauth2/code/google", "/oauth2/authorization/facebook",
-                                "/login/oauth2/code/facebook")
+                                "/oauth2/authorization/google", "/login/oauth2/code/google", 
+                                "/oauth2/authorization/facebook", "/login/oauth2/code/facebook")
                         .permitAll()
 
+                        // Rutas para empleados y administradores
                         .requestMatchers("/EnviosPag").hasAnyRole("EMPLEADO", "ADMINISTRADOR")
+                        
+                        // Cualquier otra solicitud autenticada
                         .anyRequest().authenticated())
+                
                 .formLogin(form -> form
                         .loginPage("/Index")
                         .loginProcessingUrl("/usuarios/login")
@@ -105,14 +112,17 @@ public class SecurityConfiguration {
                         .successHandler(authenticationSuccessHandler())
                         .failureUrl("/Index?error=true")
                         .permitAll())
+                
                 .oauth2Login(oauth -> oauth
                         .loginPage("/Index")
                         .successHandler(oAuth2LoginSuccessHandler))
+                
                 .rememberMe(rem -> rem
                         .rememberMeParameter("remember-me")
                         .tokenValiditySeconds(7 * 24 * 60 * 60)
                         .key("uniqueAndSecret")
                         .userDetailsService(usuarioDetailsService))
+                
                 .logout(logout -> logout
                         .logoutUrl("/usuarios/logout")
                         .logoutSuccessUrl("/Index?logout=true")

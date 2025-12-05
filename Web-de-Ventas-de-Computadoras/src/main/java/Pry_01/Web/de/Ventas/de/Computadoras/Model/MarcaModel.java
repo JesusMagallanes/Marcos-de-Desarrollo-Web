@@ -2,15 +2,19 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,8 +24,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "categoria")
-public class CategoriaModel {
+@Table(name = "marca")
+public class MarcaModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,28 +35,20 @@ public class CategoriaModel {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(length = 1000)
-    @NotBlank
-    private String urlImage;
+    @ManyToOne
+    @JoinColumn(name = "categoriaId", nullable = false)
+    @NotNull(message = "El producto debe pertenecer a una categoría.")
+    private CategoriaModel categoriaId;
 
-    private String slug;
-    
-    @NotBlank(message = "La descripción es obligatoria.")
-    @Size(max = 500, message = "La descripción no puede exceder 500 caracteres.")
-    @Column(nullable = false, length = 500)
-    private String description;
+    @OneToMany(mappedBy = "marcaId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductoModel> productos = new ArrayList<>();
 
-    @OneToMany(mappedBy = "categoriaId", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MarcaModel> marcas = new ArrayList<>();
-
-    public void addProducto(MarcaModel marca) {
-        marcas.add(marca);
-        marca.setCategoriaId(this);
+    public void addProducto(ProductoModel producto) {
+        productos.add(producto);
+        producto.setMarcaId(this);
     }
-
-    public void removeProducto(MarcaModel marca) {
-        marcas.remove(marca);
-        marca.setCategoriaId(null);
+    public void removeProducto(ProductoModel producto) {
+        productos.remove(producto);
+        producto.setMarcaId(null);
     }
-
 }
