@@ -1,12 +1,16 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -52,9 +56,8 @@ public class ProductoModel {
     @Column(nullable = false)
     private Integer stock;
 
-    @ManyToOne
-    @JoinColumn(name = "marca_id", nullable = false)
-    @NotNull(message = "El producto debe pertenecer a una marca.")
-    private MarcaModel marca;
+    @ManyToMany
+    @JoinTable(name = "producto_marca", joinColumns = @JoinColumn(name = "producto_id"), inverseJoinColumns = @JoinColumn(name = "marca_id"))
+    private List<MarcaModel> marcas = new ArrayList<>();
 
 }

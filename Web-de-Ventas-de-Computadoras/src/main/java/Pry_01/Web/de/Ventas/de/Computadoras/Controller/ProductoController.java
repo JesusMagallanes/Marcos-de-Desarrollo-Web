@@ -42,9 +42,9 @@ public class ProductoController {
 
     @GetMapping("/marca/{marcaId}")
     public String mostrarProductosPorMarca(@PathVariable Long marcaId,
-                                           @RequestParam(defaultValue = "0") int page,
-                                           Model model,
-                                           HttpSession session) {
+            @RequestParam(defaultValue = "0") int page,
+            Model model,
+            HttpSession session) {
 
         MarcaModel marca = marcaService.obtenerPorId(marcaId);
         if (marca == null) {
@@ -53,8 +53,7 @@ public class ProductoController {
         }
 
         PageRequest pageable = PageRequest.of(page, 12);
-        Page<ProductosResponseDTO> productosPage =
-                productoService.listarPorMarca(marca, pageable);
+        Page<ProductosResponseDTO> productosPage = productoService.listarPorMarcas(List.of(marcaId), pageable);
 
         UsuarioDTO usuarioDTO = (UsuarioDTO) session.getAttribute("usuario");
 
@@ -76,7 +75,7 @@ public class ProductoController {
 
     @GetMapping
     public String listarProductos(@RequestParam(name = "search", required = false) String search,
-                                  Model model, HttpSession session) {
+            Model model, HttpSession session) {
 
         List<ProductosResponseDTO> productos = productoService.listarProducto();
 
@@ -98,8 +97,8 @@ public class ProductoController {
 
     @PostMapping
     public String guardarProducto(@Valid @ModelAttribute("producto") ProductosCreateDTO dto,
-                                  BindingResult result,
-                                  Model model) {
+            BindingResult result,
+            Model model) {
 
         if (result.hasErrors()) {
             log.warn("Errores de validación al crear producto: {}", result.getAllErrors());
@@ -147,12 +146,12 @@ public class ProductoController {
 
         return "redirect:/VistaAdmin?seccion=productos";
     }
-    
+
     @PostMapping("/editar/{id}")
     public String editarProducto(@PathVariable Long id,
-                                 @Valid @ModelAttribute("producto") ProductosUpdateDTO dto,
-                                 BindingResult result,
-                                 Model model) {
+            @Valid @ModelAttribute("producto") ProductosUpdateDTO dto,
+            BindingResult result,
+            Model model) {
 
         if (result.hasErrors()) {
             log.warn("Errores de validación al editar producto {}: {}", id, result.getAllErrors());
@@ -190,7 +189,7 @@ public class ProductoController {
             model.addAttribute("mensajeError", "Error al actualizar el producto: " + e.getMessage());
             return "admin/VistaAdmin";
         }
-        
+
         return "redirect:/VistaAdmin?seccion=productos";
     }
 
@@ -199,7 +198,6 @@ public class ProductoController {
         productoService.eliminarProducto(id);
         return "redirect:/VistaAdmin?seccion=productos";
     }
-
 
     @GetMapping("/{id}")
     @ResponseBody
