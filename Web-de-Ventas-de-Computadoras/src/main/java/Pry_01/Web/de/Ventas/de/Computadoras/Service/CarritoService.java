@@ -39,7 +39,6 @@ public class CarritoService {
         CarritoModel carrito = obtenerCarrito(usuario);
         ProductoModel producto = productoService.obtenerPorId(productoId);
 
-        // Verificar si el producto ya está en el carrito
         Optional<CarritoItemModel> existente = itemRepo.findByCarritoAndProducto(carrito, producto);
 
         if (existente.isPresent()) {
@@ -60,8 +59,8 @@ public class CarritoService {
         ProductoModel producto = productoService.obtenerPorId(productoId);
 
         Optional<CarritoItemModel> existente = itemRepo.findByCarritoAndProducto(carrito, producto);
+
         if (cantidad > 0) {
-            // incremento normal (o creación)
             if (existente.isPresent()) {
                 CarritoItemModel item = existente.get();
                 item.setCantidad(item.getCantidad() + cantidad);
@@ -74,19 +73,17 @@ public class CarritoService {
                 itemRepo.save(nuevo);
             }
         } else if (cantidad < 0) {
-            // decremento: sólo si existe el item
             if (existente.isPresent()) {
                 CarritoItemModel item = existente.get();
-                int nueva = item.getCantidad() + cantidad; // cantidad es negativa
-                if (nueva > 0) {
-                    item.setCantidad(nueva);
+                int nuevaCantidad = item.getCantidad() + cantidad;
+
+                if (nuevaCantidad > 0) {
+                    item.setCantidad(nuevaCantidad);
                     itemRepo.save(item);
                 } else {
-                    // eliminar si la cantidad queda en 0 o negativa
                     itemRepo.deleteById(item.getId());
                 }
             }
-            // si no existe y la cantidad es negativa, no hacemos nada
         }
     }
 

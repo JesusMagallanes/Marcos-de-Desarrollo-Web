@@ -204,7 +204,7 @@ public class ProductoController {
     @GetMapping("/{id}")
     @ResponseBody
     public ProductosResponseDTO obtenerProducto(@PathVariable Long id) {
-        return productoService.obtenerProductoPorId(id);
+        return productoService.obtenerProductoDTO(id);
     }
 
     @GetMapping("/admin/fragment")
