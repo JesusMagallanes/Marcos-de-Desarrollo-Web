@@ -52,19 +52,30 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Mostrar mensaje de error general -->
+                        <div th:if="${mensajeError}" class="alert alert-danger" role="alert">
+                            <span th:text="${mensajeError}"></span>
+                        </div>
+                        
                         <div class="mb-3">
-                            <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control" th:field="*{nombre}" required>
+                            <label class="form-label" for="addMarcaNombre">Nombre</label>
+                            <input type="text" class="form-control" th:field="*{nombre}" 
+                                   id="addMarcaNombre"
+                                   th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid' : ''" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Categoría</label>
-                            <select class="form-select" th:field="*{categoriaId}" required>
+                            <label class="form-label" for="addMarcaCategoria">Categoría</label>
+                            <select class="form-select" th:field="*{categoriaId}" 
+                                    id="addMarcaCategoria"
+                                    th:classappend="${#fields.hasErrors('categoriaId')} ? 'is-invalid' : ''" required>
                                 <option value="" disabled selected>Seleccionar categoría</option>
                                 <option th:each="categoria : ${categorias}" 
                                         th:value="${categoria.id}" 
                                         th:text="${categoria.name}">
                                 </option>
                             </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('categoriaId')}" th:errors="*{categoriaId}"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -74,6 +85,35 @@
             </div>
         </div>
     </div>
+
+    <!-- Script para reabrir el modal si hay errores -->
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            var seccion = /*[[${seccion}]]*/ '';
+            var hasErrors = /*[[${#fields.hasErrors('marca.*')}]]*/ false;
+            
+            console.log('Seccion:', seccion, 'Has Errors:', hasErrors);
+            
+            if (seccion === 'marca') {
+                // Asegurar que la sección de marcas esté visible
+                setTimeout(function() {
+                    const marcasSection = document.getElementById('marca');
+                    if (marcasSection && marcasSection.classList.contains('d-none')) {
+                        const botonMarcas = document.querySelector("button[onclick*=\"'marca'\"]");
+                        if (botonMarcas) {
+                            mostrarSeccion('marca', botonMarcas);
+                        }
+                    }
+                    
+                    // Si hay errores, abrir el modal
+                    if (hasErrors) {
+                        var modal = new bootstrap.Modal(document.getElementById('gest-marca'));
+                        modal.show();
+                    }
+                }, 100);
+            }
+        });
+    </script>
 
     <!-- Modales de Edición -->
     <div th:each="marca : ${marcas}">
