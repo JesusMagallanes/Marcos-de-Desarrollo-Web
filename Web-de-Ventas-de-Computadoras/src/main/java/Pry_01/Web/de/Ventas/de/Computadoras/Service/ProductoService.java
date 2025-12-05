@@ -18,31 +18,27 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ProductoService {
-
     private final MarcaRepository marcaRepository;
     private final ProductoRepository productoRepository;
-
+    
     public List<ProductosResponseDTO> listarProducto() {
-        return productoRepository.findAll()
-                .stream()
+        List<ProductoModel> productos = productoRepository.findAll();
+
+        return productos.stream()
                 .map(this::convertToResponseDTO)
                 .collect(Collectors.toList());
     }
 
     public Page<ProductosResponseDTO> listarPorMarca(MarcaModel marca, Pageable pageable) {
-        return productoRepository.findByMarcas(marca, pageable)
-                .map(this::convertToResponseDTO);
+        Page<ProductoModel> productosPage = productoRepository.findByMarca(marca, pageable);
+
+        return productosPage.map(this::convertToResponseDTO);
     }
 
-    public void eliminarProducto(Long id) {
-        ProductoModel producto = obtenerPorId(id);
-        productoRepository.delete(producto);
-    }
     public ProductoModel guardarProducto(ProductosCreateDTO dto) {
 
-        List<MarcaModel> marcas = marcaRepository.findAllById(dto.getMarcaIds());
-        if (marcas.isEmpty())
-            throw new RuntimeException("No se encontraron marcas");
+        MarcaModel marca = marcaRepository.findById(dto.getMarcaId())
+                .orElseThrow(() -> new RuntimeException("Marca no encontrada"));
 
         ProductoModel producto = new ProductoModel();
         producto.setName(dto.getName());
@@ -50,50 +46,40 @@ public class ProductoService {
         producto.setPrecio(dto.getPrecio());
         producto.setImageUrl(dto.getImageUrl());
         producto.setStock(dto.getStock());
-        producto.setMarcas(marcas);
+        producto.setMarca(marca);
 
         return productoRepository.save(producto);
     }
 
+    public void eliminarProducto(Long id) {
+        productoRepository.deleteById(id);
+    }
+
     public ProductoModel actualizarProducto(Long id, ProductosUpdateDTO dto) {
 
-        ProductoModel producto = obtenerPorId(id);
+        ProductoModel producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
-        List<MarcaModel> marcas = marcaRepository.findAllById(dto.getMarcaIds());
-        if (marcas.isEmpty())
-            throw new RuntimeException("No se encontraron marcas");
+        MarcaModel marca = marcaRepository.findById(dto.getMarcaId())
+                .orElseThrow(() -> new RuntimeException("Marca no encontrada"));
 
         producto.setName(dto.getName());
         producto.setDescription(dto.getDescription());
         producto.setPrecio(dto.getPrecio());
         producto.setImageUrl(dto.getImageUrl());
         producto.setStock(dto.getStock());
-        producto.setMarcas(marcas);
+        producto.setMarca(marca);
 
         return productoRepository.save(producto);
     }
 
-    public ProductoModel obtenerPorId(Long id) {
-        return productoRepository.findById(id)
+    public ProductosResponseDTO obtenerProductoPorId(Long id) {
+        ProductoModel producto = productoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-    }
-
-    public ProductosResponseDTO obtenerProductoDTO(Long id) {
-        return convertToResponseDTO(obtenerPorId(id));
+        return convertToResponseDTO(producto);
     }
 
     private ProductosResponseDTO convertToResponseDTO(ProductoModel producto) {
-
-        List<String> marcas = producto.getMarcas()
-                .stream()
-                .map(MarcaModel::getNombre)
-                .collect(Collectors.toList());
-
-        List<String> categorias = producto.getMarcas()
-                .stream()
-                .map(m -> m.getCategoria().getName())
-                .collect(Collectors.toList());
-
         return new ProductosResponseDTO(
                 producto.getId(),
                 producto.getName(),
@@ -101,8 +87,14 @@ public class ProductoService {
                 producto.getPrecio(),
                 producto.getImageUrl(),
                 producto.getStock(),
-                marcas,
-                categorias
-        );
+                producto.getMarca().getNombre(),
+                producto.getMarca().getCategoria().getName(),
+                producto.getMarca().getId(),
+                producto.getMarca().getCategoria().getId());
+    }
+
+    public ProductoModel obtenerPorId(Long id) {
+        return productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
     }
 }
