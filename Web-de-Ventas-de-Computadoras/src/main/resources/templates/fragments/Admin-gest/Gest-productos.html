@@ -70,37 +70,42 @@
                         
                         <div class="mb-3">
                             <label class="form-label" for="addProductName">Nombre</label>
-                            <input type="text" class="form-control" th:field="*{name}" 
+                            <input type="text" class="form-control" name="name" 
                                    id="addProductName"
+                                   th:value="${producto.name}"
                                    th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''" required>
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="addProductDescription">Descripción</label>
-                            <textarea class="form-control" th:field="*{description}" rows="3" 
+                            <textarea class="form-control" name="description" rows="3" 
                                       id="addProductDescription"
+                                      th:text="${producto.description}"
                                       th:classappend="${#fields.hasErrors('description')} ? 'is-invalid' : ''" required></textarea>
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="addProductImageUrl">URL Imagen</label>
-                            <input type="url" class="form-control" th:field="*{imageUrl}" 
+                            <input type="url" class="form-control" name="imageUrl" 
                                    id="addProductImageUrl"
+                                   th:value="${producto.imageUrl}"
                                    th:classappend="${#fields.hasErrors('imageUrl')} ? 'is-invalid' : ''" required>
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('imageUrl')}" th:errors="*{imageUrl}"></div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label" for="addProductStock">Stock</label>
-                                <input type="number" class="form-control" th:field="*{stock}" min="0" 
+                                <input type="number" class="form-control" name="stock" min="0" 
                                        id="addProductStock"
+                                       th:value="${producto.stock}"
                                        th:classappend="${#fields.hasErrors('stock')} ? 'is-invalid' : ''" required>
                                 <div class="invalid-feedback" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label" for="addProductPrecio">Precio</label>
-                                <input type="number" step="0.01" class="form-control" th:field="*{precio}" min="0"
+                                <input type="number" step="0.01" class="form-control" name="precio" min="0"
                                        id="addProductPrecio"
+                                       th:value="${producto.precio}"
                                        th:classappend="${#fields.hasErrors('precio')} ? 'is-invalid' : ''" required>
                                 <div class="invalid-feedback" th:if="${#fields.hasErrors('precio')}" th:errors="*{precio}"></div>
                             </div>
@@ -115,7 +120,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Marca</label>
-                            <select class="form-select" id="marcaSelect" th:field="*{marcaId}" 
+                            <select class="form-select" id="marcaSelect" name="marcaId" 
                                     th:classappend="${#fields.hasErrors('marcaId')} ? 'is-invalid' : ''" required>
                                 <option value="" disabled selected>Primero seleccione una categoría</option>
                             </select>
