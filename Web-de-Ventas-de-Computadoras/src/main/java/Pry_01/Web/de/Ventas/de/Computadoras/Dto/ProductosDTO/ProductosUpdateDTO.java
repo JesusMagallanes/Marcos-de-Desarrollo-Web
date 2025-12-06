@@ -35,4 +35,7 @@ public class ProductosUpdateDTO {
 
     @NotNull(message = "El producto debe pertenecer a una categoría.")
     private Long categoriaId;
+
+    @NotNull(message = "El producto debe pertenecer a una marca.")
+    private Long marcaId;
 }

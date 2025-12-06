@@ -16,14 +16,17 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO.CategoriaCreateDTO;
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.MarcaDTO.MarcaCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.MetodoPagoDTO.MetodoPagoCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosUpdateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.CategoriaModel;
+import Pry_01.Web.de.Ventas.de.Computadoras.Model.MarcaModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosResponseDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
+import Pry_01.Web.de.Ventas.de.Computadoras.Service.MarcaService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
 
@@ -35,12 +38,20 @@ public class ProductoController {
     private final ProductoService productoService;
     private final CategoriaService categoriaService;
     private final UsuarioService usuarioService;
+    private final MarcaService marcaService;
 
     public ProductoController(ProductoService productoService, CategoriaService categoriaService,
-            UsuarioService usuarioService) {
+            UsuarioService usuarioService, MarcaService marcaService) {
         this.productoService = productoService;
         this.categoriaService = categoriaService;
         this.usuarioService = usuarioService;
+        this.marcaService = marcaService;
+    }
+
+    @GetMapping("/marcas/categoria/{categoriaId}")
+    @ResponseBody
+    public List<MarcaModel> obtenerMarcasPorCategoria(@PathVariable Long categoriaId) {
+        return marcaService.listarMarcasPorCategoria(categoriaId);
     }
 
     @GetMapping("/categoria/{slug}")
@@ -89,9 +100,10 @@ public class ProductoController {
         model.addAttribute("usuario", usuarioDTO);
 
         List<CategoriaModel> categorias = categoriaService.listarCategoria();
+        List<MarcaModel> marcas = marcaService.listarMarcas();
         model.addAttribute("categorias", categorias);
         model.addAttribute("productos", productos);
-
+        model.addAttribute("marcas", marcas);
         Map<Long, List<ProductosResponseDTO>> productosPorCategoria = new LinkedHashMap<>();
         for (CategoriaModel cat : categorias) {
             List<ProductosResponseDTO> filt = productos.stream()
@@ -117,7 +129,7 @@ public class ProductoController {
         model.addAttribute("productosPorCategoriaChunks", productosPorCategoriaChunks);
 
         // Devolver la vista pública (Index)
-        return "redirect:/Index";
+        return "/Index";
     }
 
     @PostMapping
@@ -135,8 +147,10 @@ public class ProductoController {
             model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categoria", new CategoriaCreateDTO());
             model.addAttribute("categorias", categoriaService.listarCategoria());
+            model.addAttribute("marca", new MarcaCreateDTO());
+            model.addAttribute("marcas", marcaService.listarMarcas());
             model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
-            model.addAttribute("metodoPagos", new java.util.ArrayList<>());
+            model.addAttribute("metodoPagos", new ArrayList<>());
 
             return "admin/VistaAdmin";
         }
@@ -154,8 +168,10 @@ public class ProductoController {
             model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categoria", new CategoriaCreateDTO());
             model.addAttribute("categorias", categoriaService.listarCategoria());
+            model.addAttribute("marca", new MarcaCreateDTO());
+            model.addAttribute("marcas", marcaService.listarMarcas());
             model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
-            model.addAttribute("metodoPagos", new java.util.ArrayList<>());
+            model.addAttribute("metodoPagos", new ArrayList<>());
 
             model.addAttribute("mensajeError", "No se pudo guardar el producto: " + e.getMessage());
             return "admin/VistaAdmin";
@@ -172,6 +188,7 @@ public class ProductoController {
         if (result.hasErrors()) {
             model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categorias", categoriaService.listarCategoria());
+            model.addAttribute("marcas", marcaService.listarMarcas());
             return "fragments/Admin-gest/Gest-productos :: gest-productos";
         }
         productoService.actualizarProducto(id, dto);

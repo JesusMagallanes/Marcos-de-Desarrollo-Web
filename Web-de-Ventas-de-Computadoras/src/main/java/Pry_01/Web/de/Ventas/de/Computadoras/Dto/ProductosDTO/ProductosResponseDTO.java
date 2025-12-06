@@ -20,4 +20,6 @@ public class ProductosResponseDTO {
     private final Integer stock;
 
     private final String categoriaName;
+
+    private final String marcaName;
 }
