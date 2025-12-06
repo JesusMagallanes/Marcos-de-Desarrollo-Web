@@ -16,6 +16,7 @@ import lombok.Setter;
 public class MarcaResponseDTO {
     private Long id;
     private String name;
+    private Long categoriaId;
     private String categoriaName;
     private List<ProductoModel> productos = new ArrayList<>();
 }

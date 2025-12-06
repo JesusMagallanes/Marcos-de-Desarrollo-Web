@@ -19,7 +19,11 @@ public class ProductosResponseDTO {
 
     private final Integer stock;
 
+    private final Long marcaId;
+    
     private final String marcaName;
+    
+    private final Long categoriaId;
     
     private final String categoriaName;
 }

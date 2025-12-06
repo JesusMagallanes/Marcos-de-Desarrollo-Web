@@ -68,8 +68,9 @@ public class MarcaService {
         return new MarcaResponseDTO(
                 marca.getId(),
                 marca.getName(),
+                marca.getCategoriaId() != null ? marca.getCategoriaId().getId() : null,
                 marca.getCategoriaId() != null ? marca.getCategoriaId().getName() : null,
-                marca.getProductos() != null ? marca.getProductos() : new ArrayList<>());
+                new ArrayList<>());
     }
     public MarcaModel obtenerPorId(Long id) {
         return marcaRepository.findById(id)

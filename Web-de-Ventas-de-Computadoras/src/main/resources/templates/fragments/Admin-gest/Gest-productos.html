@@ -17,6 +17,7 @@
                     <th>Precio</th>
                     <th>Imagen Url</th>
                     <th>Stock</th>
+                    <th>Marca</th>
                     <th>Categoría</th>
                     <th style="min-width: 140px;">Acciones</th>
                 </tr>
@@ -31,6 +32,7 @@
                         <img th:src="${producto.imageUrl}" alt="Imagen" class="img-thumbnail" style="max-width: 80px;">
                     </td>
                     <td th:text="${producto.stock}"></td>
+                    <td th:text="${producto.marcaName}"></td>
                     <td th:text="${producto.categoriaName}"></td>
                     <td>
                         <div class="d-flex flex-wrap justify-content-center gap-2">
@@ -99,9 +101,20 @@
                             </div>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Marca</label>
+                            <select class="form-select" th:field="*{marcaId}" 
+                                    th:classappend="${#fields.hasErrors('marcaId')} ? 'is-invalid' : ''" required>
+                                <option value="">Seleccionar marca</option>
+                                <option th:each="marca : ${marcas}" th:value="${marca.id}" th:text="${marca.name}">
+                                </option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('marcaId')}" th:errors="*{marcaId}"></div>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Categoría</label>
                             <select class="form-select" th:field="*{categoriaId}" 
                                     th:classappend="${#fields.hasErrors('categoriaId')} ? 'is-invalid' : ''" required>
+                                <option value="">Seleccionar categoría</option>
                                 <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}">
                                 </option>
                             </select>
@@ -185,10 +198,18 @@
                                 </div>
                             </div>
                             <div class="mb-3">
+                                <label class="form-label">Marca</label>
+                                <select class="form-select" name="marcaId" required>
+                                    <option th:each="marca : ${marcas}" th:value="${marca.id}" th:text="${marca.name}"
+                                        th:selected="${marca.id == producto.marcaId}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label">Categoría</label>
                                 <select class="form-select" name="categoriaId" required>
                                     <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}"
-                                        th:selected="${cat.id == producto.categoriaName}">
+                                        th:selected="${cat.id == producto.categoriaId}">
                                     </option>
                                 </select>
                             </div>

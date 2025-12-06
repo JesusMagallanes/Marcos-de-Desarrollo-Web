@@ -107,6 +107,7 @@ function aplicarFiltros() {
     productos.forEach(producto => {
         const nombre = producto.dataset.nombre?.toLowerCase() || '';
         const descripcion = producto.dataset.descripcion?.toLowerCase() || '';
+        const marca = producto.dataset.marca?.toLowerCase() || '';
         const precio = parseFloat(producto.dataset.precio) || 0;
         const stock = parseInt(producto.dataset.stock) || 0;
         
@@ -114,12 +115,12 @@ function aplicarFiltros() {
         
         // Filtro de búsqueda por texto
         if (busquedaTexto && mostrar) {
-            mostrar = nombre.includes(busquedaTexto) || descripcion.includes(busquedaTexto);
+            mostrar = nombre.includes(busquedaTexto) || descripcion.includes(busquedaTexto) || marca.includes(busquedaTexto);
         }
         
         // Filtro de marca
         if (marcasSeleccionadas.length > 0 && mostrar) {
-            mostrar = marcasSeleccionadas.some(marca => nombre.includes(marca));
+            mostrar = marcasSeleccionadas.some(marcaFiltro => marca.includes(marcaFiltro));
         }
         
         // Filtro de precio

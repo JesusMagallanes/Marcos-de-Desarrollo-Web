@@ -87,7 +87,9 @@ public class ProductoService {
                 producto.getPrecio(),
                 producto.getImageUrl(),
                 producto.getStock(),
+                producto.getMarcaId().getId(),
                 producto.getMarcaId().getName(),
+                producto.getMarcaId().getCategoriaId().getId(),
                 producto.getMarcaId().getCategoriaId().getName()
                 );
     }

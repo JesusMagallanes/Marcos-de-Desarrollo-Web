@@ -103,7 +103,7 @@ public class MarcaController {
         if (result.hasErrors()) {
             model.addAttribute("marcas", marcaService.listarMarca());
             model.addAttribute("categorias", categoriaService.listarCategoria());
-            return "fragments/Admin-gest/Gest-marcas :: gest-marcas";
+            return "fragments/Admin-gest/Gest-marca :: gest-marca";
         }
 
         try {
@@ -112,7 +112,7 @@ public class MarcaController {
         } catch (Exception e) {
             log.error("Error al actualizar marca", e);
             model.addAttribute("mensajeError", "No se pudo actualizar la marca: " + e.getMessage());
-            return "fragments/Admin-gest/Gest-marcas :: gest-marcas";
+            return "fragments/Admin-gest/Gest-marca :: gest-marca";
         }
 
         return "redirect:/VistaAdmin?seccion=marca";
@@ -137,7 +137,7 @@ public class MarcaController {
 
     @GetMapping("/admin/fragment")
     public String obtenerFragmentoAdmin() {
-        return "fragments/Admin-gest/Gest-marcas :: gest-marcas";
+        return "fragments/Admin-gest/Gest-marca :: gest-marca";
     }
 
     private void cargarDatosAdminPanel(Model model) {

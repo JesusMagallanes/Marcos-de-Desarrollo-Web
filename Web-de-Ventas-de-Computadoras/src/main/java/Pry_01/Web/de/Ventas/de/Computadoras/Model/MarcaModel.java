@@ -3,6 +3,8 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,6 +42,7 @@ public class MarcaModel {
     @NotNull(message = "El producto debe pertenecer a una categoría.")
     private CategoriaModel categoriaId;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "marcaId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductoModel> productos = new ArrayList<>();
 

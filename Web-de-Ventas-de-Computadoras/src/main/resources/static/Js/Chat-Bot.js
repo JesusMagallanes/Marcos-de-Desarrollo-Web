@@ -109,6 +109,7 @@ function appendProductButtons(productos) {
         btn.onclick = () => {
             // Intentar navegar usando el nombre de categoría para construir el slug
             const categoriaSlug = producto.categoriaName ? producto.categoriaName.toLowerCase().replace(/\s+/g, '-') : 'all';
+            const marca = producto.marcaName ? ` - ${producto.marcaName}` : '';
             window.location.href = `/productos/categoria/${categoriaSlug}`;
         };
         productsDiv.appendChild(btn);

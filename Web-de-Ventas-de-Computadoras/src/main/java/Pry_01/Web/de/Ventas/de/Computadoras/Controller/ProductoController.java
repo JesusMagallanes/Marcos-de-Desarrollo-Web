@@ -163,6 +163,7 @@ public class ProductoController {
             model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categoria", new CategoriaCreateDTO());
             model.addAttribute("categorias", categoriaService.listarCategoria());
+            model.addAttribute("marcas", marcaService.listarMarca());
             model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
             model.addAttribute("metodoPagos", new java.util.ArrayList<>());
             return "admin/VistaAdmin";
@@ -180,6 +181,7 @@ public class ProductoController {
             model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categoria", new CategoriaCreateDTO());
             model.addAttribute("categorias", categoriaService.listarCategoria());
+            model.addAttribute("marcas", marcaService.listarMarca());
             model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
             model.addAttribute("metodoPagos", new java.util.ArrayList<>());
             model.addAttribute("mensajeError", "No se pudo guardar el producto: " + e.getMessage());
@@ -197,6 +199,7 @@ public class ProductoController {
         if (result.hasErrors()) {
             model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categorias", categoriaService.listarCategoria());
+            model.addAttribute("marcas", marcaService.listarMarca());
             return "fragments/Admin-gest/Gest-productos :: gest-productos";
         }
         productoService.actualizarProducto(id, dto);

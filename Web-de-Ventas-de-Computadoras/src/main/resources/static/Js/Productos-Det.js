@@ -685,6 +685,7 @@ function renderProduct(rootId, data) {
 
                 // Campos fallback
                 if (listaFromApi.length === 0) {
+                    if (json.marcaName) listaFromApi.push({ label: 'Marca', value: json.marcaName });
                     if (json.categoriaName) listaFromApi.push({ label: 'Categoría', value: json.categoriaName });
                     if (json.stock != null) listaFromApi.push({ label: 'Stock', value: String(json.stock) });
                     // no incluir precio aquí si ya se muestra aparte, pero lo dejamos opcional

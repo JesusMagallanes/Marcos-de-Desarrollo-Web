@@ -1,5 +1,7 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -55,10 +57,12 @@ public class ProductoModel {
     @ManyToOne
     @JoinColumn(name = "marcaId", nullable = false)
     @NotNull(message = "El producto debe pertenecer a una marca.")
+    @JsonIgnoreProperties({"productos", "categoriaId"})
     private MarcaModel marcaId;
 
     @ManyToOne
     @JoinColumn(name = "categoriaId", nullable = false)
     @NotNull(message = "El producto debe pertenecer a una categoría.")
+    @JsonIgnoreProperties({"marcas"})
     private CategoriaModel categoriaId;
 }
