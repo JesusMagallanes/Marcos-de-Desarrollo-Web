@@ -26,9 +26,7 @@ public class MarcaService {
 
     // Listar marcas por categoría
     public List<MarcaModel> listarMarcasPorCategoria(Long categoriaId) {
-        CategoriaModel categoria = categoriaRepository.findById(categoriaId)
-                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
-        return marcaRepository.findByCategoriaId(categoria);
+        return marcaRepository.findByCategoria_Id(categoriaId);
     }
 
     // Guardar una nueva marca

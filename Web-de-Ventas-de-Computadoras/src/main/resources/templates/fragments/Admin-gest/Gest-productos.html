@@ -33,7 +33,7 @@
                     </td>
                     <td th:text="${producto.stock}"></td>
                     <td th:text="${producto.categoriaName}"></td>
-                    <td th:text="${producto.marca != null ? producto.marca.name : 'N/A'}"></td>
+                    <td th:text="${producto.marcaName != null ? producto.marcaName : 'N/A'}"></td>
                     <td>
                         <div class="d-flex flex-wrap justify-content-center gap-2">
                             <button type="button" class="btn btn-warning btn-sm"
@@ -201,7 +201,7 @@
                                 <select class="form-select" name="categoriaId" th:id="'categoriaSelectEdit-' + ${producto.id}"
                                         onchange="cargarMarcasPorCategoriaEdit(this.value, this.id)" required>
                                     <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}"
-                                        th:selected="${cat.id == producto.categoriaId.id}">
+                                        th:selected="${cat.id == producto.categoriaId}">
                                     </option>
                                 </select>
                             </div>
@@ -211,7 +211,7 @@
                                     <option th:each="marca : ${marcas}" 
                                             th:value="${marca.id}" 
                                             th:text="${marca.name}"
-                                            th:selected="${marca.id == producto.marca.id}">
+                                            th:selected="${marca.id == producto.marcaId}">
                                     </option>
                                 </select>
                             </div>

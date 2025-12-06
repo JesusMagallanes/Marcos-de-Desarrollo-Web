@@ -22,4 +22,8 @@ public class ProductosResponseDTO {
     private final String categoriaName;
 
     private final String marcaName;
+    
+    private final Long categoriaId;
+    
+    private final Long marcaId;
 }

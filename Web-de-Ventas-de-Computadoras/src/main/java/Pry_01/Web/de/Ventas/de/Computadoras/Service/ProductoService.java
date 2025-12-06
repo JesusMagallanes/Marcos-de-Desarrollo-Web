@@ -96,7 +96,9 @@ public class ProductoService {
                 producto.getImageUrl(),
                 producto.getStock(),
                 producto.getCategoriaId().getName(),
-                producto.getMarca() != null ? producto.getMarca().getName() : null
+                producto.getMarca() != null ? producto.getMarca().getName() : null,
+                producto.getCategoriaId().getId(),
+                producto.getMarca() != null ? producto.getMarca().getId() : null
         );
     }
 

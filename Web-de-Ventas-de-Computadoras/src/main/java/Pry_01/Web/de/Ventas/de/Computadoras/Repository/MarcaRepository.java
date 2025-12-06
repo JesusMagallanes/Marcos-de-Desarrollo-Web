@@ -15,5 +15,5 @@ public interface MarcaRepository extends JpaRepository<MarcaModel, Long> {
     boolean existsByName(String name);
 
     // Lista todas las marcas asociadas a una categoría
-    List<MarcaModel> findByCategoriaId(CategoriaModel categoria);
+    List<MarcaModel> findByCategoria_Id(Long categoriaId);
 }
