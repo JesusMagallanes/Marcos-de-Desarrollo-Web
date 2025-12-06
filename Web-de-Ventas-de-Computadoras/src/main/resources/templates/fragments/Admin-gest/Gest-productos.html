@@ -18,6 +18,7 @@
                     <th>Imagen Url</th>
                     <th>Stock</th>
                     <th>Categoría</th>
+                    <th>Marca</th>
                     <th style="min-width: 140px;">Acciones</th>
                 </tr>
             </thead>
@@ -32,6 +33,7 @@
                     </td>
                     <td th:text="${producto.stock}"></td>
                     <td th:text="${producto.categoriaName}"></td>
+                    <td th:text="${producto.marcaName != null ? producto.marcaName : 'N/A'}"></td>
                     <td>
                         <div class="d-flex flex-wrap justify-content-center gap-2">
                             <button type="button" class="btn btn-warning btn-sm"
@@ -100,12 +102,22 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Categoría</label>
-                            <select class="form-select" th:field="*{categoriaId}" 
-                                    th:classappend="${#fields.hasErrors('categoriaId')} ? 'is-invalid' : ''" required>
+                            <select class="form-select" th:field="*{categoriaId}" id="categoriaSelect"
+                                    th:classappend="${#fields.hasErrors('categoriaId')} ? 'is-invalid' : ''" 
+                                    onchange="cargarMarcasPorCategoria(this.value, 'marcaSelect')" required>
+                                <option value="">Seleccione una categoría</option>
                                 <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}">
                                 </option>
                             </select>
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('categoriaId')}" th:errors="*{categoriaId}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Marca</label>
+                            <select class="form-select" th:field="*{marcaId}" id="marcaSelect"
+                                    th:classappend="${#fields.hasErrors('marcaId')} ? 'is-invalid' : ''" required>
+                                <option value="">Seleccione primero una categoría</option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('marcaId')}" th:errors="*{marcaId}"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -147,7 +159,8 @@
 
     <div th:each="producto : ${productos}">
         <div class="modal fade" th:id="'edit-product-' + ${producto.id}" tabindex="-1"
-            aria-labelledby="editProductLabel" aria-hidden="true">
+            aria-labelledby="editProductLabel" aria-hidden="true"
+            th:attr="data-categoria-id=${producto.categoriaId}, data-marca-id=${producto.marcaId}, data-producto-id=${producto.id}">
             <div class="modal-dialog">
                 <div class="modal-content" style="padding: 25px; background-image: url(Img/form-fond.png); border: 3px solid #e3e3e3;">
                     <form th:action="@{'/productos/editar/' + ${producto.id}}" method="post">
@@ -186,10 +199,17 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Categoría</label>
-                                <select class="form-select" name="categoriaId" required>
+                                <select class="form-select" name="categoriaId" th:id="'categoriaSelectEdit-' + ${producto.id}"
+                                        onchange="cargarMarcasPorCategoriaEdit(this.value, this.id)" required>
                                     <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}"
-                                        th:selected="${cat.id == producto.categoriaName}">
+                                        th:selected="${cat.id == producto.categoriaId}">
                                     </option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Marca</label>
+                                <select class="form-select" name="marcaId" th:id="'marcaSelectEdit-' + ${producto.id}" required>
+                                    <option value="">Cargando marcas...</option>
                                 </select>
                             </div>
                         </div>
@@ -201,5 +221,66 @@
             </div>
         </div>
     </div>
+    
+    <!-- Script para cargar marcas al abrir modal de edición -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Detectar cuando se abre un modal de edición de producto
+            document.querySelectorAll('[id^="edit-product-"]').forEach(function(modal) {
+                modal.addEventListener('show.bs.modal', function(event) {
+                    const categoriaId = this.getAttribute('data-categoria-id');
+                    const marcaId = this.getAttribute('data-marca-id');
+                    const productoId = this.getAttribute('data-producto-id');
+                    
+                    if (categoriaId && productoId) {
+                        const marcaSelectId = 'marcaSelectEdit-' + productoId;
+                        const marcaSelect = document.getElementById(marcaSelectId);
+                        
+                        if (!marcaSelect) return;
+                        
+                        // Mostrar estado de carga
+                        marcaSelect.innerHTML = '<option value="">Cargando marcas...</option>';
+                        marcaSelect.disabled = true;
+                        
+                        // Cargar marcas de la categoría
+                        fetch(`/marcas/categoria/${categoriaId}`)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Error al cargar marcas');
+                                }
+                                return response.json();
+                            })
+                            .then(marcas => {
+                                marcaSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+                                
+                                if (marcas && marcas.length > 0) {
+                                    marcas.forEach(marca => {
+                                        const option = document.createElement('option');
+                                        option.value = marca.id;
+                                        option.textContent = marca.name;
+                                        
+                                        // Seleccionar la marca actual del producto
+                                        if (marca.id == marcaId) {
+                                            option.selected = true;
+                                        }
+                                        
+                                        marcaSelect.appendChild(option);
+                                    });
+                                } else {
+                                    marcaSelect.innerHTML = '<option value="">No hay marcas disponibles</option>';
+                                }
+                                
+                                marcaSelect.disabled = false;
+                            })
+                            .catch(error => {
+                                console.error('Error cargando marcas para producto ' + productoId + ':', error);
+                                marcaSelect.innerHTML = '<option value="">Error al cargar marcas</option>';
+                                marcaSelect.disabled = false;
+                            });
+                    }
+                });
+            });
+        });
+    </script>
 
 </div>

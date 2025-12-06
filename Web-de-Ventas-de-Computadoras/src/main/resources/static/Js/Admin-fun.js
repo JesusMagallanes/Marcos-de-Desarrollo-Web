@@ -107,3 +107,109 @@ window.addEventListener('resize', function() {
 
 // Inicializar el comportamiento responsivo inmediatamente
 handleResponsiveSidebar();
+
+/**
+ * Carga las marcas disponibles para una categoría específica
+ * @param {number} categoriaId - ID de la categoría seleccionada
+ * @param {string} selectId - ID del select de marcas a actualizar
+ */
+function cargarMarcasPorCategoria(categoriaId, selectId) {
+    const marcaSelect = document.getElementById(selectId);
+    
+    if (!categoriaId || categoriaId === '') {
+        marcaSelect.innerHTML = '<option value="">Seleccione primero una categoría</option>';
+        return;
+    }
+    
+    // Mostrar loading
+    marcaSelect.innerHTML = '<option value="">Cargando marcas...</option>';
+    marcaSelect.disabled = true;
+    
+    // Hacer petición al backend para obtener las marcas de la categoría
+    fetch(`/marcas/categoria/${categoriaId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar marcas');
+            }
+            return response.json();
+        })
+        .then(marcas => {
+            marcaSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+            
+            if (marcas && marcas.length > 0) {
+                marcas.forEach(marca => {
+                    const option = document.createElement('option');
+                    option.value = marca.id;
+                    option.textContent = marca.name;
+                    marcaSelect.appendChild(option);
+                });
+            } else {
+                marcaSelect.innerHTML = '<option value="">No hay marcas disponibles para esta categoría</option>';
+            }
+            
+            marcaSelect.disabled = false;
+        })
+        .catch(error => {
+            console.error('Error cargando marcas:', error);
+            marcaSelect.innerHTML = '<option value="">Error al cargar marcas</option>';
+            marcaSelect.disabled = false;
+        });
+}
+
+/**
+ * Carga las marcas para el formulario de edición
+ * @param {number} categoriaId - ID de la categoría seleccionada
+ * @param {string} categoriaSelectId - ID del select de categorías
+ */
+function cargarMarcasPorCategoriaEdit(categoriaId, categoriaSelectId) {
+    // Extraer el ID del producto del select de categoría
+    const productoId = categoriaSelectId.replace('categoriaSelectEdit-', '');
+    const marcaSelectId = 'marcaSelectEdit-' + productoId;
+    const marcaSelect = document.getElementById(marcaSelectId);
+    
+    if (!categoriaId || categoriaId === '') {
+        marcaSelect.innerHTML = '<option value="">Seleccione primero una categoría</option>';
+        return;
+    }
+    
+    // Guardar la marca actualmente seleccionada
+    const selectedMarcaId = marcaSelect.value;
+    
+    // Mostrar loading
+    marcaSelect.innerHTML = '<option value="">Cargando marcas...</option>';
+    marcaSelect.disabled = true;
+    
+    // Hacer petición al backend para obtener las marcas de la categoría
+    fetch(`/marcas/categoria/${categoriaId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar marcas');
+            }
+            return response.json();
+        })
+        .then(marcas => {
+            marcaSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+            
+            if (marcas && marcas.length > 0) {
+                marcas.forEach(marca => {
+                    const option = document.createElement('option');
+                    option.value = marca.id;
+                    option.textContent = marca.name;
+                    // Mantener la selección si la marca sigue disponible
+                    if (marca.id == selectedMarcaId) {
+                        option.selected = true;
+                    }
+                    marcaSelect.appendChild(option);
+                });
+            } else {
+                marcaSelect.innerHTML = '<option value="">No hay marcas disponibles para esta categoría</option>';
+            }
+            
+            marcaSelect.disabled = false;
+        })
+        .catch(error => {
+            console.error('Error cargando marcas:', error);
+            marcaSelect.innerHTML = '<option value="">Error al cargar marcas</option>';
+            marcaSelect.disabled = false;
+        });
+}

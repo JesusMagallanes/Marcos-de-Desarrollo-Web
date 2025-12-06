@@ -38,6 +38,9 @@
           <button title="Categoría" data-bs-toggle="tooltip" data-bs-placement="right"
             class="list-group-item list-group-item-action" onclick="mostrarSeccion('categoria', this)"><i
               class="bi bi-tags-fill"></i> <span class="label">Categoría</span></button>
+          <button title="Marcas" data-bs-toggle="tooltip" data-bs-placement="right"
+            class="list-group-item list-group-item-action" onclick="mostrarSeccion('marca', this)"><i
+              class="bi bi-bookmark-fill"></i> <span class="label">Marcas</span></button>
           <button title="Métodos Pago" data-bs-toggle="tooltip" data-bs-placement="right"
             class="list-group-item list-group-item-action" onclick="mostrarSeccion('metodoPago', this)"><i
               class="bi bi-credit-card-2-front-fill"></i> <span class="label">Métodos Pago</span></button>
@@ -78,6 +81,8 @@
               data-bs-dismiss="offcanvas"><i class="bi bi-box-seam"></i> Productos</button>
             <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('categoria', this)"
               data-bs-dismiss="offcanvas"><i class="bi bi-tags-fill"></i> Categoría Producto</button>
+            <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('marca', this)"
+              data-bs-dismiss="offcanvas"><i class="bi bi-bookmark-fill"></i> Marcas</button>
             <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('metodoPago', this)"
               data-bs-dismiss="offcanvas"><i class="bi bi-credit-card-2-front-fill"></i> Método de Pago</button>
           </ul>
@@ -158,6 +163,10 @@
         <div id="categoria" class="seccion d-none">
           <h2 class="mb-3">Gestión de Categorías</h2>
           <div th:replace="~{fragments/Admin-gest/Gest-categoria :: gest-categoria}"></div>
+        </div>
+        <div id="marca" class="seccion d-none">
+          <h2 class="mb-3">Gestión de Marcas</h2>
+          <div th:replace="~{fragments/Admin-gest/Gest-marca :: gest-marca}"></div>
         </div>
         <div id="metodoPago" class="seccion d-none">
           <h2 class="mb-3">Gestión de Métodos de Pago</h2>

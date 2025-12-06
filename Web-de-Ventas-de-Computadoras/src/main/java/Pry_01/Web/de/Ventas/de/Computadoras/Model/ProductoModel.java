@@ -15,8 +15,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Positive;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,33 +26,36 @@ public class ProductoModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "El nombre no puede estar vacío.")
-    @Size(min = 2, max = 50, message = "El nombre debe tener entre 2 y 50 caracteres.")
-    @Column(unique = true ,nullable = false, length = 50)
+    @NotBlank(message = "El nombre del producto es obligatorio")
+    @Size(max = 150, message = "El nombre no puede exceder 150 caracteres")
+    @Column(nullable = false, length = 150)
     private String name;
 
-    @NotBlank(message = "La descripción no puede estar vacía.")
-    @Size(min = 10, max = 500, message = "La descripción debe tener entre 10 y 500 caracteres.")
+    @NotBlank(message = "La descripción es obligatoria")
+    @Size(max = 500, message = "La descripción no puede exceder 500 caracteres")
     @Column(nullable = false, length = 500)
     private String description;
 
-    @Positive(message = "El precio debe ser mayor que 0.")
+    @NotNull(message = "El precio es obligatorio")
+    @Min(value = 0, message = "El precio debe ser mayor que 0")
     @Column(nullable = false)
     private double precio;
 
-    @NotBlank(message = "La URL de la imagen no puede estar vacía.")
-    @Size(max = 255, message = "La URL de la imagen no debe superar los 255 caracteres.")
-    @Column(nullable = false, length = 255, name = "image_url")
+    @NotBlank(message = "La URL de la imagen es obligatoria")
+    @Column(length = 1000)
     private String imageUrl;
 
-    @NotNull(message = "El stock no puede ser nulo.")
-    @Min(value = 0, message = "El stock no puede ser negativo.")
+    @NotNull(message = "El stock es obligatorio")
+    @Min(value = 0, message = "El stock no puede ser negativo")
     @Column(nullable = false)
     private Integer stock;
 
-    @ManyToOne
-    @JoinColumn(name = "categoriaId", nullable = false)
-    @NotNull(message = "El producto debe pertenecer a una categoría.")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "categoria_id", nullable = false)
     private CategoriaModel categoriaId;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "marca_id", nullable = false)
+    private MarcaModel marca;
 
 }

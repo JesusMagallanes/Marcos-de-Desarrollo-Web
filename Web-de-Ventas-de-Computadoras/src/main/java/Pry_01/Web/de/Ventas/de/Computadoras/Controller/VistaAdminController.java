@@ -6,10 +6,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.CategoriaDTO.CategoriaCreateDTO;
+import Pry_01.Web.de.Ventas.de.Computadoras.Dto.MarcaDTO.MarcaCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.MetodoPagoDTO.MetodoPagoCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.ProductosDTO.ProductosCreateDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.CategoriaService;
+import Pry_01.Web.de.Ventas.de.Computadoras.Service.MarcaService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.MetodoPagoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.ProductoService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
@@ -23,14 +25,15 @@ public class VistaAdminController {
     private final ProductoService productoService;
     private final CategoriaService categoriaService;
     private final MetodoPagoService metodoPagoService;
+    private final MarcaService marcaService;
 
     public VistaAdminController(UsuarioService usuarioService, CategoriaService categoriaService,
-            ProductoService productoService, MetodoPagoService metodoPagoService) {
+            ProductoService productoService, MetodoPagoService metodoPagoService, MarcaService marcaService) {
         this.usuarioService = usuarioService;
         this.categoriaService = categoriaService;
         this.productoService = productoService;
         this.metodoPagoService = metodoPagoService;
-        
+        this.marcaService = marcaService;
     }
 
     @GetMapping("/VistaAdmin")
@@ -45,6 +48,8 @@ public class VistaAdminController {
             model.addAttribute("productos", productoService.listarProducto());
             model.addAttribute("categoria", new CategoriaCreateDTO());
             model.addAttribute("categorias", categoriaService.listarCategoria());
+            model.addAttribute("marca", new MarcaCreateDTO());
+            model.addAttribute("marcas", marcaService.listarMarcas());
             model.addAttribute("metodoPago", new MetodoPagoCreateDTO());
             model.addAttribute("metodoPagos", metodoPagoService.listarMetodosPago());
             
