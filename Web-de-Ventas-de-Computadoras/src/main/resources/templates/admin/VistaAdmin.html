@@ -11,51 +11,6 @@
   <link rel="stylesheet" href="/Css/Style.css">
   <link rel="stylesheet" href="/Css/admin.css">
   <link rel="icon" href="/Img/img.png">
-  <script>
-    // Definir funciones globalmente ANTES del body para que estén disponibles en onclick
-    function mostrarSeccion(id, boton) {
-      // Verificar que el id es válido
-      if (!id || typeof id !== 'string') {
-        return;
-      }
-      
-      const target = document.getElementById(id);
-      if (!target) {
-        return;
-      }
-      
-      // Ocultar todas las secciones
-      document.querySelectorAll('.seccion').forEach(sec => sec.classList.add('d-none'));
-      
-      // Mostrar la sección seleccionada
-      target.classList.remove('d-none');
-      
-      // Actualizar botones activos
-      document.querySelectorAll('#sidebarMenu button, .offcanvas-body button').forEach(btn => btn.classList.remove('active'));
-      if (boton) boton.classList.add('active');
-    }
-
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebarMenu');
-      if (!sidebar) return;
-      sidebar.classList.toggle('collapsed');
-      document.body.classList.toggle('sidebar-collapsed');
-      const collapsed = sidebar.classList.contains('collapsed');
-      try { localStorage.setItem('adminSidebarCollapsed', collapsed ? '1' : '0'); } catch (e) {}
-      updateCollapseIcon();
-    }
-
-    function updateCollapseIcon() {
-      const sidebar = document.getElementById('sidebarMenu');
-      const icon = document.getElementById('collapseSidebarIcon');
-      if (!icon) return;
-      if (sidebar && sidebar.classList.contains('collapsed')) {
-        icon.className = 'bi bi-chevron-right';
-      } else {
-        icon.className = 'bi bi-chevron-left';
-      }
-    }
-  </script>
 </head>
 
 <body>
@@ -83,9 +38,6 @@
           <button title="Categoría" data-bs-toggle="tooltip" data-bs-placement="right"
             class="list-group-item list-group-item-action" onclick="mostrarSeccion('categoria', this)"><i
               class="bi bi-tags-fill"></i> <span class="label">Categoría</span></button>
-          <button title="Marca" data-bs-toggle="tooltip" data-bs-placement="right"
-            class="list-group-item list-group-item-action" onclick="mostrarSeccion('marca', this)"><i
-              class="bi bi-award-fill"></i> <span class="label">Marca</span></button>
           <button title="Métodos Pago" data-bs-toggle="tooltip" data-bs-placement="right"
             class="list-group-item list-group-item-action" onclick="mostrarSeccion('metodoPago', this)"><i
               class="bi bi-credit-card-2-front-fill"></i> <span class="label">Métodos Pago</span></button>
@@ -126,8 +78,6 @@
               data-bs-dismiss="offcanvas"><i class="bi bi-box-seam"></i> Productos</button>
             <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('categoria', this)"
               data-bs-dismiss="offcanvas"><i class="bi bi-tags-fill"></i> Categoría Producto</button>
-            <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('marca', this)"
-              data-bs-dismiss="offcanvas"><i class="bi bi-award-fill"></i> Marca</button>
             <button class="btn btn-outline-success mb-2" onclick="mostrarSeccion('metodoPago', this)"
               data-bs-dismiss="offcanvas"><i class="bi bi-credit-card-2-front-fill"></i> Método de Pago</button>
           </ul>
@@ -209,10 +159,6 @@
           <h2 class="mb-3">Gestión de Categorías</h2>
           <div th:replace="~{fragments/Admin-gest/Gest-categoria :: gest-categoria}"></div>
         </div>
-        <div id="marca" class="seccion d-none">
-          <h2 class="mb-3">Gestión de Marcas</h2>
-          <div th:replace="~{fragments/Admin-gest/Gest-marca :: gest-marca}"></div>
-        </div>
         <div id="metodoPago" class="seccion d-none">
           <h2 class="mb-3">Gestión de Métodos de Pago</h2>
           <div th:replace="~{fragments/Admin-gest/Gest-MetodoPago :: gest-metodoPago}"></div>
@@ -222,45 +168,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // Inicialización al cargar el DOM
-    document.addEventListener('DOMContentLoaded', function() {
-      // Restaurar estado del sidebar
-      try {
-        const val = localStorage.getItem('adminSidebarCollapsed');
-        if (val === '1') {
-          const sidebar = document.getElementById('sidebarMenu');
-          if (sidebar) sidebar.classList.add('collapsed');
-          document.body.classList.add('sidebar-collapsed');
-        }
-      } catch (e) {}
-      
-      updateCollapseIcon();
-      
-      // Mostrar sección específica si viene en URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const seccion = urlParams.get('seccion');
-      if (seccion) {
-        // Verificar que la sección existe antes de intentar mostrarla
-        const seccionElement = document.getElementById(seccion);
-        if (seccionElement) {
-          const botones = document.querySelectorAll('#sidebarMenu button, .offcanvas-body button');
-          botones.forEach(btn => {
-            const onclickAttr = btn.getAttribute('onclick');
-            if (onclickAttr && onclickAttr.includes("'" + seccion + "'")) {
-              mostrarSeccion(seccion, btn);
-            }
-          });
-        }
-      }
-      
-      // Inicializar tooltips
-      try {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (el) { return new bootstrap.Tooltip(el); });
-      } catch (e) {}
-    });
-  </script>
+  <script src="/Js/Admin-fun.js"></script>
   <script src="/Js/Admin-Usuario.js"></script>
   
   <script>
