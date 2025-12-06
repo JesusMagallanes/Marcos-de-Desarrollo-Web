@@ -1,5 +1,6 @@
 package Pry_01.Web.de.Ventas.de.Computadoras.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -31,10 +32,12 @@ public class MarcaModel {
     // Relación con Categoria
     @ManyToOne(optional = false)
     @JoinColumn(name = "categoria_id", nullable = false)
+    @JsonIgnore
     private CategoriaModel categoria;
 
     // Relación con Producto
     @OneToMany(mappedBy = "marca", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<ProductoModel> productos = new ArrayList<>();
 
     // Métodos auxiliares
