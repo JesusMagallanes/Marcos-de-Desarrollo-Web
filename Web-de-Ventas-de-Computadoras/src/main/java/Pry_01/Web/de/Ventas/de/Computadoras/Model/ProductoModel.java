@@ -57,4 +57,8 @@ public class ProductoModel {
     @NotNull(message = "El producto debe pertenecer a una marca.")
     private MarcaModel marcaId;
 
+    @ManyToOne
+    @JoinColumn(name = "categoriaId", nullable = false)
+    @NotNull(message = "El producto debe pertenecer a una categoría.")
+    private CategoriaModel categoriaId;
 }
