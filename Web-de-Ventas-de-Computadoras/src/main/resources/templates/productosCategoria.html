@@ -158,7 +158,7 @@
                 <div class="row mt-3" id="productos-container">
                     <div class="col-lg-4 col-md-6 col-12 mb-4 producto-item producto-col" 
                          th:each="producto : ${productos}"
-                         th:attr="data-nombre=${producto.name}, data-precio=${producto.precio}, data-stock=${producto.stock}, data-descripcion=${producto.description}, data-id=${producto.id}">
+                         th:attr="data-nombre=${producto.name}, data-precio=${producto.precio}, data-stock=${producto.stock}, data-descripcion=${producto.description}, data-id=${producto.id}, data-marca=${producto.marcaName}">
                         <div class="card producto-card shadow-sm hover-card">
                             <img th:src="${producto.imageUrl}" class="card-img-top producto-img" alt="Imagen del producto">
                             <div class="card-body d-flex flex-column">
@@ -317,7 +317,7 @@
     <script src="/Js/Productos-Det.js"></script>
     <script src="/Js/productosCategoria.js"></script>
     
-    <script>
+    <script th:inline="javascript">
         // Sincronizar precios entre desktop y móvil
         function sincronizarPrecio(tipo, valor) {
             valor = parseInt(valor);
@@ -332,6 +332,71 @@
                 const sliders = document.querySelectorAll('#rangoPrecio, #rangoPrecioMobile');
                 sliders.forEach(slider => slider.value = valor);
             }
+        }
+        
+        // Cargar marcas dinámicamente según la categoría actual
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoriaId = /*[[${categoria.id}]]*/ null;
+            
+            if (categoriaId) {
+                cargarMarcasCategoria(categoriaId);
+            }
+        });
+        
+        function cargarMarcasCategoria(categoriaId) {
+            fetch(`/marcas/categoria/${categoriaId}`)
+                .then(response => response.json())
+                .then(marcas => {
+                    // Actualizar filtros de marca para desktop
+                    const desktopContainer = document.querySelector('#collapseMarca .filtro-content');
+                    // Actualizar filtros de marca para móvil
+                    const mobileContainer = document.querySelector('#collapseMarcaMobile .filtro-content');
+                    
+                    if (marcas && marcas.length > 0) {
+                        // Limpiar contenedores
+                        if (desktopContainer) desktopContainer.innerHTML = '';
+                        if (mobileContainer) mobileContainer.innerHTML = '';
+                        
+                        // Agregar marcas dinámicamente
+                        marcas.forEach((marca, index) => {
+                            // Desktop
+                            if (desktopContainer) {
+                                const divDesktop = document.createElement('div');
+                                divDesktop.className = 'form-check mb-2';
+                                divDesktop.innerHTML = `
+                                    <input class="form-check-input filter-checkbox" type="checkbox" 
+                                           value="${marca.name}" data-filter="marca" 
+                                           id="marca${index}" onchange="aplicarFiltros()">
+                                    <label class="form-check-label" for="marca${index}" 
+                                           style="color: #5a5a5a; font-size: 0.95rem;">${marca.name}</label>
+                                `;
+                                desktopContainer.appendChild(divDesktop);
+                            }
+                            
+                            // Móvil
+                            if (mobileContainer) {
+                                const divMobile = document.createElement('div');
+                                divMobile.className = 'form-check mb-2';
+                                divMobile.innerHTML = `
+                                    <input class="form-check-input filter-checkbox" type="checkbox" 
+                                           value="${marca.name}" data-filter="marca" 
+                                           id="marca${index}m" onchange="aplicarFiltros()">
+                                    <label class="form-check-label" for="marca${index}m" 
+                                           style="color: #5a5a5a; font-size: 0.95rem;">${marca.name}</label>
+                                `;
+                                mobileContainer.appendChild(divMobile);
+                            }
+                        });
+                    } else {
+                        // Si no hay marcas, mostrar mensaje
+                        const mensaje = '<p class="text-muted small">No hay marcas disponibles</p>';
+                        if (desktopContainer) desktopContainer.innerHTML = mensaje;
+                        if (mobileContainer) mobileContainer.innerHTML = mensaje;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando marcas:', error);
+                });
         }
     </script>
 </body>

@@ -18,6 +18,7 @@
                     <th>Imagen Url</th>
                     <th>Stock</th>
                     <th>Categoría</th>
+                    <th>Marca</th>
                     <th style="min-width: 140px;">Acciones</th>
                 </tr>
             </thead>
@@ -32,6 +33,7 @@
                     </td>
                     <td th:text="${producto.stock}"></td>
                     <td th:text="${producto.categoriaName}"></td>
+                    <td th:text="${producto.marca != null ? producto.marca.name : 'N/A'}"></td>
                     <td>
                         <div class="d-flex flex-wrap justify-content-center gap-2">
                             <button type="button" class="btn btn-warning btn-sm"
@@ -100,12 +102,22 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Categoría</label>
-                            <select class="form-select" th:field="*{categoriaId}" 
-                                    th:classappend="${#fields.hasErrors('categoriaId')} ? 'is-invalid' : ''" required>
+                            <select class="form-select" th:field="*{categoriaId}" id="categoriaSelect"
+                                    th:classappend="${#fields.hasErrors('categoriaId')} ? 'is-invalid' : ''" 
+                                    onchange="cargarMarcasPorCategoria(this.value, 'marcaSelect')" required>
+                                <option value="">Seleccione una categoría</option>
                                 <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}">
                                 </option>
                             </select>
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('categoriaId')}" th:errors="*{categoriaId}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Marca</label>
+                            <select class="form-select" th:field="*{marcaId}" id="marcaSelect"
+                                    th:classappend="${#fields.hasErrors('marcaId')} ? 'is-invalid' : ''" required>
+                                <option value="">Seleccione primero una categoría</option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('marcaId')}" th:errors="*{marcaId}"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -186,9 +198,20 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Categoría</label>
-                                <select class="form-select" name="categoriaId" required>
+                                <select class="form-select" name="categoriaId" th:id="'categoriaSelectEdit-' + ${producto.id}"
+                                        onchange="cargarMarcasPorCategoriaEdit(this.value, this.id)" required>
                                     <option th:each="cat : ${categorias}" th:value="${cat.id}" th:text="${cat.name}"
-                                        th:selected="${cat.id == producto.categoriaName}">
+                                        th:selected="${cat.id == producto.categoriaId.id}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Marca</label>
+                                <select class="form-select" name="marcaId" th:id="'marcaSelectEdit-' + ${producto.id}" required>
+                                    <option th:each="marca : ${marcas}" 
+                                            th:value="${marca.id}" 
+                                            th:text="${marca.name}"
+                                            th:selected="${marca.id == producto.marca.id}">
                                     </option>
                                 </select>
                             </div>
