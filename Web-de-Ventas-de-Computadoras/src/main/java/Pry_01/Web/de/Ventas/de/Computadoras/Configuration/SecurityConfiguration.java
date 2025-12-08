@@ -3,13 +3,20 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Configuration;
 import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import Pry_01.Web.de.Ventas.de.Computadoras.Configuration.Jwt.JwtAuthFilter;
 import Pry_01.Web.de.Ventas.de.Computadoras.Configuration.User.UsuarioDetails;
 import Pry_01.Web.de.Ventas.de.Computadoras.Configuration.User.UsuarioDetailsService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.UsuarioDTO.UsuarioDTO;
@@ -18,9 +25,11 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @EnableWebSecurity
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfiguration {
 
     @Bean
@@ -31,6 +40,15 @@ public class SecurityConfiguration {
     @Bean
     public OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler(UsuarioService usuarioService) {
         return new OAuth2LoginSuccessHandler(usuarioService);
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http,
+            DaoAuthenticationProvider authenticationProvider)
+            throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .authenticationProvider(authenticationProvider)
+                .build();
     }
 
     @Bean
@@ -73,29 +91,30 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+    @Order(1)
+    public SecurityFilterChain webSecurity(HttpSecurity http,
             DaoAuthenticationProvider authenticationProvider,
-            UsuarioDetailsService usuarioDetailsService,
-            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) throws Exception {
-        http
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/chatbot/**"))
-                .authenticationProvider(authenticationProvider)
-                .authorizeHttpRequests(auth -> auth
+            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler,
+            UsuarioDetailsService usuarioDetailsService)
+            throws Exception {
 
-                        .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**", "/productos/admin/**")
+        http
+                .securityMatcher("/**") // aplica a todo excepto lo que API capture antes
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**",
+                                "/productos/admin/**")
                         .hasRole("ADMINISTRADOR")
 
-                        .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
-                                "/usuarios/registrar", "/Detalles", "/Somos", "/header", "/canales",
-                                "/Canales", "/metodosPago", "/productosCategoria", "/usuarios/registrar/**",
-                                "/productos", "/productos/api", "/productos/categoria/**", "/productos/**",
+                        .requestMatchers("/", "/Index", "/Css/**", "/Js/**", "/Img/**",
+                                "/usuarios/registrar", "/usuarios/registrar/**",
+                                "/productos", "/productos/api", "/productos/**",
                                 "/api/chatbot/**",
-                                "/oauth2/authorization/google", "/login/oauth2/code/google", "/oauth2/authorization/facebook",
-                                "/login/oauth2/code/facebook")
+                                "/oauth2/authorization/**", "/login/oauth2/**")
                         .permitAll()
 
-                        .requestMatchers("/EnviosPag").hasAnyRole("EMPLEADO", "ADMINISTRADOR")
+                        .requestMatchers("/EnviosPag")
+                        .hasAnyRole("EMPLEADO", "ADMINISTRADOR")
+
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/Index")
@@ -121,4 +140,24 @@ public class SecurityConfiguration {
 
         return http.build();
     }
+
+    @Bean
+    @Order(0)
+    public SecurityFilterChain apiSecurity(HttpSecurity http,
+            JwtAuthFilter jwtAuthorizationFilter)
+            throws Exception {
+
+        http
+                .securityMatcher("/api/**")
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/auth/**", "/api/chatbot/**"))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
 }
