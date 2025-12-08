@@ -116,7 +116,7 @@ public class SecurityConfiguration {
                                 "/oauth2/authorization/**", "/login/oauth2/**")
                         .permitAll()
 
-                        .requestMatchers("/EnviosPag")
+                        .requestMatchers("/EnviosPag","/pedidos/**")
                         .hasAnyRole("EMPLEADO", "ADMINISTRADOR")
 
                         .anyRequest().authenticated())
