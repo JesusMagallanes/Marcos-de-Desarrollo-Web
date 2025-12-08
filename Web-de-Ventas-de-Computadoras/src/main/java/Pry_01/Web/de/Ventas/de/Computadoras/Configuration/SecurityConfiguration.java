@@ -99,16 +99,19 @@ public class SecurityConfiguration {
             throws Exception {
 
         http
-                .securityMatcher("/**") // aplica a todo excepto lo que API capture antes
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/chatbot/**"))
+                .securityMatcher("/**")
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**",
                                 "/productos/admin/**")
                         .hasRole("ADMINISTRADOR")
 
-                        .requestMatchers("/", "/Index", "/Css/**", "/Js/**", "/Img/**",
-                                "/usuarios/registrar", "/usuarios/registrar/**",
-                                "/productos", "/productos/api", "/productos/**",
-                                "/api/chatbot/**",
+                        .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
+                                "/usuarios/registrar", "/Detalles", "/Somos", "/header", "/canales",
+                                "/Canales", "/metodosPago", "/productosCategoria", "/usuarios/registrar/**",
+                                "/productos", "/productos/api", "/productos/categoria/**", "/productos/**",
+
                                 "/oauth2/authorization/**", "/login/oauth2/**")
                         .permitAll()
 
