@@ -108,7 +108,8 @@ public class SecurityConfiguration {
                         .hasRole("ADMINISTRADOR")
 
                         .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
-                                "/usuarios/registrar", "/Detalles", "/Somos", "/header", "/canales",
+                                "/usuarios/registrar", "/Detalles", "/Somos", "/header", "/canales",                                "/api/chatbot/**",
+                                "/api/chatbot/**",
                                 "/Canales", "/metodosPago", "/productosCategoria", "/usuarios/registrar/**",
                                 "/productos", "/productos/api", "/productos/categoria/**", "/productos/**",
 
@@ -151,9 +152,9 @@ public class SecurityConfiguration {
             throws Exception {
 
         http
-                .securityMatcher("/api/**")
+                .securityMatcher("/api/auth/**")
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/auth/**", "/api/chatbot/**"))
+                        .ignoringRequestMatchers("/api/auth/**"))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
