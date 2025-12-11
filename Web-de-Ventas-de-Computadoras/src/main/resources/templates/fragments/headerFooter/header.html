@@ -292,26 +292,49 @@
                     suggestionsEl.innerHTML = '<li class="text-muted">Sin sugerencias</li>';
                     return;
                 }
-                // tomar hasta 6 sugerencias basadas en nombres únicos
+                // tomar hasta 6 sugerencias basadas en nombres y marcas únicas
                 const seen = new Set();
                 let count = 0;
                 for (const p of list) {
+                    // Agregar nombre del producto
                     const txt = p.name;
-                    if (seen.has(txt)) continue;
-                    seen.add(txt);
-                    const li = document.createElement('li');
-                    li.className = 'py-1';
-                    li.style.cursor = 'pointer';
-                    li.textContent = txt;
-                    li.addEventListener('click', ()=>{
-                        input.value = txt;
-                        // filtrar por esta sugerencia
-                        const f = products.filter(pp => pp.name.toLowerCase().includes(txt.toLowerCase()));
-                        renderProducts(f);
-                        dropdown.classList.remove('d-none');
-                    });
-                    suggestionsEl.appendChild(li);
-                    if (++count >= 6) break;
+                    if (!seen.has(txt)) {
+                        seen.add(txt);
+                        const li = document.createElement('li');
+                        li.className = 'py-1';
+                        li.style.cursor = 'pointer';
+                        li.textContent = txt;
+                        li.addEventListener('click', ()=>{
+                            input.value = txt;
+                            const f = products.filter(pp => 
+                                pp.name.toLowerCase().includes(txt.toLowerCase()) ||
+                                (pp.marcaName && pp.marcaName.toLowerCase().includes(txt.toLowerCase()))
+                            );
+                            renderProducts(f);
+                            dropdown.classList.remove('d-none');
+                        });
+                        suggestionsEl.appendChild(li);
+                        if (++count >= 6) break;
+                    }
+                    // Agregar marca si existe y coincide con la búsqueda
+                    if (count < 6 && p.marcaName && p.marcaName.toLowerCase().includes(q.toLowerCase())) {
+                        const marcaTxt = p.marcaName;
+                        if (!seen.has(marcaTxt)) {
+                            seen.add(marcaTxt);
+                            const li = document.createElement('li');
+                            li.className = 'py-1';
+                            li.style.cursor = 'pointer';
+                            li.innerHTML = `<i class="fas fa-tag me-1"></i>${marcaTxt}`;
+                            li.addEventListener('click', ()=>{
+                                input.value = marcaTxt;
+                                const f = products.filter(pp => pp.marcaName && pp.marcaName.toLowerCase().includes(marcaTxt.toLowerCase()));
+                                renderProducts(f);
+                                dropdown.classList.remove('d-none');
+                            });
+                            suggestionsEl.appendChild(li);
+                            if (++count >= 6) break;
+                        }
+                    }
                 }
             }
 
@@ -323,7 +346,10 @@
                 lastQuery = q;
                 if (!q || q.length < 2) { hideDropdown(); return; }
                 const lower = q.toLowerCase();
-                const filtered = products.filter(p => p.name && p.name.toLowerCase().includes(lower));
+                const filtered = products.filter(p => 
+                    (p.name && p.name.toLowerCase().includes(lower)) ||
+                    (p.marcaName && p.marcaName.toLowerCase().includes(lower))
+                );
                 renderSuggestions(filtered, q);
                 renderProducts(filtered);
                 showDropdown();

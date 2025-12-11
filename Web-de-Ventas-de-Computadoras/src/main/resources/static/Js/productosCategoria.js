@@ -95,9 +95,11 @@ function limpiarFiltros() {
 function aplicarFiltros() {
     const productos = document.querySelectorAll('.producto-item');
     const marcasSeleccionadas = Array.from(document.querySelectorAll('[data-filter="marca"]:checked'))
-        .map(cb => cb.value.toLowerCase());
+        .map(cb => cb.value.toLowerCase().trim());
     const stockSeleccionado = Array.from(document.querySelectorAll('[data-filter="stock"]:checked'))
         .map(cb => cb.value);
+    
+    console.log('Marcas seleccionadas:', marcasSeleccionadas);
     
     const searchInput = document.getElementById('searchInput');
     busquedaTexto = searchInput ? searchInput.value.toLowerCase() : '';
@@ -109,6 +111,11 @@ function aplicarFiltros() {
         const descripcion = producto.dataset.descripcion?.toLowerCase() || '';
         const precio = parseFloat(producto.dataset.precio) || 0;
         const stock = parseInt(producto.dataset.stock) || 0;
+        const marca = (producto.dataset.marca || '').toLowerCase().trim();
+        
+        if (marcasSeleccionadas.length > 0) {
+            console.log('Producto:', nombre, '| Marca del producto:', marca, '| Marcas buscadas:', marcasSeleccionadas);
+        }
         
         let mostrar = true;
         
@@ -119,12 +126,18 @@ function aplicarFiltros() {
         
         // Filtro de marca
         if (marcasSeleccionadas.length > 0 && mostrar) {
-            mostrar = marcasSeleccionadas.some(marca => nombre.includes(marca));
+            mostrar = marcasSeleccionadas.some(marcaSel => marca === marcaSel.trim());
+            if (marcasSeleccionadas.length > 0) {
+                console.log('  -> Después filtro marca:', mostrar);
+            }
         }
         
         // Filtro de precio
         if (mostrar && (precio < precioMinimo || precio > precioMaximo)) {
             mostrar = false;
+            if (marcasSeleccionadas.length > 0) {
+                console.log('  -> Después filtro precio:', mostrar, '| Precio producto:', precio, '| Rango:', precioMinimo, '-', precioMaximo);
+            }
         }
         
         // Filtro de stock
