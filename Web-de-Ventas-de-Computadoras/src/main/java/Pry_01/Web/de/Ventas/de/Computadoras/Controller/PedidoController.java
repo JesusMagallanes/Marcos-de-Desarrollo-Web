@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.PedidoDTO.PedidoResponseDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.PedidoDTO.Mapper.PedidoMapper;
+import Pry_01.Web.de.Ventas.de.Computadoras.Model.EstadoPedido;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.PedidoModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Service.PedidoService;
@@ -28,7 +28,7 @@ public class PedidoController {
     private final PedidoService pedidoService;
     private final UsuarioService usuarioService;
     private final PedidoMapper pedidoMapper;
-
+    
     // Vista para listar todos los pedidos (para un admin, por ejemplo)
     @GetMapping
     public String listarTodos(Model model) {
@@ -109,7 +109,7 @@ public class PedidoController {
 
     @PostMapping("/actualizar-estado/{id}")
     public String actualizarEstado(@PathVariable Long id,
-            @RequestParam("estado") Pry_01.Web.de.Ventas.de.Computadoras.Model.EstadoPedido estado,
+            @RequestParam("estado") EstadoPedido estado,
             RedirectAttributes redirectAttributes) {
         System.out.println("DEBUG: PedidoController - Actualizando estado. ID: " + id + ", Nuevo Estado: " + estado);
         try {
