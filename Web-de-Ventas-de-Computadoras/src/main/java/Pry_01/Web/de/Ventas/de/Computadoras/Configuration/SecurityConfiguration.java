@@ -15,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import Pry_01.Web.de.Ventas.de.Computadoras.Configuration.Jwt.JwtAuthFilter;
 import Pry_01.Web.de.Ventas.de.Computadoras.Configuration.User.UsuarioDetails;
 import Pry_01.Web.de.Ventas.de.Computadoras.Configuration.User.UsuarioDetailsService;
@@ -32,136 +31,141 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler(UsuarioService usuarioService) {
-        return new OAuth2LoginSuccessHandler(usuarioService);
-    }
+        @Bean
+        public OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler(UsuarioService usuarioService) {
+                return new OAuth2LoginSuccessHandler(usuarioService);
+        }
 
-    @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http,
-            DaoAuthenticationProvider authenticationProvider)
-            throws Exception {
-        return http.getSharedObject(AuthenticationManagerBuilder.class)
-                .authenticationProvider(authenticationProvider)
-                .build();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(HttpSecurity http,
+                        DaoAuthenticationProvider authenticationProvider)
+                        throws Exception {
+                return http.getSharedObject(AuthenticationManagerBuilder.class)
+                                .authenticationProvider(authenticationProvider)
+                                .build();
+        }
 
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider(UsuarioDetailsService usuarioDetailsService,
-            PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider prov = new DaoAuthenticationProvider();
-        prov.setUserDetailsService(usuarioDetailsService);
-        prov.setPasswordEncoder(passwordEncoder);
-        return prov;
-    }
+        @Bean
+        public DaoAuthenticationProvider authenticationProvider(UsuarioDetailsService usuarioDetailsService,
+                        PasswordEncoder passwordEncoder) {
+                DaoAuthenticationProvider prov = new DaoAuthenticationProvider();
+                prov.setUserDetailsService(usuarioDetailsService);
+                prov.setPasswordEncoder(passwordEncoder);
+                return prov;
+        }
 
-    @Bean
-    public AuthenticationSuccessHandler authenticationSuccessHandler() {
-        return new AuthenticationSuccessHandler() {
-            @Override
-            public void onAuthenticationSuccess(HttpServletRequest request,
-                    HttpServletResponse response,
-                    org.springframework.security.core.Authentication authentication)
-                    throws IOException, ServletException {
-                // establecer DTO en sesión (como ya hacías)
-                Object principal = authentication.getPrincipal();
-                if (principal instanceof UsuarioDetails) {
-                    UsuarioDetails ud = (UsuarioDetails) principal;
-                    UsuarioModel usuarioModel = ud.getUsuarioModel();
-                    UsuarioDTO dto = new UsuarioDTO(usuarioModel);
-                    request.getSession(true).setAttribute("usuario", dto);
-                }
+        @Bean
+        public AuthenticationSuccessHandler authenticationSuccessHandler() {
+                return new AuthenticationSuccessHandler() {
+                        @Override
+                        public void onAuthenticationSuccess(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        org.springframework.security.core.Authentication authentication)
+                                        throws IOException, ServletException {
+                                // establecer DTO en sesión (como ya hacías)
+                                Object principal = authentication.getPrincipal();
+                                if (principal instanceof UsuarioDetails) {
+                                        UsuarioDetails ud = (UsuarioDetails) principal;
+                                        UsuarioModel usuarioModel = ud.getUsuarioModel();
+                                        UsuarioDTO dto = new UsuarioDTO(usuarioModel);
+                                        request.getSession(true).setAttribute("usuario", dto);
+                                }
 
-                // ver autoridades y redirigir según rol
-                boolean isAdmin = authentication.getAuthorities().stream()
-                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
+                                // ver autoridades y redirigir según rol
+                                boolean isAdmin = authentication.getAuthorities().stream()
+                                                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
 
-                if (isAdmin) {
-                    response.sendRedirect(request.getContextPath() + "/VistaAdmin");
-                } else {
-                    response.sendRedirect(request.getContextPath() + "/Index");
-                }
-            }
-        };
-    }
+                                if (isAdmin) {
+                                        response.sendRedirect(request.getContextPath() + "/VistaAdmin");
+                                } else {
+                                        response.sendRedirect(request.getContextPath() + "/Index");
+                                }
+                        }
+                };
+        }
 
-    @Bean
-    @Order(1)
-    public SecurityFilterChain webSecurity(HttpSecurity http,
-            DaoAuthenticationProvider authenticationProvider,
-            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler,
-            UsuarioDetailsService usuarioDetailsService)
-            throws Exception {
+        @Bean
+        @Order(1)
+        public SecurityFilterChain webSecurity(HttpSecurity http,
+                        DaoAuthenticationProvider authenticationProvider,
+                        OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler,
+                        UsuarioDetailsService usuarioDetailsService)
+                        throws Exception {
 
-        http
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/chatbot/**"))
-                .securityMatcher("/**")
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**",
-                                "/productos/admin/**")
-                        .hasRole("ADMINISTRADOR")
+                http
+                                .csrf(csrf -> csrf
+                                                .ignoringRequestMatchers("/api/chatbot/**"))
+                                .securityMatcher("/**")
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/VistaAdmin/**", "/fragments/Admin-gest/**",
+                                                                "/productos/admin/**")
+                                                .hasRole("ADMINISTRADOR")
 
-                        .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**", "/Img/**", "/fragment",
-                                "/usuarios/registrar", "/Detalles", "/Somos", "/header", "/canales",                                "/api/chatbot/**",
-                                "/api/chatbot/**",
-                                "/Canales", "/metodosPago", "/productosCategoria", "/usuarios/registrar/**",
-                                "/productos", "/productos/api", "/productos/categoria/**", "/productos/**",
+                                                .requestMatchers("/", "/Index", "/index", "/Css/**", "/Js/**",
+                                                                "/Img/**", "/fragment",
+                                                                "/usuarios/registrar", "/Detalles", "/Somos", "/header",
+                                                                "/canales", "/api/chatbot/**",
+                                                                "/api/chatbot/**",
+                                                                "/Canales", "/metodosPago", "/productosCategoria",
+                                                                "/usuarios/registrar/**",
+                                                                "/productos", "/productos/api",
+                                                                "/productos/categoria/**", "/productos/**",
 
-                                "/oauth2/authorization/**", "/login/oauth2/**")
-                        .permitAll()
+                                                                "/oauth2/authorization/**", "/login/oauth2/**")
+                                                .permitAll()
 
-                        .requestMatchers("/EnviosPag","/pedidos/**")
-                        .hasAnyRole("EMPLEADO", "ADMINISTRADOR")
+                                                .requestMatchers("/envios/**", "/pedidos/**")
+                                                .hasAnyRole("EMPLEADO", "ADMINISTRADOR")
 
-                        .anyRequest().authenticated())
-                .formLogin(form -> form
-                        .loginPage("/Index")
-                        .loginProcessingUrl("/usuarios/login")
-                        .usernameParameter("email")
-                        .passwordParameter("password")
-                        .successHandler(authenticationSuccessHandler())
-                        .failureUrl("/Index?error=true")
-                        .permitAll())
-                .oauth2Login(oauth -> oauth
-                        .loginPage("/Index")
-                        .successHandler(oAuth2LoginSuccessHandler))
-                .rememberMe(rem -> rem
-                        .rememberMeParameter("remember-me")
-                        .tokenValiditySeconds(7 * 24 * 60 * 60)
-                        .key("uniqueAndSecret")
-                        .userDetailsService(usuarioDetailsService))
-                .logout(logout -> logout
-                        .logoutUrl("/usuarios/logout")
-                        .logoutSuccessUrl("/Index?logout=true")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID", "remember-me"));
+                                                .anyRequest().authenticated())
+                                .formLogin(form -> form
+                                                .loginPage("/Index")
+                                                .loginProcessingUrl("/usuarios/login")
+                                                .usernameParameter("email")
+                                                .passwordParameter("password")
+                                                .successHandler(authenticationSuccessHandler())
+                                                .failureUrl("/Index?error=true")
+                                                .permitAll())
+                                .oauth2Login(oauth -> oauth
+                                                .loginPage("/Index")
+                                                .successHandler(oAuth2LoginSuccessHandler))
+                                .rememberMe(rem -> rem
+                                                .rememberMeParameter("remember-me")
+                                                .tokenValiditySeconds(7 * 24 * 60 * 60)
+                                                .key("uniqueAndSecret")
+                                                .userDetailsService(usuarioDetailsService))
+                                .logout(logout -> logout
+                                                .logoutUrl("/usuarios/logout")
+                                                .logoutSuccessUrl("/Index?logout=true")
+                                                .invalidateHttpSession(true)
+                                                .deleteCookies("JSESSIONID", "remember-me"));
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    @Bean
-    @Order(0)
-    public SecurityFilterChain apiSecurity(HttpSecurity http,
-            JwtAuthFilter jwtAuthorizationFilter)
-            throws Exception {
+        @Bean
+        @Order(0)
+        public SecurityFilterChain apiSecurity(HttpSecurity http,
+                        JwtAuthFilter jwtAuthorizationFilter)
+                        throws Exception {
 
-        http
-                .securityMatcher("/api/auth/**")
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/auth/**"))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+                http
+                                .securityMatcher("/api/auth/**")
+                                .csrf(csrf -> csrf
+                                                .ignoringRequestMatchers("/api/auth/**"))
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/api/auth/**").permitAll()
+                                                .anyRequest().authenticated())
+                                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 
 }

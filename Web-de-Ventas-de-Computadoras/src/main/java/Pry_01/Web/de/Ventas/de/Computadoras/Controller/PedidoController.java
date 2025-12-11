@@ -2,16 +2,15 @@ package Pry_01.Web.de.Ventas.de.Computadoras.Controller;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.PedidoDTO.PedidoResponseDTO;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.PedidoDTO.Mapper.PedidoMapper;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.PedidoModel;
@@ -21,7 +20,7 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Service.UsuarioService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
-@RestController
+@Controller // Cambiado de @RestController a @Controller
 @RequestMapping("/pedidos")
 @RequiredArgsConstructor
 public class PedidoController {
@@ -30,30 +29,35 @@ public class PedidoController {
     private final UsuarioService usuarioService;
     private final PedidoMapper pedidoMapper;
 
+    // Vista para listar todos los pedidos (para un admin, por ejemplo)
     @GetMapping
-    public ResponseEntity<List<PedidoResponseDTO>> listarTodos() {
+    public String listarTodos(Model model) {
         List<PedidoResponseDTO> lista = pedidoService.listarPedido()
                 .stream()
                 .map(pedidoMapper::toDto)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(lista);
+        model.addAttribute("pedidos", lista);
+        return "pedidos/lista_pedidos"; // Devuelve una vista HTML, ej: "lista_pedidos.html"
     }
 
-    
+    // Vista para ver el detalle de un pedido específico
     @GetMapping("/{id}")
-    public ResponseEntity<PedidoResponseDTO> obtenerPorId(@PathVariable Long id) {
+    public String obtenerPorId(@PathVariable Long id, Model model) {
         return pedidoService.obtenerPedidoPorId(id)
-                .map(pedido -> ResponseEntity.ok(pedidoMapper.toDto(pedido)))
-                .orElse(ResponseEntity.notFound().build());
+                .map(pedido -> {
+                    model.addAttribute("pedido", pedidoMapper.toDto(pedido));
+                    return "pedidos/detalle_pedido"; // Devuelve una vista HTML, ej: "detalle_pedido.html"
+                })
+                .orElse("error/404"); // O una página de error si no se encuentra
     }
 
+    // Vista para listar los pedidos de un usuario específico
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<PedidoResponseDTO>> listarPorUsuario(@PathVariable Long usuarioId) {
-
+    public String listarPorUsuario(@PathVariable Long usuarioId, Model model) {
         UsuarioModel usuario = usuarioService.obtenerPorId(usuarioId);
         if (usuario == null) {
-            return ResponseEntity.notFound().build();
+            return "error/404"; // Página de error si el usuario no existe
         }
 
         List<PedidoResponseDTO> pedidos = pedidoService.listarPedidosPorUsuario(usuario)
@@ -61,34 +65,62 @@ public class PedidoController {
                 .map(pedidoMapper::toDto)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(pedidos);
+        model.addAttribute("pedidos", pedidos);
+        model.addAttribute("usuario", usuario);
+        return "pedidos/pedidos_usuario"; // Devuelve una vista HTML, ej: "pedidos_usuario.html"
     }
 
+    // Acción para crear un pedido, luego redirige
     @PostMapping("/crear/{usuarioId}/{metodoPagoId}")
-    public ResponseEntity<PedidoResponseDTO> crearPedido(
+    public String crearPedido(
             @PathVariable Long usuarioId,
-            @PathVariable Long metodoPagoId) {
+            @PathVariable Long metodoPagoId,
+            RedirectAttributes redirectAttributes) {
 
         UsuarioModel usuario = usuarioService.obtenerPorId(usuarioId);
         if (usuario == null) {
-            return ResponseEntity.notFound().build();
+            redirectAttributes.addFlashAttribute("error", "Usuario no encontrado.");
+            return "redirect:/carrito"; // Redirige a alguna página de origen
         }
 
         try {
-            PedidoModel pedido = pedidoService.crearPedidoDesdeCarrito(usuario, metodoPagoId);
-            return ResponseEntity.ok(pedidoMapper.toDto(pedido));
+            PedidoModel nuevoPedido = pedidoService.crearPedidoDesdeCarrito(usuario, metodoPagoId);
+            redirectAttributes.addFlashAttribute("success", "Pedido #" + nuevoPedido.getId() + " creado con éxito.");
+            // Redirige a la página de detalle del nuevo pedido
+            return "redirect:/pedidos/" + nuevoPedido.getId();
         } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(null);
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/carrito";
         }
     }
-    
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> eliminar(@PathVariable Long id) {
+
+    // Acción para eliminar un pedido, luego redirige
+    @PostMapping("/eliminar/{id}") // Cambiado a POST para seguir buenas prácticas
+    public String eliminar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             pedidoService.eliminarPedidoPorId(id);
-            return ResponseEntity.ok("Pedido eliminado correctamente");
+            redirectAttributes.addFlashAttribute("success", "Pedido #" + id + " eliminado correctamente.");
+            return "redirect:/pedidos"; // Redirige a la lista de pedidos
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "No se encontró el pedido a eliminar.");
+            return "redirect:/pedidos";
         }
+    }
+
+    @PostMapping("/actualizar-estado/{id}")
+    public String actualizarEstado(@PathVariable Long id,
+            @RequestParam("estado") Pry_01.Web.de.Ventas.de.Computadoras.Model.EstadoPedido estado,
+            RedirectAttributes redirectAttributes) {
+        System.out.println("DEBUG: PedidoController - Actualizando estado. ID: " + id + ", Nuevo Estado: " + estado);
+        try {
+            pedidoService.actualizarEstado(id, estado);
+            redirectAttributes.addFlashAttribute("mensaje", "Estado del pedido #" + id + " actualizado correctamente.");
+            redirectAttributes.addFlashAttribute("tipoMensaje", "success");
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("mensaje", "Error al actualizar el estado: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensaje", "danger");
+        }
+        return "redirect:/envios";
     }
 }

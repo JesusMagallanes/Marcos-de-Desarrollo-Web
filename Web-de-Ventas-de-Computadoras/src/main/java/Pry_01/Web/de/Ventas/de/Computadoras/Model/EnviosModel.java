@@ -21,7 +21,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -47,9 +46,7 @@ public class EnviosModel {
     @Column(nullable = false, length = 20)
     private EstadoEnvio estadoEnvio = EstadoEnvio.PENDIENTE;
 
-    @NotNull(message = "Debe especificarse una fecha de envío programada.")
-    @FutureOrPresent(message = "La fecha de envío no puede estar en el pasado.")
-    @Column(nullable = false)
+    @Column
     private LocalDateTime fechaEnvioProgramado;
 
     @Column

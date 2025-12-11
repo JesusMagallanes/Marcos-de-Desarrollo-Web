@@ -14,7 +14,6 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Model.PedidoModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.MetodoPagoRepository;
 import Pry_01.Web.de.Ventas.de.Computadoras.Repository.PedidoRepository;
-import Pry_01.Web.de.Ventas.de.Computadoras.Repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,16 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
-    private final UsuarioRepository usuarioRepository;
     private final MetodoPagoRepository metodoPagoRepository;
     private final CarritoService carritoService;
 
-    public PedidoService(PedidoRepository pedidoRepository, 
-                         UsuarioRepository usuarioRepository,
-                         MetodoPagoRepository metodoPagoRepository, 
-                         CarritoService carritoService) {
+    public PedidoService(PedidoRepository pedidoRepository,
+            MetodoPagoRepository metodoPagoRepository,
+            CarritoService carritoService) {
         this.pedidoRepository = pedidoRepository;
-        this.usuarioRepository = usuarioRepository;
         this.metodoPagoRepository = metodoPagoRepository;
         this.carritoService = carritoService;
     }
@@ -44,6 +40,10 @@ public class PedidoService {
 
     public List<PedidoModel> listarPedidosPorUsuario(UsuarioModel usuario) {
         return pedidoRepository.findByUsuarioOrderByCreadoEnDesc(usuario);
+    }
+
+    public List<PedidoModel> listarPedidosPorEstado(EstadoPedido estado) {
+        return pedidoRepository.findByEstado(estado);
     }
 
     public void eliminarPedidoPorId(Long id) {
@@ -57,32 +57,34 @@ public class PedidoService {
         return pedidoRepository.save(pedido);
     }
 
-    /**
-     * Crea un pedido desde el carrito actual del usuario
-     */
+    public PedidoModel actualizarEstado(Long pedidoId, EstadoPedido nuevoEstado) {
+        PedidoModel pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new EntityNotFoundException("Pedido no encontrado con ID: " + pedidoId));
+
+        pedido.setEstado(nuevoEstado);
+        return pedidoRepository.save(pedido);
+    }
+
     public PedidoModel crearPedidoDesdeCarrito(UsuarioModel usuario, Long metodoPagoId) {
 
         log.info("Iniciando creación de pedido desde carrito para usuario ID {}", usuario.getId());
 
-        // Obtener carrito
         CarritoModel carrito = carritoService.obtenerCarrito(usuario);
         if (carrito.getItems().isEmpty()) {
             log.warn("El carrito del usuario ID {} está vacío", usuario.getId());
             throw new IllegalStateException("El carrito está vacío");
         }
 
-        // Verificar método de pago
         MetodoPagoModel metodoPago = metodoPagoRepository.findById(metodoPagoId)
                 .orElseThrow(() -> {
                     log.error("Método de pago ID {} no encontrado", metodoPagoId);
                     return new EntityNotFoundException("Método de pago no encontrado");
                 });
 
-        // Crear pedido
         PedidoModel pedido = new PedidoModel();
         pedido.setUsuario(usuario);
         pedido.setMetodoPago(metodoPago);
-        pedido.setEstado(EstadoPedido.PENDIENTE);
+        pedido.setEstado(EstadoPedido.PENDIENTE); // O PAGADO, dependiendo de la lógica de negocio
 
         BigDecimal total = BigDecimal.ZERO;
 
@@ -91,7 +93,6 @@ public class PedidoService {
             BigDecimal precioUnitario = BigDecimal.valueOf(item.getProducto().getPrecio());
             BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(item.getCantidad()));
 
-            // Crear detalle
             DetallePedidoModel detalle = new DetallePedidoModel();
             detalle.setProducto(item.getProducto());
             detalle.setCantidad(item.getCantidad());
@@ -100,21 +101,19 @@ public class PedidoService {
             pedido.addDetalle(detalle);
             total = total.add(subtotal);
 
-            log.info("Detalle agregado: {} x{} => {}", 
-                     item.getProducto().getName(), 
-                     item.getCantidad(),
-                     subtotal);
+            log.info("Detalle agregado: {} x{} => {}",
+                    item.getProducto().getName(),
+                    item.getCantidad(),
+                    subtotal);
         }
 
         pedido.setTotal(total);
 
         log.info("Total del pedido: {}", total);
 
-        // Guardar pedido
         PedidoModel pedidoGuardado = pedidoRepository.save(pedido);
         log.info("Pedido guardado con ID {}", pedidoGuardado.getId());
 
-        // Vaciar carrito
         carritoService.vaciarCarrito(usuario);
         log.info("Carrito del usuario ID {} vaciado", usuario.getId());
 

@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import Pry_01.Web.de.Ventas.de.Computadoras.Configuration.Jwt.JwtUtil;
 import Pry_01.Web.de.Ventas.de.Computadoras.Configuration.User.UsuarioDetailsService;
 import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
