@@ -298,7 +298,6 @@
                 for (const p of list) {
                     // Agregar nombre del producto
                     const txt = p.name;
-<<<<<<< Updated upstream
                     if (!seen.has(txt)) {
                         seen.add(txt);
                         const li = document.createElement('li');
@@ -336,23 +335,6 @@
                             if (++count >= 6) break;
                         }
                     }
-=======
-                    if (seen.has(txt)) continue;
-                    seen.add(txt);
-                    const li = document.createElement('li');
-                    li.className = 'py-1';
-                    li.style.cursor = 'pointer';
-                    li.textContent = txt;
-                    li.addEventListener('click', () => {
-                        input.value = txt;
-                        // filtrar por esta sugerencia
-                        const f = products.filter(pp => pp.name.toLowerCase().includes(txt.toLowerCase()));
-                        renderProducts(f);
-                        dropdown.classList.remove('d-none');
-                    });
-                    suggestionsEl.appendChild(li);
-                    if (++count >= 6) break;
->>>>>>> Stashed changes
                 }
             }
 

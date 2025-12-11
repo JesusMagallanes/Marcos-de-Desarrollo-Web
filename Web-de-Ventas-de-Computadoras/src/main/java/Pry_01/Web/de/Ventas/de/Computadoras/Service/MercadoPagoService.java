@@ -23,7 +23,7 @@ public class MercadoPagoService {
     private final ObjectMapper mapper = new ObjectMapper();
 
     public Map<String, Object> createPreference(MpPreferenceRequest req) throws Exception {
-        // Construir payload minimalista para la API de MercadoPago
+
         Map<String, Object> payload = new HashMap<>();
         Map<String, Object> item = new HashMap<>();
         item.put("title", req.getTitle() != null ? req.getTitle() : "Producto");
@@ -32,13 +32,12 @@ public class MercadoPagoService {
         item.put("id", req.getId());
         payload.put("items", new Object[]{ item });
 
-        // Configurar URLs de retorno
+
         Map<String, String> backUrls = new HashMap<>();
         backUrls.put("success", "http://localhost:8080/carrito?status=approved");
         backUrls.put("failure", "http://localhost:8080/carrito?status=failure");
         backUrls.put("pending", "http://localhost:8080/carrito?status=pending");
         payload.put("back_urls", backUrls);
-        // No incluir auto_return para evitar errores - el usuario hará clic en "Volver al sitio"
 
         String body = mapper.writeValueAsString(payload);
 
@@ -57,7 +56,7 @@ public class MercadoPagoService {
         HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() >= 200 && response.statusCode() < 300) {
-            // parsear JSON y devolver mapa
+
             Map<String, Object> resp = mapper.readValue(response.body(), Map.class);
             return resp;
         } else {
