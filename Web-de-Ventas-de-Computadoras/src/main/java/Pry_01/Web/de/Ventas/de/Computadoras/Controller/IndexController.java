@@ -16,7 +16,7 @@ import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class IndexController {
-private final CategoriaService categoriaService;
+    private final CategoriaService categoriaService;
     private final ProductoService productoService;
 
     // Inyección por constructor (recomendada)
@@ -24,6 +24,7 @@ private final CategoriaService categoriaService;
         this.categoriaService = categoriaService;
         this.productoService = productoService;
     }
+
     @ModelAttribute
     public void addUsuarioToModel(HttpSession session, Model model) {
         var usuario = session.getAttribute("usuario");
@@ -31,9 +32,9 @@ private final CategoriaService categoriaService;
             model.addAttribute("usuario", usuario);
         }
     }
-    
+
     // Página principal ("/")
-    @GetMapping({"/", "/Index"})
+    @GetMapping({ "/", "/Index" })
     public String mostrarIndex(Model model) {
         List<CategoriaModel> categorias = categoriaService.listarCategoria();
         List<ProductosResponseDTO> productos = productoService.listarProducto();
@@ -49,7 +50,8 @@ private final CategoriaService categoriaService;
         }
         model.addAttribute("productosPorCategoria", productosPorCategoria);
 
-        // Crear versiones particionadas (chunks) de tamaño 6 por categoría para las slides del carrusel (desktop)
+        // Crear versiones particionadas (chunks) de tamaño 6 por categoría para las
+        // slides del carrusel (desktop)
         java.util.Map<Long, java.util.List<java.util.List<ProductosResponseDTO>>> productosPorCategoriaChunks = new java.util.LinkedHashMap<>();
         int chunkSize = 6;
         for (java.util.Map.Entry<Long, java.util.List<ProductosResponseDTO>> entry : productosPorCategoria.entrySet()) {
@@ -79,7 +81,7 @@ private final CategoriaService categoriaService;
 
     @GetMapping("/EnviosPag")
     public String enviosPag() {
-        return "EnviosPag";
+        return "redirect:/envios";
     }
 
     @GetMapping("/header")
@@ -99,13 +101,14 @@ private final CategoriaService categoriaService;
     public String mostrarSomos() {
         return "Somos";
     }
+
     @GetMapping("/canales")
     public String mostrarCanales() {
         return "Canales";
     }
 
     @GetMapping("/Canales")
-    public String canales(){
+    public String canales() {
         return "Canales";
     }
 
@@ -126,7 +129,7 @@ private final CategoriaService categoriaService;
         if (name == null || name.contains("..")) {
             return "error/403";
         }
-        
+
         return path;
     }
 

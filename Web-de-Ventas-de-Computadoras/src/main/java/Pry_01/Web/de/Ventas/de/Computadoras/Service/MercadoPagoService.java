@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import Pry_01.Web.de.Ventas.de.Computadoras.Configuration.MercadoPagoConfig;
 import Pry_01.Web.de.Ventas.de.Computadoras.Dto.MpPreferenceRequest;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;

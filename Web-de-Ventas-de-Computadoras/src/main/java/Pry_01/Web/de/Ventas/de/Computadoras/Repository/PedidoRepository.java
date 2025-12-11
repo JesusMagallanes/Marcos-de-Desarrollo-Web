@@ -9,4 +9,7 @@ import Pry_01.Web.de.Ventas.de.Computadoras.Model.UsuarioModel;
 @Repository
 public interface PedidoRepository extends JpaRepository<PedidoModel, Long> {
     List<PedidoModel> findByUsuarioOrderByCreadoEnDesc(UsuarioModel usuario);
+
+    // Buscar pedidos por estado
+    List<PedidoModel> findByEstado(Pry_01.Web.de.Ventas.de.Computadoras.Model.EstadoPedido estado);
 }

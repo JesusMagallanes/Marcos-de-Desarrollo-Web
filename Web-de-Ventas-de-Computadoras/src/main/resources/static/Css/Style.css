@@ -646,3 +646,145 @@ a {
     min-height: 300px;
   }
 }
+
+/* Estilos para la página de gestión de envíos */
+
+/* Badges de estado */
+.badge-pendiente {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-en-camino {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge-entregado {
+    background-color: #28a745;
+    color: white;
+}
+
+/* Cards de envío */
+.card-envio {
+    transition: all 0.3s ease;
+    border-left: 4px solid #dee2e6;
+}
+
+.card-envio:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.card-envio.pendiente {
+    border-left-color: #ffc107;
+}
+
+.card-envio.en-transito {
+    border-left-color: #17a2b8;
+}
+
+.card-envio.entregado {
+    border-left-color: #28a745;
+}
+
+/* Imagen del producto */
+.producto-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Info del envío */
+.info-envio {
+    font-size: 0.9rem;
+}
+
+/* Fecha programada */
+.fecha-programada {
+    color: #28a745;
+    font-weight: 500;
+}
+
+/* Estado del botón */
+.estado-btn {
+    min-width: 140px;
+}
+
+/* Icono de estado grande */
+.estado-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.estado-icon.pendiente {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.estado-icon.en-transito {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.estado-icon.entregado {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+/* Tabs personalizados */
+#enviosTabs .nav-link {
+    color: #495057;
+    border: none;
+    border-bottom: 2px solid transparent;
+}
+
+#enviosTabs .nav-link:hover {
+    border-color: #dee2e6;
+}
+
+#enviosTabs .nav-link.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+    background-color: transparent;
+}
+
+/* Cards de estadísticas */
+.card.border-warning {
+    border-width: 2px !important;
+}
+
+.card.border-info {
+    border-width: 2px !important;
+}
+
+.card.border-success {
+    border-width: 2px !important;
+}
+
+/* Responsivo */
+@media (max-width: 991px) {
+    .card-envio .row > div {
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .card-envio .row > div:last-child {
+        border-bottom: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .producto-img {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .info-envio {
+        font-size: 0.8rem;
+    }
+}

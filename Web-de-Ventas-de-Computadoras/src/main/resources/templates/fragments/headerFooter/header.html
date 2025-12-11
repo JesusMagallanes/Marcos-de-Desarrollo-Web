@@ -39,15 +39,15 @@
 
                 <form class="d-flex mx-4 flex-grow-1 position-relative" role="search" style="max-width: 100%;">
                     <div class="input-group" style="width:100%;">
-                        <input id="search-input" class="form-control" type="search" placeholder="¿Qué estás buscando?" aria-label="Search"
-                            style="border: none;" autocomplete="off">
+                        <input id="search-input" class="form-control" type="search" placeholder="¿Qué estás buscando?"
+                            aria-label="Search" style="border: none;" autocomplete="off">
                         <button class="btn" type="submit" style="background-color: white; color: #B3B3B3;">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
 
                     <!-- Dropdown de búsqueda (inicialmente oculto) -->
-                    <div id="search-dropdown" class="d-none position-absolute bg-white shadow rounded" 
+                    <div id="search-dropdown" class="d-none position-absolute bg-white shadow rounded"
                         style="width:760px; left:50%; transform:translateX(-50%); top:calc(100% + 8px); z-index:2000;">
                         <div class="row m-0 p-3">
                             <div class="col-4 border-end">
@@ -77,7 +77,7 @@
                                     th:href="@{/VistaAdmin}">Panel Administrador</a></li>
                             <li>
                             <li th:if="${usuario != null and usuario.rol == 'EMPLEADO'}"><a class="dropdown-item"
-                                    th:href="@{/EnviosPag}">Panel Empleado</a></li>
+                                    th:href="@{/envios}">Panel Empleado</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
@@ -239,7 +239,7 @@
         </div>
     </div>
     <script>
-        (function(){
+        (function () {
             const input = document.getElementById('search-input');
             const dropdown = document.getElementById('search-dropdown');
             const suggestionsEl = document.getElementById('search-suggestions');
@@ -249,26 +249,26 @@
             let products = [];
             let lastQuery = '';
 
-            function debounce(fn, wait){
+            function debounce(fn, wait) {
                 let t;
-                return function(...args){
+                return function (...args) {
                     clearTimeout(t);
-                    t = setTimeout(()=>fn.apply(this,args), wait);
+                    t = setTimeout(() => fn.apply(this, args), wait);
                 }
             }
 
-            function formatPrice(n){
+            function formatPrice(n) {
                 if (n == null) return 'S/ 0.00';
                 return 'S/ ' + Number(n).toFixed(2);
             }
 
-            function renderProducts(list){
+            function renderProducts(list) {
                 productsEl.innerHTML = '';
                 if (!list || list.length === 0) {
                     productsEl.innerHTML = '<div class="col-12 text-muted">No se encontraron productos.</div>';
                     return;
                 }
-                list.slice(0,6).forEach(p => {
+                list.slice(0, 6).forEach(p => {
                     const col = document.createElement('div');
                     col.className = 'col-12';
                     col.innerHTML = `
@@ -286,24 +286,64 @@
                 });
             }
 
-            function renderSuggestions(list, q){
+            function renderSuggestions(list, q) {
                 suggestionsEl.innerHTML = '';
                 if (!list || list.length === 0) {
                     suggestionsEl.innerHTML = '<li class="text-muted">Sin sugerencias</li>';
                     return;
                 }
-                // tomar hasta 6 sugerencias basadas en nombres únicos
+                // tomar hasta 6 sugerencias basadas en nombres y marcas únicas
                 const seen = new Set();
                 let count = 0;
                 for (const p of list) {
+                    // Agregar nombre del producto
                     const txt = p.name;
+<<<<<<< Updated upstream
+                    if (!seen.has(txt)) {
+                        seen.add(txt);
+                        const li = document.createElement('li');
+                        li.className = 'py-1';
+                        li.style.cursor = 'pointer';
+                        li.textContent = txt;
+                        li.addEventListener('click', ()=>{
+                            input.value = txt;
+                            const f = products.filter(pp => 
+                                pp.name.toLowerCase().includes(txt.toLowerCase()) ||
+                                (pp.marcaName && pp.marcaName.toLowerCase().includes(txt.toLowerCase()))
+                            );
+                            renderProducts(f);
+                            dropdown.classList.remove('d-none');
+                        });
+                        suggestionsEl.appendChild(li);
+                        if (++count >= 6) break;
+                    }
+                    // Agregar marca si existe y coincide con la búsqueda
+                    if (count < 6 && p.marcaName && p.marcaName.toLowerCase().includes(q.toLowerCase())) {
+                        const marcaTxt = p.marcaName;
+                        if (!seen.has(marcaTxt)) {
+                            seen.add(marcaTxt);
+                            const li = document.createElement('li');
+                            li.className = 'py-1';
+                            li.style.cursor = 'pointer';
+                            li.innerHTML = `<i class="fas fa-tag me-1"></i>${marcaTxt}`;
+                            li.addEventListener('click', ()=>{
+                                input.value = marcaTxt;
+                                const f = products.filter(pp => pp.marcaName && pp.marcaName.toLowerCase().includes(marcaTxt.toLowerCase()));
+                                renderProducts(f);
+                                dropdown.classList.remove('d-none');
+                            });
+                            suggestionsEl.appendChild(li);
+                            if (++count >= 6) break;
+                        }
+                    }
+=======
                     if (seen.has(txt)) continue;
                     seen.add(txt);
                     const li = document.createElement('li');
                     li.className = 'py-1';
                     li.style.cursor = 'pointer';
                     li.textContent = txt;
-                    li.addEventListener('click', ()=>{
+                    li.addEventListener('click', () => {
                         input.value = txt;
                         // filtrar por esta sugerencia
                         const f = products.filter(pp => pp.name.toLowerCase().includes(txt.toLowerCase()));
@@ -312,41 +352,45 @@
                     });
                     suggestionsEl.appendChild(li);
                     if (++count >= 6) break;
+>>>>>>> Stashed changes
                 }
             }
 
-            function showDropdown(){ dropdown.classList.remove('d-none'); }
-            function hideDropdown(){ dropdown.classList.add('d-none'); }
+            function showDropdown() { dropdown.classList.remove('d-none'); }
+            function hideDropdown() { dropdown.classList.add('d-none'); }
 
-            const onInput = debounce(function(e){
+            const onInput = debounce(function (e) {
                 const q = (e.target.value || '').trim();
                 lastQuery = q;
                 if (!q || q.length < 2) { hideDropdown(); return; }
                 const lower = q.toLowerCase();
-                const filtered = products.filter(p => p.name && p.name.toLowerCase().includes(lower));
+                const filtered = products.filter(p => 
+                    (p.name && p.name.toLowerCase().includes(lower)) ||
+                    (p.marcaName && p.marcaName.toLowerCase().includes(lower))
+                );
                 renderSuggestions(filtered, q);
                 renderProducts(filtered);
                 showDropdown();
             }, 200);
 
             // click fuera para cerrar
-            document.addEventListener('click', (ev)=>{
+            document.addEventListener('click', (ev) => {
                 if (!input || !dropdown) return;
                 if (ev.target === input || dropdown.contains(ev.target) || input.contains(ev.target)) return;
                 hideDropdown();
             });
 
             // prevenir submit del form para que navegacion la maneje el enlace
-            input && input.closest('form') && input.closest('form').addEventListener('submit', (ev)=>{
+            input && input.closest('form') && input.closest('form').addEventListener('submit', (ev) => {
                 ev.preventDefault();
-                const q = (input.value||'').trim();
+                const q = (input.value || '').trim();
                 if (!q) return;
                 // navegar a la página de búsqueda /productosCategoria?q=... (si existe) o listar todos
                 window.location.href = '/productos?search=' + encodeURIComponent(q);
             });
 
             // inicializar: cargar productos desde la API
-            document.addEventListener('DOMContentLoaded', ()=>{
+            document.addEventListener('DOMContentLoaded', () => {
                 if (!input) return;
                 input.addEventListener('input', onInput);
                 fetch('/productos/api')
