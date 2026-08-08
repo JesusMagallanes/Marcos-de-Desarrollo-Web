@@ -1,0 +1,4 @@
+# La validación se engancha antes de crear el contexto, así que no puede ser
+# un @Component: se registra como listener del arranque.
+org.springframework.context.ApplicationListener=\
+com.backend.web_gateway.config.ValidacionArranque

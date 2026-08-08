@@ -1,0 +1,36 @@
+# Imagen común a los cuatro servicios Spring Boot.
+#
+# El contexto de build es la carpeta del servicio, así que este mismo archivo
+# sirve para usuarios, catalogo, compras y web-gateway sin duplicarlo.
+
+# ── Compilación ────────────────────────────────────────────────────────
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /build
+
+# Las dependencias se resuelven antes de copiar el código: mientras el pom no
+# cambie, Docker reutiliza esta capa y la compilación es mucho más rápida.
+COPY pom.xml .
+RUN mvn -B dependency:go-offline
+
+COPY src ./src
+# Las pruebas se ejecutan en CI, no en cada build de imagen.
+RUN mvn -B -DskipTests package
+
+# ── Ejecución ──────────────────────────────────────────────────────────
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+# wget lo usa el healthcheck de Compose; alpine no lo trae completo.
+RUN apk add --no-cache wget
+
+# Usuario sin privilegios: si alguien escapa del proceso, no es root.
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+COPY --from=build --chown=spring:spring /build/target/*.jar app.jar
+
+# `MaxRAMPercentage` deja que la JVM respete el límite de memoria del
+# contenedor en lugar de mirar la RAM del host.
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+UseContainerSupport"
+
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]

@@ -1,0 +1,114 @@
+.burbuja-flotante {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background-color: #28aa00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.ventana-chat {
+  position: fixed;
+  right: 20px;
+  bottom: 88px;
+  width: min(360px, calc(100vw - 40px));
+  height: min(520px, calc(100vh - 130px));
+  background: #fff;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1050;
+}
+
+.cabecera-chat {
+  background-color: #28aa00;
+  color: #fff;
+  padding: 0.75rem 1rem;
+}
+
+.btn-cerrar-chat {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.cuerpo-chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background-color: #f7f7f7;
+}
+
+.burbuja {
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.9rem;
+  max-width: 85%;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
+  overflow-wrap: anywhere;
+}
+
+.burbuja-usuario {
+  background: #dcf8c6;
+  margin-left: auto;
+}
+
+.indicador span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 3px;
+  border-radius: 50%;
+  background: #999;
+  animation: parpadeo 1.2s infinite;
+}
+
+.indicador span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.indicador span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes parpadeo {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+.atajos-chat {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding: 0.5rem;
+  border-top: 1px solid #eee;
+  background: #fff;
+}
+
+.atajos-chat button {
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+
+.pie-chat {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  border-top: 1px solid #eee;
+  background: #fff;
+}

@@ -1,0 +1,82 @@
+/* Estilos compartidos por las pantallas CRUD del panel admin. */
+
+.cabecera-seccion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.campo-filtro {
+  width: 200px;
+}
+
+.tarjeta-tabla {
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.tarjeta-tabla table {
+  min-width: 640px;
+}
+
+.tarjeta-tabla thead th {
+  background: #fafafa;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #8a8a8a;
+  border-bottom: 1px solid #ececec;
+  white-space: nowrap;
+}
+
+.tarjeta-tabla td {
+  font-size: 0.88rem;
+}
+
+.miniatura {
+  width: 44px;
+  height: 34px;
+  object-fit: contain;
+  background: #fafafa;
+  border-radius: 4px;
+}
+
+.fondo-modal {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 45%);
+  z-index: 1055;
+}
+
+.panel-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  background: #fff;
+  border-radius: 12px;
+  z-index: 1060;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cabecera-modal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #ececec;
+}
+
+.cuerpo-modal {
+  padding: 1.25rem;
+  overflow-y: auto;
+}

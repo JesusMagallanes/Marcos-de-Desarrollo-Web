@@ -1,0 +1,40 @@
+.panel-filtros {
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  padding: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.rejilla-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.breadcrumb a {
+  color: #28aa00;
+  text-decoration: none;
+}
+
+.aviso-flotante {
+  position: fixed;
+  top: 84px;
+  right: 20px;
+  z-index: 1080;
+  background: #28aa00;
+  color: #fff;
+  padding: 0.7rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.page-item.active .page-link {
+  background-color: #28aa00;
+  border-color: #28aa00;
+}
+
+.page-link {
+  color: #28aa00;
+}

@@ -1,0 +1,79 @@
+<div class="cabecera-seccion">
+  <h5 class="mb-0">Usuarios</h5>
+  <input
+    class="form-control form-control-sm campo-filtro"
+    placeholder="Buscar…"
+    [value]="filtro()"
+    (input)="filtro.set($any($event.target).value)"
+  />
+</div>
+
+@if (estado.aviso()) {
+  <div class="alert alert-success py-2 small">{{ estado.aviso() }}</div>
+}
+@if (estado.hayError()) {
+  <div class="alert alert-danger py-2 small">{{ estado.mensajeError() }}</div>
+}
+
+@if (estado.cargando()) {
+  <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+} @else {
+  <div class="tarjeta-tabla">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Teléfono</th>
+          <th style="width: 170px">Rol</th>
+          <th class="text-end" style="width: 110px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of visibles(); track u.id) {
+          <tr>
+            <td>
+              <span class="fw-semibold">{{ u.name }} {{ u.lastname }}</span>
+              @if (esYo(u)) {
+                <span class="badge bg-light text-dark ms-1">tú</span>
+              }
+            </td>
+            <td class="small text-muted">{{ u.emailAddress }}</td>
+            <td class="small text-muted">{{ u.phoneNumber }}</td>
+            <td>
+              @if (esYo(u)) {
+                <span class="badge" [class]="claseRol(u.rol)">{{ u.rol }}</span>
+              } @else {
+                <select
+                  class="form-select form-select-sm"
+                  [value]="u.rol"
+                  (change)="cambiarRol(u, $any($event.target).value)"
+                >
+                  @for (r of roles; track r) {
+                    <option [value]="r">{{ r }}</option>
+                  }
+                </select>
+              }
+            </td>
+            <td class="text-end">
+              @if (esYo(u)) {
+                <span class="text-muted small">—</span>
+              } @else if (confirmandoId() === u.id) {
+                <button type="button" class="btn btn-sm btn-danger me-1" (click)="eliminar(u.id)">Sí</button>
+                <button type="button" class="btn btn-sm btn-secondary" (click)="confirmandoId.set(null)">No</button>
+              } @else {
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmandoId.set(u.id)">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">No hay usuarios.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

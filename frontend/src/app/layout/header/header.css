@@ -1,0 +1,115 @@
+.header-principal {
+  background-color: #f8f8f8;
+}
+
+.barra-superior {
+  height: 4rem;
+  box-shadow: none;
+  background-color: #f8f8f8;
+}
+
+.boton-menu {
+  border: none;
+  font-size: 1.4rem;
+  background-color: transparent;
+  color: #505050;
+}
+
+.boton-categorias {
+  background-color: #28aa00;
+  border: none;
+  height: 2.8rem;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.boton-categorias:hover {
+  color: #fff;
+  filter: brightness(0.95);
+}
+
+.campo-busqueda {
+  border: none;
+}
+
+.boton-lupa {
+  background-color: #fff;
+  color: #b3b3b3;
+}
+
+.panel-busqueda {
+  width: 760px;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(100% + 8px);
+  z-index: 2000;
+}
+
+.sugerencia,
+.resultado {
+  cursor: pointer;
+}
+
+.resultado:hover {
+  background-color: #f5f5f5;
+}
+
+.miniatura {
+  width: 72px;
+  height: 54px;
+  object-fit: cover;
+}
+
+.boton-usuario {
+  color: #505050;
+  background: transparent;
+  border: none;
+}
+
+.btn-nav i,
+.btn-nav p,
+.btn-nav-carrito i {
+  color: #505050;
+}
+
+.btn-nav i,
+.btn-nav-carrito i {
+  font-size: 1.2rem;
+}
+
+.contador-carrito {
+  position: absolute;
+  top: -2px;
+  right: -6px;
+  font-size: 0.65rem;
+}
+
+.franja-ayuda {
+  background-color: #ececec;
+  height: 2.5rem;
+}
+
+.franja-ayuda-nav {
+  height: 2.5rem;
+  box-shadow: none;
+  background-color: #ececec;
+  font-size: 0.9rem;
+  color: #505050;
+}
+
+.caja-ayuda {
+  width: 280px;
+  z-index: 1000;
+  padding: 0;
+}
+
+.btns-ayuda a {
+  display: block;
+  padding: 0.6rem;
+  color: #505050;
+  text-decoration: none;
+}
+
+.btns-ayuda a:hover {
+  background-color: #f0f0f0;
+}

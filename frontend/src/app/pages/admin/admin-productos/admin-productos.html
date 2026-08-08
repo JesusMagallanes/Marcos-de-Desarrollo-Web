@@ -1,0 +1,157 @@
+<div class="cabecera-seccion">
+  <h5 class="mb-0">Productos</h5>
+  <div class="d-flex gap-2">
+    <input
+      class="form-control form-control-sm campo-filtro"
+      placeholder="Buscar…"
+      [value]="filtro()"
+      (input)="filtro.set($any($event.target).value)"
+    />
+    <button type="button" class="btn btn-sm btn-success" (click)="nuevo()">
+      <i class="fa-solid fa-plus me-1"></i>Nuevo
+    </button>
+  </div>
+</div>
+
+@if (estado.aviso()) {
+  <div class="alert alert-success py-2 small">{{ estado.aviso() }}</div>
+}
+@if (estado.hayError()) {
+  <div class="alert alert-danger py-2 small">{{ estado.mensajeError() }}</div>
+}
+
+@if (estado.cargando()) {
+  <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+} @else {
+  <div class="tarjeta-tabla">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th style="width: 60px">Img</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Marca</th>
+          <th class="text-end">Precio</th>
+          <th class="text-center">Stock</th>
+          <th class="text-end" style="width: 120px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of visibles(); track p.id) {
+          <tr>
+            <td><img [src]="p.imageUrl || '/Img/img.png'" [alt]="p.name" class="miniatura" /></td>
+            <td class="fw-semibold">{{ p.name }}</td>
+            <td class="small text-muted">{{ p.categoriaName }}</td>
+            <td class="small text-muted">{{ p.marcaName || '—' }}</td>
+            <td class="text-end fw-semibold">{{ p.precio | currency: 'PEN' : 'S/ ' }}</td>
+            <td class="text-center">
+              <span class="badge" [class]="p.stock > 0 ? 'bg-success' : 'bg-danger'">{{ p.stock }}</span>
+            </td>
+            <td class="text-end">
+              @if (confirmandoId() === p.id) {
+                <button type="button" class="btn btn-sm btn-danger me-1" (click)="eliminar(p.id)">Sí</button>
+                <button type="button" class="btn btn-sm btn-secondary" (click)="confirmandoId.set(null)">No</button>
+              } @else {
+                <button type="button" class="btn btn-sm btn-outline-primary me-1" (click)="editar(p)">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmandoId.set(p.id)">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">No hay productos.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (formAbierto()) {
+  <div class="fondo-modal" (click)="cerrar()"></div>
+  <div class="panel-modal shadow">
+    <div class="cabecera-modal">
+      <h6 class="mb-0">{{ editandoId() ? 'Editar producto' : 'Nuevo producto' }}</h6>
+      <button type="button" class="btn-close" (click)="cerrar()"></button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="cuerpo-modal">
+      <div class="mb-2">
+        <label class="form-label small fw-semibold">Nombre</label>
+        <input class="form-control form-control-sm" formControlName="name" [class.is-invalid]="invalido('name')" />
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small fw-semibold">Descripción</label>
+        <textarea
+          class="form-control form-control-sm"
+          rows="3"
+          formControlName="description"
+          [class.is-invalid]="invalido('description')"
+        ></textarea>
+      </div>
+
+      <div class="row g-2">
+        <div class="col-6 mb-2">
+          <label class="form-label small fw-semibold">Precio (S/)</label>
+          <input
+            type="number"
+            step="0.01"
+            class="form-control form-control-sm"
+            formControlName="precio"
+            [class.is-invalid]="invalido('precio')"
+          />
+        </div>
+        <div class="col-6 mb-2">
+          <label class="form-label small fw-semibold">Stock</label>
+          <input
+            type="number"
+            class="form-control form-control-sm"
+            formControlName="stock"
+            [class.is-invalid]="invalido('stock')"
+          />
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small fw-semibold">URL de imagen</label>
+        <input class="form-control form-control-sm" formControlName="imageUrl" [class.is-invalid]="invalido('imageUrl')" />
+      </div>
+
+      <div class="row g-2">
+        <div class="col-6 mb-3">
+          <label class="form-label small fw-semibold">Categoría</label>
+          <select class="form-select form-select-sm" formControlName="categoriaId" [class.is-invalid]="invalido('categoriaId')">
+            <option [value]="0">Selecciona…</option>
+            @for (c of categorias(); track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-6 mb-3">
+          <label class="form-label small fw-semibold">Marca</label>
+          <select class="form-select form-select-sm" formControlName="marcaId" [class.is-invalid]="invalido('marcaId')">
+            <option [value]="0">Selecciona…</option>
+            @for (m of marcasDisponibles(); track m.id) {
+              <option [value]="m.id">{{ m.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="cerrar()">Cancelar</button>
+        <button type="submit" class="btn btn-sm btn-success" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+}

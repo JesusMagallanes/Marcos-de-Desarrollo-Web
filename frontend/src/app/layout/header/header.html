@@ -1,0 +1,232 @@
+<header class="header-principal container-fluid px-lg-5 px-0">
+  <nav class="navbar navbar-expand-lg m-0 barra-superior">
+    <button
+      class="navbar-toggler p-2 d-lg-none boton-menu"
+      type="button"
+      data-bs-toggle="offcanvas"
+      data-bs-target="#offcanvasMenu"
+      aria-controls="offcanvasMenu"
+      aria-label="Abrir menú"
+    >
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <a class="navbar-brand m-0" routerLink="/">
+      <img src="/Img/logo.png" alt="SmartZone" height="35" />
+    </a>
+
+    <div class="d-flex align-items-center d-lg-none ms-auto">
+      <a routerLink="/carrito" class="nav-link px-2 position-relative">
+        <i class="fa-solid fa-cart-shopping"></i>
+        @if (carrito.cantidadTotal() > 0) {
+          <span class="badge rounded-pill bg-danger contador-carrito">{{ carrito.cantidadTotal() }}</span>
+        }
+      </a>
+    </div>
+
+    <div class="collapse navbar-collapse d-none d-lg-flex justify-content-between">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item px-2">
+          <a
+            class="btn d-flex align-items-center justify-content-center gap-1 px-2 boton-categorias"
+            data-bs-toggle="offcanvas"
+            href="#panelCategorias"
+            role="button"
+          >
+            <i class="fa-solid fa-bars"></i>Categorías
+          </a>
+        </li>
+      </ul>
+
+      <form class="d-flex mx-4 flex-grow-1 position-relative" role="search" (submit)="buscar($event)">
+        <div class="input-group w-100">
+          <input
+            class="form-control campo-busqueda"
+            type="search"
+            placeholder="¿Qué estás buscando?"
+            autocomplete="off"
+            [ngModel]="consulta()"
+            (ngModelChange)="consulta.set($event); panelAbierto.set(true)"
+            name="q"
+          />
+          <button class="btn boton-lupa" type="submit"><i class="fas fa-search"></i></button>
+        </div>
+
+        @if (panelAbierto() && consulta().trim().length >= 2) {
+          <div class="position-absolute bg-white shadow rounded panel-busqueda">
+            <div class="row m-0 p-3">
+              <div class="col-4 border-end">
+                <h6 class="mb-2">Sugerencias</h6>
+                <ul class="list-unstyled small mb-0">
+                  @for (s of sugerencias(); track s) {
+                    <li class="py-1 sugerencia" (click)="usarSugerencia(s)">{{ s }}</li>
+                  } @empty {
+                    <li class="text-muted">Sin sugerencias</li>
+                  }
+                </ul>
+              </div>
+              <div class="col-8">
+                <h6 class="mb-2">Productos</h6>
+                <div class="row g-2">
+                  @for (p of resultados(); track p.id) {
+                    <div class="col-12">
+                      <div
+                        class="d-flex align-items-center gap-2 p-2 border rounded resultado"
+                        (click)="irAProducto(p.id)"
+                      >
+                        <img [src]="p.imageUrl || '/Img/img.png'" [alt]="p.name" class="rounded miniatura" />
+                        <div class="flex-grow-1">
+                          <div class="fw-semibold">{{ p.name }}</div>
+                          <div class="small text-success">{{ p.precio | currency: 'PEN' : 'S/ ' }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  } @empty {
+                    <div class="col-12 text-muted">No se encontraron productos.</div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </form>
+
+      <div class="d-flex align-items-center text-center flex-nowrap gap-1">
+        @if (auth.autenticado()) {
+          <div class="dropdown">
+            <a
+              class="btn dropdown-toggle d-flex align-items-center gap-2 boton-usuario"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+            >
+              <i class="fa-solid fa-user"></i>
+              <span>{{ auth.usuario()?.name || 'Usuario' }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" routerLink="/perfil">Mi cuenta</a></li>
+              @if (auth.esAdmin()) {
+                <li><a class="dropdown-item" routerLink="/admin">Panel Administrador</a></li>
+              }
+              @if (auth.esStaff()) {
+                <li><a class="dropdown-item" routerLink="/envios">Gestión de envíos</a></li>
+              }
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <button class="dropdown-item text-danger" type="button" (click)="cerrarSesion()">
+                  Cerrar sesión
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <a routerLink="/perfil/compras" class="btn-nav d-flex align-items-center gap-1 border-start border-end text-decoration-none">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <p class="mb-0 lh-sm small text-start">Mis <br /> Compras</p>
+          </a>
+
+          <a routerLink="/carrito" class="btn-nav-carrito position-relative">
+            <i class="fa-solid fa-cart-shopping"></i>
+            @if (carrito.cantidadTotal() > 0) {
+              <span class="badge rounded-pill bg-danger contador-carrito">{{ carrito.cantidadTotal() }}</span>
+            }
+          </a>
+        } @else {
+          <a routerLink="/login" class="btn-nav d-flex align-items-center gap-1 px-3 text-decoration-none">
+            <i class="fa-solid fa-user"></i>
+            <p class="mb-0 lh-sm small text-start">Iniciar <br /> Sesión</p>
+          </a>
+          <a routerLink="/login" class="btn-nav d-flex align-items-center gap-1 border-start border-end text-decoration-none">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <p class="mb-0 lh-sm small text-start">Mis <br /> Compras</p>
+          </a>
+          <a routerLink="/login" class="btn-nav-carrito">
+            <i class="fa-solid fa-cart-shopping"></i>
+          </a>
+        }
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- Franja de ayuda (escritorio) -->
+<header class="d-none d-lg-flex container-fluid px-lg-5 align-items-center franja-ayuda">
+  <nav class="navbar navbar-expand-lg m-0 d-flex justify-content-end w-100 franja-ayuda-nav">
+    <div class="d-flex flex-row gap-1">
+      <div class="btn-nav py-1 px-2 position-relative">
+        <a class="text-decoration-none" data-bs-toggle="collapse" href="#collapseAyuda" role="button">
+          <i class="fa-solid fa-circle-question"></i>
+          <span>Ayuda</span>
+          <i class="fa-solid fa-chevron-down ms-1"></i>
+        </a>
+        <div class="collapse position-absolute end-0 p-2 caja-ayuda" id="collapseAyuda">
+          <div class="card card-body shadow mt-2 p-2">
+            <ul class="list-unstyled mb-0">
+              <li class="btns-ayuda"><a routerLink="/metodos-pago">Métodos de pago</a></li>
+              <li class="btns-ayuda"><a routerLink="/canales">Canales de atención</a></li>
+              <hr class="my-2" />
+              <li class="p-2">¿Tienes dudas? <b>Contáctanos</b> servicioalcliente&#64;gmail.com</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- Panel lateral de categorías -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="panelCategorias">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">Categorías</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+  </div>
+  <div class="offcanvas-body">
+    <ul class="list-unstyled">
+      @for (c of categorias(); track c.id) {
+        <li class="mb-2">
+          <a class="text-decoration-none" [routerLink]="['/categoria', c.slug]" data-bs-dismiss="offcanvas">
+            {{ c.name }}
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+</div>
+
+<!-- Menú móvil -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasMenu">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">Menú</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+  </div>
+  <div class="offcanvas-body">
+    <ul class="navbar-nav flex-grow-1 pe-3">
+      @if (auth.autenticado()) {
+        <li class="nav-item mb-2"><span class="nav-link">{{ auth.usuario()?.name }}</span></li>
+        <li class="nav-item mb-2">
+          <a class="nav-link" routerLink="/perfil" data-bs-dismiss="offcanvas">Mi cuenta</a>
+        </li>
+        @if (auth.esAdmin()) {
+          <li class="nav-item mb-2">
+            <a class="nav-link fw-bold" routerLink="/admin" data-bs-dismiss="offcanvas">Panel admin</a>
+          </li>
+        }
+        <li class="nav-item mb-2">
+          <button class="nav-link text-danger btn btn-link p-0" type="button" (click)="cerrarSesion()">
+            Cerrar sesión
+          </button>
+        </li>
+      } @else {
+        <li class="nav-item mb-2">
+          <a class="nav-link" routerLink="/login" data-bs-dismiss="offcanvas">Iniciar sesión</a>
+        </li>
+      }
+      <hr />
+      @for (c of categorias(); track c.id) {
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/categoria', c.slug]" data-bs-dismiss="offcanvas">{{ c.name }}</a>
+        </li>
+      }
+    </ul>
+  </div>
+</div>

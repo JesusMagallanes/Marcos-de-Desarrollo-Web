@@ -1,0 +1,22 @@
+.rejilla-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.icono-vacio {
+  font-size: 3rem;
+  color: #d5d5d5;
+}
+
+.aviso-flotante {
+  position: fixed;
+  top: 84px;
+  right: 20px;
+  z-index: 1080;
+  background: #28aa00;
+  color: #fff;
+  padding: 0.7rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}

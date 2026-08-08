@@ -1,0 +1,6 @@
+# Lo que no debe entrar en el contexto de build: acelera mucho el `docker build`.
+node_modules
+dist
+.angular
+.vscode
+*.log

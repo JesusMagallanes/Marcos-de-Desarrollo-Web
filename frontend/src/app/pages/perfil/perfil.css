@@ -1,0 +1,45 @@
+.panel-lateral {
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.cabecera-usuario {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.avatar {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-radius: 50%;
+  background: #28aa00;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.menu-perfil .nav-link {
+  color: #505050;
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  border: none;
+  background: transparent;
+  font-size: 0.92rem;
+}
+
+.menu-perfil .nav-link:hover {
+  background: #f4f4f4;
+}
+
+.menu-perfil .nav-link.activo {
+  background: #eef7ea;
+  color: #28aa00;
+  font-weight: 600;
+}

@@ -1,0 +1,62 @@
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-4">
+    <h5 class="mb-4">Mis compras</h5>
+
+    @if (recienCreado()) {
+      <div class="alert alert-success py-2 small">
+        ¡Gracias por tu compra! Tu pedido #{{ recienCreado() }} fue registrado.
+      </div>
+    }
+    @if (error()) {
+      <div class="alert alert-danger py-2 small">{{ error() }}</div>
+    }
+
+    @if (cargando()) {
+      <div class="text-center py-5"><div class="spinner-border text-success" role="status"></div></div>
+    } @else if (lista().length) {
+      @for (p of lista(); track p.id) {
+        <div class="tarjeta-pedido" [class.destacado]="p.id === recienCreado()">
+          <button type="button" class="cabecera-pedido" (click)="alternar(p.id)">
+            <div class="text-start">
+              <div class="fw-bold">Pedido #{{ p.id }}</div>
+              <div class="small text-muted">{{ p.fecha | date: 'dd/MM/yyyy HH:mm' }}</div>
+            </div>
+
+            <span class="badge" [class]="claseEstado(p.estado)">{{ etiquetaEstado(p.estado) }}</span>
+
+            <div class="text-end">
+              <div class="fw-bold text-success">{{ p.total | currency: 'PEN' : 'S/ ' }}</div>
+              <div class="small text-muted">{{ p.metodoPago }}</div>
+            </div>
+
+            <i class="fa-solid" [class.fa-chevron-down]="expandido() !== p.id" [class.fa-chevron-up]="expandido() === p.id"></i>
+          </button>
+
+          @if (expandido() === p.id) {
+            <div class="detalle-pedido">
+              @for (d of p.detalles; track d.productoId) {
+                <div class="linea-detalle">
+                  <img [src]="d.imagen || '/Img/img.png'" [alt]="d.productoNombre" />
+                  <div class="flex-grow-1 min-w-0">
+                    <a class="nombre" [routerLink]="['/producto', d.productoId]">{{ d.productoNombre }}</a>
+                    <div class="small text-muted">
+                      {{ d.cantidad }} × {{ d.precioUnitario | currency: 'PEN' : 'S/ ' }}
+                    </div>
+                  </div>
+                  <div class="fw-semibold">{{ d.total | currency: 'PEN' : 'S/ ' }}</div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    } @else {
+      <div class="text-center py-5">
+        <i class="fa-solid fa-bag-shopping icono-vacio"></i>
+        <h6 class="mt-3">Todavía no tienes compras</h6>
+        <p class="text-muted">Cuando compres algo aparecerá aquí.</p>
+        <a class="btn btn-success" routerLink="/">Ir a comprar</a>
+      </div>
+    }
+  </div>
+</div>

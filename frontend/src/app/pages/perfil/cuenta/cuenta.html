@@ -1,0 +1,72 @@
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-4">
+    <h5 class="mb-4">Datos de mi cuenta</h5>
+
+    @if (datosIncompletos()) {
+      <div class="alert alert-info py-2 small">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        Completa tu teléfono y dirección para poder finalizar tus compras.
+      </div>
+    }
+
+    @if (esCuentaSocial()) {
+      <p class="small text-muted">
+        <i class="fa-solid fa-shield-halved me-1"></i>
+        Tu cuenta usa un proveedor externo, así que no tiene contraseña en SmartZone.
+      </p>
+    }
+
+    @if (exito()) {
+      <div class="alert alert-success py-2 small">{{ exito() }}</div>
+    }
+    @if (error()) {
+      <div class="alert alert-danger py-2 small">{{ error() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label small fw-semibold">Nombre</label>
+          <input class="form-control" formControlName="name" [class.is-invalid]="invalido('name')" />
+          <div class="invalid-feedback">Ingresa tu nombre.</div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label small fw-semibold">Apellido</label>
+          <input class="form-control" formControlName="lastname" [class.is-invalid]="invalido('lastname')" />
+          <div class="invalid-feedback">Ingresa tu apellido.</div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Correo electrónico</label>
+          <input
+            type="email"
+            class="form-control"
+            formControlName="emailAddress"
+            [class.is-invalid]="invalido('emailAddress')"
+          />
+          <div class="invalid-feedback">Ingresa un correo válido.</div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label small fw-semibold">Teléfono</label>
+          <input class="form-control" formControlName="phoneNumber" [class.is-invalid]="invalido('phoneNumber')" />
+          <div class="invalid-feedback">Debe tener 9 dígitos.</div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label small fw-semibold">Dirección</label>
+          <input class="form-control" formControlName="address" [class.is-invalid]="invalido('address')" />
+          <div class="invalid-feedback">Ingresa tu dirección.</div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-success mt-4" [disabled]="guardando()">
+        @if (guardando()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>
+        }
+        Guardar cambios
+      </button>
+    </form>
+  </div>
+</div>

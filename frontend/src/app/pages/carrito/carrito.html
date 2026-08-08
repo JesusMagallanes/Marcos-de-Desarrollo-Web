@@ -1,0 +1,123 @@
+<div class="container-fluid px-lg-5 py-4">
+  <h4 class="mb-4">Mi carrito</h4>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+
+  @if (cargando()) {
+    <div class="text-center py-5"><div class="spinner-border text-success" role="status"></div></div>
+  } @else if (vacio()) {
+    <div class="text-center py-5">
+      <i class="fa-solid fa-cart-shopping icono-vacio"></i>
+      <h5 class="mt-3">Tu carrito está vacío</h5>
+      <p class="text-muted">Explora el catálogo y agrega productos.</p>
+      <a class="btn btn-success" routerLink="/">Ir a comprar</a>
+    </div>
+  } @else {
+    <div class="row g-4">
+      <div class="col-12 col-lg-8">
+        <div class="tabla-carrito">
+          @for (item of carrito.items(); track item.itemId) {
+            <div class="fila-item">
+              <img [src]="item.image || '/Img/img.png'" [alt]="item.nombre" class="imagen-item" />
+
+              <div class="datos-item">
+                <a class="nombre-item" [routerLink]="['/producto', item.productId]">{{ item.nombre }}</a>
+                <span class="precio-unitario">{{ item.precio | currency: 'PEN' : 'S/ ' }} c/u</span>
+              </div>
+
+              <div class="selector-cantidad">
+                <button type="button" (click)="cambiar(item.itemId, item.cantidad - 1)" [disabled]="item.cantidad <= 1">
+                  −
+                </button>
+                <span>{{ item.cantidad }}</span>
+                <button type="button" (click)="cambiar(item.itemId, item.cantidad + 1)">+</button>
+              </div>
+
+              <div class="subtotal-item">{{ item.precio * item.cantidad | currency: 'PEN' : 'S/ ' }}</div>
+
+              <button type="button" class="btn-quitar" (click)="quitar(item.itemId)" aria-label="Quitar">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+          <a class="btn btn-sm btn-outline-secondary" routerLink="/">
+            <i class="fa-solid fa-arrow-left me-1"></i>Seguir comprando
+          </a>
+          <button type="button" class="btn btn-sm btn-outline-danger" (click)="vaciar()">Vaciar carrito</button>
+        </div>
+      </div>
+
+      <!-- Resumen -->
+      <div class="col-12 col-lg-4">
+        <div class="panel-resumen">
+          <h6 class="fw-bold mb-3">Resumen de compra</h6>
+
+          <div class="linea">
+            <span>Subtotal</span>
+            <span>{{ carrito.subtotal() | currency: 'PEN' : 'S/ ' }}</span>
+          </div>
+          <div class="linea">
+            <span>Envío</span>
+            <span>
+              @if (costoEnvio() === 0) {
+                <span class="text-success">Gratis</span>
+              } @else {
+                {{ costoEnvio() | currency: 'PEN' : 'S/ ' }}
+              }
+            </span>
+          </div>
+
+          @if (faltaParaEnvioGratis() > 0) {
+            <p class="small text-muted mt-2 mb-0">
+              Agrega {{ faltaParaEnvioGratis() | currency: 'PEN' : 'S/ ' }} más para envío gratis.
+            </p>
+          }
+
+          <hr />
+
+          <div class="linea total">
+            <span>Total</span>
+            <span>{{ total() | currency: 'PEN' : 'S/ ' }}</span>
+          </div>
+
+          @if (metodosPago().length) {
+            <div class="mt-3">
+              <label class="form-label small fw-semibold">Método de pago</label>
+              <select
+                class="form-select form-select-sm"
+                [value]="metodoElegido() ?? ''"
+                (change)="metodoElegido.set(+$any($event.target).value)"
+              >
+                @for (m of metodosPago(); track m.id) {
+                  <option [value]="m.id">{{ m.name }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          <button
+            type="button"
+            class="btn btn-pagar w-100 mt-3"
+            [disabled]="procesando() || !metodoElegido()"
+            (click)="pagar()"
+          >
+            @if (procesando()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>Procesando…
+            } @else {
+              Continuar con el pago
+            }
+          </button>
+
+          <p class="small text-muted text-center mt-3 mb-0">
+            <i class="fa-solid fa-lock me-1"></i>Pago protegido
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

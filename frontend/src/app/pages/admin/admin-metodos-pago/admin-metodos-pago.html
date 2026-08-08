@@ -1,0 +1,86 @@
+<div class="cabecera-seccion">
+  <h5 class="mb-0">Métodos de pago</h5>
+  <button type="button" class="btn btn-sm btn-success" (click)="nuevo()">
+    <i class="fa-solid fa-plus me-1"></i>Nuevo
+  </button>
+</div>
+
+@if (estado.aviso()) {
+  <div class="alert alert-success py-2 small">{{ estado.aviso() }}</div>
+}
+@if (estado.hayError()) {
+  <div class="alert alert-danger py-2 small">{{ estado.mensajeError() }}</div>
+}
+
+@if (estado.cargando()) {
+  <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+} @else {
+  <div class="tarjeta-tabla">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th class="text-end" style="width: 120px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of lista(); track m.id) {
+          <tr>
+            <td class="fw-semibold">{{ m.name }}</td>
+            <td class="small text-muted">{{ m.description }}</td>
+            <td class="text-end">
+              @if (confirmandoId() === m.id) {
+                <button type="button" class="btn btn-sm btn-danger me-1" (click)="eliminar(m.id)">Sí</button>
+                <button type="button" class="btn btn-sm btn-secondary" (click)="confirmandoId.set(null)">No</button>
+              } @else {
+                <button type="button" class="btn btn-sm btn-outline-primary me-1" (click)="editar(m)">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmandoId.set(m.id)">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3" class="text-center text-muted py-4">No hay métodos de pago.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (formAbierto()) {
+  <div class="fondo-modal" (click)="cerrar()"></div>
+  <div class="panel-modal shadow">
+    <div class="cabecera-modal">
+      <h6 class="mb-0">{{ editandoId() ? 'Editar método' : 'Nuevo método' }}</h6>
+      <button type="button" class="btn-close" (click)="cerrar()"></button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="cuerpo-modal">
+      <div class="mb-2">
+        <label class="form-label small fw-semibold">Nombre</label>
+        <input class="form-control form-control-sm" formControlName="name" [class.is-invalid]="invalido('name')" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Descripción</label>
+        <textarea
+          class="form-control form-control-sm"
+          rows="3"
+          formControlName="description"
+          [class.is-invalid]="invalido('description')"
+        ></textarea>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="cerrar()">Cancelar</button>
+        <button type="submit" class="btn btn-sm btn-success" [disabled]="guardando()">Guardar</button>
+      </div>
+    </form>
+  </div>
+}

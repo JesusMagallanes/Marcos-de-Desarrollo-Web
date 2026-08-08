@@ -1,0 +1,65 @@
+# ─────────────────────────────────────────────────────────────
+#  SECRETOS — nada de esto entra al repositorio
+# ─────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# Variantes por si alguien las crea en un subdirectorio
+**/.env
+!**/.env.example
+
+# Credenciales sueltas de proveedores
+oauth.properties
+secrets.properties
+application-local.properties
+application-secrets.properties
+
+# Claves y certificados
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+!**/src/test/resources/*.p12
+
+# ─────────────────────────────────────────────────────────────
+#  Build
+# ─────────────────────────────────────────────────────────────
+target/
+build/
+!**/src/main/**/target/
+!**/src/test/**/target/
+HELP.md
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-error.log*
+
+# ─────────────────────────────────────────────────────────────
+#  Entornos de desarrollo
+# ─────────────────────────────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+!.vscode/extensions.json
+.settings/
+.classpath
+.project
+.apt_generated
+.factorypath
+.sts4-cache
+
+# ─────────────────────────────────────────────────────────────
+#  Sistema operativo
+# ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini

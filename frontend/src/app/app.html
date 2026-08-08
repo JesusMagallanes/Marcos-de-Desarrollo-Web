@@ -1,0 +1,15 @@
+@if (mostrarCascaron()) {
+  <app-header />
+}
+
+<main class="contenido-principal">
+  <router-outlet />
+</main>
+
+@if (mostrarCascaron()) {
+  <app-footer />
+}
+
+@if (mostrarChatbot()) {
+  <app-chatbot />
+}

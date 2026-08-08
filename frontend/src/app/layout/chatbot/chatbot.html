@@ -1,0 +1,59 @@
+@if (abierto()) {
+  <div class="ventana-chat shadow">
+    <div class="cabecera-chat d-flex align-items-center gap-2">
+      <img src="/Img/logo-bot.svg" alt="" height="28" />
+      <div class="flex-grow-1">
+        <div class="fw-bold">Asistente SmartZone</div>
+        <div class="small opacity-75">En línea</div>
+      </div>
+      <button type="button" class="btn-cerrar-chat" (click)="alternar()" aria-label="Cerrar chat">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="cuerpo-chat">
+      @for (m of mensajes(); track $index) {
+        <div class="burbuja" [class.burbuja-usuario]="m.autor === 'usuario'">
+          <div [innerHTML]="m.html"></div>
+          @if (m.productos?.length) {
+            <div class="mt-2 d-grid gap-1">
+              @for (p of m.productos; track p.id) {
+                <button type="button" class="btn btn-sm btn-outline-success text-start" (click)="verProducto(p.id)">
+                  {{ p.name }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (escribiendo()) {
+        <div class="burbuja indicador"><span></span><span></span><span></span></div>
+      }
+    </div>
+
+    <div class="atajos-chat">
+      @for (a of atajos; track a) {
+        <button type="button" class="btn btn-sm btn-light" (click)="enviarAtajo(a)">{{ a }}</button>
+      }
+    </div>
+
+    <form class="pie-chat" (submit)="$event.preventDefault(); enviar()">
+      <input
+        class="form-control"
+        placeholder="Escribe tu mensaje…"
+        [ngModel]="entrada()"
+        (ngModelChange)="entrada.set($event)"
+        name="mensaje"
+        autocomplete="off"
+      />
+      <button class="btn btn-success" type="submit" [disabled]="escribiendo()">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </form>
+  </div>
+}
+
+<button type="button" class="burbuja-flotante shadow" (click)="alternar()" aria-label="Abrir chat">
+  <img src="/Img/logo-bot.svg" alt="" height="32" />
+</button>

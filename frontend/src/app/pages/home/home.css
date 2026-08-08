@@ -1,0 +1,63 @@
+.banner-principal img {
+  max-height: 340px;
+  object-fit: cover;
+}
+
+.titulo-seccion {
+  font-weight: 700;
+  color: #333;
+}
+
+.enlace-ver-todo {
+  color: #28aa00;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.fila-categorias {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.pastilla-categoria {
+  flex: 0 0 auto;
+  width: 110px;
+  text-align: center;
+  color: #505050;
+}
+
+.pastilla-categoria img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  background: #f4f4f4;
+  border-radius: 50%;
+  padding: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.pastilla-categoria span {
+  display: block;
+  font-size: 0.82rem;
+}
+
+.rejilla-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.aviso-flotante {
+  position: fixed;
+  top: 84px;
+  right: 20px;
+  z-index: 1080;
+  background: #28aa00;
+  color: #fff;
+  padding: 0.7rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}

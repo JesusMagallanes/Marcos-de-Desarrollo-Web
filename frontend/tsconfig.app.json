@@ -1,0 +1,15 @@
+/* Configuración de la aplicación. Hereda de tsconfig.json. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    /* El builder de Angular usa esbuild y no emite por aquí, pero `tsc -b` sí:
+       sin outDir dejaría un .js junto a cada .ts dentro de src/.
+       rootDir va explícito porque TypeScript lo exige para que el diseño de la
+       salida sea determinista; sin él marca error en el editor. */
+    "rootDir": "./src",
+    "outDir": "./out-tsc/app",
+    "types": []
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts"]
+}

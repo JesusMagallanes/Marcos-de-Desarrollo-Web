@@ -1,0 +1,89 @@
+@if (aviso()) {
+  <div class="aviso-flotante shadow">{{ aviso() }}</div>
+}
+
+<div class="container-fluid px-lg-5 py-4">
+  @if (cargando()) {
+    <div class="text-center py-5"><div class="spinner-border text-success" role="status"></div></div>
+  } @else if (noEncontrado()) {
+    <div class="text-center py-5">
+      <h4>Producto no encontrado</h4>
+      <a class="btn btn-success mt-2" routerLink="/">Volver al inicio</a>
+    </div>
+  } @else if (producto(); as p) {
+    <nav class="mb-3">
+      <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a routerLink="/">Inicio</a></li>
+        <li class="breadcrumb-item">{{ p.categoriaName }}</li>
+        <li class="breadcrumb-item active">{{ p.name }}</li>
+      </ol>
+    </nav>
+
+    <div class="row g-4 mb-5">
+      <div class="col-12 col-lg-6">
+        <div class="marco-imagen">
+          <img [src]="p.imageUrl || '/Img/img.png'" [alt]="p.name" />
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        @if (p.marcaName) {
+          <span class="text-uppercase small text-muted">{{ p.marcaName }}</span>
+        }
+        <h3 class="mt-1 mb-3">{{ p.name }}</h3>
+
+        <div class="precio-grande mb-3">{{ p.precio | currency: 'PEN' : 'S/ ' }}</div>
+
+        @if (agotado()) {
+          <p class="badge bg-danger mb-3">Sin stock</p>
+        } @else {
+          <p class="text-success small mb-3">
+            <i class="fa-solid fa-check me-1"></i>{{ p.stock }} unidades disponibles
+          </p>
+        }
+
+        <p class="text-secondary">{{ p.description }}</p>
+
+        <div class="d-flex align-items-center gap-3 my-4">
+          <span class="small fw-semibold">Cantidad</span>
+          <div class="selector-cantidad">
+            <button type="button" (click)="cambiarCantidad(-1)" [disabled]="cantidad() <= 1">−</button>
+            <span>{{ cantidad() }}</span>
+            <button type="button" (click)="cambiarCantidad(1)" [disabled]="cantidad() >= maximo()">+</button>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <button type="button" class="btn btn-comprar" [disabled]="agotado()" (click)="comprarAhora()">
+            Comprar ahora
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-success"
+            [disabled]="agotado()"
+            (click)="agregarAlCarrito()"
+          >
+            <i class="fa-solid fa-cart-plus me-1"></i>Agregar al carrito
+          </button>
+        </div>
+
+        <ul class="list-unstyled small text-muted mt-4 mb-0">
+          <li class="mb-1"><i class="fa-solid fa-truck me-2"></i>Envío gratis en compras mayores a S/ 200</li>
+          <li class="mb-1"><i class="fa-solid fa-shield-halved me-2"></i>Pago 100% seguro</li>
+          <li><i class="fa-solid fa-rotate-left me-2"></i>Devolución hasta 7 días</li>
+        </ul>
+      </div>
+    </div>
+
+    @if (relacionados().length) {
+      <section>
+        <h5 class="mb-3 fw-bold">También te puede interesar</h5>
+        <div class="rejilla-productos">
+          @for (r of relacionados(); track r.id) {
+            <app-producto-card [producto]="r" (agregar)="agregarRelacionado($event)" />
+          }
+        </div>
+      </section>
+    }
+  }
+</div>

@@ -1,0 +1,249 @@
+/* Estilo personalizado para el slider de precio */
+#rangoPrecio {
+    accent-color: #198754;
+}
+
+#rangoPrecio::-webkit-slider-thumb {
+    background: #198754;
+    cursor: pointer;
+}
+
+#rangoPrecio::-moz-range-thumb {
+    background: #198754;
+    cursor: pointer;
+}
+
+#rangoPrecio::-webkit-slider-runnable-track {
+    background: linear-gradient(to right, #198754 0%, #198754 var(--value), #e0e0e0 var(--value), #e0e0e0 100%);
+}
+
+/* Hover effect en cards */
+.hover-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Sidebar de filtros */
+.filtros-sidebar {
+    position: sticky;
+    top: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.filtros-container {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+}
+
+/* Botones de filtro */
+.filtro-btn {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    color: #5a5a5a;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filtro-btn:hover {
+    background: #f8f9fa;
+}
+
+.filtro-content {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 1rem;
+}
+
+/* Checkboxes personalizados */
+.form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+/* Inputs de precio */
+.precio-input {
+    border-color: #e0e0e0;
+    transition: border-color 0.2s;
+}
+
+.precio-input:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+/* Cards de productos */
+.producto-card {
+    height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.producto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.producto-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.producto-descripcion {
+    height: 60px;
+    overflow: hidden;
+    font-size: 0.9rem;
+}
+
+/* Header de resultados */
+.resultados-header {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+}
+
+/* Mobile Offcanvas para filtros */
+.offcanvas-filtros {
+    width: 280px !important;
+}
+
+/* Botón móvil de filtros */
+.btn-filtros-mobile {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    z-index: 1000;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.4);
+    display: none;
+}
+
+/* Padding inferior para evitar que el botón cubra contenido */
+#productos-container {
+    padding-bottom: 100px;
+}
+
+/* RESPONSIVE DESIGN */
+
+/* Tablets (768px - 991px) */
+@media (max-width: 991px) {
+    .container-fluid {
+        padding-inline: 2rem !important;
+    }
+    
+    .filtros-sidebar {
+        display: none;
+    }
+    
+    .btn-filtros-mobile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .producto-col {
+        width: 50%;
+    }
+    
+    .producto-img {
+        height: 180px;
+    }
+}
+
+/* Mobile (menor a 768px) */
+@media (max-width: 767px) {
+    .container-fluid {
+        padding-inline: 1rem !important;
+    }
+    
+    .producto-col {
+        width: 100%;
+    }
+    
+    .producto-img {
+        height: 220px;
+    }
+    
+    .resultados-header {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .resultados-header > div,
+    .resultados-header .dropdown {
+        width: 100%;
+    }
+    
+    .dropdown-toggle {
+        width: 100%;
+    }
+    
+    .producto-descripcion {
+        height: auto;
+        max-height: 80px;
+    }
+}
+
+/* Mobile pequeño (menor a 576px) */
+@media (max-width: 575px) {
+    .filtros-container {
+        padding: 1rem;
+    }
+    
+    .offcanvas-filtros {
+        width: 90% !important;
+        max-width: 280px;
+    }
+    
+    h4, .h4 {
+        font-size: 1.25rem;
+    }
+    
+    .producto-card .card-title {
+        font-size: 1rem;
+    }
+    
+    .producto-card .text-success {
+        font-size: 1.25rem;
+    }
+    
+    .btn-filtros-mobile {
+        width: 52px;
+        height: 52px;
+        bottom: 70px;
+        right: 15px;
+    }
+    
+    #productos-container {
+        padding-bottom: 90px;
+    }
+}
+
+/* Scrollbar personalizado para sidebar */
+.filtros-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filtros-sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}

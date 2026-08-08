@@ -1,0 +1,26 @@
+<a class="tarjeta-producto h-100 d-flex flex-column text-decoration-none" [routerLink]="['/producto', producto().id]">
+  <div class="contenedor-imagen">
+    <img [src]="producto().imageUrl || '/Img/img.png'" [alt]="producto().name" loading="lazy" />
+    @if (agotado()) {
+      <span class="etiqueta-agotado">Sin stock</span>
+    }
+  </div>
+
+  <div class="cuerpo-tarjeta d-flex flex-column flex-grow-1">
+    @if (producto().marcaName) {
+      <span class="marca">{{ producto().marcaName }}</span>
+    }
+    <h6 class="nombre">{{ producto().name }}</h6>
+    <span class="precio mt-auto">{{ producto().precio | currency: 'PEN' : 'S/ ' }}</span>
+
+    <button
+      type="button"
+      class="btn btn-sm btn-agregar mt-2"
+      [disabled]="agotado()"
+      (click)="alAgregar($event)"
+    >
+      <i class="fa-solid fa-cart-plus me-1"></i>
+      {{ agotado() ? 'Sin stock' : 'Agregar' }}
+    </button>
+  </div>
+</a>

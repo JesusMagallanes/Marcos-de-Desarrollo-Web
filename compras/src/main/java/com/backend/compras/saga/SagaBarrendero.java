@@ -1,0 +1,76 @@
+package com.backend.compras.saga;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/** Cierra las sagas que quedaron a medias. */
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class SagaBarrendero {
+
+    private final SagaCheckoutRepository sagas;
+    private final CheckoutOrquestador orquestador;
+
+    /** Tras este tiempo sin confirmarse, se da el pago por abandonado. */
+    @Value("${compras.saga.minutos-abandono:25}")
+    private int minutosAbandono;
+
+    @Value("${compras.saga.max-intentos-compensacion:5}")
+    private int maxIntentos;
+
+    /**
+     * El usuario empezó a pagar y no volvió. Se compensa para devolver el stock; el margen
+     * es mayor que la caducidad de la reserva en catálogo, que actúa como segunda red de
+     * seguridad.
+     */
+    @Scheduled(fixedDelay = 120_000)
+    public void compensarAbandonadas() {
+        LocalDateTime limite = LocalDateTime.now().minusMinutes(minutosAbandono);
+        List<SagaCheckout> abandonadas = sagas.buscarAbandonadas(limite);
+
+        if (abandonadas.isEmpty()) {
+            return;
+        }
+
+        log.info("Compensando {} compras abandonadas", abandonadas.size());
+        for (SagaCheckout saga : abandonadas) {
+            try {
+                // Sin token de usuario: las llamadas de compensación las hace
+                // el propio servicio con su identidad de sistema.
+                orquestador.compensar(saga, null, "pago no completado a tiempo");
+            } catch (RuntimeException ex) {
+                log.error("Error compensando la saga {}: {}", saga.getReferencia(), ex.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Reintenta compensaciones que fallaron (por ejemplo, catálogo caído en ese momento).
+     * Tras varios intentos la saga queda FALLIDA para revisión.
+     */
+    @Scheduled(fixedDelay = 300_000)
+    public void reintentarCompensaciones() {
+        List<SagaCheckout> pendientes = sagas.buscarCompensacionesPendientes(maxIntentos);
+
+        if (pendientes.isEmpty()) {
+            return;
+        }
+
+        log.info("Reintentando {} compensaciones pendientes", pendientes.size());
+        for (SagaCheckout saga : pendientes) {
+            try {
+                orquestador.compensar(saga, null, "reintento de compensación");
+            } catch (RuntimeException ex) {
+                log.error("Reintento fallido de la saga {}: {}", saga.getReferencia(), ex.getMessage());
+            }
+        }
+    }
+}

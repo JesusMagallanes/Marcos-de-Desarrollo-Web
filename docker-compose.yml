@@ -1,0 +1,168 @@
+# SmartZone — pila completa en un comando.
+#
+#   docker compose up --build
+#
+# Las credenciales salen del .env de la raíz, que Compose lee solo. El único
+# valor obligatorio para arrancar en local es ADMIN_PASSWORD (para el usuario
+# administrador inicial); los de Neon y MercadoPago tienen alternativa local.
+#
+# Perfiles:
+#   por defecto      → Postgres local + los 4 servicios + frontend
+#   --profile neon   → omite Postgres y usa la base en la nube del .env
+
+name: smartzone
+
+x-jvm-comun: &jvm-comun
+  restart: unless-stopped
+  networks: [smartzone]
+  # Los servicios Spring arrancan en ~15 s; sin este margen el orquestador
+  # los da por caídos antes de tiempo.
+  healthcheck:
+    interval: 10s
+    timeout: 5s
+    retries: 12
+    start_period: 45s
+
+x-entorno-bd: &entorno-bd
+  DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/smartzone}
+  DB_USER: ${DB_USER:-smartzone}
+  DB_PASSWORD: ${DB_PASSWORD:-smartzone_local}
+  JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en el .env}
+
+services:
+  # ── Preflight: revisa el .env antes de levantar nada ───────────────
+  # Compose solo falla por JWT_SECRET; las opcionales vacías pasan en silencio
+  # y la pila arrancaría sin admin, sin login social y con el checkout en 503.
+  verificador:
+    image: alpine:3.20
+    volumes:
+      - ./docker/verificar-entorno.sh:/verificar.sh:ro
+    command: ['sh', '/verificar.sh']
+    environment:
+      DB_URL: ${DB_URL:-}
+      DB_USER: ${DB_USER:-}
+      DB_PASSWORD: ${DB_PASSWORD:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID:-}
+      MP_ACCESS_TOKEN: ${MP_ACCESS_TOKEN:-}
+      MP_WEBHOOK_SECRET: ${MP_WEBHOOK_SECRET:-}
+    networks: [smartzone]
+
+  # ── Base de datos local (se omite con --profile neon) ──────────────
+  postgres:
+    image: postgres:17-alpine
+    profiles: [default]
+    environment:
+      POSTGRES_DB: smartzone
+      POSTGRES_USER: ${DB_USER:-smartzone}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-smartzone_local}
+    ports: ['5432:5432']
+    volumes: [datos-postgres:/var/lib/postgresql/data]
+    networks: [smartzone]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-smartzone} -d smartzone']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── usuarios :8082 — emite los tokens, arranca primero ─────────────
+  usuarios:
+    <<: *jvm-comun
+    build:
+      context: ./usuarios
+      dockerfile: ../docker/Dockerfile.jvm
+    ports: ['8082:8082']
+    environment:
+      <<: *entorno-bd
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@smartzone.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID:-}
+      FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
+      OAUTH_REDIRECT_BASE: ${OAUTH_REDIRECT_BASE:-http://localhost:8080}
+    depends_on:
+      verificador: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy, required: false}
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8082/actuator/health']
+
+  # ── catalogo :8081 ─────────────────────────────────────────────────
+  catalogo:
+    <<: *jvm-comun
+    build:
+      context: ./catalogo
+      dockerfile: ../docker/Dockerfile.jvm
+    ports: ['8081:8081']
+    environment:
+      <<: *entorno-bd
+      RESERVA_MINUTOS: ${RESERVA_MINUTOS:-20}
+    depends_on:
+      verificador: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy, required: false}
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8081/actuator/health']
+
+  # ── compras :8083 — depende de catalogo para precios y stock ───────
+  compras:
+    <<: *jvm-comun
+    build:
+      context: ./compras
+      dockerfile: ../docker/Dockerfile.jvm
+    ports: ['8083:8083']
+    environment:
+      <<: *entorno-bd
+      # Dentro de la red de Compose los servicios se ven por nombre, no por
+      # localhost: cada contenedor tiene su propia interfaz de red.
+      CATALOGO_URL: http://catalogo:8081
+      MP_ACCESS_TOKEN: ${MP_ACCESS_TOKEN:-}
+      MP_WEBHOOK_SECRET: ${MP_WEBHOOK_SECRET:-}
+      MP_RETORNO_BASE: ${MP_RETORNO_BASE:-http://localhost:4200}
+      SAGA_MINUTOS_ABANDONO: ${SAGA_MINUTOS_ABANDONO:-25}
+    depends_on:
+      verificador: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy, required: false}
+      catalogo: {condition: service_healthy}
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8083/actuator/health']
+
+  # ── gateway :8080 — puerta de entrada ──────────────────────────────
+  web-gateway:
+    <<: *jvm-comun
+    build:
+      context: ./web-gateway
+      dockerfile: ../docker/Dockerfile.jvm
+    ports: ['8080:8080']
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en el .env}
+      CATALOGO_URL: http://catalogo:8081
+      USUARIOS_URL: http://usuarios:8082
+      COMPRAS_URL: http://compras:8083
+    depends_on:
+      verificador: {condition: service_completed_successfully}
+      usuarios: {condition: service_healthy}
+      catalogo: {condition: service_healthy}
+      compras: {condition: service_healthy}
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8080/actuator/health']
+
+  # ── frontend :4200 — Angular servido por nginx ─────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/Dockerfile.frontend
+    ports: ['4200:80']
+    restart: unless-stopped
+    networks: [smartzone]
+    depends_on:
+      web-gateway: {condition: service_healthy}
+
+networks:
+  smartzone:
+    driver: bridge
+
+volumes:
+  datos-postgres:
