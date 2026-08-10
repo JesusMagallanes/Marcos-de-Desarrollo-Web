@@ -14,7 +14,6 @@ interface Mensaje {
   selector: 'app-chatbot',
   imports: [FormsModule],
   templateUrl: './chatbot.html',
-  styleUrl: './chatbot.css',
 })
 export class Chatbot {
   private chat = inject(ChatbotService);

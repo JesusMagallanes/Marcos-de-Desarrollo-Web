@@ -1,59 +1,63 @@
-@if (abierto()) {
-  <div class="ventana-chat shadow">
-    <div class="cabecera-chat d-flex align-items-center gap-2">
-      <img src="/Img/logo-bot.svg" alt="" height="28" />
-      <div class="flex-grow-1">
-        <div class="fw-bold">Asistente SmartZone</div>
-        <div class="small opacity-75">En línea</div>
-      </div>
-      <button type="button" class="btn-cerrar-chat" (click)="alternar()" aria-label="Cerrar chat">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+<div id="chatbot-container" [style.display]="abierto() ? 'flex' : 'none'">
+  <div id="chat-header">
+    <div class="brand">
+      <div class="logo">SZ</div>
+      <div>SmartZoneBot</div>
     </div>
-
-    <div class="cuerpo-chat">
-      @for (m of mensajes(); track $index) {
-        <div class="burbuja" [class.burbuja-usuario]="m.autor === 'usuario'">
-          <div [innerHTML]="m.html"></div>
-          @if (m.productos?.length) {
-            <div class="mt-2 d-grid gap-1">
-              @for (p of m.productos; track p.id) {
-                <button type="button" class="btn btn-sm btn-outline-success text-start" (click)="verProducto(p.id)">
-                  {{ p.name }}
-                </button>
-              }
-            </div>
-          }
-        </div>
-      }
-
-      @if (escribiendo()) {
-        <div class="burbuja indicador"><span></span><span></span><span></span></div>
-      }
-    </div>
-
-    <div class="atajos-chat">
-      @for (a of atajos; track a) {
-        <button type="button" class="btn btn-sm btn-light" (click)="enviarAtajo(a)">{{ a }}</button>
-      }
-    </div>
-
-    <form class="pie-chat" (submit)="$event.preventDefault(); enviar()">
-      <input
-        class="form-control"
-        placeholder="Escribe tu mensaje…"
-        [ngModel]="entrada()"
-        (ngModelChange)="entrada.set($event)"
-        name="mensaje"
-        autocomplete="off"
-      />
-      <button class="btn btn-success" type="submit" [disabled]="escribiendo()">
-        <i class="fa-solid fa-paper-plane"></i>
-      </button>
-    </form>
+    <div id="close-chat" (click)="alternar()">✕</div>
   </div>
-}
 
-<button type="button" class="burbuja-flotante shadow" (click)="alternar()" aria-label="Abrir chat">
-  <img src="/Img/logo-bot.svg" alt="" height="32" />
+  <div id="chat-body">
+    <div class="quick-actions">
+      @for (a of atajos; track a) {
+        <button type="button" (click)="enviarAtajo(a)">{{ a }}</button>
+      }
+    </div>
+
+    @for (m of mensajes(); track $index) {
+      <div class="message" [class.bot]="m.autor === 'bot'" [class.user]="m.autor === 'usuario'">
+        <div [innerHTML]="m.html"></div>
+        @if (m.productos?.length) {
+          <div class="chat-products">
+            <small><b>Productos encontrados:</b></small>
+            @for (p of m.productos; track p.id) {
+              <button type="button" class="product-btn" (click)="verProducto(p.id)">
+                <strong>{{ p.name }}</strong>
+                <span>S/ {{ p.precio }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @if (escribiendo()) {
+      <div class="message bot typing-indicator">
+        <span></span><span></span><span></span>
+      </div>
+    }
+  </div>
+
+  <div id="chat-footer">
+    <input
+      id="user-input"
+      type="text"
+      placeholder="Escribe tu consulta..."
+      [ngModel]="entrada()"
+      (ngModelChange)="entrada.set($event)"
+      name="mensaje"
+      autocomplete="off"
+      (keyup.enter)="enviar()"
+    />
+    <button id="send-btn" type="button" (click)="enviar()" [disabled]="escribiendo()">➤</button>
+  </div>
+</div>
+
+<button
+  id="chat-toggle"
+  [style.display]="abierto() ? 'none' : 'block'"
+  (click)="alternar()"
+  aria-label="Abrir chat"
+>
+  <img src="/Img/logo-bot.svg" class="card-img-top" width="10" height="30" alt="Bot" />
 </button>

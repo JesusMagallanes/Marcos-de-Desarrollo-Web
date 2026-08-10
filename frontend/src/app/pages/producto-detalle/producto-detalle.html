@@ -11,79 +11,159 @@
       <a class="btn btn-success mt-2" routerLink="/">Volver al inicio</a>
     </div>
   } @else if (producto(); as p) {
-    <nav class="mb-3">
-      <ol class="breadcrumb small">
-        <li class="breadcrumb-item"><a routerLink="/">Inicio</a></li>
-        <li class="breadcrumb-item">{{ p.categoriaName }}</li>
-        <li class="breadcrumb-item active">{{ p.name }}</li>
-      </ol>
-    </nav>
+    <div
+      class="container text-center"
+      style="background-color: white; padding: 10px; border-radius: 10px; box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179)"
+    >
+      <div class="row row-cols-1 row-cols-lg-2 g-5">
+        <div class="col">
+          <div class="imgprod position-relative">
+            <h4 class="card-title mt-4"><b>{{ p.name }}</b></h4>
 
-    <div class="row g-4 mb-5">
-      <div class="col-12 col-lg-6">
-        <div class="marco-imagen">
-          <img [src]="p.imageUrl || '/Img/img.png'" [alt]="p.name" />
-        </div>
-      </div>
-
-      <div class="col-12 col-lg-6">
-        @if (p.marcaName) {
-          <span class="text-uppercase small text-muted">{{ p.marcaName }}</span>
-        }
-        <h3 class="mt-1 mb-3">{{ p.name }}</h3>
-
-        <div class="precio-grande mb-3">{{ p.precio | currency: 'PEN' : 'S/ ' }}</div>
-
-        @if (agotado()) {
-          <p class="badge bg-danger mb-3">Sin stock</p>
-        } @else {
-          <p class="text-success small mb-3">
-            <i class="fa-solid fa-check me-1"></i>{{ p.stock }} unidades disponibles
-          </p>
-        }
-
-        <p class="text-secondary">{{ p.description }}</p>
-
-        <div class="d-flex align-items-center gap-3 my-4">
-          <span class="small fw-semibold">Cantidad</span>
-          <div class="selector-cantidad">
-            <button type="button" (click)="cambiarCantidad(-1)" [disabled]="cantidad() <= 1">−</button>
-            <span>{{ cantidad() }}</span>
-            <button type="button" (click)="cambiarCantidad(1)" [disabled]="cantidad() >= maximo()">+</button>
+            <div
+              id="carousel-detalle"
+              class="carousel slide"
+              data-bs-ride="carousel"
+              data-bs-interval="10000"
+            >
+              <div class="carousel-inner">
+                <div class="carousel-item active" data-bs-interval="10000">
+                  <img
+                    class="d-block w-100"
+                    [src]="p.imageUrl || '/Img/img.png'"
+                    [alt]="p.name"
+                    style="padding: 30px"
+                  />
+                </div>
+              </div>
+              <button
+                class="carousel-control-prev"
+                type="button"
+                data-bs-target="#carousel-detalle"
+                data-bs-slide="prev"
+              >
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button
+                class="carousel-control-next"
+                type="button"
+                data-bs-target="#carousel-detalle"
+                data-bs-slide="next"
+              >
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="d-flex flex-wrap gap-2">
-          <button type="button" class="btn btn-comprar" [disabled]="agotado()" (click)="comprarAhora()">
-            Comprar ahora
-          </button>
-          <button
-            type="button"
-            class="btn btn-outline-success"
-            [disabled]="agotado()"
-            (click)="agregarAlCarrito()"
+        <div class="col text-start">
+          <h5
+            class="card-title text-start mt-4"
+            style="border-bottom: 2px solid #bdc3c7; padding-bottom: 13px"
           >
-            <i class="fa-solid fa-cart-plus me-1"></i>Agregar al carrito
-          </button>
-        </div>
+            Características específicas
+          </h5>
+          <br />
 
-        <ul class="list-unstyled small text-muted mt-4 mb-0">
-          <li class="mb-1"><i class="fa-solid fa-truck me-2"></i>Envío gratis en compras mayores a S/ 200</li>
-          <li class="mb-1"><i class="fa-solid fa-shield-halved me-2"></i>Pago 100% seguro</li>
-          <li><i class="fa-solid fa-rotate-left me-2"></i>Devolución hasta 7 días</li>
-        </ul>
+          <div class="spec-box">
+            <div class="text-start" style="margin: 15px">
+              <ul class="list-unstyled mb-0">
+                @for (spec of especificaciones(); track $index) {
+                  <li style="margin-bottom: 6px">
+                    @if (spec.label) {
+                      <span class="fw-semibold">{{ spec.label }}:</span>
+                    }
+                    {{ spec.value }}
+                  </li>
+                }
+              </ul>
+            </div>
+          </div>
+
+          <h5
+            class="card-title text-start mt-4"
+            style="border-bottom: 2px solid #bdc3c7; padding-bottom: 13px"
+          >
+            Métodos de pago
+          </h5>
+
+          <div class="container text-center mt-4">
+            <div class="row justify-content-center">
+              <div class="col-4 col-md-2">
+                <img
+                  src="https://images.seeklogo.com/logo-png/39/3/yape-app-logo-png_seeklogo-399697.png"
+                  width="60px"
+                  class="img-fluid rounded"
+                  alt="yape"
+                />
+              </div>
+              <div class="col-4 col-md-2">
+                <img
+                  src="https://img.icons8.com/?size=512&id=13608&format=png"
+                  width="60px"
+                  class="img-fluid rounded"
+                  alt="visa"
+                />
+              </div>
+              <div class="col-4 col-md-2">
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/8/88/MasterCard_early_1990s_logo.svg"
+                  width="60px"
+                  style="margin-top: 15px"
+                  class="img-fluid rounded"
+                  alt="mastercard"
+                />
+              </div>
+              <div class="col-4 col-md-2">
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaft1EtwutCeXGzg0hfXfXubaH1jXMJeb-Rg&s"
+                  width="60px"
+                  class="img-fluid rounded"
+                  alt="paypal"
+                />
+              </div>
+            </div>
+          </div>
+
+          <h2 class="card-title text-start mt-4" style="color: #06b56c">
+            {{ precioMostrado() }}
+          </h2>
+          <br />
+
+          @if (agotado()) {
+            <p class="badge bg-danger">Sin stock</p>
+          }
+
+          <div class="d-flex align-items-center justify-content-center" style="gap: 40px">
+            <div class="d-flex align-items-center">
+              <span class="me-2">Cantidad</span>
+              <input
+                type="number"
+                class="form-control"
+                style="max-width: 100px"
+                [value]="cantidad()"
+                [min]="1"
+                [max]="maximo()"
+                [disabled]="agotado()"
+                (change)="onCantidadInput($event)"
+              />
+            </div>
+            <b>
+              <button
+                type="button"
+                class="btn btn-outline-success"
+                style="font-size: 15px"
+                [disabled]="agotado()"
+                (click)="agregarAlCarrito()"
+              >
+                Agregar a Carrito
+              </button>
+            </b>
+          </div>
+        </div>
       </div>
     </div>
-
-    @if (relacionados().length) {
-      <section>
-        <h5 class="mb-3 fw-bold">También te puede interesar</h5>
-        <div class="rejilla-productos">
-          @for (r of relacionados(); track r.id) {
-            <app-producto-card [producto]="r" (agregar)="agregarRelacionado($event)" />
-          }
-        </div>
-      </section>
-    }
   }
 </div>

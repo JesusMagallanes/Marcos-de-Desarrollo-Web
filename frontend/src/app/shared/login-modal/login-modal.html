@@ -1,0 +1,216 @@
+<div
+  class="modal fade"
+  id="modal-acceso"
+  tabindex="-1"
+  aria-labelledby="modalAccesoTitulo"
+  aria-hidden="true"
+  #modalAcceso
+>
+  <div class="modal-dialog" [class.modal-lg]="modo() === 'login'">
+    <div class="modal-content" style="border: 3px solid #e3e3e3; overflow: hidden;">
+      @if (modo() === 'login') {
+        <div class="modal-body p-0">
+          <div class="row g-0">
+            <!-- Columna Izquierda: Imagen -->
+            <div class="col-md-5 d-none d-md-block">
+              <img
+                src="/Img/img-login.png"
+                class="img-fluid h-100 w-100"
+                style="object-fit: cover; border-radius: 5px 0 0 5px;"
+                alt="SmartZone"
+              />
+            </div>
+
+            <!-- Columna Derecha: Formulario -->
+            <div class="col-md-7 p-4">
+              <div class="modal-header border-0 p-0 mb-3">
+                <h1 class="modal-title fs-4" id="modalAccesoTitulo">Inicia Sesión</h1>
+                <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrar()"></button>
+              </div>
+
+              @if (expirado()) {
+                <div class="alert alert-warning py-2 small text-center">Tu sesión expiró. Vuelve a ingresar.</div>
+              }
+              @if (error()) {
+                <div class="alert alert-danger py-2 small text-center">{{ error() }}</div>
+              }
+
+              <form [formGroup]="formLogin" (ngSubmit)="entrar()">
+                <div class="mb-3">
+                  <label for="loginEmail" class="form-label">Correo Electrónico</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="loginEmail"
+                    formControlName="email"
+                    [class.is-invalid]="campoInvalido('login', 'email')"
+                  />
+                  <div class="invalid-feedback">Ingresa un correo válido.</div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="loginPassword" class="form-label">Contraseña</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="loginPassword"
+                    formControlName="password"
+                    [class.is-invalid]="campoInvalido('login', 'password')"
+                  />
+                  <div class="invalid-feedback">Ingresa tu contraseña.</div>
+                </div>
+
+                <div class="mb-3 form-check">
+                  <input type="checkbox" class="form-check-input" id="remember-me" />
+                  <label class="form-check-label" for="remember-me">Guardar en este dispositivo</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" [disabled]="enviando()">
+                  @if (enviando()) {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                  }
+                  Iniciar
+                </button>
+
+                <div class="text-center my-3">
+                  <label class="form-label fw-semibold">Continuar con</label>
+                  <div class="d-flex justify-content-center gap-2">
+                    @for (p of proveedores(); track p.id) {
+                      <button
+                        type="button"
+                        class="btn"
+                        [class.btn-outline-danger]="p.id === 'google'"
+                        [class.btn-outline-primary]="p.id !== 'google'"
+                        (click)="entrarCon(p)"
+                      >
+                        <img [src]="iconoDe(p.id)" width="28" class="me-1" [alt]="p.nombre" />{{ p.nombre }}
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                  <button type="button" class="btn btn-secondary" (click)="cerrar()">Cerrar</button>
+                  <button type="button" class="btn btn-primary" (click)="cambiarModo('registro')">
+                    Registrarse
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div style="padding: 25px; background-image: url('/Img/form-fond.png');">
+          <div class="modal-header border-0 p-0 mb-3">
+            <h1 class="modal-title fs-5">Registrar</h1>
+            <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrar()"></button>
+          </div>
+
+          @if (error()) {
+            <div class="alert alert-danger py-2 small text-center">{{ error() }}</div>
+          }
+
+          <form [formGroup]="formRegistro" (ngSubmit)="registrarse()">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="regName" class="form-label">Nombre Completo</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="regName"
+                  formControlName="name"
+                  [class.is-invalid]="campoInvalido('registro', 'name')"
+                />
+                <div class="invalid-feedback">Ingresa tu nombre.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="regLastname" class="form-label">Apellidos</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="regLastname"
+                  formControlName="lastname"
+                  [class.is-invalid]="campoInvalido('registro', 'lastname')"
+                />
+                <div class="invalid-feedback">Ingresa tus apellidos.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="regEmail" class="form-label">Correo Electrónico</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="regEmail"
+                  formControlName="emailAddress"
+                  [class.is-invalid]="campoInvalido('registro', 'emailAddress')"
+                />
+                <div class="invalid-feedback">Ingresa un correo válido.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="regPassword" class="form-label">Contraseña</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="regPassword"
+                  formControlName="password"
+                  [class.is-invalid]="campoInvalido('registro', 'password')"
+                />
+                <div class="form-text small">
+                  Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo.
+                </div>
+                <div class="invalid-feedback">La contraseña no cumple los requisitos.</div>
+              </div>
+
+              <div class="col-12">
+                <label for="regAddress" class="form-label">Dirección</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="regAddress"
+                  formControlName="address"
+                  placeholder="Av. Grau 123"
+                  [class.is-invalid]="campoInvalido('registro', 'address')"
+                />
+                <div class="invalid-feedback">Ingresa tu dirección.</div>
+              </div>
+
+              <div class="col-12">
+                <label for="regPhone" class="form-label">Teléfono</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="regPhone"
+                  formControlName="phoneNumber"
+                  placeholder="Ingrese su número telefónico"
+                  [class.is-invalid]="campoInvalido('registro', 'phoneNumber')"
+                />
+                <div class="invalid-feedback">Debe tener exactamente 9 dígitos.</div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="gridCheck" required />
+                  <label class="form-check-label" for="gridCheck">Aceptar Términos y Condiciones</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+              <button type="button" class="btn btn-secondary" (click)="cambiarModo('login')">
+                Regresar
+              </button>
+              <button type="submit" class="btn btn-primary" [disabled]="enviando()">
+                @if (enviando()) {
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                Confirmar
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+    </div>
+  </div>
+</div>

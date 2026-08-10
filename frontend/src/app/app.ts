@@ -5,10 +5,11 @@ import { filter, map } from 'rxjs';
 import { Header } from './layout/header/header';
 import { Footer } from './layout/footer/footer';
 import { Chatbot } from './layout/chatbot/chatbot';
+import { LoginModal } from './shared/login-modal/login-modal';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Header, Footer, Chatbot],
+  imports: [RouterOutlet, Header, Footer, Chatbot, LoginModal],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -23,10 +24,13 @@ export class App {
     { initialValue: this.router.url },
   );
 
-  /** El login y el panel admin traen su propio marco: ahí no va el header de tienda. */
+  /**
+   * El panel admin trae su propio marco; el login ya es un modal que se abre
+   * sobre la tienda, así que ahí sí va el header de tienda.
+   */
   protected mostrarCascaron = computed(() => {
     const url = this.urlActual();
-    return !url.startsWith('/login') && !url.startsWith('/admin');
+    return !url.startsWith('/admin');
   });
 
   protected mostrarChatbot = computed(() => this.mostrarCascaron());

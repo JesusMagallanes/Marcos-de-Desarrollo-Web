@@ -10,8 +10,176 @@
       content="SmartZone: laptops, monitores, celulares, consolas y accesorios con garantía oficial y envíos a todo el Perú."
     />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <style>
+      #loading-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: linear-gradient(180deg, #ffffff 0%, #f3fff8 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 26px;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+      }
+
+      #loading-screen.oculta {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      #loading-screen .icono-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #loading-screen .anillo {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        border: 2px solid rgba(0, 222, 128, 0.45);
+        border-radius: 50%;
+        animation: anillo 1.8s ease-out infinite;
+      }
+
+      #loading-screen .icono {
+        width: 104px;
+        animation: latido 1.6s ease-in-out infinite;
+        filter: drop-shadow(0 10px 22px rgba(0, 222, 128, 0.35));
+      }
+
+      #loading-screen .marca {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        opacity: 0;
+        animation: aparecer 0.9s ease 0.3s forwards;
+      }
+
+      #loading-screen .marca img {
+        height: 40px;
+      }
+
+      #loading-screen .barra {
+        width: 230px;
+        height: 6px;
+        border-radius: 999px;
+        background: #e5e5e5;
+        overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+      }
+
+      #loading-screen .barra span {
+        display: block;
+        height: 100%;
+        width: 40%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #00de80, #06b56c);
+        box-shadow: 0 0 12px rgba(0, 222, 128, 0.8);
+        animation: deslizar 1.2s ease-in-out infinite;
+      }
+
+      #loading-screen .texto {
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+        color: #8a9b90;
+      }
+
+      #loading-screen .puntos {
+        display: inline-flex;
+        gap: 3px;
+        margin-left: 4px;
+      }
+
+      #loading-screen .puntos i {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #06b56c;
+        animation: brincar 1.2s infinite;
+      }
+
+      #loading-screen .puntos i:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      #loading-screen .puntos i:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes latido {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.07);
+          opacity: 0.85;
+        }
+      }
+
+      @keyframes anillo {
+        0% {
+          transform: scale(0.9);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1.55);
+          opacity: 0;
+        }
+      }
+
+      @keyframes aparecer {
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes deslizar {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(350%);
+        }
+      }
+
+      @keyframes brincar {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.4;
+        }
+        50% {
+          transform: translateY(-4px);
+          opacity: 1;
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="loading-screen">
+      <div class="icono-wrap">
+        <div class="anillo"></div>
+        <img class="icono" src="/Img/loading-screen/icon-sz.svg" alt="SmartZone" />
+      </div>
+      <div class="marca">
+        <img src="/Img/loading-screen/Smart.svg" alt="Smart" />
+        <img src="/Img/loading-screen/Zone.svg" alt="Zone" />
+      </div>
+      <div class="barra"><span></span></div>
+      <p class="texto">
+        Cargando SmartZone
+        <span class="puntos"><i></i><i></i><i></i></span>
+      </p>
+    </div>
     <app-root></app-root>
   </body>
 </html>

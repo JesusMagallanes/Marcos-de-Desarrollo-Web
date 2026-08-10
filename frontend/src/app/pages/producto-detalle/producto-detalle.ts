@@ -1,12 +1,15 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CurrencyPipe } from '@angular/common';
 import { AuthService, CarritoService, ErrorApi, Producto, ProductoService } from '../../core';
-import { ProductoCard } from '../../shared/producto-card/producto-card';
+
+interface Especificacion {
+  label: string;
+  value: string;
+}
 
 @Component({
   selector: 'app-producto-detalle',
-  imports: [RouterLink, CurrencyPipe, ProductoCard],
+  imports: [RouterLink],
   templateUrl: './producto-detalle.html',
   styleUrl: './producto-detalle.css',
 })
@@ -20,12 +23,38 @@ export class ProductoDetalle {
   protected cargando = signal(true);
   protected noEncontrado = signal(false);
   protected producto = signal<Producto | null>(null);
-  protected relacionados = signal<Producto[]>([]);
   protected cantidad = signal(1);
   protected aviso = signal('');
 
   protected agotado = computed(() => (this.producto()?.stock ?? 0) <= 0);
   protected maximo = computed(() => Math.max(1, this.producto()?.stock ?? 1));
+
+  protected precioMostrado = computed(() => `S/. ${(this.producto()?.precio ?? 0).toFixed(2)}`);
+
+  protected especificaciones = computed<Especificacion[]>(() => {
+    const p = this.producto();
+    if (!p) return [];
+
+    const lista: Especificacion[] = [];
+    if (p.description) {
+      const lineas = p.description.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      for (const linea of lineas) {
+        const idx = linea.indexOf(':');
+        if (idx > 0) {
+          const label = linea.substring(0, idx).trim();
+          const value = linea.substring(idx + 1).trim();
+          if (label && value) lista.push({ label, value });
+        }
+      }
+    }
+
+    if (lista.length === 0) {
+      if (p.categoriaName) lista.push({ label: 'Categoría', value: p.categoriaName });
+      if (p.stock != null) lista.push({ label: 'Stock', value: String(p.stock) });
+    }
+
+    return lista.length ? lista : [{ label: '', value: 'Proximamente' }];
+  });
 
   constructor() {
     this.ruta.paramMap.subscribe((params) => {
@@ -48,7 +77,6 @@ export class ProductoDetalle {
       next: (p) => {
         this.producto.set(p);
         this.cargando.set(false);
-        this.cargarRelacionados(p);
         window.scrollTo({ top: 0 });
       },
       error: () => {
@@ -58,20 +86,9 @@ export class ProductoDetalle {
     });
   }
 
-  private cargarRelacionados(actual: Producto): void {
-    this.productoService.listar().subscribe({
-      next: (todos) =>
-        this.relacionados.set(
-          todos.filter((p) => p.categoriaId === actual.categoriaId && p.id !== actual.id).slice(0, 6),
-        ),
-      // Los relacionados son accesorios: si fallan, la ficha sigue siendo útil.
-      error: () => this.relacionados.set([]),
-    });
-  }
-
-  protected cambiarCantidad(delta: number): void {
-    const nueva = this.cantidad() + delta;
-    if (nueva < 1 || nueva > this.maximo()) return;
+  protected onCantidadInput(event: Event): void {
+    const valor = Number((event.target as HTMLInputElement).value);
+    const nueva = Math.max(1, Math.min(this.maximo(), Number.isFinite(valor) ? valor : 1));
     this.cantidad.set(nueva);
   }
 
@@ -86,32 +103,6 @@ export class ProductoDetalle {
 
     this.carrito.agregar(p.id, this.cantidad()).subscribe({
       next: () => this.mostrarAviso('Producto agregado al carrito.'),
-      error: (e: ErrorApi) => this.mostrarAviso(e.mensaje),
-    });
-  }
-
-  protected comprarAhora(): void {
-    const p = this.producto();
-    if (!p || this.agotado()) return;
-
-    if (!this.auth.autenticado()) {
-      this.router.navigate(['/login'], { queryParams: { redirigir: `/producto/${p.id}` } });
-      return;
-    }
-
-    this.carrito.agregar(p.id, this.cantidad()).subscribe({
-      next: () => this.router.navigate(['/carrito']),
-      error: (e: ErrorApi) => this.mostrarAviso(e.mensaje),
-    });
-  }
-
-  protected agregarRelacionado(p: Producto): void {
-    if (!this.auth.autenticado()) {
-      this.router.navigate(['/login']);
-      return;
-    }
-    this.carrito.agregar(p.id, 1).subscribe({
-      next: () => this.mostrarAviso(`"${p.name}" se agregó al carrito.`),
       error: (e: ErrorApi) => this.mostrarAviso(e.mensaje),
     });
   }

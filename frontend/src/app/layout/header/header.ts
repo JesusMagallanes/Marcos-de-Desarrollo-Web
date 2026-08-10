@@ -85,4 +85,13 @@ export class Header implements OnInit {
   protected cerrarSesion(): void {
     this.auth.logout();
   }
+
+  /** El login ya es un modal global: se abre sin abandonar la página. */
+  protected abrirLogin(): void {
+    this.auth.abrirLogin({ redirigir: this.router.url });
+  }
+
+  protected quitarItem(itemId: number): void {
+    this.carrito.eliminar(itemId).subscribe();
+  }
 }

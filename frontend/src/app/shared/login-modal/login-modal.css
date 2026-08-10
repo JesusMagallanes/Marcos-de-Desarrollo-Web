@@ -1,0 +1,12 @@
+.modal-content {
+  border-radius: 5px;
+}
+
+.modal-content .btn-primary {
+  border-radius: 0.375rem;
+}
+
+.modal-content a {
+  color: #28aa00;
+  text-decoration: none;
+}

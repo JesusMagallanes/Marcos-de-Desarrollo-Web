@@ -1,7 +1,3 @@
-@if (aviso()) {
-  <div class="aviso-flotante shadow">{{ aviso() }}</div>
-}
-
 <div class="container-fluid px-lg-5 py-4">
   <h5 class="mb-1">Resultados para “{{ consulta() }}”</h5>
   <p class="text-muted small mb-4">{{ resultados().length }} productos encontrados</p>
@@ -11,7 +7,7 @@
   } @else if (resultados().length) {
     <div class="rejilla-productos">
       @for (p of resultados(); track p.id) {
-        <app-producto-card [producto]="p" (agregar)="agregar($event)" />
+        <app-producto-card [producto]="p" />
       }
     </div>
   } @else {

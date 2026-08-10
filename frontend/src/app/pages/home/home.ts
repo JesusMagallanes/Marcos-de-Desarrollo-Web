@@ -1,20 +1,13 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import {
-  AuthService,
-  CarritoService,
-  Categoria,
-  CategoriaService,
-  ErrorApi,
-  Producto,
-  ProductoService,
-} from '../../core';
+import { Categoria, CategoriaService, ErrorApi, Producto, ProductoService } from '../../core';
 import { ProductoCard } from '../../shared/producto-card/producto-card';
 
 interface Bloque {
   categoria: Categoria;
   productos: Producto[];
+  chunks: Producto[][];
 }
 
 @Component({
@@ -26,29 +19,27 @@ interface Bloque {
 export class Home implements OnInit {
   private categoriaService = inject(CategoriaService);
   private productoService = inject(ProductoService);
-  private carrito = inject(CarritoService);
-  private auth = inject(AuthService);
-  private router = inject(Router);
 
   protected cargando = signal(true);
   protected error = signal('');
   protected categorias = signal<Categoria[]>([]);
   protected productos = signal<Producto[]>([]);
-  protected aviso = signal('');
 
   /** Agrupación por categoría; sustituye a productosPorCategoria del IndexController. */
   protected bloques = computed<Bloque[]>(() =>
     this.categorias()
-      .map((categoria) => ({
-        categoria,
-        productos: this.productos()
+      .map((categoria) => {
+        const productos = this.productos()
           .filter((p) => p.categoriaId === categoria.id)
-          .slice(0, 12),
-      }))
+          .slice(0, 12);
+        return { categoria, productos, chunks: this.chunk(productos, 6) };
+      })
       .filter((b) => b.productos.length > 0),
   );
 
+  /** "Productos Top": primeros 10, en slides de 5 + tarjeta promocional. */
   protected destacados = computed(() => this.productos().slice(0, 10));
+  protected topChunks = computed(() => this.chunk(this.destacados(), 5));
 
   ngOnInit(): void {
     forkJoin({
@@ -67,19 +58,11 @@ export class Home implements OnInit {
     });
   }
 
-  protected agregar(producto: Producto): void {
-    if (!this.auth.autenticado()) {
-      this.router.navigate(['/login'], { queryParams: { redirigir: '/' } });
-      return;
+  private chunk<T>(elementos: T[], tamaño: number): T[][] {
+    const trozos: T[][] = [];
+    for (let i = 0; i < elementos.length; i += tamaño) {
+      trozos.push(elementos.slice(i, i + tamaño));
     }
-    this.carrito.agregar(producto.id, 1).subscribe({
-      next: () => this.mostrarAviso(`"${producto.name}" se agregó al carrito.`),
-      error: (e: ErrorApi) => this.mostrarAviso(e.mensaje),
-    });
-  }
-
-  private mostrarAviso(texto: string): void {
-    this.aviso.set(texto);
-    setTimeout(() => this.aviso.set(''), 2800);
+    return trozos;
   }
 }

@@ -6,32 +6,45 @@
       data-bs-toggle="offcanvas"
       data-bs-target="#offcanvasMenu"
       aria-controls="offcanvasMenu"
-      aria-label="Abrir menú"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
     >
       <i class="fa-solid fa-bars"></i>
     </button>
 
-    <a class="navbar-brand m-0" routerLink="/">
-      <img src="/Img/logo.png" alt="SmartZone" height="35" />
+    <a class="navbar-brand m-0" routerLink="/" style="cursor: pointer;">
+      <img src="/Img/logo.png" alt="Logo" height="35" />
     </a>
 
     <div class="d-flex align-items-center d-lg-none ms-auto">
+      <button
+        class="btn btn-sm py-0 px-2"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#searchCollapse"
+        aria-expanded="false"
+        aria-controls="searchCollapse"
+        style="border: none;"
+      >
+        <i class="fas fa-search" style="color: #505050; font-size: 1.2rem;"></i>
+      </button>
       <a routerLink="/carrito" class="nav-link px-2 position-relative">
-        <i class="fa-solid fa-cart-shopping"></i>
+        <i class="fa-solid fa-cart-shopping" style="color: #505050; font-size: 1.2rem;"></i>
         @if (carrito.cantidadTotal() > 0) {
           <span class="badge rounded-pill bg-danger contador-carrito">{{ carrito.cantidadTotal() }}</span>
         }
       </a>
     </div>
 
-    <div class="collapse navbar-collapse d-none d-lg-flex justify-content-between">
+    <div class="collapse navbar-collapse d-none d-lg-flex justify-content-between" id="navbarNav">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item px-2">
           <a
-            class="btn d-flex align-items-center justify-content-center gap-1 px-2 boton-categorias"
+            class="btn btn-primary d-flex align-items-center justify-content-center gap-1 px-2 boton-categorias"
             data-bs-toggle="offcanvas"
-            href="#panelCategorias"
+            href="#cat1"
             role="button"
+            aria-controls="cat1"
           >
             <i class="fa-solid fa-bars"></i>Categorías
           </a>
@@ -39,17 +52,21 @@
       </ul>
 
       <form class="d-flex mx-4 flex-grow-1 position-relative" role="search" (submit)="buscar($event)">
-        <div class="input-group w-100">
+        <div class="input-group" style="width: 100%;">
           <input
+            id="search-input"
             class="form-control campo-busqueda"
             type="search"
             placeholder="¿Qué estás buscando?"
+            aria-label="Search"
             autocomplete="off"
             [ngModel]="consulta()"
             (ngModelChange)="consulta.set($event); panelAbierto.set(true)"
             name="q"
           />
-          <button class="btn boton-lupa" type="submit"><i class="fas fa-search"></i></button>
+          <button class="btn boton-lupa" type="submit">
+            <i class="fas fa-search"></i>
+          </button>
         </div>
 
         @if (panelAbierto() && consulta().trim().length >= 2) {
@@ -98,18 +115,20 @@
               class="btn dropdown-toggle d-flex align-items-center gap-2 boton-usuario"
               href="#"
               role="button"
+              id="userDropdown"
               data-bs-toggle="dropdown"
+              aria-expanded="false"
             >
-              <i class="fa-solid fa-user"></i>
+              <i class="fa-solid fa-user" style="font-size: 1.2rem;"></i>
               <span>{{ auth.usuario()?.name || 'Usuario' }}</span>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end">
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
               <li><a class="dropdown-item" routerLink="/perfil">Mi cuenta</a></li>
               @if (auth.esAdmin()) {
                 <li><a class="dropdown-item" routerLink="/admin">Panel Administrador</a></li>
               }
               @if (auth.esStaff()) {
-                <li><a class="dropdown-item" routerLink="/envios">Gestión de envíos</a></li>
+                <li><a class="dropdown-item" routerLink="/envios">Panel Empleado</a></li>
               }
               <li><hr class="dropdown-divider" /></li>
               <li>
@@ -120,41 +139,86 @@
             </ul>
           </div>
 
-          <a routerLink="/perfil/compras" class="btn-nav d-flex align-items-center gap-1 border-start border-end text-decoration-none">
-            <i class="fa-solid fa-bag-shopping"></i>
+          <a routerLink="/carrito" class="btn-nav d-flex align-items-center gap-1 border-start border-end text-decoration-none">
+            <i class="fa-solid fa-bag-shopping" style="font-size: 1.2rem;"></i>
             <p class="mb-0 lh-sm small text-start">Mis <br /> Compras</p>
           </a>
 
-          <a routerLink="/carrito" class="btn-nav-carrito position-relative">
-            <i class="fa-solid fa-cart-shopping"></i>
+          <div class="btn-nav-carrito position-relative" data-bs-toggle="offcanvas" href="#carritoModal" role="button" aria-controls="carritoModal" style="cursor: pointer;">
+            <i class="fa-solid fa-cart-shopping" style="font-size: 1.2rem;"></i>
             @if (carrito.cantidadTotal() > 0) {
               <span class="badge rounded-pill bg-danger contador-carrito">{{ carrito.cantidadTotal() }}</span>
             }
-          </a>
+          </div>
         } @else {
-          <a routerLink="/login" class="btn-nav d-flex align-items-center gap-1 px-3 text-decoration-none">
-            <i class="fa-solid fa-user"></i>
+          <button
+            type="button"
+            class="btn-nav d-flex align-items-center gap-1 px-3 text-decoration-none border-0 bg-transparent"
+            (click)="abrirLogin()"
+            style="cursor: pointer;"
+          >
+            <i class="fa-solid fa-user" style="font-size: 1.2rem;"></i>
             <p class="mb-0 lh-sm small text-start">Iniciar <br /> Sesión</p>
-          </a>
-          <a routerLink="/login" class="btn-nav d-flex align-items-center gap-1 border-start border-end text-decoration-none">
-            <i class="fa-solid fa-bag-shopping"></i>
+          </button>
+
+          <button
+            type="button"
+            class="btn-nav d-flex align-items-center gap-1 border-start border-end text-decoration-none border-0 bg-transparent"
+            (click)="abrirLogin()"
+            style="cursor: pointer;"
+          >
+            <i class="fa-solid fa-bag-shopping" style="font-size: 1.2rem;"></i>
             <p class="mb-0 lh-sm small text-start">Mis <br /> Compras</p>
-          </a>
-          <a routerLink="/login" class="btn-nav-carrito">
-            <i class="fa-solid fa-cart-shopping"></i>
-          </a>
+          </button>
+
+          <button
+            type="button"
+            class="btn-nav-carrito border-0 bg-transparent"
+            (click)="abrirLogin()"
+            style="cursor: pointer;"
+          >
+            <i class="fa-solid fa-cart-shopping" style="font-size: 1.2rem;"></i>
+          </button>
         }
       </div>
     </div>
   </nav>
+
+  <div class="collapse d-lg-none pb-2" id="searchCollapse">
+    <form class="d-flex" role="search" (submit)="buscar($event)">
+      <div class="input-group">
+        <input
+          class="form-control campo-busqueda"
+          type="search"
+          placeholder="Buscar productos..."
+          aria-label="Search"
+          [ngModel]="consulta()"
+          (ngModelChange)="consulta.set($event)"
+          name="q"
+        />
+        <button class="btn boton-lupa" type="submit"><i class="fas fa-search"></i></button>
+      </div>
+    </form>
+  </div>
 </header>
 
-<!-- Franja de ayuda (escritorio) -->
+<!-- Versión móvil: franja de ubicación -->
+<a class="container-fluid px-3 align-items-center d-flex d-lg-none" style="background-color: #ececec; height: 2.5rem;" href="">
+  <nav class="w-100 d-flex justify-content-between align-items-center" style="height: 2.5rem; font-size: 0.9rem; color: #505050;">
+    <div class="d-flex align-items-center">
+      <i class="fa-solid fa-location-dot"></i>
+      <span class="ms-2" style="font-size: 0.9rem;">Ingresar ubicación</span>
+    </div>
+    <i class="fa-solid fa-chevron-right ms-2"></i>
+  </nav>
+</a>
+
+<!-- Versión escritorio: franja de ayuda -->
 <header class="d-none d-lg-flex container-fluid px-lg-5 align-items-center franja-ayuda">
   <nav class="navbar navbar-expand-lg m-0 d-flex justify-content-end w-100 franja-ayuda-nav">
     <div class="d-flex flex-row gap-1">
       <div class="btn-nav py-1 px-2 position-relative">
-        <a class="text-decoration-none" data-bs-toggle="collapse" href="#collapseAyuda" role="button">
+        <a class="text-decoration-none" data-bs-toggle="collapse" href="#collapseAyuda" role="button" aria-expanded="false" aria-controls="collapseAyuda">
           <i class="fa-solid fa-circle-question"></i>
           <span>Ayuda</span>
           <i class="fa-solid fa-chevron-down ms-1"></i>
@@ -162,10 +226,10 @@
         <div class="collapse position-absolute end-0 p-2 caja-ayuda" id="collapseAyuda">
           <div class="card card-body shadow mt-2 p-2">
             <ul class="list-unstyled mb-0">
-              <li class="btns-ayuda"><a routerLink="/metodos-pago">Métodos de pago</a></li>
+              <li class="btns-ayuda"><a routerLink="/metodos-pago">Metodos de pago</a></li>
               <li class="btns-ayuda"><a routerLink="/canales">Canales de atención</a></li>
               <hr class="my-2" />
-              <li class="p-2">¿Tienes dudas? <b>Contáctanos</b> servicioalcliente&#64;gmail.com</li>
+              <li style="padding: 0.6rem;">¿Tienes dudas? <b>Contáctanos</b> servicioalcliente@gmail.com</li>
             </ul>
           </div>
         </div>
@@ -174,18 +238,24 @@
   </nav>
 </header>
 
-<!-- Panel lateral de categorías -->
-<div class="offcanvas offcanvas-start" tabindex="-1" id="panelCategorias">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title">Categorías</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+<!-- Offcanvas de categorías (#cat1) -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="cat1" aria-labelledby="cat1" style="background-color: #2a2a2a;">
+  <div class="offcanvas-header p-2 m-3" style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0;">
+    <h5 class="offcanvas-title text-light" id="cat1">Categorías</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
-  <div class="offcanvas-body">
-    <ul class="list-unstyled">
+  <div class="offcanvas-body py-0">
+    <ul class="categorias" style="list-style: none;">
       @for (c of categorias(); track c.id) {
-        <li class="mb-2">
-          <a class="text-decoration-none" [routerLink]="['/categoria', c.slug]" data-bs-dismiss="offcanvas">
-            {{ c.name }}
+        <li>
+          <a
+            class="btn btn-outline-success text-light"
+            style="border: none; margin-bottom: 8px; display: block;"
+            [routerLink]="['/categoria', c.slug]"
+            data-bs-dismiss="offcanvas"
+          >
+            <span style="width: 8px; height: 8px; background-color: white; border-radius: 50%; display: inline-block; margin-right: 8px;"></span>
+            <span style="font-weight: bold;">{{ c.name }}</span>
           </a>
         </li>
       }
@@ -193,40 +263,148 @@
   </div>
 </div>
 
+<!-- Offcanvas de categoría Laptops (#cat2) -->
+<div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="cat2" aria-labelledby="cat2" style="background-image: url(Img/fond-pest.png);">
+  <div class="offcanvas-header" style="border-bottom: 1px solid white; padding-left: 0; padding-right: 0; margin: 25px;">
+    <h5 class="offcanvas-title text-light" id="cat2">Laptops</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div style="display: flex; gap: 60px; margin-left: 50px; flex-wrap: wrap;">
+    <div class="list-group" style="background-color: transparent;">
+      <h6 class="offcanvas-title text-light" style="margin-bottom: 7px;">Marcas</h6>
+      <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0" href="#">Asus</a></p>
+      <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0" href="#">Acer</a></p>
+      <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0" href="#">MSI</a></p>
+      <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0" href="#">Hp</a></p>
+    </div>
+    <div class="list-group" style="background-color: transparent;">
+      <h6 class="offcanvas-title text-light">Accesorios</h6>
+      <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0" href="#">Mouse</a></p>
+      <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0" href="#">Teclado</a></p>
+      <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0" href="#">Audífonos</a></p>
+    </div>
+  </div>
+  <br />
+  <div style="display: flex; gap: 60px; margin-left: 50px; flex-wrap: wrap;">
+    <div class="list-group" style="background-color: transparent;">
+      <h6 class="offcanvas-title text-light" style="margin-bottom: 7px;">Modelo</h6>
+      <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0" href="#">Gamer</a></p>
+      <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0" href="#">Oficina</a></p>
+      <p style="margin-bottom: 4px;"><a class="link-offset-2 link-underline link-underline-opacity-0" href="#">Profesional</a></p>
+    </div>
+  </div>
+  <br /><br />
+  <div class="d-grid gap-2 col-5 mx-auto">
+    <button class="btn btn-primary" data-bs-toggle="offcanvas" href="#cat1" type="button">
+      <img style="filter: invert(1);" src="Img/arrox-left.svg" alt="volver" width="25" />Volver
+    </button>
+  </div>
+</div>
+
+<!-- Offcanvas del carrito -->
+<div class="offcanvas offcanvas-end bg-dark" id="carritoModal" tabindex="-1" aria-labelledby="carritoModal" style="--bs-offcanvas-width: 400px;">
+  <div class="offcanvas-header" style="padding-left: 0; padding-right: 0; padding: 20px; background-color: #ececec; color: #505050;">
+    <h5 class="offcanvas-title" id="cat1" style="color: #505050; font-size: 18px;">Tu carrito</h5>
+    <button type="button" class="btn-close btn-close" data-bs-dismiss="offcanvas" aria-label="Close" style="color: #505050;"></button>
+  </div>
+
+  <div class="offcanvas-body p-0" style="background-color: #f5f5f5; align-items: center; display: flex; flex-direction: column; justify-content: end;">
+    <div style="height: 100%; width: 100%; padding: 12px;">
+      <div id="carrito-contenido">
+        @if (carrito.items().length === 0) {
+          <p class="text-center">Tu carrito está vacío.</p>
+        } @else {
+          @for (item of carrito.items(); track item.itemId) {
+            <div class="d-flex align-items-center gap-2 py-2 border-bottom">
+              <img
+                [src]="item.image || '/Img/img.png'"
+                [alt]="item.nombre"
+                style="width: 56px; height: 56px; object-fit: contain; border-radius: 6px;"
+              />
+              <div class="flex-grow-1 min-w-0">
+                <div class="fw-semibold small text-truncate">{{ item.nombre }}</div>
+                <div class="d-flex align-items-center gap-2 small">
+                  <span>{{ item.precio | currency: 'PEN' : 'S/ ' }}</span>
+                  <span class="text-muted">× {{ item.cantidad }}</span>
+                </div>
+              </div>
+              <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-danger" (click)="quitarItem(item.itemId)">
+                Quitar
+              </button>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 12rem; background-color: #2a2a2a; border-radius: 8px 8px 0px 0px; width: 100%;">
+      <div class="border-bottom py-2 px-3 d-flex justify-content-between" style="width: 92%; color: white; height: auto;">
+        <h6 class="m-0" style="font-size: 13px;">Subtotal</h6>
+        <p class="m-0" style="font-size: 13px;">{{ carrito.subtotal() | currency: 'PEN' : 'S/ ' }}</p>
+      </div>
+      <div class="p-3 d-flex justify-content-between" style="width: 92%; color: white;">
+        <h6 class="m-0" style="font-size: 16px;">Total</h6>
+        <p class="m-0" style="font-size: 16px;">{{ carrito.total() | currency: 'PEN' : 'S/ ' }}</p>
+      </div>
+      <a routerLink="/carrito" style="width: 92%;" class="px-3" data-bs-dismiss="offcanvas">
+        <button type="button" class="btn btn-primary" style="width: 100%;">Ir a pagar</button>
+      </a>
+    </div>
+  </div>
+</div>
+
 <!-- Menú móvil -->
-<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasMenu">
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel">
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title">Menú</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+    <h5 class="offcanvas-title" id="offcanvasMenuLabel">Menú de Navegación</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body">
-    <ul class="navbar-nav flex-grow-1 pe-3">
+    <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
       @if (auth.autenticado()) {
-        <li class="nav-item mb-2"><span class="nav-link">{{ auth.usuario()?.name }}</span></li>
         <li class="nav-item mb-2">
-          <a class="nav-link" routerLink="/perfil" data-bs-dismiss="offcanvas">Mi cuenta</a>
+          <a class="nav-link" style="cursor: default;">{{ auth.usuario()?.name || 'Usuario' }}</a>
+        </li>
+        <li class="nav-item mb-2">
+          <button class="nav-link text-danger btn btn-link p-0" type="button" (click)="cerrarSesion()">
+            <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar Sesión
+          </button>
         </li>
         @if (auth.esAdmin()) {
           <li class="nav-item mb-2">
-            <a class="nav-link fw-bold" routerLink="/admin" data-bs-dismiss="offcanvas">Panel admin</a>
+            <a class="nav-link fw-bold" routerLink="/admin" data-bs-dismiss="offcanvas">
+              <i class="fa-solid fa-user-gear me-2"></i> Ver panel admin
+            </a>
           </li>
         }
         <li class="nav-item mb-2">
-          <button class="nav-link text-danger btn btn-link p-0" type="button" (click)="cerrarSesion()">
-            Cerrar sesión
-          </button>
+          <a class="nav-link" routerLink="/carrito" data-bs-dismiss="offcanvas">
+            <i class="fa-solid fa-bag-shopping me-2"></i> Mis Compras
+          </a>
         </li>
       } @else {
         <li class="nav-item mb-2">
-          <a class="nav-link" routerLink="/login" data-bs-dismiss="offcanvas">Iniciar sesión</a>
+          <a class="nav-link" (click)="abrirLogin()" data-bs-dismiss="offcanvas" style="cursor: pointer;">
+            <i class="fa-solid fa-user me-2"></i> Iniciar Sesión
+          </a>
+        </li>
+        <li class="nav-item mb-2">
+          <a class="nav-link" (click)="abrirLogin()" data-bs-dismiss="offcanvas" style="cursor: pointer;">
+            <i class="fa-solid fa-bag-shopping me-2"></i> Mis Compras
+          </a>
         </li>
       }
       <hr />
-      @for (c of categorias(); track c.id) {
-        <li class="nav-item">
-          <a class="nav-link" [routerLink]="['/categoria', c.slug]" data-bs-dismiss="offcanvas">{{ c.name }}</a>
-        </li>
-      }
+      <li class="nav-item"><a class="nav-link fw-bold" href="#">Ofertas</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Novedades</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Nuestras Marcas</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Contacto</a></li>
+      <hr />
+      <li class="nav-item mb-2">
+        <a class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-1" data-bs-toggle="offcanvas" href="#cat1" role="button" aria-controls="cat1">
+          <i class="fa-solid fa-bars"></i>Ver todas las Categorías
+        </a>
+      </li>
     </ul>
   </div>
 </div>

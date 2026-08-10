@@ -1,66 +1,16 @@
-/* Bootstrap y FontAwesome se inyectan desde angular.json ("styles"). */
-
-:root {
-  --sz-verde: #28aa00;
-  --sz-verde-oscuro: #229400;
-  --sz-gris: #505050;
-  --sz-gris-claro: #f8f8f8;
-}
-
-body {
-  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color: var(--sz-gris);
-  background-color: #fff;
-}
-
-a {
-  color: inherit;
-}
-
-.btn-success,
-.bg-success {
-  background-color: var(--sz-verde) !important;
-  border-color: var(--sz-verde) !important;
-}
-
-.btn-success:hover {
-  background-color: var(--sz-verde-oscuro) !important;
-  border-color: var(--sz-verde-oscuro) !important;
-}
-
-.btn-outline-success {
-  color: var(--sz-verde);
-  border-color: var(--sz-verde);
-}
-
-.btn-outline-success:hover {
-  background-color: var(--sz-verde);
-  border-color: var(--sz-verde);
-  color: #fff;
-}
-
-.text-success {
-  color: var(--sz-verde) !important;
-}
-
-.form-control:focus,
-.form-select:focus {
-  border-color: var(--sz-verde);
-  box-shadow: 0 0 0 0.2rem rgb(40 170 0 / 15%);
-}
+/* CSS propio de la tienda. El resto del sistema de diseño (botones, tarjetas,
+   filtros, chatbot) vive en src/styles/*, copias fieles de la versión antigua. */
 
 .min-w-0 {
   min-width: 0;
 }
 
 /* La barra de scroll fina evita saltos de layout en los carruseles horizontales. */
-.fila-categorias::-webkit-scrollbar,
-.atajos-chat::-webkit-scrollbar {
+.fila-categorias::-webkit-scrollbar {
   height: 6px;
 }
 
-.fila-categorias::-webkit-scrollbar-thumb,
-.atajos-chat::-webkit-scrollbar-thumb {
+.fila-categorias::-webkit-scrollbar-thumb {
   background: #d5d5d5;
   border-radius: 3px;
 }

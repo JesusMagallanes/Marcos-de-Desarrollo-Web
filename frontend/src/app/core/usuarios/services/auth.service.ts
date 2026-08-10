@@ -126,6 +126,56 @@ export class AuthService {
     this.usuarioSig.set(null);
   }
 
+  /* ── modal de acceso ── */
+
+  private readonly loginVisibleSig = signal(false);
+  private readonly modoLoginSig = signal<'login' | 'registro'>('login');
+  private readonly errorLoginSig = signal('');
+  private readonly expiradoLoginSig = signal(false);
+  private readonly urlTrasLoginSig = signal('/');
+
+  /** El modal lo monta App y lo controlan el header, los guards y /login. */
+  readonly loginVisible = this.loginVisibleSig.asReadonly();
+  readonly modoLogin = this.modoLoginSig.asReadonly();
+  readonly errorLogin = this.errorLoginSig.asReadonly();
+  readonly expiradoLogin = this.expiradoLoginSig.asReadonly();
+  readonly urlTrasLogin = this.urlTrasLoginSig.asReadonly();
+
+  /**
+   * Abre el modal de acceso. El header lo usa sin navegar; los guards y la
+   * ruta /login pasan `redirigir` para volver al destino tras autenticarse.
+   */
+  abrirLogin(
+    opciones: {
+      modo?: 'login' | 'registro';
+      error?: string;
+      expirado?: boolean;
+      redirigir?: string;
+    } = {},
+  ): void {
+    this.modoLoginSig.set(opciones.modo ?? 'login');
+    this.errorLoginSig.set(opciones.error ?? '');
+    this.expiradoLoginSig.set(opciones.expirado ?? false);
+    this.urlTrasLoginSig.set(opciones.redirigir ?? '/');
+    this.loginVisibleSig.set(true);
+  }
+
+  /** Cierra el modal. Lo invoca el propio modal al ocultarse. */
+  cerrarLogin(): void {
+    this.loginVisibleSig.set(false);
+  }
+
+  /** Alterna entre "Iniciar sesión" y "Crear cuenta" dentro del modal. */
+  cambiarModoLogin(modo: 'login' | 'registro'): void {
+    this.modoLoginSig.set(modo);
+    this.errorLoginSig.set('');
+  }
+
+  /** Muestra un error en el modal (credenciales inválidas, conflicto, etc.). */
+  indicarErrorLogin(mensaje: string): void {
+    this.errorLoginSig.set(mensaje);
+  }
+
   private guardarSesion(res: AuthResponse): void {
     localStorage.setItem(ALMACENAMIENTO.token, res.accessToken);
     if (res.refreshToken) {

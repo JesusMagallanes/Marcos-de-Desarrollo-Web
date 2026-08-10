@@ -1,20 +1,19 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import {
-  AuthService,
-  CarritoService,
   Categoria as CategoriaModel,
   CategoriaService,
-  DURACION_AVISO,
-  ErrorApi,
   Marca,
   MarcaService,
   Producto,
   ProductoService,
 } from '../../core';
 import { ProductoCard } from '../../shared/producto-card/producto-card';
+
+type Orden = 'relevancia' | 'nombre-asc' | 'nombre-desc' | 'precio-asc' | 'precio-desc';
+type Disponibilidad = 'todas' | 'stock' | 'agotado';
 
 @Component({
   selector: 'app-categoria',
@@ -24,12 +23,9 @@ import { ProductoCard } from '../../shared/producto-card/producto-card';
 })
 export class Categoria {
   private ruta = inject(ActivatedRoute);
-  private router = inject(Router);
   private categoriaService = inject(CategoriaService);
   private marcaService = inject(MarcaService);
   private productoService = inject(ProductoService);
-  private carrito = inject(CarritoService);
-  private auth = inject(AuthService);
 
   private slug = toSignal(this.ruta.paramMap.pipe(map((p) => p.get('slug') ?? '')), {
     initialValue: '',
@@ -43,30 +39,46 @@ export class Categoria {
   protected paginaActual = signal(0);
   protected totalPaginas = signal(0);
   protected totalElementos = signal(0);
-  protected aviso = signal('');
 
   /* filtros */
-  protected marcaSeleccionada = signal<number | null>(null);
+  protected marcasSeleccionadas = signal<Set<number>>(new Set());
+  protected disponibilidad = signal<Disponibilidad>('todas');
+  protected precioMin = signal<number | null>(null);
   protected precioMax = signal<number | null>(null);
-  protected orden = signal<'relevancia' | 'precio-asc' | 'precio-desc' | 'nombre'>('relevancia');
+  protected orden = signal<Orden>('relevancia');
 
   protected visibles = computed(() => {
     let lista = [...this.productos()];
-    const marca = this.marcaSeleccionada();
-    if (marca !== null) lista = lista.filter((p) => p.marcaId === marca);
+    const marcas = this.marcasSeleccionadas();
+    if (marcas.size > 0) lista = lista.filter((p) => p.marcaId !== null && marcas.has(p.marcaId));
 
-    const tope = this.precioMax();
-    if (tope !== null) lista = lista.filter((p) => p.precio <= tope);
+    const min = this.precioMin();
+    if (min !== null) lista = lista.filter((p) => p.precio >= min);
+
+    const max = this.precioMax();
+    if (max !== null) lista = lista.filter((p) => p.precio <= max);
+
+    switch (this.disponibilidad()) {
+      case 'stock':
+        lista = lista.filter((p) => p.stock > 0);
+        break;
+      case 'agotado':
+        lista = lista.filter((p) => p.stock <= 0);
+        break;
+    }
 
     switch (this.orden()) {
+      case 'nombre-asc':
+        lista.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'nombre-desc':
+        lista.sort((a, b) => b.name.localeCompare(a.name));
+        break;
       case 'precio-asc':
         lista.sort((a, b) => a.precio - b.precio);
         break;
       case 'precio-desc':
         lista.sort((a, b) => b.precio - a.precio);
-        break;
-      case 'nombre':
-        lista.sort((a, b) => a.name.localeCompare(b.name));
         break;
     }
     return lista;
@@ -78,8 +90,7 @@ export class Categoria {
     // Recarga cuando cambia el slug de la ruta.
     this.ruta.paramMap.subscribe(() => {
       this.paginaActual.set(0);
-      this.marcaSeleccionada.set(null);
-      this.precioMax.set(null);
+      this.limpiarFiltros();
       this.cargar();
     });
   }
@@ -97,7 +108,7 @@ export class Categoria {
         this.marcaService.listarPorCategoria(cat.id).subscribe({
           next: (m) => this.marcas.set(m),
           // Sin marcas el filtro se oculta; no es motivo para romper la página.
-      error: () => this.marcas.set([]),
+          error: () => this.marcas.set([]),
         });
         this.cargarPagina();
       },
@@ -130,27 +141,22 @@ export class Categoria {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  protected limpiarFiltros(): void {
-    this.marcaSeleccionada.set(null);
-    this.precioMax.set(null);
-    this.orden.set('relevancia');
+  protected alternarMarca(id: number, activo: boolean): void {
+    const set = new Set(this.marcasSeleccionadas());
+    if (activo) set.add(id);
+    else set.delete(id);
+    this.marcasSeleccionadas.set(set);
   }
 
-  protected agregar(producto: Producto): void {
-    if (!this.auth.autenticado()) {
-      this.router.navigate(['/login'], { queryParams: { redirigir: this.router.url } });
-      return;
-    }
-    this.carrito.agregar(producto.id, 1).subscribe({
-      next: () => {
-        this.aviso.set(`"${producto.name}" se agregó al carrito.`);
-        setTimeout(() => this.aviso.set(''), 2800);
-      },
-      error: (e: ErrorApi) => {
-        // El backend explica el motivo real ("Solo quedan 2 unidades de X").
-        this.aviso.set(e.mensaje);
-        setTimeout(() => this.aviso.set(''), DURACION_AVISO);
-      },
-    });
+  protected alternarDisponibilidad(tipo: Exclude<Disponibilidad, 'todas'>, activo: boolean): void {
+    this.disponibilidad.set(activo ? tipo : this.disponibilidad() === tipo ? 'todas' : this.disponibilidad());
+  }
+
+  protected limpiarFiltros(): void {
+    this.marcasSeleccionadas.set(new Set());
+    this.disponibilidad.set('todas');
+    this.precioMin.set(null);
+    this.precioMax.set(null);
+    this.orden.set('relevancia');
   }
 }

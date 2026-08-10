@@ -174,4 +174,46 @@ describe('AuthService', () => {
 
     expect(servicio.esCuentaSocial()).toBe(true);
   });
+
+  it('abrirLogin() expone el estado del modal', () => {
+    servicio.abrirLogin({
+      modo: 'registro',
+      error: 'ups',
+      expirado: true,
+      redirigir: '/perfil',
+    });
+
+    expect(servicio.loginVisible()).toBe(true);
+    expect(servicio.modoLogin()).toBe('registro');
+    expect(servicio.errorLogin()).toBe('ups');
+    expect(servicio.expiradoLogin()).toBe(true);
+    expect(servicio.urlTrasLogin()).toBe('/perfil');
+  });
+
+  it('abrirLogin() sin opciones restaura los valores por defecto', () => {
+    servicio.abrirLogin({ modo: 'registro', error: 'x', redirigir: '/admin' });
+    servicio.abrirLogin();
+
+    expect(servicio.modoLogin()).toBe('login');
+    expect(servicio.errorLogin()).toBe('');
+    expect(servicio.expiradoLogin()).toBe(false);
+    expect(servicio.urlTrasLogin()).toBe('/');
+    expect(servicio.loginVisible()).toBe(true);
+  });
+
+  it('cerrarLogin(), cambiarModoLogin() e indicarErrorLogin() ajustan el modal', () => {
+    servicio.abrirLogin();
+    servicio.cambiarModoLogin('registro');
+    expect(servicio.modoLogin()).toBe('registro');
+
+    servicio.indicarErrorLogin('Correo o contraseña incorrectos.');
+    expect(servicio.errorLogin()).toBe('Correo o contraseña incorrectos.');
+
+    // Cambiar de pestaña limpia el error acumulado.
+    servicio.cambiarModoLogin('login');
+    expect(servicio.errorLogin()).toBe('');
+
+    servicio.cerrarLogin();
+    expect(servicio.loginVisible()).toBe(false);
+  });
 });

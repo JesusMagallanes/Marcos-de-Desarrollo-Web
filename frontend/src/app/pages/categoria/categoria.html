@@ -1,8 +1,10 @@
-@if (aviso()) {
-  <div class="aviso-flotante shadow">{{ aviso() }}</div>
-}
+<!-- Botón flotante para mostrar filtros en móvil -->
+<button class="btn btn-success btn-filtros-mobile d-lg-none" type="button" data-bs-toggle="offcanvas"
+  data-bs-target="#offcanvasFiltros" aria-controls="offcanvasFiltros">
+  <i class="fas fa-filter"></i>
+</button>
 
-<div class="container-fluid px-lg-5 py-4">
+<div class="container-fluid" style="padding-inline: 9rem;">
   @if (cargando()) {
     <div class="text-center py-5">
       <div class="spinner-border text-success" role="status"></div>
@@ -14,82 +16,157 @@
       <a class="btn btn-success" routerLink="/">Volver al inicio</a>
     </div>
   } @else {
-    <nav aria-label="ruta" class="mb-3">
-      <ol class="breadcrumb small">
-        <li class="breadcrumb-item"><a routerLink="/">Inicio</a></li>
-        <li class="breadcrumb-item active">{{ categoria()?.name }}</li>
-      </ol>
-    </nav>
-
-    <div class="d-flex align-items-baseline gap-3 mb-4">
-      <h4 class="mb-0">{{ categoria()?.name }}</h4>
-      <span class="text-muted small">{{ totalElementos() }} productos</span>
-    </div>
-
     <div class="row">
-      <!-- Filtros -->
-      <aside class="col-12 col-lg-3 mb-4">
-        <div class="panel-filtros">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="mb-0 fw-bold">Filtros</h6>
-            <button type="button" class="btn btn-sm btn-link p-0" (click)="limpiarFiltros()">Limpiar</button>
-          </div>
+      <!-- SIDEBAR DE FILTROS (Desktop) -->
+      <div class="col-lg-3 mt-4 mb-4 d-none d-lg-block filtros-sidebar">
+        <div class="filtros-container">
+          <!-- TÍTULO -->
+          <h4 class="mb-4" style="color: #5a5a5a; font-weight: 600;">{{ categoria()?.name }}</h4>
 
-          @if (marcas().length) {
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Marca</label>
-              <select
-                class="form-select form-select-sm"
-                [value]="marcaSeleccionada() ?? ''"
-                (change)="marcaSeleccionada.set($any($event.target).value ? +$any($event.target).value : null)"
-              >
-                <option value="">Todas</option>
+          <!-- FILTRO DE MARCA -->
+          <div class="mb-4">
+            <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMarca">
+              Marca
+              <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+            </button>
+            <div class="collapse show" id="collapseMarca">
+              <div class="filtro-content">
                 @for (m of marcas(); track m.id) {
-                  <option [value]="m.id">{{ m.name }}</option>
+                  <div class="form-check mb-2">
+                    <input class="form-check-input filter-checkbox" type="checkbox" [id]="'marcaD' + m.id"
+                      [checked]="marcasSeleccionadas().has(m.id)"
+                      (change)="alternarMarca(m.id, $any($event.target).checked)" />
+                    <label class="form-check-label" [for]="'marcaD' + m.id" style="color: #5a5a5a; font-size: 0.95rem;">
+                      {{ m.name }}
+                    </label>
+                  </div>
+                } @empty {
+                  <p class="text-muted small mb-0">No hay marcas disponibles</p>
                 }
-              </select>
+              </div>
             </div>
-          }
-
-          <div class="mb-3">
-            <label class="form-label small fw-semibold">Precio máximo</label>
-            <input
-              type="number"
-              class="form-control form-control-sm"
-              placeholder="S/ 9999"
-              min="0"
-              [value]="precioMax() ?? ''"
-              (input)="precioMax.set($any($event.target).value ? +$any($event.target).value : null)"
-            />
           </div>
 
+          <!-- FILTRO DE DISPONIBILIDAD -->
+          <div class="mb-4">
+            <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStock">
+              Disponible en catálogo extendido
+              <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+            </button>
+            <div class="collapse" id="collapseStock">
+              <div class="filtro-content">
+                <div class="form-check mb-2">
+                  <input class="form-check-input filter-checkbox" type="checkbox" id="stockD1"
+                    [checked]="disponibilidad() === 'stock'"
+                    (change)="alternarDisponibilidad('stock', $any($event.target).checked)" />
+                  <label class="form-check-label" for="stockD1" style="color: #5a5a5a; font-size: 0.95rem;">
+                    En stock
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input filter-checkbox" type="checkbox" id="stockD2"
+                    [checked]="disponibilidad() === 'agotado'"
+                    (change)="alternarDisponibilidad('agotado', $any($event.target).checked)" />
+                  <label class="form-check-label" for="stockD2" style="color: #5a5a5a; font-size: 0.95rem;">
+                    Agotado
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FILTRO DE PRECIO -->
+          <div class="mb-4">
+            <h6 class="mb-3" style="color: #5a5a5a; font-weight: 600;">Gama de Precios</h6>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label small" style="color: #888;">Min</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
+                  <input type="number" class="form-control precio-input" id="precioMinD" value="0" min="0"
+                    [value]="precioMin() ?? ''"
+                    (input)="precioMin.set($any($event.target).value ? +$any($event.target).value : null)" />
+                </div>
+              </div>
+              <div class="col-6">
+                <label class="form-label small" style="color: #888;">Max</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
+                  <input type="number" class="form-control precio-input" id="precioMaxD" value="10000" max="10000"
+                    [value]="precioMax() ?? ''"
+                    (input)="precioMax.set($any($event.target).value ? +$any($event.target).value : null)" />
+                </div>
+              </div>
+            </div>
+            <input type="range" class="form-range" min="0" max="10000" step="100" id="rangoPrecio"
+              [value]="precioMax() ?? 10000" [style.--value]="((precioMax() ?? 10000) / 100) + '%'"
+              (input)="precioMax.set(+$any($event.target).value)" />
+          </div>
+
+          <!-- BOTÓN LIMPIAR -->
+          <button class="btn btn-outline-success w-100 mt-2" (click)="limpiarFiltros()"
+            style="border-radius: 8px; font-weight: 500;">
+            <i class="fas fa-times me-2"></i>Limpiar filtros
+          </button>
+        </div>
+      </div>
+
+      <!-- ÁREA DE PRODUCTOS -->
+      <div class="col-lg-9 col-12 pt-4">
+        <!-- HEADER CON CONTADOR Y ORDENAR -->
+        <div class="d-flex justify-content-between flex-wrap p-3 align-items-center mb-3 resultados-header">
           <div>
-            <label class="form-label small fw-semibold">Ordenar por</label>
-            <select
-              class="form-select form-select-sm"
-              [value]="orden()"
-              (change)="orden.set($any($event.target).value)"
-            >
-              <option value="relevancia">Relevancia</option>
-              <option value="precio-asc">Menor precio</option>
-              <option value="precio-desc">Mayor precio</option>
-              <option value="nombre">Nombre (A-Z)</option>
-            </select>
+            <p class="m-0 fw-bold">
+              {{ visibles().length }} de {{ totalElementos() }} resultados
+            </p>
+          </div>
+          <div class="dropdown">
+            <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-sort me-2"></i>Ordenar
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" href="#" (click)="orden.set('relevancia'); $event.preventDefault()">
+                  <i class="fas fa-star me-2"></i>Relevancia
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="#" (click)="orden.set('nombre-asc'); $event.preventDefault()">
+                  <i class="fas fa-sort-alpha-down me-2"></i>Nombre A-Z
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="#" (click)="orden.set('nombre-desc'); $event.preventDefault()">
+                  <i class="fas fa-sort-alpha-up me-2"></i>Nombre Z-A
+                </a>
+              </li>
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <a class="dropdown-item" href="#" (click)="orden.set('precio-asc'); $event.preventDefault()">
+                  <i class="fas fa-arrow-up me-2"></i>Precio: Menor a Mayor
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="#" (click)="orden.set('precio-desc'); $event.preventDefault()">
+                  <i class="fas fa-arrow-down me-2"></i>Precio: Mayor a Menor
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
-      </aside>
 
-      <!-- Resultados -->
-      <div class="col-12 col-lg-9">
+        <!-- GRID DE PRODUCTOS -->
         @if (visibles().length) {
-          <div class="rejilla-productos">
+          <div class="row mt-3" id="productos-container">
             @for (p of visibles(); track p.id) {
-              <app-producto-card [producto]="p" (agregar)="agregar($event)" />
+              <div class="col-lg-4 col-md-6 col-12 mb-4 producto-item producto-col">
+                <app-producto-card [producto]="p" />
+              </div>
             }
           </div>
 
           @if (totalPaginas() > 1) {
-            <nav class="mt-4 d-flex justify-content-center">
+            <nav class="mt-2 d-flex justify-content-center">
               <ul class="pagination pagination-sm mb-0">
                 <li class="page-item" [class.disabled]="paginaActual() === 0">
                   <button class="page-link" type="button" (click)="irAPagina(paginaActual() - 1)">Anterior</button>
@@ -106,14 +183,117 @@
             </nav>
           }
         } @else {
-          <div class="text-center py-5">
-            <p class="text-muted mb-2">Ningún producto coincide con los filtros.</p>
-            <button type="button" class="btn btn-sm btn-outline-success" (click)="limpiarFiltros()">
-              Limpiar filtros
-            </button>
+          <div class="alert alert-info text-center mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>No se encontraron productos</strong> que coincidan con los filtros seleccionados.
+            <br />
+            <small>Intenta ajustar los filtros o <a href="#" (click)="limpiarFiltros(); $event.preventDefault()">limpiar
+                todos</a></small>
           </div>
         }
       </div>
     </div>
   }
+</div>
+
+<!-- OFFCANVAS PARA FILTROS EN MÓVIL -->
+<div class="offcanvas offcanvas-start offcanvas-filtros" tabindex="-1" id="offcanvasFiltros"
+  aria-labelledby="offcanvasFiltrosLabel">
+  <div class="offcanvas-header" style="background-color: #198754; color: white;">
+    <h5 class="offcanvas-title" id="offcanvasFiltrosLabel">
+      <i class="fas fa-filter me-2"></i>Filtros
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body p-0">
+    <div class="filtros-container">
+      <!-- FILTRO DE MARCA -->
+      <div class="mb-4">
+        <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMarcaMobile">
+          Marca
+          <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+        </button>
+        <div class="collapse show" id="collapseMarcaMobile">
+          <div class="filtro-content">
+            @for (m of marcas(); track m.id) {
+              <div class="form-check mb-2">
+                <input class="form-check-input filter-checkbox" type="checkbox" [id]="'marcaM' + m.id"
+                  [checked]="marcasSeleccionadas().has(m.id)"
+                  (change)="alternarMarca(m.id, $any($event.target).checked)" />
+                <label class="form-check-label" [for]="'marcaM' + m.id" style="color: #5a5a5a; font-size: 0.95rem;">
+                  {{ m.name }}
+                </label>
+              </div>
+            } @empty {
+              <p class="text-muted small mb-0">No hay marcas disponibles</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTRO DE DISPONIBILIDAD -->
+      <div class="mb-4">
+        <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStockMobile">
+          Disponibilidad
+          <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+        </button>
+        <div class="collapse" id="collapseStockMobile">
+          <div class="filtro-content">
+            <div class="form-check mb-2">
+              <input class="form-check-input filter-checkbox" type="checkbox" id="stockM1"
+                [checked]="disponibilidad() === 'stock'"
+                (change)="alternarDisponibilidad('stock', $any($event.target).checked)" />
+              <label class="form-check-label" for="stockM1" style="color: #5a5a5a; font-size: 0.95rem;">
+                En stock
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input filter-checkbox" type="checkbox" id="stockM2"
+                [checked]="disponibilidad() === 'agotado'"
+                (change)="alternarDisponibilidad('agotado', $any($event.target).checked)" />
+              <label class="form-check-label" for="stockM2" style="color: #5a5a5a; font-size: 0.95rem;">
+                Agotado
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTRO DE PRECIO -->
+      <div class="mb-4">
+        <h6 class="mb-3" style="color: #5a5a5a; font-weight: 600;">Gama de Precios</h6>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label small" style="color: #888;">Min</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
+              <input type="number" class="form-control precio-input" id="precioMinM" value="0" min="0"
+                [value]="precioMin() ?? ''"
+                (input)="precioMin.set($any($event.target).value ? +$any($event.target).value : null)" />
+            </div>
+          </div>
+          <div class="col-6">
+            <label class="form-label small" style="color: #888;">Max</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
+              <input type="number" class="form-control precio-input" id="precioMaxM" value="10000" max="10000"
+                [value]="precioMax() ?? ''"
+                (input)="precioMax.set($any($event.target).value ? +$any($event.target).value : null)" />
+            </div>
+          </div>
+        </div>
+        <input type="range" class="form-range" min="0" max="10000" step="100" id="rangoPrecioMobile"
+          [value]="precioMax() ?? 10000" [style.--value]="((precioMax() ?? 10000) / 100) + '%'"
+          (input)="precioMax.set(+$any($event.target).value)" />
+      </div>
+
+      <!-- BOTONES -->
+      <button class="btn btn-success w-100 mb-2" data-bs-dismiss="offcanvas">
+        <i class="fas fa-check me-2"></i>Aplicar Filtros
+      </button>
+      <button class="btn btn-outline-success w-100" (click)="limpiarFiltros()">
+        <i class="fas fa-times me-2"></i>Limpiar filtros
+      </button>
+    </div>
+  </div>
 </div>
