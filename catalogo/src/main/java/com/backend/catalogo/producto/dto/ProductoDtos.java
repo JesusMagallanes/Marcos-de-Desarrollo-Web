@@ -25,6 +25,7 @@ public final class ProductoDtos {
             Long id,
             String name,
             String description,
+            String specifications,
             BigDecimal precio,
             String imageUrl,
             Integer stock,
@@ -38,6 +39,7 @@ public final class ProductoDtos {
                     p.getId(),
                     p.getName(),
                     p.getDescription(),
+                    p.getSpecifications(),
                     p.getPrecio(),
                     p.getImageUrl(),
                     p.getStock(),
@@ -51,6 +53,7 @@ public final class ProductoDtos {
     public record ProductoRequest(
             @NotBlank @Size(max = 150) String name,
             @NotBlank @Size(max = 500) String description,
+            @Size(max = 2000) String specifications,
             @NotNull @DecimalMin(value = "0.01", message = "El precio debe ser mayor que 0") BigDecimal precio,
             String imageUrl,
             @NotNull @Min(value = 0, message = "El stock no puede ser negativo") Integer stock,

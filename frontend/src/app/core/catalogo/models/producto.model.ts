@@ -3,6 +3,8 @@ export interface Producto {
   id: number;
   name: string;
   description: string;
+  /** Lista de especificaciones en Markdown, separada del párrafo de descripción. */
+  specifications: string | null;
   precio: number;
   imageUrl: string | null;
   stock: number;
@@ -15,6 +17,7 @@ export interface Producto {
 export interface ProductoRequest {
   name: string;
   description: string;
+  specifications: string | null;
   precio: number;
   imageUrl: string | null;
   stock: number;

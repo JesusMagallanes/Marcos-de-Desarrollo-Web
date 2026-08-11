@@ -10,6 +10,7 @@ function producto(id: number, nombre = 'Monitor'): Producto {
     id,
     name: nombre,
     description: 'desc',
+    specifications: null,
     precio: 999.9,
     imageUrl: null,
     stock: 5,
@@ -66,6 +67,7 @@ describe('ProductoService', () => {
       .crear({
         name: 'Nuevo',
         description: 'd',
+        specifications: null,
         precio: 10,
         imageUrl: null,
         stock: 1,

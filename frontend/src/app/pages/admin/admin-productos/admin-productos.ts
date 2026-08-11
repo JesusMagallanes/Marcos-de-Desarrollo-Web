@@ -59,6 +59,7 @@ export class AdminProductos implements OnInit, OnDestroy {
   protected form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(150)]],
     description: ['', [Validators.required, Validators.maxLength(500)]],
+    specifications: ['', [Validators.maxLength(2000)]],
     precio: [0, [Validators.required, Validators.min(0.01)]],
     imageUrl: ['', [Validators.required]],
     stock: [0, [Validators.required, Validators.min(0)]],
@@ -99,6 +100,7 @@ export class AdminProductos implements OnInit, OnDestroy {
     this.form.reset({
       name: '',
       description: '',
+      specifications: '',
       precio: 0,
       imageUrl: '',
       stock: 0,
@@ -113,6 +115,8 @@ export class AdminProductos implements OnInit, OnDestroy {
     this.form.setValue({
       name: p.name,
       description: p.description,
+      // El backend admite specifications nula; el formulario trabaja con cadena vacía.
+      specifications: p.specifications ?? '',
       precio: p.precio,
       // El backend admite imageUrl nula; el formulario trabaja con cadena vacía.
       imageUrl: p.imageUrl ?? '',

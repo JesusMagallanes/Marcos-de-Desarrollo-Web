@@ -40,6 +40,10 @@ public class Producto {
     @Column(nullable = false, length = 500)
     private String description;
 
+    /** Lista de especificaciones en Markdown, separada del párrafo de descripción. */
+    @Column(columnDefinition = "TEXT")
+    private String specifications;
+
     /** BigDecimal, no double: el monolito usaba double para dinero. */
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal precio;

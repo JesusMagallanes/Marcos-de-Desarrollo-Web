@@ -66,6 +66,7 @@ public class ProductoService {
         Producto producto = Producto.builder()
                 .name(dto.name())
                 .description(dto.description())
+                .specifications(dto.specifications())
                 .precio(dto.precio())
                 .imageUrl(dto.imageUrl())
                 .stock(dto.stock())
@@ -83,6 +84,7 @@ public class ProductoService {
 
         producto.setName(dto.name());
         producto.setDescription(dto.description());
+        producto.setSpecifications(dto.specifications());
         producto.setPrecio(dto.precio());
         producto.setImageUrl(dto.imageUrl());
         producto.setStock(dto.stock());

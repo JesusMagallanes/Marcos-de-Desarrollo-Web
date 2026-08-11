@@ -7,6 +7,36 @@ interface Especificacion {
   value: string;
 }
 
+/** Convierte el texto de especificaciones en pares etiqueta/valor. */
+function especificacionesDe(texto: string | null | undefined): Especificacion[] {
+  if (!texto) return [];
+  const lista: Especificacion[] = [];
+  const lineas = texto.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  for (const linea of lineas) {
+    const par = especificacionDeLinea(linea);
+    if (par) lista.push(par);
+  }
+  return lista;
+}
+
+function especificacionDeLinea(linea: string): Especificacion | null {
+  // Formato del admin: `· **Etiqueta**: Valor`. La viñeta puede ser `·`, `.`,
+  // un guion, un asterisco o faltar; la negrita se descarta de la etiqueta.
+  const idx = linea.indexOf(':');
+  if (idx <= 0) return null;
+
+  const label = linea
+    .substring(0, idx)
+    .trim()
+    .replace(/^[·.\-*]\s*/, '')
+    .replace(/\*\*/g, '')
+    .trim();
+  const value = linea.substring(idx + 1).trim();
+
+  if (!label || !value) return null;
+  return { label, value };
+}
+
 @Component({
   selector: 'app-producto-detalle',
   imports: [RouterLink],
@@ -35,18 +65,10 @@ export class ProductoDetalle {
     const p = this.producto();
     if (!p) return [];
 
-    const lista: Especificacion[] = [];
-    if (p.description) {
-      const lineas = p.description.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-      for (const linea of lineas) {
-        const idx = linea.indexOf(':');
-        if (idx > 0) {
-          const label = linea.substring(0, idx).trim();
-          const value = linea.substring(idx + 1).trim();
-          if (label && value) lista.push({ label, value });
-        }
-      }
-    }
+    // Las especificaciones viven en su propio campo; si el producto aún no las
+    // tiene (datos anteriores), se recorre la descripción como antes.
+    const fuente = p.specifications?.trim() ? p.specifications : p.description;
+    const lista = especificacionesDe(fuente);
 
     if (lista.length === 0) {
       if (p.categoriaName) lista.push({ label: 'Categoría', value: p.categoriaName });

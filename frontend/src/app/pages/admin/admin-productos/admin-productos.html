@@ -95,6 +95,20 @@
         ></textarea>
       </div>
 
+      <div class="mb-2">
+        <label class="form-label small fw-semibold">Especificaciones</label>
+        <textarea
+          class="form-control form-control-sm"
+          rows="5"
+          formControlName="specifications"
+          [class.is-invalid]="invalido('specifications')"
+          placeholder="· **Característica**: Valor"
+        ></textarea>
+        <div class="form-text">
+          Una especificación por línea, con el nombre en negrita: <code>· **Característica**: Valor</code>
+        </div>
+      </div>
+
       <div class="row g-2">
         <div class="col-6 mb-2">
           <label class="form-label small fw-semibold">Precio (S/)</label>
