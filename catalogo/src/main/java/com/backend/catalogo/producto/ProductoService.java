@@ -68,11 +68,11 @@ public class ProductoService {
                 .description(dto.description())
                 .specifications(dto.specifications())
                 .precio(dto.precio())
-                .imageUrl(dto.imageUrl())
                 .stock(dto.stock())
                 .categoria(categoriaService.buscar(dto.categoriaId()))
                 .marca(dto.marcaId() != null ? marcaService.buscar(dto.marcaId()) : null)
                 .build();
+        aplicarImagenes(producto, dto.imagenes());
 
         return ProductoResponse.desde(repositorio.save(producto));
     }
@@ -86,12 +86,32 @@ public class ProductoService {
         producto.setDescription(dto.description());
         producto.setSpecifications(dto.specifications());
         producto.setPrecio(dto.precio());
-        producto.setImageUrl(dto.imageUrl());
         producto.setStock(dto.stock());
         producto.setCategoria(categoriaService.buscar(dto.categoriaId()));
         producto.setMarca(dto.marcaId() != null ? marcaService.buscar(dto.marcaId()) : null);
+        aplicarImagenes(producto, dto.imagenes());
 
         return ProductoResponse.desde(repositorio.save(producto));
+    }
+
+    /**
+     * Reemplaza la galería del producto. La primera imagen queda también en
+     * `imageUrl` (imagen principal) para no romper tarjetas ni el carrito, que
+     * consumen una única imagen.
+     */
+    private void aplicarImagenes(Producto producto, List<String> urls) {
+        List<String> limpias = urls == null ? List.of()
+                : urls.stream().map(String::trim).filter(u -> !u.isBlank()).toList();
+
+        producto.getImagenes().clear();
+        for (int i = 0; i < limpias.size(); i++) {
+            producto.getImagenes().add(ProductoImagen.builder()
+                    .producto(producto)
+                    .url(limpias.get(i))
+                    .posicion(i)
+                    .build());
+        }
+        producto.setImageUrl(limpias.isEmpty() ? null : limpias.get(0));
     }
 
     @Transactional

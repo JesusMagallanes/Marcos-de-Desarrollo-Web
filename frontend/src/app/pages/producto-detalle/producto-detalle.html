@@ -27,14 +27,16 @@
               data-bs-interval="10000"
             >
               <div class="carousel-inner">
-                <div class="carousel-item active" data-bs-interval="10000">
-                  <img
-                    class="d-block w-100"
-                    [src]="p.imageUrl || '/Img/img.png'"
-                    [alt]="p.name"
-                    style="padding: 30px"
-                  />
-                </div>
+                @for (img of imagenesDetalle(); track img; let primero = $first) {
+                  <div class="carousel-item" [class.active]="primero" data-bs-interval="10000">
+                    <img
+                      class="d-block w-100"
+                      [src]="img"
+                      [alt]="p.name"
+                      style="padding: 30px"
+                    />
+                  </div>
+                }
               </div>
               <button
                 class="carousel-control-prev"

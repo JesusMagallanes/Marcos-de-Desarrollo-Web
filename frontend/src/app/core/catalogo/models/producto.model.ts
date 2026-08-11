@@ -6,7 +6,10 @@ export interface Producto {
   /** Lista de especificaciones en Markdown, separada del párrafo de descripción. */
   specifications: string | null;
   precio: number;
+  /** Imagen principal (la primera de la galería), para tarjetas y carrito. */
   imageUrl: string | null;
+  /** Galería completa de imágenes, ordenada. */
+  imagenes: string[];
   stock: number;
   categoriaId: number;
   categoriaName: string;
@@ -19,7 +22,7 @@ export interface ProductoRequest {
   description: string;
   specifications: string | null;
   precio: number;
-  imageUrl: string | null;
+  imagenes: string[];
   stock: number;
   categoriaId: number;
   marcaId: number | null;

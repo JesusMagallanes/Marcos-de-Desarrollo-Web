@@ -1,10 +1,13 @@
 package com.backend.catalogo.producto;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.backend.catalogo.categoria.Categoria;
 import com.backend.catalogo.marca.Marca;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -13,6 +16,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
@@ -20,6 +25,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "producto")
@@ -61,6 +68,16 @@ public class Producto {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "marca_id")
     private Marca marca;
+
+    /**
+     * Galería de imágenes, ordenada por posición. `imageUrl` sigue guardando la
+     * primera (imagen principal) para tarjetas y carrito. `@BatchSize` evita el
+     * N+1 en los listados: se carga una consulta por lote, no una por producto.
+     */
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("posicion ASC")
+    @BatchSize(size = 100)
+    private List<ProductoImagen> imagenes = new ArrayList<>();
 
     /** Bloqueo optimista: dos descuentos de stock simultáneos no se pisan. */
     @Version

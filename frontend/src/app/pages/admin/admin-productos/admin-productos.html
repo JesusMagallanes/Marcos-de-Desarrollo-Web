@@ -132,8 +132,29 @@
       </div>
 
       <div class="mb-2">
-        <label class="form-label small fw-semibold">URL de imagen</label>
-        <input class="form-control form-control-sm" formControlName="imageUrl" [class.is-invalid]="invalido('imageUrl')" />
+        <label class="form-label small fw-semibold">Imágenes (URLs)</label>
+        @for (imagen of imagenesControles; track $index) {
+          <div class="input-group input-group-sm mb-1">
+            <span class="input-group-text" [class.text-success]="$index === 0">{{ $index + 1 }}</span>
+            <input
+              class="form-control"
+              [formControlName]="'imagenes.' + $index"
+              [class.is-invalid]="imagen.invalid && imagen.touched"
+              placeholder="https://…"
+            />
+            @if (imagenesControles.length > 1) {
+              <button type="button" class="btn btn-outline-danger" (click)="quitarImagen($index)">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            }
+          </div>
+        }
+        <div class="d-flex justify-content-between align-items-center">
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="agregarImagen()">
+            <i class="fa-solid fa-plus me-1"></i>Otra imagen
+          </button>
+          <span class="form-text mb-0">La primera es la imagen principal.</span>
+        </div>
       </div>
 
       <div class="row g-2">

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import com.backend.catalogo.producto.Producto;
+import com.backend.catalogo.producto.ProductoImagen;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -28,6 +29,7 @@ public final class ProductoDtos {
             String specifications,
             BigDecimal precio,
             String imageUrl,
+            List<String> imagenes,
             Integer stock,
             Long categoriaId,
             String categoriaName,
@@ -42,6 +44,7 @@ public final class ProductoDtos {
                     p.getSpecifications(),
                     p.getPrecio(),
                     p.getImageUrl(),
+                    p.getImagenes().stream().map(ProductoImagen::getUrl).toList(),
                     p.getStock(),
                     p.getCategoria().getId(),
                     p.getCategoria().getName(),
@@ -55,7 +58,7 @@ public final class ProductoDtos {
             @NotBlank @Size(max = 500) String description,
             @Size(max = 2000) String specifications,
             @NotNull @DecimalMin(value = "0.01", message = "El precio debe ser mayor que 0") BigDecimal precio,
-            String imageUrl,
+            @Size(max = 20) List<@Size(max = 1000) String> imagenes,
             @NotNull @Min(value = 0, message = "El stock no puede ser negativo") Integer stock,
             @NotNull Long categoriaId,
             Long marcaId) {

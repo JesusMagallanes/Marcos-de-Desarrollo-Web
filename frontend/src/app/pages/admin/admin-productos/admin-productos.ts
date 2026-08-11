@@ -10,6 +10,7 @@ import {
   Marca,
   MarcaService,
   Producto,
+  ProductoRequest,
   ProductoService,
 } from '../../../core';
 
@@ -61,11 +62,23 @@ export class AdminProductos implements OnInit, OnDestroy {
     description: ['', [Validators.required, Validators.maxLength(500)]],
     specifications: ['', [Validators.maxLength(2000)]],
     precio: [0, [Validators.required, Validators.min(0.01)]],
-    imageUrl: ['', [Validators.required]],
+    imagenes: this.fb.array([this.fb.control('', [Validators.maxLength(1000)])]),
     stock: [0, [Validators.required, Validators.min(0)]],
     categoriaId: [0, [Validators.required, Validators.min(1)]],
     marcaId: [0, [Validators.required, Validators.min(1)]],
   });
+
+  protected get imagenesControles() {
+    return this.form.controls.imagenes.controls;
+  }
+
+  protected agregarImagen(): void {
+    this.form.controls.imagenes.push(this.fb.control('', [Validators.maxLength(1000)]));
+  }
+
+  protected quitarImagen(indice: number): void {
+    this.form.controls.imagenes.removeAt(indice);
+  }
 
   ngOnInit(): void {
     this.cargar();
@@ -102,11 +115,12 @@ export class AdminProductos implements OnInit, OnDestroy {
       description: '',
       specifications: '',
       precio: 0,
-      imageUrl: '',
       stock: 0,
       categoriaId: 0,
       marcaId: 0,
     });
+    this.form.controls.imagenes.clear();
+    this.agregarImagen();
     this.formAbierto.set(true);
   }
 
@@ -118,8 +132,7 @@ export class AdminProductos implements OnInit, OnDestroy {
       // El backend admite specifications nula; el formulario trabaja con cadena vacía.
       specifications: p.specifications ?? '',
       precio: p.precio,
-      // El backend admite imageUrl nula; el formulario trabaja con cadena vacía.
-      imageUrl: p.imageUrl ?? '',
+      imagenes: p.imagenes.length ? p.imagenes : [p.imageUrl ?? ''],
       stock: p.stock,
       categoriaId: p.categoriaId,
       marcaId: p.marcaId ?? 0,
@@ -140,8 +153,19 @@ export class AdminProductos implements OnInit, OnDestroy {
 
     this.guardando.set(true);
     this.estado.limpiarError();
-    const dto = this.form.getRawValue();
+    const valores = this.form.getRawValue();
     const id = this.editandoId();
+
+    const dto: ProductoRequest = {
+      name: valores.name,
+      description: valores.description,
+      specifications: valores.specifications,
+      precio: valores.precio,
+      imagenes: valores.imagenes.map((u: string | null) => (u ?? '').trim()).filter(Boolean),
+      stock: valores.stock,
+      categoriaId: valores.categoriaId,
+      marcaId: valores.marcaId,
+    };
 
     const peticion = id
       ? this.productoService.actualizar(id, dto)

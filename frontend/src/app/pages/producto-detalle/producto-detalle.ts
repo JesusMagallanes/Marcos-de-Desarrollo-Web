@@ -61,6 +61,14 @@ export class ProductoDetalle {
 
   protected precioMostrado = computed(() => `S/. ${(this.producto()?.precio ?? 0).toFixed(2)}`);
 
+  /** Galería del carrusel: la del producto, la principal como respaldo o la de relleno. */
+  protected imagenesDetalle = computed(() => {
+    const p = this.producto();
+    if (!p) return [];
+    const lista = (p.imagenes?.length ? p.imagenes : p.imageUrl ? [p.imageUrl] : []).filter(Boolean);
+    return lista.length ? lista : ['/Img/img.png'];
+  });
+
   protected especificaciones = computed<Especificacion[]>(() => {
     const p = this.producto();
     if (!p) return [];
