@@ -77,6 +77,9 @@ public class Producto {
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("posicion ASC")
     @BatchSize(size = 100)
+    // Sin @Builder.Default el builder ignora este inicializador y deja la lista
+    // en null: crear un producto reventaba con NPE al aplicar las imágenes.
+    @Builder.Default
     private List<ProductoImagen> imagenes = new ArrayList<>();
 
     /** Bloqueo optimista: dos descuentos de stock simultáneos no se pisan. */

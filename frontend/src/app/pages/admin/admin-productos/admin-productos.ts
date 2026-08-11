@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CurrencyPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -50,13 +51,6 @@ export class AdminProductos implements OnInit, OnDestroy {
     );
   });
 
-  /** Solo las marcas de la categoría elegida, como el select dependiente del admin viejo. */
-  protected marcasDisponibles = computed(() => {
-    const catId = this.form.controls.categoriaId.value;
-    if (!catId) return this.marcas();
-    return this.marcas().filter((m) => m.categoriaId === +catId);
-  });
-
   protected form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(150)]],
     description: ['', [Validators.required, Validators.maxLength(500)]],
@@ -66,6 +60,21 @@ export class AdminProductos implements OnInit, OnDestroy {
     stock: [0, [Validators.required, Validators.min(0)]],
     categoriaId: [0, [Validators.required, Validators.min(1)]],
     marcaId: [0, [Validators.required, Validators.min(1)]],
+  });
+
+  /**
+   * La categoría elegida, como señal: `computed` no reacciona a un
+   * `control.value` suelto, así que el select de marcas nunca se filtraba.
+   */
+  private categoriaElegida = toSignal(this.form.controls.categoriaId.valueChanges, {
+    initialValue: this.form.controls.categoriaId.value,
+  });
+
+  /** Solo las marcas de la categoría elegida, como el select dependiente del admin viejo. */
+  protected marcasDisponibles = computed(() => {
+    const catId = this.categoriaElegida();
+    if (!catId) return this.marcas();
+    return this.marcas().filter((m) => m.categoriaId === +catId);
   });
 
   protected get imagenesControles() {
@@ -126,13 +135,20 @@ export class AdminProductos implements OnInit, OnDestroy {
 
   protected editar(p: Producto): void {
     this.editandoId.set(p.id);
+    const urls = p.imagenes.length ? p.imagenes : [p.imageUrl ?? ''];
+
+    // setValue exige que el FormArray tenga ya tantos controles como URLs: sin
+    // esto, editar un producto con más imágenes que el anterior reventaba.
+    this.form.controls.imagenes.clear();
+    urls.forEach(() => this.agregarImagen());
+
     this.form.setValue({
       name: p.name,
       description: p.description,
       // El backend admite specifications nula; el formulario trabaja con cadena vacía.
       specifications: p.specifications ?? '',
       precio: p.precio,
-      imagenes: p.imagenes.length ? p.imagenes : [p.imageUrl ?? ''],
+      imagenes: urls,
       stock: p.stock,
       categoriaId: p.categoriaId,
       marcaId: p.marcaId ?? 0,

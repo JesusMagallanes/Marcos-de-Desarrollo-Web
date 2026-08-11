@@ -98,19 +98,37 @@ public class ProductoService {
      * Reemplaza la galería del producto. La primera imagen queda también en
      * `imageUrl` (imagen principal) para no romper tarjetas ni el carrito, que
      * consumen una única imagen.
+     *
+     * Las filas existentes se REUTILIZAN en vez de borrarlas y volver a
+     * insertarlas: dentro de un mismo flush Hibernate emite los INSERT antes que
+     * los DELETE, así que un `clear()` + `add()` chocaba contra el índice único
+     * `uk_producto_imagen_producto_posicion` y la edición moría con un 409.
      */
     private void aplicarImagenes(Producto producto, List<String> urls) {
         List<String> limpias = urls == null ? List.of()
                 : urls.stream().map(String::trim).filter(u -> !u.isBlank()).toList();
 
-        producto.getImagenes().clear();
+        List<ProductoImagen> actuales = producto.getImagenes();
+
         for (int i = 0; i < limpias.size(); i++) {
-            producto.getImagenes().add(ProductoImagen.builder()
-                    .producto(producto)
-                    .url(limpias.get(i))
-                    .posicion(i)
-                    .build());
+            if (i < actuales.size()) {
+                ProductoImagen existente = actuales.get(i);
+                existente.setUrl(limpias.get(i));
+                existente.setPosicion(i);
+            } else {
+                actuales.add(ProductoImagen.builder()
+                        .producto(producto)
+                        .url(limpias.get(i))
+                        .posicion(i)
+                        .build());
+            }
         }
+
+        // Las que sobran desaparecen por orphanRemoval.
+        if (actuales.size() > limpias.size()) {
+            actuales.subList(limpias.size(), actuales.size()).clear();
+        }
+
         producto.setImageUrl(limpias.isEmpty() ? null : limpias.get(0));
     }
 
