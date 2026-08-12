@@ -91,6 +91,32 @@
         color: #8a9b90;
       }
 
+      /* Aviso de conexión lenta, en CSS y no en JavaScript a propósito.
+         En una red lenta la mayor parte de la espera ocurre ANTES de que el
+         bundle llegue y pueda ejecutarse un solo temporizador: justo cuando el
+         usuario más necesita saber que la cosa sigue viva. Una animación
+         declarativa empieza a contar en cuanto se pinta el HTML, sin esperar a
+         nada, y además no necesita script inline (la CSP no lo permitiría). */
+      #loading-screen .aviso-lento {
+        margin: 0;
+        max-width: 280px;
+        text-align: center;
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        font-size: 12px;
+        color: #a8b5ac;
+        opacity: 0;
+        /* 3,5 s: con la compresión activada la tienda entra en ~2 s incluso en
+           4G, así que a partir de aquí la espera ya se sale de lo normal y el
+           mensaje aporta en vez de estorbar. */
+        animation: avisar-lentitud 0.6s ease 3.5s forwards;
+      }
+
+      @keyframes avisar-lentitud {
+        to {
+          opacity: 1;
+        }
+      }
+
       #loading-screen .puntos {
         display: inline-flex;
         gap: 3px;
@@ -176,9 +202,12 @@
       </div>
       <div class="barra"><span></span></div>
       <p class="texto">
-        Cargando SmartZone
+        <span id="texto-carga">Cargando SmartZone</span>
         <span class="puntos"><i></i><i></i><i></i></span>
       </p>
+      <!-- Aparece solo si la carga pasa de 6 segundos; ver la animación
+           `avisar-lentitud` en el <style> de arriba. -->
+      <p class="aviso-lento">Tu conexión parece lenta. Seguimos cargando la tienda…</p>
     </div>
     <app-root></app-root>
   </body>
