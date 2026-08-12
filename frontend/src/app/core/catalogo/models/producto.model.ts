@@ -5,7 +5,24 @@ export interface Producto {
   description: string;
   /** Lista de especificaciones en Markdown, separada del párrafo de descripción. */
   specifications: string | null;
+  /** Precio de lista (el "antes"); nunca cambia al aplicar un descuento. */
   precio: number;
+  /** Precio con descuento ya calculado; null si el producto no está en oferta. */
+  precioOferta: number | null;
+  /** Cómo se calculó el descuento: `PORCENTAJE` o `MONTO`; null si no hay. */
+  descuentoTipo: string | null;
+  /** Valor del descuento: porcentaje o monto en soles; null si no hay. */
+  descuentoValor: number | null;
+  ofertaInicio: string | null;
+  ofertaFin: string | null;
+  /** Lo que paga el cliente hoy: precio de oferta vigente o precio de lista. */
+  precioActual: number;
+  /** true si el descuento está activo (fechas vigentes). */
+  enOferta: boolean;
+  /** Calificación promedio de los clientes (1-5); null si aún no hay valoraciones. */
+  calificacionPromedio: number | null;
+  /** Cuántas valoraciones tiene el producto. */
+  cantidadValoraciones: number | null;
   /** Imagen principal (la primera de la galería), para tarjetas y carrito. */
   imageUrl: string | null;
   /** Galería completa de imágenes, ordenada. */
@@ -37,4 +54,11 @@ export function imagenDe(producto: Pick<Producto, 'imageUrl'>): string {
 
 export function sinStock(producto: Pick<Producto, 'stock'>): boolean {
   return producto.stock <= 0;
+}
+
+/** Etiqueta del descuento para la tienda: `-15%` o `-S/ 20`. */
+export function etiquetaDescuento(p: Producto): string {
+  if (!p.enOferta || p.descuentoValor == null) return '';
+  if (p.descuentoTipo === 'MONTO') return `-S/ ${p.descuentoValor}`;
+  return `-${p.descuentoValor}%`;
 }

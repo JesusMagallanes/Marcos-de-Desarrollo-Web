@@ -41,6 +41,10 @@ export class Home implements OnInit {
   protected destacados = computed(() => this.productos().slice(0, 10));
   protected topChunks = computed(() => this.chunk(this.destacados(), 5));
 
+  /** Productos con descuento vigente, para el carrusel de ofertas. */
+  protected enOferta = computed(() => this.productos().filter((p) => p.enOferta));
+  protected ofertaChunks = computed(() => this.chunk(this.enOferta(), 5));
+
   ngOnInit(): void {
     forkJoin({
       categorias: this.categoriaService.listar(),

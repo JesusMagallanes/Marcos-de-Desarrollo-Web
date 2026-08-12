@@ -94,7 +94,14 @@
                         <img [src]="p.imageUrl || '/Img/img.png'" [alt]="p.name" class="rounded miniatura" />
                         <div class="flex-grow-1">
                           <div class="fw-semibold">{{ p.name }}</div>
-                          <div class="small text-success">{{ p.precio | currency: 'PEN' : 'S/ ' }}</div>
+                          @if (p.enOferta) {
+                            <div class="small">
+                              <span class="text-danger fw-semibold">{{ p.precioActual | currency: 'PEN' : 'S/ ' }}</span>
+                              <s class="text-muted ms-1">{{ p.precio | currency: 'PEN' : 'S/ ' }}</s>
+                            </div>
+                          } @else {
+                            <div class="small text-success">{{ p.precio | currency: 'PEN' : 'S/ ' }}</div>
+                          }
                         </div>
                       </div>
                     </div>

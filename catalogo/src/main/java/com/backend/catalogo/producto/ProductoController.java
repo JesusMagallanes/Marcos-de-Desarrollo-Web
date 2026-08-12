@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.backend.catalogo.producto.dto.ProductoDtos.AplicarDescuentoRequest;
 import com.backend.catalogo.producto.dto.ProductoDtos.PaginaResponse;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoRequest;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoResponse;
+import com.backend.catalogo.producto.dto.ProductoDtos.QuitarDescuentoRequest;
 import com.backend.catalogo.shared.validacion.Limites;
 
 import jakarta.validation.Valid;
@@ -78,6 +80,22 @@ public class ProductoController {
     public ProductoResponse actualizar(@PathVariable @Positive Long id,
             @Valid @RequestBody ProductoRequest dto) {
         return servicio.actualizar(id, dto);
+    }
+
+    /** POST /api/productos/descuento — aplica un descuento a un lote de productos. */
+    @PostMapping("/descuento")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public List<ProductoResponse> aplicarDescuento(
+            @Valid @RequestBody AplicarDescuentoRequest dto) {
+        return servicio.aplicarDescuento(dto);
+    }
+
+    /** POST /api/productos/descuento/limpiar — quita el descuento de un lote. */
+    @PostMapping("/descuento/limpiar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public List<ProductoResponse> quitarDescuento(
+            @Valid @RequestBody QuitarDescuentoRequest dto) {
+        return servicio.quitarDescuento(dto.productoIds());
     }
 
     @DeleteMapping("/{id}")

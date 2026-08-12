@@ -17,45 +17,58 @@
     >
       <div class="row row-cols-1 row-cols-lg-2 g-5">
         <div class="col">
-          <div class="imgprod position-relative">
-            <h4 class="card-title mt-4"><b>{{ p.name }}</b></h4>
+          <h4 class="card-title mt-4"><b>{{ p.name }}</b></h4>
 
-            <div
-              id="carousel-detalle"
-              class="carousel slide"
-              data-bs-ride="carousel"
-              data-bs-interval="10000"
-            >
-              <div class="carousel-inner">
-                @for (img of imagenesDetalle(); track img; let primero = $first) {
-                  <div class="carousel-item" [class.active]="primero" data-bs-interval="10000">
-                    <img
-                      class="d-block w-100"
-                      [src]="img"
-                      [alt]="p.name"
-                      style="padding: 30px"
-                    />
-                  </div>
-                }
-              </div>
-              <button
-                class="carousel-control-prev"
-                type="button"
-                data-bs-target="#carousel-detalle"
-                data-bs-slide="prev"
-              >
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-              </button>
-              <button
-                class="carousel-control-next"
-                type="button"
-                data-bs-target="#carousel-detalle"
-                data-bs-slide="next"
-              >
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-              </button>
+          <div class="galeria-producto">
+            <div class="miniaturas">
+              @for (img of imagenesDetalle(); track img; let i = $index) {
+                <button
+                  type="button"
+                  class="miniatura"
+                  [class.activa]="i === imagenActiva()"
+                  (click)="seleccionarImagen(i)"
+                  [attr.aria-label]="'Vista ' + (i + 1) + ' de ' + p.name"
+                >
+                  <img [src]="img" [alt]="p.name + ' vista ' + (i + 1)" />
+                </button>
+              }
+            </div>
+
+            <div class="imagen-principal">
+              <img [src]="imagenActivaSrc()" [alt]="p.name" />
+
+              @if (imagenesDetalle().length > 1) {
+                <button
+                  type="button"
+                  class="gallery-arrow arrow-prev"
+                  (click)="anterior()"
+                  aria-label="Imagen anterior"
+                >
+                  <span aria-hidden="true">&#10094;</span>
+                </button>
+                <button
+                  type="button"
+                  class="gallery-arrow arrow-next"
+                  (click)="siguiente()"
+                  aria-label="Imagen siguiente"
+                >
+                  <span aria-hidden="true">&#10095;</span>
+                </button>
+              }
+
+              @if (imagenesDetalle().length > 1) {
+                <div class="puntos">
+                  @for (img of imagenesDetalle(); track img; let i = $index) {
+                    <button
+                      type="button"
+                      class="punto"
+                      [class.activo]="i === imagenActiva()"
+                      (click)="seleccionarImagen(i)"
+                      [attr.aria-label]="'Ir a la vista ' + (i + 1)"
+                    ></button>
+                  }
+                </div>
+              }
             </div>
           </div>
 
@@ -138,7 +151,13 @@
           </div>
 
           <h2 class="card-title text-start mt-4" style="color: #06b56c">
+            @if (enOferta()) {
+              <span class="badge bg-danger align-middle me-2" style="font-size: 0.65em">{{ etiquetaDescuento() }}</span>
+            }
             {{ precioMostrado() }}
+            @if (enOferta()) {
+              <s class="text-muted ms-2" style="font-size: 0.6em">{{ precioOriginalMostrado() }}</s>
+            }
           </h2>
           <br />
 
@@ -175,5 +194,134 @@
         </div>
       </div>
     </div>
+
+    <!-- INICIO VALORACIONES -->
+    <div class="container mt-5">
+      <h5
+        class="card-title text-start mb-3"
+        style="border-bottom: 2px solid #bdc3c7; padding-bottom: 13px"
+      >
+        Valoraciones
+        @if (promedio() > 0) {
+          <span class="badge bg-success ms-2 align-middle">{{ promedio() }} / 5</span>
+        }
+      </h5>
+
+      @if (promedio() > 0) {
+        <div class="mb-4 d-flex align-items-center gap-2">
+          <span class="text-warning fs-5" [attr.aria-label]="promedio() + ' de 5 estrellas'">
+            @for (n of estrellas; track n) {
+              <i
+                class="fa-solid fa-star"
+                [class.text-warning]="n <= redondeadoPromedio()"
+                [class.text-muted]="n > redondeadoPromedio()"
+              ></i>
+            }
+          </span>
+          <span class="text-muted small">
+            {{ promedio() }} de 5 · {{ valoraciones().length }} valoración(es)
+          </span>
+        </div>
+      }
+
+      <!-- Formulario -->
+      @if (autenticado()) {
+        @if (miValoracion(); as mia) {
+          <div class="alert alert-info py-2 small">
+            Ya valoraste este producto con {{ mia.calificacion }} estrella(s). Puedes actualizar tu
+            valoración o eliminarla.
+          </div>
+        }
+        <div class="tarjeta-valoracion p-3 mb-4">
+          <div class="mb-2 d-flex align-items-center">
+            <span class="fw-semibold me-2">Tu calificación:</span>
+            @for (n of estrellas; track n) {
+              <button
+                type="button"
+                class="estrella"
+                [attr.aria-label]="n + ' estrellas'"
+                (click)="seleccionarCalificacion(n)"
+              >
+                <i
+                  class="fa-solid fa-star"
+                  [class.text-warning]="calificacion() >= n"
+                  [class.text-muted]="calificacion() < n"
+                ></i>
+              </button>
+            }
+          </div>
+          <textarea
+            class="form-control mb-2"
+            rows="3"
+            maxlength="1000"
+            placeholder="Cuéntanos tu experiencia con este producto…"
+            [value]="comentario()"
+            (input)="comentario.set($any($event.target).value)"
+          ></textarea>
+          <div class="d-flex justify-content-end gap-2">
+            @if (miValoracion()) {
+              <button
+                type="button"
+                class="btn btn-outline-danger btn-sm"
+                [disabled]="guardandoValoracion()"
+                (click)="eliminarMiValoracion()"
+              >
+                <i class="fa-solid fa-trash me-1"></i>Eliminar
+              </button>
+            }
+            <button
+              type="button"
+              class="btn btn-success btn-sm"
+              [disabled]="guardandoValoracion()"
+              (click)="guardarValoracion()"
+            >
+              <i class="fa-solid fa-check me-1"></i>{{ miValoracion() ? 'Actualizar valoración' : 'Publicar valoración' }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="alert alert-light border small mb-4">
+          <a
+            routerLink="/login"
+            [queryParams]="{ redirigir: '/producto/' + p.id }"
+            class="link-success fw-semibold"
+          >
+            Inicia sesión
+          </a>
+          para calificar este producto.
+        </div>
+      }
+
+      <!-- Lista -->
+      @if (valoraciones().length > 0) {
+        <div class="row g-3">
+          @for (v of valoraciones(); track v.id) {
+            <div class="col-12 col-md-6">
+              <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-semibold">{{ v.nombre }}</span>
+                    <span [attr.aria-label]="v.calificacion + ' de 5 estrellas'">
+                      @for (n of estrellas; track n) {
+                        <i
+                          class="fa-solid fa-star"
+                          [class.text-warning]="n <= v.calificacion"
+                          [class.text-muted]="n > v.calificacion"
+                        ></i>
+                      }
+                    </span>
+                  </div>
+                  <small class="text-muted">{{ v.creadoEn | date: 'medium' }}</small>
+                  <p class="mb-0 mt-2">{{ v.comentario }}</p>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (valoracionesCargadas()) {
+        <p class="text-muted">Aún no hay valoraciones para este producto. Sé el primero en opinar.</p>
+      }
+    </div>
+    <!-- FIN VALORACIONES -->
   }
 </div>

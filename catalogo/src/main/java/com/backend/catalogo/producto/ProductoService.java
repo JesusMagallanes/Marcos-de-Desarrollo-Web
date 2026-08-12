@@ -1,6 +1,10 @@
 package com.backend.catalogo.producto;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -9,11 +13,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.catalogo.categoria.CategoriaService;
 import com.backend.catalogo.marca.MarcaService;
+import com.backend.catalogo.producto.dto.ProductoDtos.AplicarDescuentoRequest;
 import com.backend.catalogo.producto.dto.ProductoDtos.LineaPrecio;
 import com.backend.catalogo.producto.dto.ProductoDtos.PaginaResponse;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoRequest;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoResponse;
+import com.backend.catalogo.shared.error.ConflictoException;
 import com.backend.catalogo.shared.error.RecursoNoEncontradoException;
+import com.backend.catalogo.valoracion.ValoracionRepository;
+import com.backend.catalogo.valoracion.ValoracionService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,19 +35,22 @@ public class ProductoService {
     private final ProductoRepository repositorio;
     private final CategoriaService categoriaService;
     private final MarcaService marcaService;
+    private final ValoracionService valoracionService;
 
     public List<ProductoResponse> listar(String busqueda) {
         List<Producto> productos = (busqueda == null || busqueda.isBlank())
                 ? repositorio.listarConRelaciones()
                 : repositorio.buscarPorTexto(busqueda.trim());
 
-        return productos.stream().map(ProductoResponse::desde).toList();
+        return aRespuestas(productos);
     }
 
     public ProductoResponse obtener(Long id) {
-        return repositorio.buscarConRelaciones(id)
-                .map(ProductoResponse::desde)
+        Producto producto = repositorio.buscarConRelaciones(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto " + id + " no encontrado"));
+
+        ValoracionRepository.ResumenValoracion resumen = resumenDe(List.of(id)).get(id);
+        return aRespuesta(producto, Instant.now(), resumen);
     }
 
     public PaginaResponse<ProductoResponse> listarPorCategoria(String slug, int page, int size) {
@@ -49,7 +60,7 @@ public class ProductoService {
         Page<Producto> pagina = repositorio.listarPorCategoriaSlug(slug, PageRequest.of(page, size));
 
         return new PaginaResponse<>(
-                pagina.getContent().stream().map(ProductoResponse::desde).toList(),
+                aRespuestas(pagina.getContent()),
                 pagina.getNumber(),
                 pagina.getSize(),
                 pagina.getTotalElements(),
@@ -59,6 +70,83 @@ public class ProductoService {
     /** Consumido por `compras` para calcular el total en el servidor. */
     public List<LineaPrecio> precios(List<Long> ids) {
         return repositorio.findByIdIn(ids).stream().map(LineaPrecio::desde).toList();
+    }
+
+    private List<ProductoResponse> aRespuestas(List<Producto> productos) {
+        Instant ahora = Instant.now();
+        Map<Long, ValoracionRepository.ResumenValoracion> resumenes =
+                resumenDe(productos.stream().map(Producto::getId).toList());
+        return productos.stream()
+                .map(p -> aRespuesta(p, ahora, resumenes.get(p.getId())))
+                .toList();
+    }
+
+    private ProductoResponse aRespuesta(Producto p, Instant ahora,
+            ValoracionRepository.ResumenValoracion resumen) {
+        return ProductoResponse.desde(p, ahora,
+                resumen == null ? null : resumen.getPromedio(),
+                resumen == null ? null : resumen.getCantidad());
+    }
+
+    private Map<Long, ValoracionRepository.ResumenValoracion> resumenDe(List<Long> productoIds) {
+        return valoracionService.resumenPorProductos(productoIds);
+    }
+
+    /**
+     * Aplica un descuento (porcentaje o monto) a un lote de productos. El
+     * precio de oferta se calcula y guarda en el momento; `precio` (el de
+     * lista) no cambia, para poder mostrar el "antes" en la tienda.
+     */
+    @Transactional
+    public List<ProductoResponse> aplicarDescuento(AplicarDescuentoRequest dto) {
+        if (dto.fin().isBefore(dto.inicio())) {
+            throw new ConflictoException("La fecha de fin debe ser posterior a la de inicio");
+        }
+        if (!"PORCENTAJE".equals(dto.tipo()) && !"MONTO".equals(dto.tipo())) {
+            throw new ConflictoException("Tipo de descuento no válido");
+        }
+
+        List<Producto> productos = repositorio.findAllById(dto.productoIds());
+        if (productos.size() != dto.productoIds().size()) {
+            throw new RecursoNoEncontradoException("Algunos productos no existen");
+        }
+
+        BigDecimal cien = new BigDecimal("100");
+        for (Producto p : productos) {
+            BigDecimal oferta = "PORCENTAJE".equals(dto.tipo())
+                    ? p.getPrecio()
+                            .multiply(BigDecimal.ONE
+                                    .subtract(dto.valor().divide(cien, 10, RoundingMode.HALF_UP)))
+                            .setScale(2, RoundingMode.HALF_UP)
+                    : p.getPrecio().subtract(dto.valor()).setScale(2, RoundingMode.HALF_UP);
+
+            if (oferta.compareTo(BigDecimal.ZERO) < 0) {
+                throw new ConflictoException(
+                        "El descuento no puede superar el precio de '" + p.getName() + "'");
+            }
+
+            p.setPrecioOferta(oferta);
+            p.setDescuentoTipo(dto.tipo());
+            p.setDescuentoValor(dto.valor());
+            p.setOfertaInicio(dto.inicio());
+            p.setOfertaFin(dto.fin());
+        }
+
+        return productos.stream().map(ProductoResponse::desde).toList();
+    }
+
+    /** Quita el descuento del lote indicado; el precio de lista queda vigente. */
+    @Transactional
+    public List<ProductoResponse> quitarDescuento(List<Long> productoIds) {
+        List<Producto> productos = repositorio.findAllById(productoIds);
+        for (Producto p : productos) {
+            p.setPrecioOferta(null);
+            p.setDescuentoTipo(null);
+            p.setDescuentoValor(null);
+            p.setOfertaInicio(null);
+            p.setOfertaFin(null);
+        }
+        return productos.stream().map(ProductoResponse::desde).toList();
     }
 
     @Transactional

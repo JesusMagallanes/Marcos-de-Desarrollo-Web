@@ -23,7 +23,11 @@
             @for (p of m.productos; track p.id) {
               <button type="button" class="product-btn" (click)="verProducto(p.id)">
                 <strong>{{ p.name }}</strong>
-                <span>S/ {{ p.precio }}</span>
+                @if (p.enOferta) {
+                  <span>S/ {{ p.precioActual }} <s class="text-muted">S/ {{ p.precio }}</s></span>
+                } @else {
+                  <span>S/ {{ p.precio }}</span>
+                }
               </button>
             }
           </div>

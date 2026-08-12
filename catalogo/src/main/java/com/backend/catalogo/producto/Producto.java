@@ -1,6 +1,7 @@
 package com.backend.catalogo.producto;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +55,24 @@ public class Producto {
     /** BigDecimal, no double: el monolito usaba double para dinero. */
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal precio;
+
+    /** Precio con descuento ya calculado; nulo si el producto no está en oferta. */
+    @Column(name = "precio_oferta", precision = 12, scale = 2)
+    private BigDecimal precioOferta;
+
+    /** Cómo se calculó el descuento: `PORCENTAJE` o `MONTO`. */
+    @Column(name = "descuento_tipo", length = 20)
+    private String descuentoTipo;
+
+    /** Valor del descuento: porcentaje (p. ej. 15) o monto en soles (p. ej. 20). */
+    @Column(name = "descuento_valor", precision = 12, scale = 2)
+    private BigDecimal descuentoValor;
+
+    @Column(name = "oferta_inicio")
+    private Instant ofertaInicio;
+
+    @Column(name = "oferta_fin")
+    private Instant ofertaFin;
 
     @Column(name = "image_url", length = 1000)
     private String imageUrl;

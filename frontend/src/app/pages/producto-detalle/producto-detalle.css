@@ -9,3 +9,258 @@
   border-radius: 8px;
   font-size: 0.9rem;
 }
+
+/* ── Valoraciones ─────────────────────────────────────── */
+
+.tarjeta-valoracion {
+  background: #f8faf9;
+  border: 1px solid #eef0f2;
+  border-radius: 12px;
+}
+
+.estrella {
+  background: transparent;
+  border: none;
+  padding: 0 2px;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.estrella:hover {
+  transform: scale(1.2);
+}
+
+.galeria-producto {
+  /* La miniatura se dimensiona en proporción a la imagen principal:
+     ~1/5 de su altura máxima, con un tope para no crecer demasiado. */
+  --alto-principal: 440px;
+  --tamano-miniatura: clamp(60px, calc(var(--alto-principal) / 5), 92px);
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.miniaturas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: var(--tamano-miniatura);
+  flex-shrink: 0;
+  /* No debe crecer más alto que la imagen principal: las demás miniaturas
+     quedan accesibles con scroll dentro de la columna. */
+  max-height: calc(var(--alto-principal) + 4rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c6c0 transparent;
+  padding-right: 0.25rem;
+}
+
+.miniaturas::-webkit-scrollbar {
+  width: 6px;
+}
+
+.miniaturas::-webkit-scrollbar-thumb {
+  background: #b8c6c0;
+  border-radius: 999px;
+}
+
+.miniatura {
+  display: block;
+  width: var(--tamano-miniatura);
+  padding: 5px;
+  background: #fff;
+  border: 2px solid #eef0f2;
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.miniatura:hover {
+  border-color: #b5e3cf;
+  transform: translateY(-2px);
+}
+
+.miniatura.activa {
+  border-color: #06b56c;
+  box-shadow: 0 0 0 3px rgba(6, 181, 108, 0.18);
+}
+
+.miniatura img {
+  display: block;
+  width: 100%;
+  height: calc(var(--tamano-miniatura) - 14px);
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f5f7f9;
+}
+
+.imagen-principal {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 480px;
+  padding: 2rem;
+  border: 1px solid #eceff0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.imagen-principal img {
+  max-width: 100%;
+  max-height: 440px;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.14));
+  transition: transform 0.25s ease;
+}
+
+.imagen-principal img:hover {
+  transform: scale(1.03);
+}
+
+.gallery-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  color: #2c3e50;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  z-index: 2;
+}
+
+.gallery-arrow:hover {
+  background: #06b56c;
+  color: #fff;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.arrow-prev {
+  left: 14px;
+}
+
+.arrow-next {
+  right: 14px;
+}
+
+.puntos {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+}
+
+.punto {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #c3cfc9;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    width 0.2s ease;
+}
+
+.punto:hover {
+  background: #8fa89c;
+}
+
+.punto.activo {
+  width: 22px;
+  border-radius: 999px;
+  background: #06b56c;
+}
+
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .galeria-producto {
+    flex-direction: column;
+    align-items: stretch;
+    --tamano-miniatura: 76px;
+  }
+
+  .miniaturas {
+    flex-direction: row;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .miniatura {
+    flex-shrink: 0;
+  }
+
+  .imagen-principal {
+    min-height: 380px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .galeria-producto {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .miniaturas {
+    display: none;
+  }
+
+  .imagen-principal {
+    min-height: 320px;
+    padding: 1.5rem;
+  }
+
+  .imagen-principal img {
+    max-height: 280px;
+  }
+
+  .gallery-arrow {
+    width: 34px;
+    height: 34px;
+  }
+
+  .arrow-prev {
+    left: 8px;
+  }
+
+  .arrow-next {
+    right: 8px;
+  }
+
+  .puntos {
+    bottom: 10px;
+    gap: 6px;
+    padding: 5px 10px;
+  }
+}

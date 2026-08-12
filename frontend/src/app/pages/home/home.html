@@ -43,6 +43,57 @@
     </section>
     <!-- FIN DE SECCIÓN DE CARRUSEL -->
 
+    <!-- INICIO DE SECCIÓN OFERTAS -->
+    @if (enOferta().length > 0) {
+      <section class="mas-vendidos py-4">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col text-start">
+              <h4>Ofertas del día</h4>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARRUSEL DE OFERTAS (Desktop) -->
+        <div id="carouselOfertas" class="carousel carousel-dark slide d-none d-lg-block" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            @for (chunk of ofertaChunks(); track $index) {
+              <div class="carousel-item" [class.active]="$index === 0" data-bs-interval="10000">
+                <div class="row justify-content-center">
+                  @for (p of chunk; track p.id) {
+                    <div class="col-md-2 efectos-targetas col-sm-4 mb-3">
+                      <app-producto-card [producto]="p" [variante]="'carrusel'" />
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <button class="carousel-control-prev" type="button" data-bs-target="#carouselOfertas"
+            data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#carouselOfertas"
+            data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+
+        <!-- Scroll horizontal móvil -->
+        <div class="d-lg-none d-flex overflow-auto py-3">
+          @for (p of enOferta(); track p.id) {
+            <div class="flex-shrink-0 me-3 product-card-item">
+              <app-producto-card [producto]="p" [variante]="'carrusel'" />
+            </div>
+          }
+        </div>
+      </section>
+    }
+    <!-- FIN DE SECCIÓN OFERTAS -->
+
     <!-- INICIO DE SECCIÓN PRODUCTOS TOP -->
     <section class="mas-vendidos py-4">
       <div class="container-fluid">

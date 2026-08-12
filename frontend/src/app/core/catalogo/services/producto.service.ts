@@ -5,7 +5,12 @@ import { PAGINACION } from '../../shared/config/constantes';
 import { acotarTamanoPagina, normalizarBusqueda } from '../../shared/config/limites';
 import { Pagina } from '../../shared/models';
 import { RUTAS_CATALOGO } from '../catalogo.routes';
-import { Producto, ProductoRequest } from '../models';
+import {
+  AplicarDescuentoRequest,
+  Producto,
+  ProductoRequest,
+  QuitarDescuentoRequest,
+} from '../models';
 
 /** Productos — servicio `catalogo` (:8081). */
 @Injectable({ providedIn: 'root' })
@@ -76,6 +81,20 @@ export class ProductoService {
   eliminar(id: number): Observable<void> {
     return this.http
       .delete<void>(RUTAS_CATALOGO.productos.porId(id))
+      .pipe(tap(() => this.invalidar()));
+  }
+
+  /** POST /api/productos/descuento — aplica un descuento a un lote. ADMINISTRADOR. */
+  aplicarDescuento(dto: AplicarDescuentoRequest): Observable<Producto[]> {
+    return this.http
+      .post<Producto[]>(RUTAS_CATALOGO.productos.descuento, dto)
+      .pipe(tap(() => this.invalidar()));
+  }
+
+  /** POST /api/productos/descuento/limpiar — quita el descuento de un lote. ADMINISTRADOR. */
+  quitarDescuento(dto: QuitarDescuentoRequest): Observable<Producto[]> {
+    return this.http
+      .post<Producto[]>(RUTAS_CATALOGO.productos.descuentoLimpiar, dto)
       .pipe(tap(() => this.invalidar()));
   }
 

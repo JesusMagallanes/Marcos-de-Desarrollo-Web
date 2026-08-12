@@ -12,6 +12,15 @@ function producto(id: number, nombre = 'Monitor'): Producto {
     description: 'desc',
     specifications: null,
     precio: 999.9,
+    precioOferta: null,
+    descuentoTipo: null,
+    descuentoValor: null,
+    ofertaInicio: null,
+    ofertaFin: null,
+    precioActual: 999.9,
+    enOferta: false,
+    calificacionPromedio: null,
+    cantidadValoraciones: null,
     imageUrl: null,
     imagenes: [],
     stock: 5,
@@ -109,5 +118,39 @@ describe('ProductoService', () => {
 
     servicio.recargar().subscribe();
     http.expectOne('/api/productos').flush([producto(1), producto(2)]);
+  });
+
+  it('aplicarDescuento() pega a /api/productos/descuento e invalida la caché', () => {
+    servicio.listar().subscribe();
+    http.expectOne('/api/productos').flush([producto(1)]);
+
+    servicio
+      .aplicarDescuento({
+        productoIds: [1],
+        tipo: 'PORCENTAJE',
+        valor: 15,
+        inicio: '2026-08-11T00:00',
+        fin: '2026-09-11T23:59',
+      })
+      .subscribe();
+    const req = http.expectOne({ url: '/api/productos/descuento', method: 'POST' });
+    expect(req.request.body).toMatchObject({ productoIds: [1], tipo: 'PORCENTAJE', valor: 15 });
+    req.flush([producto(1)]);
+
+    servicio.listar().subscribe();
+    http.expectOne({ url: '/api/productos', method: 'GET' }).flush([]);
+  });
+
+  it('quitarDescuento() pega a /api/productos/descuento/limpiar e invalida la caché', () => {
+    servicio.listar().subscribe();
+    http.expectOne('/api/productos').flush([producto(1)]);
+
+    servicio.quitarDescuento({ productoIds: [1] }).subscribe();
+    const req = http.expectOne({ url: '/api/productos/descuento/limpiar', method: 'POST' });
+    expect(req.request.body).toEqual({ productoIds: [1] });
+    req.flush([producto(1)]);
+
+    servicio.listar().subscribe();
+    http.expectOne({ url: '/api/productos', method: 'GET' }).flush([]);
   });
 });

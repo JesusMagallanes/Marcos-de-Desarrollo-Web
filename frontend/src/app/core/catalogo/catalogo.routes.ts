@@ -6,6 +6,10 @@ export const RUTAS_CATALOGO = {
     base: `${API}/productos`,
     porId: (id: number) => `${API}/productos/${id}`,
     porCategoria: (slug: string) => `${API}/productos/categoria/${slug}`,
+    descuento: `${API}/productos/descuento`,
+    descuentoLimpiar: `${API}/productos/descuento/limpiar`,
+    valoraciones: (productoId: number) => `${API}/productos/${productoId}/valoraciones`,
+    valoracionesMia: (productoId: number) => `${API}/productos/${productoId}/valoraciones/mia`,
   },
 
   categorias: {

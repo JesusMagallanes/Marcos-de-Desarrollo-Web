@@ -89,6 +89,12 @@ export const routes: Routes = [
         title: 'Admin · Productos',
       },
       {
+        path: 'descuentos',
+        loadComponent: () =>
+          import('./pages/admin/admin-descuentos/admin-descuentos').then((m) => m.AdminDescuentos),
+        title: 'Admin · Descuentos',
+      },
+      {
         path: 'categorias',
         loadComponent: () =>
           import('./pages/admin/admin-categorias/admin-categorias').then((m) => m.AdminCategorias),

@@ -10,6 +10,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 export class Admin {
   protected readonly secciones = [
     { ruta: 'productos', icono: 'fa-box', etiqueta: 'Productos' },
+    { ruta: 'descuentos', icono: 'fa-percent', etiqueta: 'Descuentos' },
     { ruta: 'categorias', icono: 'fa-layer-group', etiqueta: 'Categorías' },
     { ruta: 'marcas', icono: 'fa-tag', etiqueta: 'Marcas' },
     { ruta: 'usuarios', icono: 'fa-users', etiqueta: 'Usuarios' },
