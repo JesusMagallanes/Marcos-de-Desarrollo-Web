@@ -14,6 +14,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,15 +23,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
+import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.backend.usuarios.auth.oauth.OAuth2FailureHandler;
 import com.backend.usuarios.auth.oauth.OAuth2SuccessHandler;
@@ -64,14 +67,29 @@ public class SecurityConfig {
         return new ProviderManager(proveedor);
     }
 
-    /** Misma clave HMAC que usa el emisor; los otros 3 servicios replican este bean. */
+    /**
+     * Misma clave HMAC que usa el emisor; los otros 3 servicios replican este bean.
+     *
+     * A08: aquí faltaban las validaciones de emisor y audiencia que sí hacían
+     * catálogo, compras y el gateway. Un token emitido para otro sistema con la
+     * misma clave entraba en usuarios aunque el resto de servicios lo rechazara.
+     */
     @Bean
     JwtDecoder jwtDecoder() {
         SecretKeySpec clave = new SecretKeySpec(
                 propiedades.secreto().getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-        return NimbusJwtDecoder.withSecretKey(clave)
+
+        NimbusJwtDecoder decodificador = NimbusJwtDecoder.withSecretKey(clave)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
+
+        decodificador.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                new JwtTimestampValidator(),
+                new JwtIssuerValidator(propiedades.emisor()),
+                new JwtClaimValidator<List<String>>(JwtClaimNames.AUD,
+                        aud -> aud != null && aud.contains(propiedades.audiencia()))));
+
+        return decodificador;
     }
 
     /** Convierte el claim `rol` en la autoridad ROLE_x que espera @PreAuthorize. */
@@ -97,7 +115,7 @@ public class SecurityConfig {
         http
                 .securityMatcher("/oauth2/**", "/login/oauth2/**")
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(Customizer.withDefaults())
                 // IF_REQUIRED, no STATELESS: sin sesión se pierde el parámetro
                 // `state` y el callback falla con "authorization_request_not_found".
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
@@ -127,7 +145,7 @@ public class SecurityConfig {
                 // va por cabecera Authorization, no por cookie: el navegador no
                 // adjunta el token de forma automática, así que no hay vector CSRF.
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(Customizer.withDefaults())
                 .headers(CabecerasSeguridad.paraApi())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -148,22 +166,5 @@ public class SecurityConfig {
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(convertidor)));
 
         return http.build();
-    }
-
-    /**
-     * En producción el gateway es el único origen. En desarrollo Angular corre en :4200
-     * con proxy, así que esto cubre el acceso directo al servicio.
-     */
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:8080"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource fuente = new UrlBasedCorsConfigurationSource();
-        fuente.registerCorsConfiguration("/**", config);
-        return fuente;
     }
 }

@@ -1,9 +1,11 @@
 package com.backend.catalogo.marca.dto;
 
 import com.backend.catalogo.marca.Marca;
+import com.backend.catalogo.shared.validacion.Saneador;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public final class MarcaDtos {
@@ -25,6 +27,12 @@ public final class MarcaDtos {
     public record MarcaRequest(
             @NotBlank @Size(max = 100) String name,
             @NotBlank @Size(max = 1000) String descripcion,
-            @NotNull Long categoriaId) {
+            @NotNull @Positive Long categoriaId) {
+
+        /** A03: se limpia antes de validar y antes del control de duplicados. */
+        public MarcaRequest {
+            name = Saneador.texto(name);
+            descripcion = Saneador.textoMultilinea(descripcion);
+        }
     }
 }

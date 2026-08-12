@@ -24,9 +24,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * El gateway valida el token para rechazar cuanto antes lo que ya se sabe inválido,
@@ -47,15 +44,34 @@ public class SecurityConfig {
     @Value("${seguridad.jwt.audiencia}")
     private String audiencia;
 
-    /** CSP del HTML que sirve el gateway. */
+    /**
+     * CSP del HTML que sirve el gateway.
+     *
+     * La directiva que hace el trabajo es `script-src 'self'`: solo se ejecuta
+     * JavaScript servido por este mismo origen. Sin 'unsafe-inline' y sin
+     * 'unsafe-eval', así que un `<script>` inyectado en un campo de texto, un
+     * `onerror=` en una imagen o un bundle traído de otro dominio no llegan a
+     * ejecutarse aunque alguien consiga escribirlos en el DOM.
+     *
+     * `style-src` sí necesita 'unsafe-inline': el index.html lleva la pantalla de
+     * carga en un <style> embebido y Angular inyecta estilos de componente en
+     * tiempo de ejecución. Los estilos no ejecutan código, y el riesgo real
+     * (exfiltrar datos por selectores) queda tapado porque `connect-src` y
+     * `default-src` están cerrados a 'self'.
+     */
     private static final String CSP_SPA = String.join("; ",
             "default-src 'self'",
             "script-src 'self'",
+            "script-src-attr 'none'",
             "style-src 'self' 'unsafe-inline'",
+            // Las fotos de producto son URLs https arbitrarias que carga el admin.
             "img-src 'self' data: https:",
             "font-src 'self' data:",
             "connect-src 'self'",
+            "frame-src 'none'",
             "frame-ancestors 'none'",
+            "worker-src 'self'",
+            "manifest-src 'self'",
             "base-uri 'self'",
             "form-action 'self'",
             "object-src 'none'");
@@ -97,7 +113,9 @@ public class SecurityConfig {
             RespuestasSeguridad respuestas) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // Toma el bean CorsConfigurationSource de CorsConfig: lista blanca
+                // de orígenes, sin comodines y sin credenciales.
+                .cors(Customizer.withDefaults())
                 .headers(headers -> headers
                         .contentTypeOptions(Customizer.withDefaults())
                         .frameOptions(frame -> frame.deny())
@@ -133,20 +151,5 @@ public class SecurityConfig {
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(convertidor)));
 
         return http.build();
-    }
-
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:8080"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("X-Correlation-Id"));
-        config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource fuente = new UrlBasedCorsConfigurationSource();
-        fuente.registerCorsConfiguration("/**", config);
-        return fuente;
     }
 }

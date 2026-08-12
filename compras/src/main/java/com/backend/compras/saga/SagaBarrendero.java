@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.backend.compras.shared.seguridad.ContextoRls;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +35,14 @@ public class SagaBarrendero {
      */
     @Scheduled(fixedDelay = 120_000)
     public void compensarAbandonadas() {
+        // Sin este contexto RLS no devolvería ninguna saga: el barrido corre en
+        // un hilo del planificador, sin usuario autenticado, y las políticas de
+        // V4__row_level_security.sql filtran por `app.usuario_id`. El stock
+        // reservado se quedaría bloqueado para siempre y en silencio.
+        ContextoRls.comoSistema(this::barrerAbandonadas);
+    }
+
+    private void barrerAbandonadas() {
         LocalDateTime limite = LocalDateTime.now().minusMinutes(minutosAbandono);
         List<SagaCheckout> abandonadas = sagas.buscarAbandonadas(limite);
 
@@ -58,6 +68,10 @@ public class SagaBarrendero {
      */
     @Scheduled(fixedDelay = 300_000)
     public void reintentarCompensaciones() {
+        ContextoRls.comoSistema(this::barrerCompensacionesPendientes);
+    }
+
+    private void barrerCompensacionesPendientes() {
         List<SagaCheckout> pendientes = sagas.buscarCompensacionesPendientes(maxIntentos);
 
         if (pendientes.isEmpty()) {

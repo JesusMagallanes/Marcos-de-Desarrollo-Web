@@ -28,6 +28,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final LimitadorPeticiones limitador;
     private final MetricasSeguridad metricas;
+    private final IpCliente ipCliente;
 
     private static final Duration VENTANA_LOGIN = Duration.ofMinutes(15);
     private static final int MAXIMO_LOGIN = 10;
@@ -44,7 +45,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             FilterChain cadena) throws ServletException, IOException {
 
         String ruta = peticion.getRequestURI();
-        String ip = ipCliente(peticion);
+        String ip = ipCliente.de(peticion);
 
         int maximo;
         Duration ventana;
@@ -80,10 +81,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
         cadena.doFilter(peticion, respuesta);
     }
 
-    /**
-     * Detrás del gateway la IP real llega en X-Forwarded-For. Se toma solo el primer
-     * salto: el resto lo puede falsificar el cliente.
-     */
     /** Etiqueta de baja cardinalidad para la métrica. */
     private String ambito(String ruta) {
         if (ruta.startsWith("/api/auth/login")) return "login";
@@ -91,11 +88,4 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return "general";
     }
 
-    private String ipCliente(HttpServletRequest peticion) {
-        String reenviada = peticion.getHeader("X-Forwarded-For");
-        if (reenviada != null && !reenviada.isBlank()) {
-            return reenviada.split(",")[0].trim();
-        }
-        return peticion.getRemoteAddr();
-    }
 }

@@ -28,6 +28,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final LimitadorPeticiones limitador;
     private final MetricasSeguridad metricas;
+    private final IpCliente ipCliente;
 
     private record Cupo(String ambito, int maximo, Duration ventana) {
     }
@@ -37,18 +38,27 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final Cupo ESCRITURA = new Cupo("escritura", 120, Duration.ofMinutes(1));
     private static final Cupo LECTURA = new Cupo("lectura", 600, Duration.ofMinutes(1));
 
+    /**
+     * Las valoraciones son el único texto libre que un cliente cualquiera puede
+     * publicar a la vista de todos, así que llevan cupo propio y estrecho: es la
+     * vía natural para inundar de spam las fichas de producto. Diez al minuto
+     * sobran para alguien que opina de verdad y no dan para una campaña.
+     */
+    private static final Cupo VALORACION = new Cupo("valoracion", 10, Duration.ofMinutes(1));
+
     @Override
     protected void doFilterInternal(HttpServletRequest peticion,
             HttpServletResponse respuesta,
             FilterChain cadena) throws ServletException, IOException {
 
         Cupo cupo = cupoDe(peticion);
-        String clave = ipCliente(peticion) + "|" + cupo.ambito();
+        String ip = ipCliente.de(peticion);
+        String clave = ip + "|" + cupo.ambito();
 
         if (!limitador.permitir(clave, cupo.maximo(), cupo.ventana())) {
             long reintentar = limitador.segundosParaReintentar(clave, cupo.ventana());
             metricas.rateLimitBloqueado(cupo.ambito());
-            log.warn("Cupo '{}' excedido desde {}", cupo.ambito(), ipCliente(peticion));
+            log.warn("Cupo '{}' excedido desde {}", cupo.ambito(), ip);
 
             respuesta.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             respuesta.setHeader("Retry-After", String.valueOf(reintentar));
@@ -70,6 +80,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (ruta.startsWith("/api/chatbot/")) {
             return CHATBOT;
         }
+        // Solo las escrituras: leer las reseñas de una ficha es tráfico normal
+        // de la tienda y va por el cupo de LECTURA.
+        if (ruta.contains("/valoraciones") && !"GET".equals(peticion.getMethod())) {
+            return VALORACION;
+        }
         // Contrato interno con compras: cupo alto, lo consume un servicio, no
         // un navegador, y estrangularlo rompería el carrito.
         if (ruta.startsWith("/api/inventario/")) {
@@ -83,12 +98,4 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return peticion.getRequestURI().startsWith("/actuator/health");
     }
 
-    private String ipCliente(HttpServletRequest peticion) {
-        String reenviada = peticion.getHeader("X-Forwarded-For");
-        if (reenviada != null && !reenviada.isBlank()) {
-            String primera = reenviada.split(",")[0].trim();
-            return primera.length() > 45 ? primera.substring(0, 45) : primera;
-        }
-        return peticion.getRemoteAddr();
-    }
 }

@@ -31,6 +31,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final LimitadorPeticiones limitador;
     private final MetricasSeguridad metricas;
+    private final IpCliente ipCliente;
 
     private record Cupo(String ambito, int maximo, Duration ventana) {
     }
@@ -46,13 +47,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
             FilterChain cadena) throws ServletException, IOException {
 
         Cupo cupo = cupoDe(peticion);
-        String clave = ipCliente(peticion) + "|" + cupo.ambito();
+        String clave = ipCliente.de(peticion) + "|" + cupo.ambito();
 
         if (!limitador.permitir(clave, cupo.maximo(), cupo.ventana())) {
             long reintentar = limitador.segundosParaReintentar(clave, cupo.ventana());
             metricas.rateLimitBloqueado(cupo.ambito());
             log.warn("Cupo '{}' excedido desde {} en {}",
-                    cupo.ambito(), ipCliente(peticion), peticion.getRequestURI());
+                    cupo.ambito(), ipCliente.de(peticion), peticion.getRequestURI());
 
             rechazar(respuesta, reintentar);
             return;
@@ -87,19 +88,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 || ruta.endsWith(".ico");
     }
 
-    /**
-     * Detrás de un balanceador la IP real llega en X-Forwarded-For. Se toma solo el primer
-     * salto: el resto de la cadena la puede falsificar el cliente.
-     */
-    private String ipCliente(HttpServletRequest peticion) {
-        String reenviada = peticion.getHeader("X-Forwarded-For");
-        if (reenviada != null && !reenviada.isBlank()) {
-            String primera = reenviada.split(",")[0].trim();
-            // Acota la longitud: una cabecera enorme no debe crear una clave enorme.
-            return primera.length() > 45 ? primera.substring(0, 45) : primera;
-        }
-        return peticion.getRemoteAddr();
-    }
 
     private void rechazar(HttpServletResponse respuesta, long reintentar) throws IOException {
         respuesta.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());

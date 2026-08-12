@@ -53,6 +53,35 @@ else
 fi
 
 echo ""
+echo "  Seguridad"
+
+# Row Level Security se desactiva EN SILENCIO si la aplicacion se conecta con el
+# rol dueno de las tablas (que en Neon y en la mayoria de gestionados trae
+# BYPASSRLS). Aqui no se puede consultar pg_roles, pero si detectar el sintoma
+# mas comun: que el rol de la app y el de las migraciones sean el mismo.
+migracion="${DB_MIGRACION_USER:-}"
+if [ -z "$migracion" ]; then
+  printf "    [!] %-20s sin definir: la app migrara y correra con el mismo rol,\n" "DB_MIGRACION_USER"
+  printf "        %-20s y si ese rol tiene BYPASSRLS las politicas no se aplican\n" ""
+elif [ "$migracion" = "${DB_USER:-}" ]; then
+  printf "    [!] %-20s es el mismo rol que DB_USER; revisa que no tenga BYPASSRLS\n" "DB_MIGRACION_USER"
+else
+  printf "    [OK] %-20s separado del rol de la aplicacion\n" "DB_MIGRACION_USER"
+fi
+
+# CORS con comodin deja la API abierta a cualquier web. Los servicios ya fallan
+# al arrancar si lo detectan, pero es mejor decirlo antes de construir nada.
+origenes="${CORS_ORIGENES:-}"
+if [ -z "$origenes" ]; then
+  printf "    [ ]  %-20s sin definir, se usara localhost (solo desarrollo)\n" "CORS_ORIGENES"
+elif echo "$origenes" | grep -q '\*'; then
+  printf "    [X] %-20s contiene un comodin; enumera los origenes exactos\n" "CORS_ORIGENES"
+  fallos=$((fallos + 1))
+else
+  printf "    [OK] %-20s %s\n" "CORS_ORIGENES" "$origenes"
+fi
+
+echo ""
 echo "  Opcionales"
 
 opcional() {

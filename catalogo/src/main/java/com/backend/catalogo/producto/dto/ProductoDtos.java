@@ -3,15 +3,23 @@ package com.backend.catalogo.producto.dto;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 
 import com.backend.catalogo.producto.Producto;
 import com.backend.catalogo.producto.ProductoImagen;
+import com.backend.catalogo.shared.validacion.Limites;
+import com.backend.catalogo.shared.validacion.Saneador;
+import com.backend.catalogo.shared.validacion.UrlSegura;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public final class ProductoDtos {
@@ -91,11 +99,32 @@ public final class ProductoDtos {
             @NotBlank @Size(max = 150) String name,
             @NotBlank @Size(max = 500) String description,
             @Size(max = 2000) String specifications,
-            @NotNull @DecimalMin(value = "0.01", message = "El precio debe ser mayor que 0") BigDecimal precio,
-            @Size(max = 20) List<@Size(max = 1000) String> imagenes,
-            @NotNull @Min(value = 0, message = "El stock no puede ser negativo") Integer stock,
-            @NotNull Long categoriaId,
-            Long marcaId) {
+            @NotNull @DecimalMin(value = "0.01", message = "El precio debe ser mayor que 0")
+            @Digits(integer = 10, fraction = 2, message = "El precio admite como mucho 2 decimales")
+            BigDecimal precio,
+            @Size(max = 20, message = "Como máximo 20 imágenes")
+            List<@Size(max = 1000) @UrlSegura String> imagenes,
+            @NotNull @Min(value = 0, message = "El stock no puede ser negativo")
+            @Max(value = 1_000_000, message = "El stock es demasiado alto") Integer stock,
+            @NotNull @Positive Long categoriaId,
+            @Positive Long marcaId) {
+
+        /**
+         * A03: saneado en el constructor compacto, antes de que corra la
+         * validación y antes de que el servicio construya la entidad. Las URLs se
+         * limpian y se descartan las vacías aquí mismo, así que `aplicarImagenes`
+         * recibe la lista ya normalizada.
+         */
+        public ProductoRequest {
+            name = Saneador.texto(name);
+            description = Saneador.textoMultilinea(description);
+            specifications = Saneador.textoMultilineaONulo(specifications);
+            imagenes = imagenes == null ? List.of()
+                    : imagenes.stream()
+                            .map(Saneador::texto)
+                            .filter(u -> u != null && !u.isEmpty())
+                            .toList();
+        }
     }
 
     /** Forma que espera el `Pagina<T>` del frontend Angular. */
@@ -112,15 +141,26 @@ public final class ProductoDtos {
      * (valor en %) o `MONTO` (valor en soles).
      */
     public record AplicarDescuentoRequest(
-            @NotEmpty List<Long> productoIds,
-            @NotBlank String tipo,
-            @NotNull @DecimalMin(value = "0.01", message = "El valor del descuento debe ser mayor que 0") BigDecimal valor,
+            @NotEmpty @Size(max = Limites.MAX_LOTE, message = "Demasiados productos en un solo lote")
+            List<@NotNull @Positive Long> productoIds,
+            // Lista cerrada: `tipo` decide una rama de cálculo, así que no puede
+            // ser texto libre que llegue hasta el servicio a ver qué pasa.
+            @NotBlank @Pattern(regexp = "PORCENTAJE|MONTO",
+                    message = "El tipo debe ser PORCENTAJE o MONTO") String tipo,
+            @NotNull @DecimalMin(value = "0.01", message = "El valor del descuento debe ser mayor que 0")
+            @Digits(integer = 10, fraction = 2) BigDecimal valor,
             @NotNull Instant inicio,
             @NotNull Instant fin) {
+
+        public AplicarDescuentoRequest {
+            tipo = tipo == null ? null : Saneador.texto(tipo).toUpperCase(Locale.ROOT);
+        }
     }
 
     /** Quitar el descuento de un lote de productos. */
-    public record QuitarDescuentoRequest(@NotEmpty List<Long> productoIds) {
+    public record QuitarDescuentoRequest(
+            @NotEmpty @Size(max = Limites.MAX_LOTE, message = "Demasiados productos en un solo lote")
+            List<@NotNull @Positive Long> productoIds) {
     }
 
     /* ── Contrato interno consumido por el servicio de compras ── */

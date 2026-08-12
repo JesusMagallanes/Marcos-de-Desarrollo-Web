@@ -25,8 +25,17 @@ x-jvm-comun: &jvm-comun
 
 x-entorno-bd: &entorno-bd
   DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/smartzone}
+  # Rol con el que corre la APLICACION: no debe ser superusuario ni tener
+  # BYPASSRLS, o Postgres ignoraria las politicas de Row Level Security.
   DB_USER: ${DB_USER:-smartzone}
   DB_PASSWORD: ${DB_PASSWORD:-smartzone_local}
+  # Rol con el que Flyway aplica las migraciones: necesita ser el DUENO de las
+  # tablas para poder hacer DDL. Si no se define, se reutiliza el de la
+  # aplicacion (valido solo en local, donde ambos coinciden).
+  DB_MIGRACION_USER: ${DB_MIGRACION_USER:-${DB_USER:-smartzone}}
+  DB_MIGRACION_PASSWORD: ${DB_MIGRACION_PASSWORD:-${DB_PASSWORD:-smartzone_local}}
+  CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:4200,http://localhost:8080}
+  PROXIES_DE_CONFIANZA: ${PROXIES_DE_CONFIANZA:-127.0.0.1,::1,10.,172.,192.168.}
   JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en el .env}
 
 services:
@@ -42,6 +51,10 @@ services:
       DB_URL: ${DB_URL:-}
       DB_USER: ${DB_USER:-}
       DB_PASSWORD: ${DB_PASSWORD:-}
+      # Sin estas dos el preflight no puede revisar la parte de seguridad y
+      # daria siempre "sin definir", que es peor que no comprobar nada.
+      DB_MIGRACION_USER: ${DB_MIGRACION_USER:-}
+      CORS_ORIGENES: ${CORS_ORIGENES:-}
       JWT_SECRET: ${JWT_SECRET:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
@@ -141,6 +154,16 @@ services:
       CATALOGO_URL: http://catalogo:8081
       USUARIOS_URL: http://usuarios:8082
       COMPRAS_URL: http://compras:8083
+      # El gateway es el que da la cara al navegador, asi que es EL que mas
+      # necesita la lista de origenes. Sin esto se quedaba con el valor por
+      # defecto (localhost) mientras el resto de servicios recibia el dominio
+      # real: en produccion habria rechazado al propio frontend.
+      CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:4200,http://localhost:8080}
+      PROXIES_DE_CONFIANZA: ${PROXIES_DE_CONFIANZA:-127.0.0.1,::1,10.,172.,192.168.}
+      # Regex (no lista) que decide de que saltos se cree X-Forwarded-*. Sin
+      # ella Spring Cloud Gateway no propaga X-Forwarded-Host a los servicios y
+      # el CORS de mismo origen se rompe en el salto interno.
+      GATEWAY_PROXIES_DE_CONFIANZA: ${GATEWAY_PROXIES_DE_CONFIANZA:-127\.0\.0\.1|0:0:0:0:0:0:0:1|::1|10\..*|172\..*|192\.168\..*}
     depends_on:
       verificador: {condition: service_completed_successfully}
       usuarios: {condition: service_healthy}

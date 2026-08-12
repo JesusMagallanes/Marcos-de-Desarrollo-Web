@@ -28,6 +28,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final LimitadorPeticiones limitador;
     private final MetricasSeguridad metricas;
+    private final IpCliente ipCliente;
 
     private record Cupo(String ambito, int maximo, Duration ventana) {
     }
@@ -43,12 +44,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
             FilterChain cadena) throws ServletException, IOException {
 
         Cupo cupo = cupoDe(peticion);
-        String clave = ipCliente(peticion) + "|" + cupo.ambito();
+        String clave = ipCliente.de(peticion) + "|" + cupo.ambito();
 
         if (!limitador.permitir(clave, cupo.maximo(), cupo.ventana())) {
             long reintentar = limitador.segundosParaReintentar(clave, cupo.ventana());
             metricas.rateLimitBloqueado(cupo.ambito());
-            log.warn("Cupo '{}' excedido desde {}", cupo.ambito(), ipCliente(peticion));
+            log.warn("Cupo '{}' excedido desde {}", cupo.ambito(), ipCliente.de(peticion));
 
             respuesta.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             respuesta.setHeader("Retry-After", String.valueOf(reintentar));
@@ -82,12 +83,4 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return peticion.getRequestURI().startsWith("/actuator/health");
     }
 
-    private String ipCliente(HttpServletRequest peticion) {
-        String reenviada = peticion.getHeader("X-Forwarded-For");
-        if (reenviada != null && !reenviada.isBlank()) {
-            String primera = reenviada.split(",")[0].trim();
-            return primera.length() > 45 ? primera.substring(0, 45) : primera;
-        }
-        return peticion.getRemoteAddr();
-    }
 }
