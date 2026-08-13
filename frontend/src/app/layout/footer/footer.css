@@ -16,4 +16,10 @@
 .icono-marca {
   display: inline-block;
   vertical-align: -0.125em;
+  /* El tamaño va AQUÍ y no en los atributos width/height del <svg>: puesto como
+     atributo, `1em` se resuelve a 0 en Chrome y los iconos salían invisibles.
+     En CSS la unidad relativa funciona como se espera, así que cada icono mide
+     lo que el font-size de su contenedor, igual que cuando eran una fuente. */
+  width: 1em;
+  height: 1em;
 }

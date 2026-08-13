@@ -15,13 +15,30 @@ name: smartzone
 x-jvm-comun: &jvm-comun
   restart: unless-stopped
   networks: [smartzone]
-  # Los servicios Spring arrancan en ~15 s; sin este margen el orquestador
-  # los da por caídos antes de tiempo.
-  healthcheck:
-    interval: 10s
-    timeout: 5s
-    retries: 12
-    start_period: 45s
+
+# Tiempos de la sonda de salud.
+#
+# OJO CON EL SITIO EN QUE ESTÁ ESTO: iba dentro de `x-jvm-comun`, junto a
+# `restart` y `networks`, y no servía de nada. Cuando un servicio hace
+# `<<: *jvm-comun` y luego declara su propio `healthcheck:` con el `test`, YAML
+# no fusiona los dos bloques: el del servicio SUSTITUYE al del anchor entero.
+# Se perdían interval, timeout, retries y start_period, y Docker aplicaba sus
+# valores por defecto: comprobar cada 30 s y sin periodo de gracia.
+#
+# El efecto era caro y silencioso. Un servicio listo a los 18 s no se marcaba
+# sano hasta la siguiente comprobación, hasta 30 s después, y como el arranque
+# encadena tres esperas, se iban casi 70 s solo en sondeo.
+#
+# Por eso el anchor es ahora del propio healthcheck y cada servicio lo mezcla
+# DENTRO de su bloque: `healthcheck: {<<: *sonda, test: [...]}`. Ahí sí fusiona.
+x-sonda: &sonda
+  interval: 3s
+  timeout: 3s
+  retries: 15
+  # Margen de arranque: los servicios Spring tardan ~18 s, de los cuales unos 9
+  # son ida y vuelta a la base remota. Durante este periodo los fallos de la
+  # sonda no cuentan como caída.
+  start_period: 45s
 
 x-entorno-bd: &entorno-bd
   DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/smartzone}
@@ -101,6 +118,7 @@ services:
       verificador: {condition: service_completed_successfully}
       postgres: {condition: service_healthy, required: false}
     healthcheck:
+      <<: *sonda
       test: ['CMD', 'wget', '-qO-', 'http://localhost:8082/actuator/health']
 
   # ── catalogo :8081 ─────────────────────────────────────────────────
@@ -117,6 +135,7 @@ services:
       verificador: {condition: service_completed_successfully}
       postgres: {condition: service_healthy, required: false}
     healthcheck:
+      <<: *sonda
       test: ['CMD', 'wget', '-qO-', 'http://localhost:8081/actuator/health']
 
   # ── compras :8083 — depende de catalogo para precios y stock ───────
@@ -138,8 +157,14 @@ services:
     depends_on:
       verificador: {condition: service_completed_successfully}
       postgres: {condition: service_healthy, required: false}
-      catalogo: {condition: service_healthy}
+      # `service_started`, no `service_healthy`: compras no llama a catalogo
+      # durante el arranque, solo al calcular un carrito o reservar stock, y para
+      # eso ya tiene cortacircuitos y reintentos con espera exponencial. Esperar
+      # a que catalogo estuviera sano ponía un arranque completo de Spring (~18 s)
+      # en la ruta crítica a cambio de nada.
+      catalogo: {condition: service_started}
     healthcheck:
+      <<: *sonda
       test: ['CMD', 'wget', '-qO-', 'http://localhost:8083/actuator/health']
 
   # ── gateway :8080 — puerta de entrada ──────────────────────────────
@@ -170,6 +195,7 @@ services:
       catalogo: {condition: service_healthy}
       compras: {condition: service_healthy}
     healthcheck:
+      <<: *sonda
       test: ['CMD', 'wget', '-qO-', 'http://localhost:8080/actuator/health']
 
   # ── frontend :4200 — Angular servido por nginx ─────────────────────
