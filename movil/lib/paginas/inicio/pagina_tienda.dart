@@ -36,7 +36,21 @@ class _PaginaTiendaEstado extends State<PaginaTienda> {
   @override
   void initState() {
     super.initState();
-    _cargar();
+
+    // Si el arranque ya precargó el catálogo, se pinta de inmediato. Pasar por
+    // el Future aunque el dato esté en memoria costaría un frame de spinner
+    // nada más levantarse la pantalla de carga.
+    final catalogo = context.read<CatalogoServicio>();
+    final productos = catalogo.productosEnCache;
+    final categorias = catalogo.categoriasEnCache;
+
+    if (productos != null && categorias != null) {
+      _productos = productos;
+      _categorias = categorias;
+      _cargando = false;
+    } else {
+      _cargar();
+    }
   }
 
   @override

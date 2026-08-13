@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Pantalla de arranque nativa en Android 12 y posteriores.
+
+  Desde esa versión el sistema dibuja SIEMPRE su propia pantalla antes de que
+  Flutter llegue a pintar nada, y usa el icono de la app sobre un color. Sin
+  configurarla, se veía el logotipo de Flutter y justo después la carga de
+  SmartZone: dos marcas distintas en el mismo arranque.
+
+  Ahora usa el icono real sobre el mismo blanco con el que empieza el degradado
+  de la pantalla de carga, así que el cambio entre una y otra no se nota.
+-->
+<resources>
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowSplashScreenBackground">#FFFFFF</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icono</item>
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>

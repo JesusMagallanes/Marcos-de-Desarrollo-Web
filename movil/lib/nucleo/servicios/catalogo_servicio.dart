@@ -46,6 +46,15 @@ class CatalogoServicio {
     return _aProductos(mapa['content']);
   }
 
+  /// Lo que ya está en memoria, sin esperar.
+  ///
+  /// Lo usa la tienda para pintarse de golpe cuando el arranque ya precargó el
+  /// catálogo: si tuviera que pasar por el Future, enseñaría su spinner un
+  /// instante justo después de quitarse la pantalla de carga, que es el
+  /// parpadeo que se quiso evitar.
+  List<Producto>? get productosEnCache => _cacheProductos;
+  List<Categoria>? get categoriasEnCache => _cacheCategorias;
+
   void invalidar() {
     _cacheProductos = null;
     _cacheCategorias = null;
