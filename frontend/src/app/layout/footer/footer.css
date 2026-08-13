@@ -40,17 +40,17 @@
   border-radius: 100%;
   background-color: #ababab;
   color: #202020;
+  /* Solo se anima el color. El icono no se mueve de su sitio: la fila queda
+     quieta y el único cambio es el de marca. */
   transition:
     background-color 0.2s ease,
     background-image 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
+    color 0.2s ease;
 }
 
 .enlace-social:hover,
 .enlace-social:focus-visible {
   color: #fff;
-  transform: translateY(-2px);
 }
 
 /* `:focus-visible` acompaña siempre a `:hover`: quien navega con teclado tiene
@@ -84,17 +84,4 @@
 .enlace-social--x:focus-visible {
   background-color: #fff;
   color: #000;
-}
-
-/* Quien haya pedido menos movimiento en su sistema recibe el cambio de color,
-   pero sin el desplazamiento. */
-@media (prefers-reduced-motion: reduce) {
-  .enlace-social {
-    transition: background-color 0.2s ease, color 0.2s ease;
-  }
-
-  .enlace-social:hover,
-  .enlace-social:focus-visible {
-    transform: none;
-  }
 }
