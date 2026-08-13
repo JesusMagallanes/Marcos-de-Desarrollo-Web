@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:smartzone_movil/nucleo/api/error_api.dart';
 import 'package:smartzone_movil/nucleo/modelos/carrito.dart';
 import 'package:smartzone_movil/nucleo/modelos/producto.dart';
+import 'package:smartzone_movil/widgets/formatos.dart';
 
 /// Pruebas de la capa que traduce lo que responde el backend.
 ///
@@ -120,6 +121,18 @@ void main() {
       expect(ErrorApi.desdeJson(401, const {}).noAutenticado, isTrue);
       expect(ErrorApi.desdeJson(403, const {}).sinPermiso, isTrue);
       expect(ErrorApi.desdeJson(429, const {}).demasiadasPeticiones, isTrue);
+    });
+  });
+
+  group('formato de precio', () {
+    test('se lee igual que en la web: símbolo delante, coma en los miles', () {
+      // La web pinta `S/ 5,499.90`. Con el idioma es_PE de ICU salía
+      // `5.499,90 S/`, con el símbolo detrás y los separadores al revés: el
+      // mismo producto se leía distinto en la app y en la tienda.
+      expect(soles(5499.90), 'S/ 5,499.90');
+      expect(soles(1399.90), 'S/ 1,399.90');
+      expect(soles(10), 'S/ 10.00');
+      expect(soles(0), 'S/ 0.00');
     });
   });
 }
