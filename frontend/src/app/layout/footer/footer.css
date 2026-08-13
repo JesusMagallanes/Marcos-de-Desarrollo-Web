@@ -1,1 +1,19 @@
 /* El pie usa estilos inline y clases globales de src/styles/Style.css (.icon-footer, accordion). */
+
+/*
+ * Iconos de marca en SVG en línea, no con FontAwesome.
+ *
+ * Eran cinco iconos (WhatsApp, Facebook, Instagram, YouTube y X) y solo por
+ * ellos el navegador se descargaba fa-brands-400.woff2: 112 kB para dibujar
+ * cinco cosas del pie. En SVG ocupan unos 2 kB dentro del HTML, ya comprimido
+ * con el resto, y encima se pintan con el primer render en lugar de esperar a
+ * que llegue una fuente.
+ *
+ * `currentColor` mantiene el comportamiento que tenían como fuente: heredan el
+ * color del enlace que los contiene, así que los estilos de alrededor siguen
+ * valiendo sin tocarlos.
+ */
+.icono-marca {
+  display: inline-block;
+  vertical-align: -0.125em;
+}
