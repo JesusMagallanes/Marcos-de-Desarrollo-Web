@@ -23,3 +23,78 @@
   width: 1em;
   height: 1em;
 }
+
+/*
+ * Enlaces a redes sociales del pie.
+ *
+ * En reposo se quedan en gris, para que la fila no compita con el contenido.
+ * Al pasar el ratón toman el color real de cada marca, que es lo que hace que
+ * se reconozcan de un vistazo.
+ *
+ * El icono va en `currentColor`, así que basta con cambiar `color` en el enlace
+ * para que el SVG le siga; no hay que tocar el propio SVG.
+ */
+.enlace-social {
+  width: 35px;
+  height: 35px;
+  border-radius: 100%;
+  background-color: #ababab;
+  color: #202020;
+  transition:
+    background-color 0.2s ease,
+    background-image 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.enlace-social:hover,
+.enlace-social:focus-visible {
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* `:focus-visible` acompaña siempre a `:hover`: quien navega con teclado tiene
+   que ver lo mismo que quien usa ratón. */
+.enlace-social:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.enlace-social--facebook:hover,
+.enlace-social--facebook:focus-visible {
+  background-color: #1877f2;
+}
+
+/* Instagram no tiene un color plano, sino el degradado de su identidad. */
+.enlace-social--instagram:hover,
+.enlace-social--instagram:focus-visible {
+  background-color: #d62976;
+  background-image: linear-gradient(45deg, #ffd600 0%, #ff7a00 25%, #ff0069 50%, #d300c5 75%, #7638fa 100%);
+}
+
+.enlace-social--youtube:hover,
+.enlace-social--youtube:focus-visible {
+  background-color: #ff0000;
+}
+
+/* La identidad de X es el negro. Sobre el pie (#2D2D2D) un círculo negro se
+   distingue poco, así que se invierte: fondo blanco y logotipo negro, que es
+   la otra versión oficial y aquí contrasta mucho mejor. */
+.enlace-social--x:hover,
+.enlace-social--x:focus-visible {
+  background-color: #fff;
+  color: #000;
+}
+
+/* Quien haya pedido menos movimiento en su sistema recibe el cambio de color,
+   pero sin el desplazamiento. */
+@media (prefers-reduced-motion: reduce) {
+  .enlace-social {
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .enlace-social:hover,
+  .enlace-social:focus-visible {
+    transform: none;
+  }
+}
