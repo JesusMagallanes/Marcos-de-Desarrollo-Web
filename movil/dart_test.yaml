@@ -1,0 +1,10 @@
+# Etiquetas de las pruebas.
+#
+# `integracion` marca las que hablan con el backend de verdad. Se declaran aquí
+# para que `flutter test` no avise de una etiqueta desconocida, y para poder
+# dejarlas fuera cuando no haya pila levantada:
+#
+#   flutter test --exclude-tags integracion
+tags:
+  integracion:
+    description: Requiere el backend levantado en http://localhost:8080

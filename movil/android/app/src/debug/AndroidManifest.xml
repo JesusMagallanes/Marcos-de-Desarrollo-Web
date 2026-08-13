@@ -1,0 +1,12 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Flutter necesita este permiso en depuración para el hot reload. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Solo en depuración: habilita el tráfico en claro hacia el backend
+         local. `tools:replace` es necesario porque el manifiesto principal no
+         declara este atributo y la fusión, si no, lo ignoraría. -->
+    <application
+        android:networkSecurityConfig="@xml/red_desarrollo"
+        tools:replace="android:networkSecurityConfig" />
+</manifest>

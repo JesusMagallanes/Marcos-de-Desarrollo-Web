@@ -63,3 +63,24 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ── App móvil (Flutter) ──────────────────────────────────────────
+# `build/` ya está arriba, pero Flutter deja más rastro fuera de ahí.
+movil/.dart_tool/
+movil/.flutter-plugins
+movil/.flutter-plugins-dependencies
+movil/*.iml
+movil/android/.gradle/
+movil/android/local.properties
+movil/android/app/debug/
+movil/android/app/profile/
+movil/android/app/release/
+movil/ios/Pods/
+movil/ios/.symlinks/
+movil/ios/Flutter/Flutter.framework
+movil/ios/Flutter/Flutter.podspec
+movil/ios/Flutter/Generated.xcconfig
+movil/ios/Flutter/flutter_export_environment.sh
+
+# El .env de la app NO se sube: lleva la URL del backend de cada entorno.
+movil/.env
