@@ -1,0 +1,119 @@
+/*
+ * Listado de guías. Se mantiene la paleta de la tienda: el verde #06b56c como
+ * acento y grises neutros para el texto, igual que en el resto de páginas.
+ */
+
+.cabecera-guias {
+  max-width: 640px;
+  margin-bottom: 2rem;
+}
+
+.cabecera-guias h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #202020;
+  margin-bottom: 0.5rem;
+}
+
+.cabecera-guias p {
+  color: #6b7671;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* La tarjeta entera es el enlace: así el objetivo pulsable es grande, que en
+   móvil se agradece, y no hay que perseguir un "ver más" de dos palabras. */
+.tarjeta-guia {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  border: 1px solid #e6e9e7;
+  border-radius: 14px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tarjeta-guia:hover,
+.tarjeta-guia:focus-visible {
+  border-color: #06b56c;
+  box-shadow: 0 6px 20px rgba(6, 181, 108, 0.12);
+}
+
+.tarjeta-guia:focus-visible {
+  outline: 2px solid #06b56c;
+  outline-offset: 2px;
+}
+
+.icono-guia {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  background: #eafaf2;
+  color: #06b56c;
+  font-size: 1.15rem;
+}
+
+.tarjeta-guia h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 0.5rem;
+}
+
+.tarjeta-guia p {
+  font-size: 0.9rem;
+  color: #6b7671;
+  line-height: 1.5;
+  /* `margin-top: auto` en el pie empuja el bloque hacia abajo, así que todas
+     las tarjetas de una fila alinean su pie aunque el resumen sea más corto. */
+  margin-bottom: 1rem;
+}
+
+.pie-guia {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f0f2f1;
+}
+
+.cuenta-pasos {
+  font-size: 0.8rem;
+  color: #8a9b90;
+}
+
+.ver-guia {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #06b56c;
+}
+
+.ver-guia i {
+  margin-left: 0.25rem;
+  transition: transform 0.2s ease;
+}
+
+.tarjeta-guia:hover .ver-guia i {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-guia,
+  .ver-guia i {
+    transition: none;
+  }
+
+  .tarjeta-guia:hover .ver-guia i {
+    transform: none;
+  }
+}

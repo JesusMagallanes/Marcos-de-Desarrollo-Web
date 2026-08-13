@@ -49,8 +49,12 @@
       <div class="col-xl-3">
         <h5 style="font-size: 17px; color: white;">Aprende con nosotros</h5>
         <div class="d-flex flex-column gap-2">
-          <a href="" style="font-size: 13px; color: white;">¿Cómo comprar online?</a>
-          <a href="" style="font-size: 13px; color: white;">¿cómo registrarse en nuestra web?</a>
+          @for (guia of guias(); track guia.id) {
+            <a [routerLink]="['/guias', guia.slug]" style="font-size: 13px; color: white;">{{ guia.titulo }}</a>
+          }
+          @if (guias().length) {
+            <a routerLink="/guias" class="ver-todas-guias">Ver todas las guías</a>
+          }
         </div>
       </div>
     </div>
@@ -142,8 +146,12 @@
           </h2>
           <div id="collapseAprende" class="accordion-collapse collapse" data-bs-parent="#footerAccordion">
             <div class="accordion-body d-flex flex-column gap-2" style="padding-top: 5px;">
-              <a href="" style="font-size: 13px; color: white;">¿Cómo comprar online?</a>
-              <a href="" style="font-size: 13px; color: white;">¿cómo registrarse en nuestra web?</a>
+              @for (guia of guias(); track guia.id) {
+                <a [routerLink]="['/guias', guia.slug]" style="font-size: 13px; color: white;">{{ guia.titulo }}</a>
+              }
+              @if (guias().length) {
+                <a routerLink="/guias" class="ver-todas-guias">Ver todas las guías</a>
+              }
             </div>
           </div>
         </div>

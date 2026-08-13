@@ -120,10 +120,26 @@ export const routes: Routes = [
           ),
         title: 'Admin · Métodos de pago',
       },
+      {
+        path: 'guias',
+        loadComponent: () =>
+          import('./pages/admin/admin-guias/admin-guias').then((m) => m.AdminGuias),
+        title: 'Admin · Guías',
+      },
     ],
   },
 
   /* ── informativas ── */
+  {
+    path: 'guias',
+    loadComponent: () => import('./pages/guias/guias').then((m) => m.Guias),
+    title: 'Aprende con nosotros',
+  },
+  {
+    path: 'guias/:slug',
+    loadComponent: () => import('./pages/guias/guia-detalle').then((m) => m.GuiaDetalle),
+    title: 'Guía',
+  },
   {
     path: 'somos',
     loadComponent: () => import('./pages/estaticas/somos').then((m) => m.Somos),

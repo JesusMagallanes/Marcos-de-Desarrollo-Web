@@ -85,3 +85,18 @@
   background-color: #fff;
   color: #000;
 }
+
+/* "Ver todas las guías": enlace de cierre de la columna de ayuda. Se distingue
+   del resto con el verde de la marca porque lleva a la sección completa, no a
+   una guía concreta. */
+.ver-todas-guias {
+  font-size: 13px;
+  color: #00de80;
+  font-weight: 600;
+}
+
+.ver-todas-guias:hover,
+.ver-todas-guias:focus-visible {
+  color: #00ff95;
+  text-decoration: underline;
+}

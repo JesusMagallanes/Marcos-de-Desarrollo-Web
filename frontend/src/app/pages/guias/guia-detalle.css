@@ -1,0 +1,181 @@
+/* Detalle de una guía. Misma paleta que el resto: verde #06b56c de acento. */
+
+.migas {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #8a9b90;
+  margin-bottom: 1.5rem;
+}
+
+.migas a {
+  color: #06b56c;
+  text-decoration: none;
+}
+
+.migas a:hover {
+  text-decoration: underline;
+}
+
+.migas i {
+  font-size: 0.7rem;
+}
+
+.guia {
+  max-width: 760px;
+}
+
+.cabecera-guia {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e6e9e7;
+}
+
+.icono-guia {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #eafaf2;
+  color: #06b56c;
+  font-size: 1.3rem;
+}
+
+.cabecera-guia h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #202020;
+  margin-bottom: 0.35rem;
+}
+
+.cabecera-guia p {
+  color: #6b7671;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Los pasos van en un <ol> de verdad, aunque el número se dibuje aparte: un
+   lector de pantalla anuncia "lista de N elementos" y su posición, que es
+   justamente la información que aporta el diseño. */
+.pasos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.paso {
+  display: flex;
+  gap: 1rem;
+  padding-bottom: 1.75rem;
+  position: relative;
+}
+
+/* Línea que une un paso con el siguiente; da la sensación de recorrido. */
+.paso:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 17px;
+  top: 38px;
+  bottom: 0;
+  width: 2px;
+  background: #e6e9e7;
+}
+
+.numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #06b56c;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  /* Por encima de la línea que pasa por detrás. */
+  position: relative;
+  z-index: 1;
+}
+
+.cuerpo-paso {
+  padding-top: 0.35rem;
+}
+
+.cuerpo-paso h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 0.35rem;
+}
+
+.cuerpo-paso p {
+  font-size: 0.92rem;
+  color: #6b7671;
+  line-height: 1.6;
+  margin: 0;
+  /* El texto lo escribe el administrador y puede traer saltos de línea: se
+     respetan sin necesidad de interpretar marcado. */
+  white-space: pre-line;
+}
+
+.cierre-guia {
+  padding: 1.25rem 1.5rem;
+  border-radius: 14px;
+  background: #f7faf8;
+  border: 1px solid #e6e9e7;
+  font-size: 0.9rem;
+  color: #6b7671;
+}
+
+.otras-guias {
+  max-width: 760px;
+  margin-top: 3rem;
+}
+
+.otras-guias h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 1rem;
+}
+
+.tarjeta-otra {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  height: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid #e6e9e7;
+  border-radius: 12px;
+  background: #fff;
+  color: #202020;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: border-color 0.2s ease;
+}
+
+.tarjeta-otra:hover,
+.tarjeta-otra:focus-visible {
+  border-color: #06b56c;
+  color: #06b56c;
+}
+
+.tarjeta-otra i {
+  color: #06b56c;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-otra {
+    transition: none;
+  }
+}

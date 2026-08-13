@@ -1,0 +1,37 @@
+<div class="container py-4 py-lg-5">
+  <header class="cabecera-guias">
+    <h1>Aprende con nosotros</h1>
+    <p>
+      Guías cortas para que compres sin dudas. Cada una va paso a paso, en orden, desde el principio
+      hasta el final.
+    </p>
+  </header>
+
+  @if (estado.cargando()) {
+    <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+  } @else if (estado.hayError()) {
+    <div class="alert alert-danger">{{ estado.mensajeError() }}</div>
+  } @else {
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+      @for (guia of guias(); track guia.id) {
+        <div class="col">
+          <a class="tarjeta-guia h-100" [routerLink]="['/guias', guia.slug]">
+            <span class="icono-guia" aria-hidden="true"><i [class]="iconoDe(guia)"></i></span>
+            <h2>{{ guia.titulo }}</h2>
+            <p>{{ guia.resumen }}</p>
+            <span class="pie-guia">
+              <span class="cuenta-pasos">{{ guia.totalPasos }} paso{{ guia.totalPasos === 1 ? '' : 's' }}</span>
+              <span class="ver-guia">Ver guía <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+            </span>
+          </a>
+        </div>
+      } @empty {
+        <div class="col-12">
+          <p class="text-center text-muted py-5 mb-0">
+            Todavía no hay guías publicadas. Vuelve pronto.
+          </p>
+        </div>
+      }
+    </div>
+  }
+</div>

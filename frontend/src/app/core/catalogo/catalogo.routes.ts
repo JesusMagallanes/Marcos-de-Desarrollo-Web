@@ -24,6 +24,14 @@ export const RUTAS_CATALOGO = {
     porCategoria: (categoriaId: number) => `${API}/marcas/categoria/${categoriaId}`,
   },
 
+  guias: {
+    base: `${API}/guias`,
+    porSlug: (slug: string) => `${API}/guias/${slug}`,
+    porId: (id: number) => `${API}/guias/${id}`,
+    todas: `${API}/guias/admin/todas`,
+    adminPorSlug: (slug: string) => `${API}/guias/admin/${slug}`,
+  },
+
   chatbot: {
     mensaje: `${API}/chatbot/mensaje`,
   },

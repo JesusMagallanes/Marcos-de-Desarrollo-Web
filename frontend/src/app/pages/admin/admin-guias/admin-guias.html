@@ -1,0 +1,231 @@
+<div class="cabecera-seccion">
+  <h5 class="mb-0">Guías de ayuda</h5>
+  <div class="d-flex gap-2">
+    <input
+      class="form-control form-control-sm campo-filtro"
+      placeholder="Buscar…"
+      [value]="filtro()"
+      (input)="filtro.set($any($event.target).value)"
+    />
+    <button type="button" class="btn btn-sm btn-success" (click)="nuevo()">
+      <i class="fa-solid fa-plus me-1"></i>Nueva
+    </button>
+  </div>
+</div>
+
+<p class="text-muted small mb-3">
+  Es lo que ven los clientes en «Aprende con nosotros», en el pie de la tienda. Solo aparecen ahí
+  las guías publicadas.
+</p>
+
+@if (estado.aviso()) {
+  <div class="alert alert-success py-2 small">{{ estado.aviso() }}</div>
+}
+@if (estado.hayError()) {
+  <div class="alert alert-danger py-2 small">{{ estado.mensajeError() }}</div>
+}
+
+@if (estado.cargando()) {
+  <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+} @else {
+  <div class="tarjeta-tabla">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th style="width: 60px" class="text-center">Orden</th>
+          <th>Título</th>
+          <th>Enlace</th>
+          <th class="text-center">Pasos</th>
+          <th class="text-center">Estado</th>
+          <th class="text-end" style="width: 150px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (g of visibles(); track g.id) {
+          <tr>
+            <td class="text-center text-muted">{{ g.posicion }}</td>
+            <td class="fw-semibold">{{ g.titulo }}</td>
+            <td class="small text-muted">/guias/{{ g.slug }}</td>
+            <td class="text-center">{{ g.totalPasos }}</td>
+            <td class="text-center">
+              <span class="badge" [class]="g.publicada ? 'bg-success' : 'bg-secondary'">
+                {{ g.publicada ? 'Publicada' : 'Borrador' }}
+              </span>
+            </td>
+            <td class="text-end">
+              @if (confirmandoId() === g.id) {
+                <button type="button" class="btn btn-sm btn-danger me-1" (click)="eliminar(g.id)">Sí</button>
+                <button type="button" class="btn btn-sm btn-secondary" (click)="confirmandoId.set(null)">No</button>
+              } @else {
+                <button
+                  type="button"
+                  class="btn btn-sm me-1"
+                  [class]="g.publicada ? 'btn-outline-secondary' : 'btn-outline-success'"
+                  [title]="g.publicada ? 'Retirar del sitio' : 'Publicar'"
+                  (click)="alternarPublicada(g)"
+                >
+                  <i class="fa-solid" [class]="g.publicada ? 'fa-eye-slash' : 'fa-eye'"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary me-1" title="Editar" (click)="editar(g)">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar" (click)="confirmandoId.set(g.id)">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">Todavía no hay guías.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (formAbierto()) {
+  <div class="fondo-modal" (click)="cerrar()"></div>
+  <div class="panel-modal shadow">
+    <div class="cabecera-modal">
+      <h6 class="mb-0">{{ editandoId() ? 'Editar guía' : 'Nueva guía' }}</h6>
+      <button type="button" class="btn-close" (click)="cerrar()"></button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="cuerpo-modal">
+      <div class="mb-2">
+        <label class="form-label small fw-semibold">Título</label>
+        <input
+          class="form-control form-control-sm"
+          formControlName="titulo"
+          [class.is-invalid]="invalido('titulo')"
+          (input)="tituloCambiado($any($event.target).value)"
+          placeholder="¿Cómo comprar online?"
+        />
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small fw-semibold">Enlace (slug)</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text">/guias/</span>
+          <input
+            class="form-control"
+            formControlName="slug"
+            [class.is-invalid]="invalido('slug')"
+            (input)="slugTocado()"
+          />
+        </div>
+        <div class="form-text">Solo minúsculas, números y guiones. Se rellena solo con el título.</div>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small fw-semibold">Resumen</label>
+        <textarea
+          class="form-control form-control-sm"
+          rows="2"
+          formControlName="resumen"
+          [class.is-invalid]="invalido('resumen')"
+          placeholder="Frase corta que se ve en la tarjeta del listado."
+        ></textarea>
+      </div>
+
+      <div class="row g-2">
+        <div class="col-6 mb-2">
+          <label class="form-label small fw-semibold">Icono</label>
+          <input
+            class="form-control form-control-sm"
+            formControlName="icono"
+            [class.is-invalid]="invalido('icono')"
+            placeholder="cart-shopping"
+          />
+          <div class="form-text">Nombre de FontAwesome, sin «fa-».</div>
+        </div>
+        <div class="col-6 mb-2">
+          <label class="form-label small fw-semibold">Orden</label>
+          <input
+            type="number"
+            class="form-control form-control-sm"
+            formControlName="posicion"
+            [class.is-invalid]="invalido('posicion')"
+          />
+          <div class="form-text">Menor número, más arriba.</div>
+        </div>
+      </div>
+
+      <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="publicada" formControlName="publicada" />
+        <label class="form-check-label small" for="publicada">
+          Publicada <span class="text-muted">(si no, solo la ves tú)</span>
+        </label>
+      </div>
+
+      <hr class="my-3" />
+
+      <label class="form-label small fw-semibold d-block">Pasos</label>
+      <div formArrayName="pasos">
+        @for (paso of pasos.controls; track $index) {
+          <div class="bloque-paso" [formGroupName]="$index">
+            <div class="cabecera-paso">
+              <span class="numero-paso">{{ $index + 1 }}</span>
+              <div class="btn-group btn-group-sm">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  title="Subir"
+                  [disabled]="$index === 0"
+                  (click)="moverPaso($index, -1)"
+                >
+                  <i class="fa-solid fa-arrow-up"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  title="Bajar"
+                  [disabled]="$index === pasos.length - 1"
+                  (click)="moverPaso($index, 1)"
+                >
+                  <i class="fa-solid fa-arrow-down"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-danger"
+                  title="Quitar paso"
+                  [disabled]="pasos.length === 1"
+                  (click)="quitarPaso($index)"
+                >
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </div>
+            <input
+              class="form-control form-control-sm mb-1"
+              formControlName="titulo"
+              placeholder="Título del paso"
+            />
+            <textarea
+              class="form-control form-control-sm"
+              rows="3"
+              formControlName="descripcion"
+              placeholder="Explica el paso con claridad, como si fuera la primera vez que entra."
+            ></textarea>
+          </div>
+        }
+      </div>
+
+      <button type="button" class="btn btn-sm btn-outline-secondary mb-3" (click)="agregarPaso()">
+        <i class="fa-solid fa-plus me-1"></i>Añadir paso
+      </button>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="cerrar()">Cancelar</button>
+        <button type="submit" class="btn btn-sm btn-success" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+}

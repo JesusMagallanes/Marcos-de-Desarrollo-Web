@@ -92,9 +92,15 @@ public class SecurityConfig {
                 .headers(CabecerasSeguridad.paraApi())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Vitrina pública: cualquiera puede navegar el catálogo.
+                        // ANTES que la regla pública de guías: las rutas de gestión
+                        // cuelgan de /api/guias/admin/** y también son GET, así que si
+                        // la regla pública fuera primero se las tragaría y los
+                        // borradores quedarían a la vista. El orden aquí importa.
+                        .requestMatchers("/api/guias/admin/**").hasRole("ADMINISTRADOR")
+                        // Vitrina pública: cualquiera puede navegar el catálogo y leer
+                        // las guías de ayuda que estén publicadas.
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**",
-                                "/api/marcas/**")
+                                "/api/marcas/**", "/api/guias", "/api/guias/*")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/chatbot/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()

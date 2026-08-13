@@ -1,0 +1,64 @@
+<div class="container py-4 py-lg-5">
+  <nav class="migas" aria-label="Ruta de navegación">
+    <a routerLink="/guias">Aprende con nosotros</a>
+    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    <span>{{ guia()?.titulo || 'Guía' }}</span>
+  </nav>
+
+  @if (estado.cargando()) {
+    <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+  } @else if (estado.hayError()) {
+    <div class="alert alert-danger">
+      {{ estado.mensajeError() }}
+      <div class="mt-2">
+        <a routerLink="/guias" class="alert-link">Volver a las guías</a>
+      </div>
+    </div>
+  } @else if (guia(); as g) {
+    <article class="guia">
+      <header class="cabecera-guia">
+        <span class="icono-guia" aria-hidden="true"><i [class]="iconoDe(g)"></i></span>
+        <div>
+          <h1>{{ g.titulo }}</h1>
+          <p>{{ g.resumen }}</p>
+        </div>
+      </header>
+
+      <ol class="pasos">
+        @for (paso of g.pasos; track paso.id) {
+          <li class="paso">
+            <span class="numero" aria-hidden="true">{{ $index + 1 }}</span>
+            <div class="cuerpo-paso">
+              <h2>{{ paso.titulo }}</h2>
+              <p>{{ paso.descripcion }}</p>
+            </div>
+          </li>
+        }
+      </ol>
+
+      <div class="cierre-guia">
+        <p class="mb-2 fw-semibold">¿Te quedó alguna duda?</p>
+        <p class="mb-3">
+          Escríbenos por WhatsApp o desde nuestros canales de atención y te ayudamos.
+        </p>
+        <a routerLink="/canales" class="btn btn-success btn-sm">Ver canales de atención</a>
+      </div>
+    </article>
+
+    @if (otras().length) {
+      <section class="otras-guias">
+        <h2>Otras guías</h2>
+        <div class="row row-cols-1 row-cols-md-3 g-3">
+          @for (otra of otras(); track otra.id) {
+            <div class="col">
+              <a class="tarjeta-otra" [routerLink]="['/guias', otra.slug]">
+                <i [class]="iconoDe(otra)" aria-hidden="true"></i>
+                <span>{{ otra.titulo }}</span>
+              </a>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+</div>

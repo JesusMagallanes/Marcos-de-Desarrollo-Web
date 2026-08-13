@@ -80,3 +80,35 @@
   padding: 1.25rem;
   overflow-y: auto;
 }
+
+/* ── Editor de pasos (guías) ─────────────────────────────────────────
+   Cada paso va en su propio bloque para que se distinga del siguiente:
+   son varios campos repetidos y sin separación visual el formulario se
+   vuelve una pared de cajas iguales. */
+.bloque-paso {
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #e6e9e7;
+  border-radius: 8px;
+  background: #fafbfa;
+}
+
+.cabecera-paso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.numero-paso {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #06b56c;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
