@@ -1,0 +1,122 @@
+<div class="cabecera-seccion">
+  <h5 class="mb-0">Valoraciones</h5>
+  <input
+    class="form-control form-control-sm campo-filtro"
+    placeholder="Buscar por producto, cliente o comentario…"
+    [value]="filtroTexto()"
+    (input)="filtroTexto.set($any($event.target).value)"
+  />
+</div>
+
+<p class="text-muted small mb-3">
+  Ninguna reseña se publica en la tienda hasta que la apruebas. La cola de pendientes es lo primero
+  que deberías revisar al entrar.
+</p>
+
+@if (estado.aviso()) {
+  <div class="alert alert-success py-2 small">{{ estado.aviso() }}</div>
+}
+@if (estado.hayError()) {
+  <div class="alert alert-danger py-2 small">{{ estado.mensajeError() }}</div>
+}
+
+@if (estado.cargando()) {
+  <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+} @else {
+  <ul class="nav nav-tabs mb-3">
+    @for (tab of secciones; track tab) {
+      <li class="nav-item">
+        <button
+          type="button"
+          class="nav-link"
+          [class.active]="seccion() === tab"
+          (click)="seccion.set(tab)"
+        >
+          {{ tab === 'PENDIENTE' ? 'Pendientes' : tab === 'APROBADA' ? 'Aprobadas' : tab === 'RECHAZADA' ? 'Rechazadas' : 'Todas' }}
+          <span class="badge text-bg-secondary ms-1">{{ conteos()[tab] }}</span>
+        </button>
+      </li>
+    }
+  </ul>
+
+  <div class="tarjeta-tabla">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cliente</th>
+          <th class="text-center">Calificación</th>
+          <th>Comentario</th>
+          <th>Enviada</th>
+          <th class="text-center">Estado</th>
+          <th class="text-end" style="width: 230px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (v of visibles(); track v.id) {
+          <tr>
+            <td class="small">{{ v.productoNombre }}</td>
+            <td class="fw-semibold">{{ v.nombre }}</td>
+            <td class="text-center">
+              <span class="text-warning text-nowrap" [attr.aria-label]="v.calificacion + ' de 5 estrellas'">
+                @for (n of estrellas; track n) {
+                  <i class="fa-solid fa-star" [class.text-warning]="n <= v.calificacion" [class.text-muted]="n > v.calificacion"></i>
+                }
+              </span>
+            </td>
+            <td class="small" style="max-width: 320px">
+              <span class="d-inline-block text-truncate" style="max-width: 100%" [title]="v.comentario">
+                {{ v.comentario }}
+              </span>
+            </td>
+            <td class="small text-muted text-nowrap">{{ v.creadoEn | date: 'short' }}</td>
+            <td class="text-center">
+              <span class="badge" [class]="clases[v.estado]">{{ etiquetas[v.estado] }}</span>
+            </td>
+            <td class="text-end">
+              @if (ocupada(v.id)) {
+                <span class="spinner-border spinner-border-sm text-success"></span>
+              } @else if (confirmandoId() === v.id) {
+                <button type="button" class="btn btn-sm btn-danger me-1" (click)="confirmarEliminar()">Sí</button>
+                <button type="button" class="btn btn-sm btn-secondary" (click)="confirmandoId.set(null)">No</button>
+              } @else {
+                @if (v.estado !== 'APROBADA') {
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-success me-1"
+                    title="Aprobar y publicar"
+                    (click)="aprobar(v)"
+                  >
+                    <i class="fa-solid fa-check"></i>
+                  </button>
+                }
+                @if (v.estado !== 'RECHAZADA') {
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger me-1"
+                    title="Rechazar"
+                    (click)="rechazar(v)"
+                  >
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary"
+                  title="Eliminar"
+                  (click)="eliminar(v)"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">No hay valoraciones en esta vista.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

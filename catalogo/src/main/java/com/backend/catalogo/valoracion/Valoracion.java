@@ -6,6 +6,8 @@ import com.backend.catalogo.producto.Producto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -51,6 +53,16 @@ public class Valoracion {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String comentario;
+
+    /**
+     * Moderación: ninguna valoración se publica hasta que un administrador la
+     * aprueba. El cliente que la envía siempre la deja en PENDIENTE; la tienda
+     * solo lee las APROBADA.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private EstadoValoracion estado = EstadoValoracion.PENDIENTE;
 
     @Column(name = "creado_en", nullable = false)
     private Instant creadoEn;

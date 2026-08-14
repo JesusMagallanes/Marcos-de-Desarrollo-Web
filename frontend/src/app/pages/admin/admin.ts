@@ -14,6 +14,7 @@ export class Admin {
     { ruta: 'categorias', icono: 'fa-layer-group', etiqueta: 'Categorías' },
     { ruta: 'marcas', icono: 'fa-tag', etiqueta: 'Marcas' },
     { ruta: 'usuarios', icono: 'fa-users', etiqueta: 'Usuarios' },
+    { ruta: 'valoraciones', icono: 'fa-comment', etiqueta: 'Valoraciones' },
     { ruta: 'metodos-pago', icono: 'fa-credit-card', etiqueta: 'Métodos de pago' },
     { ruta: 'guias', icono: 'fa-book-open', etiqueta: 'Guías de ayuda' },
   ];

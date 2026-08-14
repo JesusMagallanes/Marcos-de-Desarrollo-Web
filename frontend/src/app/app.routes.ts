@@ -121,6 +121,14 @@ export const routes: Routes = [
         title: 'Admin · Métodos de pago',
       },
       {
+        path: 'valoraciones',
+        loadComponent: () =>
+          import('./pages/admin/admin-valoraciones/admin-valoraciones').then(
+            (m) => m.AdminValoraciones,
+          ),
+        title: 'Admin · Valoraciones',
+      },
+      {
         path: 'guias',
         loadComponent: () =>
           import('./pages/admin/admin-guias/admin-guias').then((m) => m.AdminGuias),

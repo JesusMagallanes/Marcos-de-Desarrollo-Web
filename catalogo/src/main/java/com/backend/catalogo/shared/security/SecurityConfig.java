@@ -97,6 +97,10 @@ public class SecurityConfig {
                         // la regla pública fuera primero se las tragaría y los
                         // borradores quedarían a la vista. El orden aquí importa.
                         .requestMatchers("/api/guias/admin/**").hasRole("ADMINISTRADOR")
+                        // La moderación de valoraciones también es del panel; sin
+                        // esta regla los GET caerían en `.anyRequest().authenticated()`
+                        // y cualquier autenticado (no admin) leería todo el coladero.
+                        .requestMatchers("/api/valoraciones/admin/**").hasRole("ADMINISTRADOR")
                         // Vitrina pública: cualquiera puede navegar el catálogo y leer
                         // las guías de ayuda que estén publicadas.
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**",

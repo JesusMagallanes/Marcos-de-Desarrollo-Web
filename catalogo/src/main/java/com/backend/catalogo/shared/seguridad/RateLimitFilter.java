@@ -81,8 +81,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return CHATBOT;
         }
         // Solo las escrituras: leer las reseñas de una ficha es tráfico normal
-        // de la tienda y va por el cupo de LECTURA.
-        if (ruta.contains("/valoraciones") && !"GET".equals(peticion.getMethod())) {
+        // de la tienda y va por el cupo de LECTURA. La moderación del panel
+        // (aprobar en lote) tampoco cuenta para el cupo de valoraciones: ese
+        // cupo estrecho existe para frenar a un cliente que quiera inundar la
+        // ficha de spam, no para estorbar a un administrador.
+        if (ruta.contains("/valoraciones") && !ruta.startsWith("/api/valoraciones/admin")
+                && !"GET".equals(peticion.getMethod())) {
             return VALORACION;
         }
         // Contrato interno con compras: cupo alto, lo consume un servicio, no

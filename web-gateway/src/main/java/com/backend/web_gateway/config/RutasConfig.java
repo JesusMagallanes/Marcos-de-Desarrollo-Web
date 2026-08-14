@@ -32,6 +32,7 @@ public class RutasConfig {
                 .route(path("/api/marcas/**"), http())
                 .route(path("/api/guias/**"), http())
                 .route(path("/api/chatbot/**"), http())
+                .route(path("/api/valoraciones/**"), http())
                 .before(uri(catalogoUrl))
                 .build();
     }

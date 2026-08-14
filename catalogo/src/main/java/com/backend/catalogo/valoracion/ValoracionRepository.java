@@ -10,13 +10,21 @@ import org.springframework.data.repository.query.Param;
 
 public interface ValoracionRepository extends JpaRepository<Valoracion, Long> {
 
-    List<Valoracion> findByProductoIdOrderByCreadoEnDesc(Long productoId);
+    /** Solo las aprobadas: la tienda no muestra reseñas pendientes ni rechazadas. */
+    List<Valoracion> findByProductoIdAndEstadoOrderByCreadoEnDesc(Long productoId, EstadoValoracion estado);
 
     Optional<Valoracion> findByProductoIdAndUsuarioId(Long productoId, Long usuarioId);
 
+    /** Panel de moderación: todas, de todos los productos. */
+    List<Valoracion> findAllByOrderByCreadoEnDesc();
+
+    /** Panel de moderación filtrado por estado. */
+    List<Valoracion> findByEstadoOrderByCreadoEnDesc(EstadoValoracion estado);
+
     /**
      * Promedio y cantidad de valoraciones agrupados por producto. Los alias del
-     * `SELECT` deben coincidir con los getters de la proyección.
+     * `SELECT` deben coincidir con los getters de la proyección. Solo cuentan
+     * las aprobadas: un montón de reseñas pendientes no debe inflar la nota.
      */
     @Query("""
             SELECT v.producto.id AS productoId,
@@ -24,6 +32,7 @@ public interface ValoracionRepository extends JpaRepository<Valoracion, Long> {
                    COUNT(v) AS cantidad
             FROM Valoracion v
             WHERE v.producto.id IN :ids
+              AND v.estado = com.backend.catalogo.valoracion.EstadoValoracion.APROBADA
             GROUP BY v.producto.id
             """)
     List<ResumenValoracion> resumenPorProductos(@Param("ids") Collection<Long> ids);

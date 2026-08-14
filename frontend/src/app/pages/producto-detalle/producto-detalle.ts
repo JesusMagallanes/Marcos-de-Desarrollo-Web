@@ -230,7 +230,7 @@ export class ProductoDetalle {
     this.valoracionService.guardar(p.id, { calificacion, comentario, nombre: nombreCompleto(usuario) }).subscribe({
       next: () => {
         this.guardandoValoracion.set(false);
-        this.mostrarAviso('Gracias por tu valoración.');
+        this.mostrarAviso('Gracias por tu valoración. Quedará visible cuando un administrador la apruebe.');
         this.cargarValoraciones(p.id);
       },
       error: (e: ErrorApi) => {

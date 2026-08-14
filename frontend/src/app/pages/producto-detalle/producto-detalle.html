@@ -230,6 +230,17 @@
           <div class="alert alert-info py-2 small">
             Ya valoraste este producto con {{ mia.calificacion }} estrella(s). Puedes actualizar tu
             valoración o eliminarla.
+            @if (mia.estado === 'PENDIENTE') {
+              <div class="mt-1 fw-semibold">
+                <i class="fa-solid fa-hourglass-half me-1"></i>Tu valoración está pendiente de
+                revisión; aún no se ve en la tienda.
+              </div>
+            } @else if (mia.estado === 'RECHAZADA') {
+              <div class="mt-1 fw-semibold">
+                <i class="fa-solid fa-circle-xmark me-1"></i>Tu valoración fue rechazada por el
+                administrador. Puedes corregirla y volver a enviarla.
+              </div>
+            }
           </div>
         }
         <div class="tarjeta-valoracion p-3 mb-4">
@@ -275,7 +286,7 @@
               [disabled]="guardandoValoracion()"
               (click)="guardarValoracion()"
             >
-              <i class="fa-solid fa-check me-1"></i>{{ miValoracion() ? 'Actualizar valoración' : 'Publicar valoración' }}
+              <i class="fa-solid fa-check me-1"></i>{{ miValoracion() ? 'Actualizar valoración' : 'Enviar valoración' }}
             </button>
           </div>
         </div>

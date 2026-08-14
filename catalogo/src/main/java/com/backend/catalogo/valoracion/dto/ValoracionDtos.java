@@ -3,6 +3,7 @@ package com.backend.catalogo.valoracion.dto;
 import java.time.Instant;
 
 import com.backend.catalogo.shared.validacion.Saneador;
+import com.backend.catalogo.valoracion.EstadoValoracion;
 import com.backend.catalogo.valoracion.Valoracion;
 
 import jakarta.validation.constraints.Max;
@@ -22,12 +23,44 @@ public final class ValoracionDtos {
             String nombre,
             Integer calificacion,
             String comentario,
+            EstadoValoracion estado,
             Instant creadoEn) {
 
         public static ValoracionResponse desde(Valoracion v) {
             return new ValoracionResponse(
-                    v.getId(), v.getNombre(), v.getCalificacion(), v.getComentario(), v.getCreadoEn());
+                    v.getId(), v.getNombre(), v.getCalificacion(), v.getComentario(),
+                    v.getEstado(), v.getCreadoEn());
         }
+    }
+
+    /** La vista del panel de moderación: incluye el producto para ubicar la reseña. */
+    public record ValoracionAdminResponse(
+            Long id,
+            Long productoId,
+            String productoNombre,
+            String nombre,
+            Integer calificacion,
+            String comentario,
+            EstadoValoracion estado,
+            Instant creadoEn,
+            Instant actualizadoEn) {
+
+        public static ValoracionAdminResponse desde(Valoracion v) {
+            return new ValoracionAdminResponse(
+                    v.getId(),
+                    v.getProducto().getId(),
+                    v.getProducto().getName(),
+                    v.getNombre(),
+                    v.getCalificacion(),
+                    v.getComentario(),
+                    v.getEstado(),
+                    v.getCreadoEn(),
+                    v.getActualizadoEn());
+        }
+    }
+
+    /** Lo que puede fijar el administrador al moderar. */
+    public record CambioEstadoValoracion(@NotNull EstadoValoracion estado) {
     }
 
     /**
