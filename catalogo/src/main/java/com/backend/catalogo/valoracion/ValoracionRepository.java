@@ -15,6 +15,13 @@ public interface ValoracionRepository extends JpaRepository<Valoracion, Long> {
 
     Optional<Valoracion> findByProductoIdAndUsuarioId(Long productoId, Long usuarioId);
 
+    /**
+     * Las 6 mejor valoradas (más estrellas, desempate por las más recientes)
+     * para la portada. Solo aprobadas: el top de la tienda no puede salir de
+     * reseñas pendientes o rechazadas.
+     */
+    List<Valoracion> findTop6ByEstadoOrderByCalificacionDescCreadoEnDesc(EstadoValoracion estado);
+
     /** Panel de moderación: todas, de todos los productos. */
     List<Valoracion> findAllByOrderByCreadoEnDesc();
 

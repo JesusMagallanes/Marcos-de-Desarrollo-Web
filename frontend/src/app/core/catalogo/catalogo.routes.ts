@@ -18,6 +18,11 @@ export const RUTAS_CATALOGO = {
     porId: (id: number) => `${API}/valoraciones/admin/${id}`,
   },
 
+  valoraciones: {
+    /** Las 6 aprobadas mejor valoradas (más estrellas), para la portada. */
+    top: `${API}/valoraciones/top`,
+  },
+
   categorias: {
     base: `${API}/categorias`,
     porId: (id: number) => `${API}/categorias/${id}`,

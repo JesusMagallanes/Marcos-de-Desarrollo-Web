@@ -33,6 +33,16 @@ export interface ValoracionAdmin extends Valoracion {
   actualizadoEn: string;
 }
 
+/**
+ * Reseña de la portada: las mejor valoradas (más estrellas) y aprobadas.
+ * Añade el producto al que va el comentario, para mostrarlo junto a la nota.
+ */
+export interface ValoracionDestacada extends Valoracion {
+  productoId: number;
+  productoNombre: string;
+  productoImagenUrl: string;
+}
+
 /** Cuerpo para crear o actualizar la valoración del usuario en curso. */
 export interface ValoracionRequest {
   calificacion: number;

@@ -33,6 +33,34 @@ public final class ValoracionDtos {
         }
     }
 
+    /**
+     * La reseña de la portada: además del comentario, el producto al que va,
+     * para que quien la lea sepa de qué se habla. `productoImagenUrl` es la
+     * imagen principal (la de las tarjetas), no la galería.
+     */
+    public record ValoracionDestacadaResponse(
+            Long id,
+            Long productoId,
+            String productoNombre,
+            String productoImagenUrl,
+            String nombre,
+            Integer calificacion,
+            String comentario,
+            Instant creadoEn) {
+
+        public static ValoracionDestacadaResponse desde(Valoracion v) {
+            return new ValoracionDestacadaResponse(
+                    v.getId(),
+                    v.getProducto().getId(),
+                    v.getProducto().getName(),
+                    v.getProducto().getImageUrl(),
+                    v.getNombre(),
+                    v.getCalificacion(),
+                    v.getComentario(),
+                    v.getCreadoEn());
+        }
+    }
+
     /** La vista del panel de moderación: incluye el producto para ubicar la reseña. */
     public record ValoracionAdminResponse(
             Long id,

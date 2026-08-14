@@ -140,3 +140,41 @@
     width: 16rem !important;
   }
 }
+
+/* Reseñas de la portada: enlace al producto reseñado. La miniatura no
+   hereda el tamaño intrínseco de la foto (algunas son 1200px) y el
+   comentario se recorta a 3 líneas para que las tarjetas queden parejas. */
+#carousel-resena .review-producto {
+  background-color: #f8f9fa;
+}
+
+#carousel-resena .review-producto-img {
+  flex-shrink: 0;
+  min-width: 0;
+  object-fit: cover;
+}
+
+#carousel-resena .review-comentario {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+#carousel-resena .review-estrellas {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+}
+
+/* Avatar de la reseña: círculo gris con icono de cliente en vez de foto. */
+#carousel-resena .review-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  background-color: #e9ecef;
+  color: #6c757d;
+  font-size: 1.35rem;
+}

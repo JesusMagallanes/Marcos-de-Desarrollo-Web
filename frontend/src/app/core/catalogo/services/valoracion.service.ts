@@ -6,6 +6,7 @@ import {
   EstadoValoracion,
   Valoracion,
   ValoracionAdmin,
+  ValoracionDestacada,
   ValoracionRequest,
 } from '../models';
 
@@ -32,6 +33,14 @@ export class ValoracionService {
   /** DELETE /api/productos/{id}/valoraciones/mia — borra la del usuario en curso. */
   eliminar(productoId: number): Observable<void> {
     return this.http.delete<void>(RUTAS_CATALOGO.productos.valoracionesMia(productoId));
+  }
+
+  /**
+   * GET /api/valoraciones/top — público. Las 6 aprobadas mejor valoradas,
+   * cada una con el producto al que va el comentario.
+   */
+  destacadas(): Observable<ValoracionDestacada[]> {
+    return this.http.get<ValoracionDestacada[]>(RUTAS_CATALOGO.valoraciones.top);
   }
 
   /* ── Moderación (ADMINISTRADOR) ── */

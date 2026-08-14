@@ -214,110 +214,58 @@
     <!-- FIN TARJETAS PRODUCTOS -->
 
     <!-- INICIO RESEÑAS -->
-    <div id="carousel-resena" class="carousel slide" data-bs-ride="carousel" style="margin-bottom: 40px;">
-      <div class="carousel-inner">
-        <!-- ESPACIO 1 -->
-        <div class="carousel-item active">
-          <div class="d-flex flex-wrap justify-content-center gap-3">
-            <div class="card" style="width: 18rem;">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                  <img src="https://i.pravatar.cc/80?img=12" class="rounded-circle me-3" width="48" height="48" alt="Avatar" />
-                  <div>
-                    <h6 class="mb-0">Mario G.</h6>
-                    <small class="text-muted">Compradora verificada</small>
-                  </div>
-                </div>
-                <p class="mb-2">"Entrega rapidísima y el producto llegó perfecto. ¡Totalmente recomendado!"</p>
-                <div aria-label="4 de 5" class="text-warning">★★★★☆</div>
-              </div>
-            </div>
+    @if (valoraciones().length > 0) {
+      <div id="carousel-resena" class="carousel slide" data-bs-ride="carousel" style="margin-bottom: 40px;">
+        <div class="carousel-inner">
+          @for (bloque of resenasChunks(); track $index) {
+            <div class="carousel-item" [class.active]="$index === 0">
+              <div class="d-flex flex-wrap justify-content-center gap-3">
+                @for (v of bloque; track v.id) {
+                  <div class="card review-card" style="width: 18rem;">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center mb-3">
+                        <span class="review-avatar rounded-circle me-3" aria-hidden="true">
+                          <i class="fa-solid fa-user"></i>
+                        </span>
+                        <div>
+                          <h6 class="mb-0">{{ v.nombre }}</h6>
+                          <small class="text-muted">Comprador verificado</small>
+                        </div>
+                      </div>
 
-            <div class="card" style="width: 18rem;">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                  <img src="https://i.pravatar.cc/80?img=33" class="rounded-circle me-3" width="48" height="48" alt="Avatar" />
-                  <div>
-                    <h6 class="mb-0">Carlos M.</h6>
-                    <small class="text-muted">Comprador verificado</small>
-                  </div>
-                </div>
-                <p class="mb-2">"Excelente calidad, el empaque muy cuidado y llegó antes de lo previsto."</p>
-                <div aria-label="3 de 5" class="text-warning">★★★☆☆</div>
-              </div>
-            </div>
+                      <!-- Producto al que va el comentario -->
+                      <a [routerLink]="['/producto', v.productoId]"
+                         class="d-flex align-items-center gap-2 text-decoration-none border rounded p-2 mb-2 review-producto">
+                        <img [src]="imagenProducto(v)" class="review-producto-img rounded" width="42" height="42"
+                             alt="Imagen de {{ v.productoNombre }}" />
+                        <div class="text-truncate">
+                          <small class="text-muted d-block">Reseña de</small>
+                          <span class="fw-semibold text-truncate d-block" style="color: #06b56c;">{{ v.productoNombre }}</span>
+                        </div>
+                      </a>
 
-            <div class="card" style="width: 18rem;">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                  <img src="https://i.pravatar.cc/80?img=45" class="rounded-circle me-3" width="48" height="48" alt="Avatar" />
-                  <div>
-                    <h6 class="mb-0">Lucía R.</h6>
-                    <small class="text-muted">Compradora verificada</small>
+                      <p class="mb-2 review-comentario">"{{ v.comentario }}"</p>
+                      <div [attr.aria-label]="v.calificacion + ' de 5'" class="text-warning review-estrellas">
+                        @for (estrella of [1, 2, 3, 4, 5]; track estrella) {
+                          <span [class.text-secondary]="estrella > v.calificacion">{{ estrella <= v.calificacion ? '★' : '☆' }}</span>
+                        }
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <p class="mb-2">"Muy buena atención al cliente, resolvieron mis dudas en minutos. Volveré a comprar."</p>
-                <div aria-label="4 de 5" class="text-warning">★★★★☆</div>
+                }
               </div>
             </div>
-          </div>
+          }
         </div>
 
-        <!-- ESPACIO 2 -->
-        <div class="carousel-item">
-          <div class="d-flex flex-wrap justify-content-center gap-3">
-            <div class="card" style="width: 18rem;">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                  <img src="https://i.pravatar.cc/80?img=56" class="rounded-circle me-3" width="48" height="48" alt="Avatar" />
-                  <div>
-                    <h6 class="mb-0">Javier P.</h6>
-                    <small class="text-muted">Comprador verificado</small>
-                  </div>
-                </div>
-                <p class="mb-2">"Todo llegó en perfecto estado y el precio me pareció justo. ¡Recomendado al 100%!"</p>
-                <div aria-label="5 de 5" class="text-warning">★★★★★</div>
-              </div>
-            </div>
-
-            <div class="card" style="width: 18rem;">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                  <img src="https://i.pravatar.cc/80?img=11" class="rounded-circle me-3" width="48" height="48" alt="Avatar" />
-                  <div>
-                    <h6 class="mb-0">Juan L.</h6>
-                    <small class="text-muted">Compradora verificada</small>
-                  </div>
-                </div>
-                <p class="mb-2">"Me sorprendió la rapidez del envío y la calidad del producto. ¡Superó mis expectativas!"</p>
-                <div aria-label="5 de 5" class="text-warning">★★★★★</div>
-              </div>
-            </div>
-
-            <div class="card" style="width: 18rem;">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                  <img src="https://i.pravatar.cc/80?img=32" class="rounded-circle me-3" width="48" height="48" alt="Avatar" />
-                  <div>
-                    <h6 class="mb-0">Andrés T.</h6>
-                    <small class="text-muted">Comprador verificado</small>
-                  </div>
-                </div>
-                <p class="mb-2">"El producto es tal cual la descripción, llegó puntual y bien embalado. ¡Muy satisfecho con mi compra!"</p>
-                <div aria-label="4 de 5" class="text-warning">★★★★☆</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carousel-resena" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carousel-resena" data-bs-slide="next">
+          <span class="carousel-control-next-icon"></span>
+        </button>
       </div>
-
-      <button class="carousel-control-prev" type="button" data-bs-target="#carousel-resena" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon"></span>
-      </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carousel-resena" data-bs-slide="next">
-        <span class="carousel-control-next-icon"></span>
-      </button>
-    </div>
+    }
     <!-- FIN RESEÑAS -->
   }
 </main>

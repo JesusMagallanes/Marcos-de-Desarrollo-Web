@@ -66,6 +66,26 @@ describe('ValoracionService', () => {
     req.flush(null);
   });
 
+  it('destacadas() pide las mejores valoradas de la portada', () => {
+    servicio.destacadas().subscribe();
+
+    const req = http.expectOne('/api/valoraciones/top');
+    expect(req.request.method).toBe('GET');
+    req.flush([
+      {
+        id: 20,
+        nombre: 'Pamela',
+        calificacion: 5,
+        comentario: 'Excelente.',
+        estado: 'APROBADA',
+        creadoEn: '2026-08-01T12:00:00Z',
+        productoId: 7,
+        productoNombre: 'Asus ROG Strix G16',
+        productoImagenUrl: 'https://img.example/rog-g16.jpg',
+      },
+    ]);
+  });
+
   it('listarAdmin() sin filtro pide todas las valoraciones', () => {
     servicio.listarAdmin().subscribe();
 

@@ -13,6 +13,7 @@ import com.backend.catalogo.producto.ProductoRepository;
 import com.backend.catalogo.shared.error.ConflictoException;
 import com.backend.catalogo.shared.error.RecursoNoEncontradoException;
 import com.backend.catalogo.valoracion.dto.ValoracionDtos.ValoracionAdminResponse;
+import com.backend.catalogo.valoracion.dto.ValoracionDtos.ValoracionDestacadaResponse;
 import com.backend.catalogo.valoracion.dto.ValoracionDtos.ValoracionRequest;
 import com.backend.catalogo.valoracion.dto.ValoracionDtos.ValoracionResponse;
 
@@ -79,6 +80,17 @@ public class ValoracionService {
         Valoracion valoracion = repositorio.findByProductoIdAndUsuarioId(productoId, usuarioId)
                 .orElseThrow(() -> new ConflictoException("No tienes una valoración en este producto"));
         repositorio.delete(valoracion);
+    }
+
+    /**
+     * Las 6 reseñas aprobadas mejor valoradas (más estrellas), para la
+     * portada. Si hay menos de 6 aprobadas, devuelve las que haya.
+     */
+    public List<ValoracionDestacadaResponse> destacadas() {
+        return repositorio.findTop6ByEstadoOrderByCalificacionDescCreadoEnDesc(EstadoValoracion.APROBADA)
+                .stream()
+                .map(ValoracionDestacadaResponse::desde)
+                .toList();
     }
 
     /* ── Moderación (ADMINISTRADOR) ── */

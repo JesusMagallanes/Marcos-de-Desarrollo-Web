@@ -1,7 +1,15 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { Categoria, CategoriaService, ErrorApi, Producto, ProductoService } from '../../core';
+import {
+  Categoria,
+  CategoriaService,
+  ErrorApi,
+  Producto,
+  ProductoService,
+  ValoracionDestacada,
+  ValoracionService,
+} from '../../core';
 import { ProductoCard } from '../../shared/producto-card/producto-card';
 
 interface Bloque {
@@ -19,11 +27,15 @@ interface Bloque {
 export class Home implements OnInit {
   private categoriaService = inject(CategoriaService);
   private productoService = inject(ProductoService);
+  private valoracionService = inject(ValoracionService);
 
   protected cargando = signal(true);
   protected error = signal('');
   protected categorias = signal<Categoria[]>([]);
   protected productos = signal<Producto[]>([]);
+  /** Las 6 aprobadas mejor valoradas (más estrellas), para la sección de reseñas. */
+  protected valoraciones = signal<ValoracionDestacada[]>([]);
+  protected resenasChunks = computed(() => this.chunk(this.valoraciones(), 3));
 
   /** Agrupación por categoría; sustituye a productosPorCategoria del IndexController. */
   protected bloques = computed<Bloque[]>(() =>
@@ -49,10 +61,12 @@ export class Home implements OnInit {
     forkJoin({
       categorias: this.categoriaService.listar(),
       productos: this.productoService.listar(),
+      valoraciones: this.valoracionService.destacadas(),
     }).subscribe({
-      next: ({ categorias, productos }) => {
+      next: ({ categorias, productos, valoraciones }) => {
         this.categorias.set(categorias);
         this.productos.set(productos);
+        this.valoraciones.set(valoraciones);
         this.cargando.set(false);
       },
       error: (e: ErrorApi) => {
@@ -60,6 +74,11 @@ export class Home implements OnInit {
         this.cargando.set(false);
       },
     });
+  }
+
+  /** Imagen del producto reseñado, con fallback a la imagen por defecto. */
+  imagenProducto(valoracion: ValoracionDestacada): string {
+    return valoracion.productoImagenUrl || '/Img/img.png';
   }
 
   private chunk<T>(elementos: T[], tamaño: number): T[][] {

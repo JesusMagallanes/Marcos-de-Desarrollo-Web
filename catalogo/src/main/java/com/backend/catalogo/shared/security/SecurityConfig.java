@@ -116,7 +116,8 @@ public class SecurityConfig {
                         // Vitrina pública: cualquiera puede navegar el catálogo y leer
                         // las guías de ayuda que estén publicadas.
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**",
-                                "/api/marcas/**", "/api/guias", "/api/guias/*")
+                                "/api/marcas/**", "/api/guias", "/api/guias/*",
+                                "/api/valoraciones/top")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/chatbot/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
