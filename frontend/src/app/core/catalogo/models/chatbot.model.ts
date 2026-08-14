@@ -12,6 +12,9 @@ export type TipoRespuestaChat =
   | 'contacto'
   | 'categoria'
   | 'busqueda'
+  | 'saludo'
+  | 'gracias'
+  | 'ayuda'
   | 'error';
 
 export interface RespuestaChat {

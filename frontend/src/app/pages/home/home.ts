@@ -43,7 +43,7 @@ export class Home implements OnInit {
 
   /** Productos con descuento vigente, para el carrusel de ofertas. */
   protected enOferta = computed(() => this.productos().filter((p) => p.enOferta));
-  protected ofertaChunks = computed(() => this.chunk(this.enOferta(), 5));
+  protected ofertaChunks = computed(() => this.chunk(this.enOferta(), 6));
 
   ngOnInit(): void {
     forkJoin({

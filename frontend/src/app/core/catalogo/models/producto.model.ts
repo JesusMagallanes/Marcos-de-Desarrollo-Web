@@ -62,3 +62,11 @@ export function etiquetaDescuento(p: Producto): string {
   if (p.descuentoTipo === 'MONTO') return `-S/ ${p.descuentoValor}`;
   return `-${p.descuentoValor}%`;
 }
+
+/** Porcentaje de descuento redondeado (solo si el producto está en oferta). */
+export function porcentajeDescuento(
+  p: Pick<Producto, 'precio' | 'precioActual' | 'enOferta'>,
+): number {
+  if (!p.enOferta || !p.precio) return 0;
+  return Math.max(0, Math.round(((p.precio - p.precioActual) / p.precio) * 100));
+}

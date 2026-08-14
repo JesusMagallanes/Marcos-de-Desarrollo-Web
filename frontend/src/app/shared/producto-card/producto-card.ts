@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { etiquetaDescuento, Producto } from '../../core';
+import { etiquetaDescuento, imagenDe, porcentajeDescuento, Producto } from '../../core';
 
 @Component({
   selector: 'app-producto-card',
@@ -10,11 +10,15 @@ import { etiquetaDescuento, Producto } from '../../core';
 })
 export class ProductoCard {
   readonly producto = input.required<Producto>();
-  /** 'carrusel' = .card-producto (home); 'grid' = .producto-card (categoría/búsqueda). */
+  /** 'carrusel' = tarjeta del home; 'grid' = .producto-card (categoría/búsqueda). */
   readonly variante = input<'carrusel' | 'grid'>('grid');
 
   protected readonly etiquetaDescuento = etiquetaDescuento;
+  protected readonly imagenDe = imagenDe;
   protected readonly redondeadoPromedio = computed(() =>
     Math.round(this.producto().calificacionPromedio ?? 0),
   );
+
+  /** Porcentaje de descuento sobre el precio de lista, para la etiqueta «X% DSCTO». */
+  protected readonly porcentaje = computed(() => porcentajeDescuento(this.producto()));
 }

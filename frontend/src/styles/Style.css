@@ -57,63 +57,6 @@
 }
 
 
-#carouselProductosTop .carousel-control-prev,
-#carouselProductosTop .carousel-control-next {
-  width: 45px;
-  height: 45px;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: #ffffff;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  opacity: 0.95;
-  transition: all 0.3s ease;
-  border: none;
-}
-
-#carouselProductosTop .carousel-control-prev,
-#carouselCat__1 .carousel-control-prev {
-  left: -20px;
-}
-
-#carouselProductosTop .carousel-control-next,
-#carouselCat__1 .carousel-control-next {
-  right: -20px;
-}
-#carouselCat__1 .carousel-control-prev,
-#carouselCat__1 .carousel-control-next {
-  width: 45px;
-  height: 45px;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: #ffffff;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  opacity: 0.95;
-  transition: all 0.3s ease;
-  border: none;
-}
-
-#carouselProductosTop .carousel-control-prev:hover,
-#carouselProductosTop .carousel-control-next:hover {
-  transform: translateY(-50%) scale(1.05);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-#carouselProductosTop .carousel-control-prev-icon,
-#carouselProductosTop .carousel-control-next-icon {
-  filter: invert(0);
-  width: 20px;
-  height: 20px;
-}
-
-#carouselProductosTop .carousel-control-prev-icon,
-#carouselProductosTop .carousel-control-next-icon {
-  filter: invert(1) brightness(0);
-  width: 20px;
-  height: 20px;
-}
-
 #carouselProductosTop .card-promo {
   background-color: #2DB500;
   border: none;

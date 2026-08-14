@@ -1,3 +1,142 @@
 /* El home replica la estructura de Index.html: carruseles y tarjetas usan las
    clases globales de src/styles/Style.css (.mas-vendidos, .card-producto,
    #carouselProductosTop, #carousel-resena). */
+
+/* ── Botones de los carruseles de productos ─────────────────────────
+   Mismo estilo redondo y blanco en ofertas, top y categorías. */
+
+.carrusel-productos .carousel-control-prev,
+.carrusel-productos .carousel-control-next {
+  width: 45px;
+  height: 45px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+  opacity: 0.95;
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+}
+
+.carrusel-productos .carousel-control-prev {
+  left: -20px;
+}
+
+.carrusel-productos .carousel-control-next {
+  right: -20px;
+}
+
+.carrusel-productos .carousel-control-prev:hover,
+.carrusel-productos .carousel-control-next:hover {
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 4px 10px rgb(0 0 0 / 0.3);
+  opacity: 1;
+}
+
+.carrusel-productos .carousel-control-prev-icon,
+.carrusel-productos .carousel-control-next-icon {
+  filter: invert(1) brightness(0);
+  width: 20px;
+  height: 20px;
+}
+
+/* ── Responsividad ───────────────────────────────────────────────────
+   El esquema: carrusel con flechas en xl+ y scroll horizontal con snap
+   por debajo de xl. El padding/margen fijo de 50px de .mas-vendidos
+   (global en Style.css) se reduce en pantallas menores. */
+
+@media (max-width: 1199.98px) {
+  .mas-vendidos {
+    padding-left: 24px;
+    padding-right: 24px;
+    margin-top: 32px;
+    margin-bottom: 32px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .mas-vendidos {
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-top: 24px;
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .mas-vendidos .overflow-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+
+  .mas-vendidos .overflow-auto::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mas-vendidos .overflow-auto .product-card-item {
+    scroll-snap-align: start;
+  }
+}
+
+/* Hero: banners con altura controlada y recorte consistente */
+#Carrusel .carousel-item img {
+  width: 100%;
+  height: clamp(220px, 38vw, 460px);
+  object-fit: cover;
+  object-position: center;
+}
+
+#Carrusel .carousel-indicators {
+  margin-bottom: 4px;
+}
+
+/* Tarjetas del carrusel desktop: no crecen sin límite en pantallas
+   anchas (a 1920px cada tarjeta pasaba a ~320px). Se centra el carrusel
+   y las tarjetas quedan ~213px. */
+.carrusel-productos {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Scroll móvil: tarjetas más compactas. El ancho del wrapper es DEFINIDO
+   (flex-basis/width) y no auto: si es auto, la tarjeta se expande al tamaño
+   intrínseco de la imagen y nunca se encoge. En teléfonos el ancho es
+   relativo (44vw ≈ 2 tarjetas por pantalla). */
+@media (max-width: 1199.98px) {
+  .mas-vendidos .product-card-item {
+    min-width: 210px;
+    width: 210px;
+    flex-basis: 210px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .mas-vendidos .product-card-item {
+    min-width: 170px;
+    width: 170px;
+    flex-basis: 170px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .mas-vendidos .product-card-item {
+    min-width: 44vw;
+    width: 44vw;
+    flex-basis: 44vw;
+  }
+}
+
+/* Reseñas: las tarjetas de 18rem (inline) no desbordan y son más
+   compactas en pantallas pequeñas */
+#carousel-resena .card {
+  max-width: 100%;
+}
+
+@media (max-width: 575.98px) {
+  #carousel-resena .card {
+    width: 16rem !important;
+  }
+}

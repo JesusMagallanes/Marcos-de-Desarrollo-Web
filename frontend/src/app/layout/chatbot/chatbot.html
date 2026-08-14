@@ -4,34 +4,56 @@
       <div class="logo">SZ</div>
       <div>SmartZoneBot</div>
     </div>
-    <div id="close-chat" (click)="alternar()">✕</div>
+    <div class="header-actions">
+      <button
+        id="clear-chat"
+        type="button"
+        (click)="limpiar()"
+        title="Limpiar conversación"
+        aria-label="Limpiar conversación"
+      >
+        <i class="fa-solid fa-broom"></i>
+      </button>
+      <button id="close-chat" type="button" (click)="alternar()" aria-label="Cerrar chat">✕</button>
+    </div>
   </div>
 
-  <div id="chat-body">
-    <div class="quick-actions">
-      @for (a of atajos; track a) {
-        <button type="button" (click)="enviarAtajo(a)">{{ a }}</button>
-      }
-    </div>
+  <div id="chat-body" #cuerpo>
+    @if (mostrarAtajos()) {
+      <div class="quick-actions">
+        @for (a of atajos; track a) {
+          <button type="button" (click)="enviarAtajo(a)">{{ a }}</button>
+        }
+      </div>
+    }
 
     @for (m of mensajes(); track $index) {
       <div class="message" [class.bot]="m.autor === 'bot'" [class.user]="m.autor === 'usuario'">
         <div [innerHTML]="m.html"></div>
         @if (m.productos?.length) {
           <div class="chat-products">
-            <small><b>Productos encontrados:</b></small>
             @for (p of m.productos; track p.id) {
               <button type="button" class="product-btn" (click)="verProducto(p.id)">
-                <strong>{{ p.name }}</strong>
-                @if (p.enOferta) {
-                  <span>S/ {{ p.precioActual }} <s class="text-muted">S/ {{ p.precio }}</s></span>
-                } @else {
-                  <span>S/ {{ p.precio }}</span>
-                }
+                <img [src]="imagenDe(p)" [alt]="p.name" loading="lazy" />
+                <span class="product-info">
+                  <strong>{{ p.name }}</strong>
+                  @if (p.marcaName) {
+                    <small class="product-marca">{{ p.marcaName }}</small>
+                  }
+                  <span class="product-price">
+                    S/ {{ p.precioActual }}
+                    @if (p.enOferta) {
+                      <s class="product-price-old">S/ {{ p.precio }}</s>
+                      <em class="product-discount">{{ porcentajeDescuento(p) }}% DSCTO</em>
+                    }
+                  </span>
+                </span>
+                <span class="product-go"><i class="fa-solid fa-chevron-right"></i></span>
               </button>
             }
           </div>
         }
+        <div class="message-time">{{ hora(m.fecha) }}</div>
       </div>
     }
 
@@ -51,9 +73,15 @@
       (ngModelChange)="entrada.set($event)"
       name="mensaje"
       autocomplete="off"
+      [maxlength]="maxLongitud"
       (keyup.enter)="enviar()"
     />
-    <button id="send-btn" type="button" (click)="enviar()" [disabled]="escribiendo()">➤</button>
+    <button
+      id="send-btn"
+      type="button"
+      (click)="enviar()"
+      [disabled]="escribiendo() || !entrada().trim()"
+    >➤</button>
   </div>
 </div>
 

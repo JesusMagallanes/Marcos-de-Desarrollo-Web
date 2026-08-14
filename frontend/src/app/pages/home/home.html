@@ -55,7 +55,7 @@
         </div>
 
         <!-- CARRUSEL DE OFERTAS (Desktop) -->
-        <div id="carouselOfertas" class="carousel carousel-dark slide d-none d-lg-block" data-bs-ride="carousel">
+        <div id="carouselOfertas" class="carousel carousel-dark slide d-none d-xl-block carrusel-productos" data-bs-ride="carousel">
           <div class="carousel-inner">
             @for (chunk of ofertaChunks(); track $index) {
               <div class="carousel-item" [class.active]="$index === 0" data-bs-interval="10000">
@@ -83,7 +83,7 @@
         </div>
 
         <!-- Scroll horizontal móvil -->
-        <div class="d-lg-none d-flex overflow-auto py-3">
+        <div class="d-xl-none d-flex overflow-auto py-3">
           @for (p of enOferta(); track p.id) {
             <div class="flex-shrink-0 me-3 product-card-item">
               <app-producto-card [producto]="p" [variante]="'carrusel'" />
@@ -105,7 +105,7 @@
       </div>
 
       <!-- CARRUSEL DE PRODUCTOS (Desktop) -->
-      <div id="carouselProductosTop" class="carousel carousel-dark slide d-none d-lg-block" data-bs-ride="carousel">
+      <div id="carouselProductosTop" class="carousel carousel-dark slide d-none d-xl-block carrusel-productos" data-bs-ride="carousel">
         <div class="carousel-inner">
           @for (chunk of topChunks(); track $index) {
             <div class="carousel-item" [class.active]="$index === 0" data-bs-interval="10000">
@@ -150,7 +150,7 @@
       </div>
 
       <!-- Scroll horizontal móvil -->
-      <div class="d-lg-none d-flex overflow-auto py-3">
+      <div class="d-xl-none d-flex overflow-auto py-3">
         @for (p of productos(); track p.id) {
           <div class="flex-shrink-0 me-3 product-card-item">
             <app-producto-card [producto]="p" [variante]="'carrusel'" />
@@ -172,7 +172,7 @@
         </div>
 
         <!-- CARRUSEL (Desktop: agrupado en slides de 6) -->
-        <div [id]="'carouselCat__' + b.categoria.id" class="carousel carousel-dark slide d-none d-lg-block"
+        <div [id]="'carouselCat__' + b.categoria.id" class="carousel carousel-dark slide d-none d-xl-block carrusel-productos"
           data-bs-ride="carousel">
           <div class="carousel-inner">
             @for (chunk of b.chunks; track $index) {
@@ -200,7 +200,7 @@
         </div>
 
         <!-- Scroll horizontal móvil -->
-        <div class="d-lg-none d-flex overflow-auto py-3">
+        <div class="d-xl-none d-flex overflow-auto py-3">
           @for (p of b.productos; track p.id) {
             <div class="flex-shrink-0 me-3 product-card-item">
               <app-producto-card [producto]="p" [variante]="'carrusel'" />

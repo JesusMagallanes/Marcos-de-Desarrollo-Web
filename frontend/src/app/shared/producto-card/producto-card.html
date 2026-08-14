@@ -1,37 +1,40 @@
 @if (variante() === 'carrusel') {
   <a [routerLink]="['/producto', producto().id]" class="text-decoration-none">
-    <div class="card card-producto h-100 shadow-sm rounded">
-      <img [src]="producto().imageUrl || '/Img/img.png'" class="card-img-top img-fluid" [alt]="producto().name"
-        loading="lazy" />
-      <div class="card-body" style="font-size:14px;">
-        <h6 class="fw-bold mb-1 text-uppercase">{{ producto().name }}</h6>
-        <p class="fw-semibold mb-1 text-truncate" style="max-height:3rem;overflow:hidden;">
-          {{ producto().description }}
-        </p>
+    <article class="pc-card">
+      <div class="pc-imagen">
+        <img [src]="imagenDe(producto())" [alt]="producto().name" loading="lazy" />
+        @if (producto().enOferta) {
+          <span class="pc-badge">{{ porcentaje() }}% DSCTO</span>
+        }
+      </div>
+      <div class="pc-cuerpo">
+        @if (producto().marcaName) {
+          <span class="pc-marca">{{ producto().marcaName }}</span>
+        }
+        <h3 class="pc-nombre">{{ producto().name }}</h3>
+        <p class="pc-desc">{{ producto().description }}</p>
         @if ((producto().cantidadValoraciones ?? 0) > 0) {
-          <div class="d-flex align-items-center gap-1 mb-1">
+          <div class="pc-valoracion">
             @for (n of [1, 2, 3, 4, 5]; track n) {
               <i
                 class="fa-solid fa-star"
                 [class.text-warning]="n <= redondeadoPromedio()"
                 [class.text-muted]="n > redondeadoPromedio()"
-                style="font-size: 0.7rem"
               ></i>
             }
-            <small class="text-muted ms-1">({{ producto().calificacionPromedio }})</small>
+            <span class="pc-valoracion-num">({{ producto().calificacionPromedio }})</span>
           </div>
         }
-        <p class="fw-bold fs-5 mt-2 precio">
+        <div class="pc-precios">
           @if (producto().enOferta) {
-            <span class="badge bg-danger me-2">{{ etiquetaDescuento(producto()) }}</span>
-            <span class="text-danger">S/. {{ producto().precioActual }}</span>
-            <s class="text-muted ms-2" style="font-size: 0.85em">S/. {{ producto().precio }}</s>
+            <span class="pc-precio-actual">S/ {{ producto().precioActual }}</span>
+            <s class="pc-precio-original">S/ {{ producto().precio }}</s>
           } @else {
-            S/. {{ producto().precio }}
+            <span class="pc-precio-actual">S/ {{ producto().precio }}</span>
           }
-        </p>
+        </div>
       </div>
-    </div>
+    </article>
   </a>
 } @else {
   <div class="card producto-card shadow-sm hover-card h-100">

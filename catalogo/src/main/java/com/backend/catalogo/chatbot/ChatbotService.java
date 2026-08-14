@@ -1,12 +1,17 @@
 package com.backend.catalogo.chatbot;
 
+import java.text.Normalizer;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.catalogo.categoria.CategoriaService;
+import com.backend.catalogo.categoria.dto.CategoriaDtos.CategoriaResponse;
 import com.backend.catalogo.chatbot.dto.ChatbotDtos.RespuestaChat;
 import com.backend.catalogo.producto.ProductoService;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoResponse;
@@ -21,81 +26,89 @@ public class ChatbotService {
     private final ProductoService productoService;
     private final CategoriaService categoriaService;
 
-    /** Palabra clave → slug de categoría. */
-    private static final Map<String, String> CATEGORIAS = Map.ofEntries(
-            Map.entry("laptop", "laptops"),
-            Map.entry("monitor", "monitores"),
-            Map.entry("celular", "celulares"),
-            Map.entry("smartphone", "celulares"),
-            Map.entry("consola", "consolas"),
-            Map.entry("accesorio", "accesorios"),
-            Map.entry("teclado", "teclados"),
-            Map.entry("mouse", "mouse"),
-            Map.entry("auricular", "auriculares"),
-            Map.entry("tablet", "tablets"));
+    /** Acentos y diacríticos fuera: "envío" y "envio" son la misma intención. */
+    private static final Pattern DIACRITICOS = Pattern.compile("\\p{M}+");
 
     public RespuestaChat responder(String mensaje) {
         if (mensaje == null || mensaje.isBlank()) {
             return new RespuestaChat("Por favor, escribe un mensaje.", "error", List.of(), null);
         }
 
-        String texto = mensaje.toLowerCase().trim();
+        String texto = normalizar(mensaje);
 
         if (contiene(texto, "oferta", "descuento", "promocion", "promo")) {
             return ofertas();
         }
-        if (contiene(texto, "envío", "envio", "delivery", "entrega")) {
+        if (contiene(texto, "envio", "entrega", "delivery", "enviar")) {
             return informativa(TEXTO_ENVIO, "envio");
         }
-        if (contiene(texto, "pago", "pagar", "tarjeta", "yape", "plin", "transferencia")) {
+        if (contiene(texto, "pago", "pagar", "tarjeta", "yape", "plin", "transferencia", "cuota", "cuotas")) {
             return informativa(TEXTO_PAGO, "pago");
         }
-        if (contiene(texto, "contacto", "telefono", "teléfono", "whatsapp", "email", "correo")) {
+        if (contiene(texto, "contacto", "telefono", "whatsapp", "email", "correo", "atencion")) {
             return informativa(TEXTO_CONTACTO, "contacto");
         }
 
-        String slug = CATEGORIAS.entrySet().stream()
-                .filter(e -> texto.contains(e.getKey()))
-                .map(Map.Entry::getValue)
-                .findFirst()
-                .orElse(null);
+        // La categoría va antes que el saludo: "hola, laptop" debe responder la
+        // categoría, y "hola" a secas cae al saludo.
+        Optional<CategoriaResponse> categoria = detectarCategoria(texto);
+        if (categoria.isPresent()) {
+            return porCategoria(categoria.get());
+        }
 
-        return slug != null ? porCategoria(slug) : buscar(texto);
+        if (contiene(texto, "hola", "buenos dias", "buenas tardes", "buenas noches", "buenas", "saludos", "hello")) {
+            return saludo();
+        }
+        if (contiene(texto, "gracias", "thank", "genial", "perfecto", "excelente")) {
+            return gracias();
+        }
+        if (contiene(texto, "ayuda", "help", "que puedes", "puedes hacer", "opciones", "menu")) {
+            return ayuda();
+        }
+
+        return buscar(mensaje.trim());
     }
 
+    /**
+     * Ofertas reales: solo productos cuyo descuento está vigente hoy (los
+     * demás se descartan antes de mostrarlos).
+     */
     private RespuestaChat ofertas() {
-        List<ProductoResponse> productos = productoService.listar(null).stream().limit(5).toList();
+        List<ProductoResponse> productos = productoService.listar(null).stream()
+                .filter(ProductoResponse::enOferta)
+                .limit(5)
+                .toList();
 
         if (productos.isEmpty()) {
-            return new RespuestaChat("No hay ofertas disponibles en este momento.", "ofertas", List.of(), null);
+            return new RespuestaChat(
+                    "🔥 <b>Ahora mismo no hay productos con descuento.</b><br>"
+                            + "Vuelve a preguntarme por <b>ofertas</b> en otro momento o dime "
+                            + "una categoría para mostrarte lo que tengo.",
+                    "ofertas", List.of(), null);
         }
 
-        StringBuilder sb = new StringBuilder("🔥 <b>Ofertas destacadas:</b><br><br>");
-        productos.forEach(p -> sb.append(linea(p)));
-        sb.append("👉 Toca un producto para ver el detalle.");
-
-        return new RespuestaChat(sb.toString(), "ofertas", productos, null);
+        int cantidad = productos.size();
+        return new RespuestaChat(
+                String.format("🔥 <b>Hay %d producto%s con descuento:</b><br><br>"
+                        + "👉 Toca una tarjeta para ver el detalle.",
+                        cantidad, cantidad == 1 ? "" : "s"),
+                "ofertas", productos, null);
     }
 
-    private RespuestaChat porCategoria(String slug) {
-        // Se pregunta si existe en vez de capturar la excepción: una excepción
-        // lanzada aquí dentro marcaría la transacción como rollback-only y el
-        // commit fallaría aunque la capturásemos.
-        if (!categoriaService.existePorSlug(slug)) {
-            return new RespuestaChat("Todavía no tengo productos de esa categoría.", "categoria", List.of(), null);
-        }
-
-        List<ProductoResponse> productos = productoService.listarPorCategoria(slug, 0, 5).content();
+    private RespuestaChat porCategoria(CategoriaResponse categoria) {
+        List<ProductoResponse> productos = productoService
+                .listarPorCategoria(categoria.slug(), 0, 5).content();
 
         if (productos.isEmpty()) {
-            return new RespuestaChat("No hay productos disponibles en esa categoría ahora mismo.",
-                    "categoria", List.of(), slug);
+            return new RespuestaChat(
+                    "No tengo productos disponibles en <b>" + escapar(categoria.name()) + "</b> ahora mismo.",
+                    "categoria", List.of(), categoria.slug());
         }
 
-        StringBuilder sb = new StringBuilder("💻 <b>Esto es lo que tengo:</b><br><br>");
-        productos.forEach(p -> sb.append(linea(p)));
-
-        return new RespuestaChat(sb.toString(), "categoria", productos, slug);
+        return new RespuestaChat(
+                "💻 <b>Esto es lo que tengo en " + escapar(categoria.name()) + ":</b><br><br>"
+                        + "👉 Toca una tarjeta para ver el detalle.",
+                "categoria", productos, categoria.slug());
     }
 
     private RespuestaChat buscar(String consulta) {
@@ -103,43 +116,104 @@ public class ChatbotService {
 
         if (resultados.isEmpty()) {
             return new RespuestaChat(
-                    "🤔 No encontré productos con esa búsqueda.<br><br>"
-                            + "Prueba con: <b>laptops</b>, <b>monitores</b>, <b>celulares</b>, "
-                            + "<b>ofertas</b>, <b>envíos</b>, <b>pagos</b> o <b>contacto</b>.",
+                    "🤔 No encontré productos con «" + escapar(consulta) + "».<br><br>"
+                            + "Prueba con una <b>categoría</b> (laptops, monitores, celulares…), "
+                            + "o con <b>ofertas</b>, <b>envíos</b>, <b>pagos</b>, <b>contacto</b> o <b>ayuda</b>.",
                     "busqueda", List.of(), null);
         }
 
-        StringBuilder sb = new StringBuilder(
-                String.format("🔍 <b>Encontré %d producto(s):</b><br><br>", resultados.size()));
-        resultados.forEach(p -> sb.append(linea(p)));
+        int cantidad = resultados.size();
+        return new RespuestaChat(
+                String.format("🔍 <b>Encontré %d producto%s</b> para «%s»:<br><br>"
+                        + "👉 Toca una tarjeta para ver el detalle.",
+                        cantidad, cantidad == 1 ? "" : "s", escapar(consulta)),
+                "busqueda", resultados, null);
+    }
 
-        return new RespuestaChat(sb.toString(), "busqueda", resultados, null);
+    private RespuestaChat saludo() {
+        return new RespuestaChat(
+                "¡Hola! 👋 Soy el asistente de <b>SmartZone</b>.<br><br>"
+                        + "Puedo ayudarte con <b>ofertas</b>, <b>categorías</b> "
+                        + "(laptops, monitores, celulares…), <b>envíos</b>, <b>pagos</b> y <b>contacto</b>.<br>"
+                        + "¿En qué te ayudo?",
+                "saludo", List.of(), null);
+    }
+
+    private RespuestaChat gracias() {
+        return new RespuestaChat(
+                "¡De nada! 😊 Para eso estoy.<br>"
+                        + "¿Hay algo más en lo que pueda ayudarte?",
+                "gracias", List.of(), null);
+    }
+
+    private RespuestaChat ayuda() {
+        return new RespuestaChat(
+                "🤖 <b>Esto es lo que sé hacer:</b><br><br>"
+                        + "🔥 <b>Ofertas</b> → te muestro los productos con descuento vigente.<br>"
+                        + "📁 <b>Una categoría</b> → laptops, monitores, celulares…<br>"
+                        + "🔎 <b>Buscar productos</b> → por nombre o descripción.<br>"
+                        + "🚚 <b>Envíos</b> y 💳 <b>Métodos de pago</b>.<br>"
+                        + "📞 <b>Contacto</b> y horario de atención.<br><br>"
+                        + "Prueba escribiendo algo como «ofertas» o «quiero una laptop».",
+                "ayuda", List.of(), null);
     }
 
     private RespuestaChat informativa(String html, String tipo) {
         return new RespuestaChat(html, tipo, List.of(), null);
     }
 
-    private String linea(ProductoResponse p) {
-        return String.format(
-                "🔹 <b>%s</b><br>💲 <b>S/ %.2f</b><br>%s<br><br>",
-                escapar(p.name()),
-                p.precio(),
-                p.stock() > 0 ? "✅ Disponible" : "❌ Sin stock");
+    /**
+     * Busca la categoría del catálogo que mejor encaje con el mensaje, mirando
+     * los nombres reales (no un mapa fijo): "laptop" y "laptops" dan en el
+     * clavo, igual que "monitor" y "monitores". Devuelve la coincidencia más
+     * larga para no quedarse con una parcial.
+     */
+    private Optional<CategoriaResponse> detectarCategoria(String texto) {
+        return categoriaService.listar().stream()
+                .map(categoria -> new Coincidencia(categoria, coincidencia(categoria, texto)))
+                .filter(c -> c.clave() != null)
+                .max(Comparator.comparingInt(c -> c.clave().length()))
+                .map(Coincidencia::categoria);
     }
 
-    /**
-     * El nombre del producto se inserta en HTML, así que se escapa: un nombre
-     * con etiquetas no debe convertirse en markup en el navegador.
-     */
-    private String escapar(String texto) {
-        if (texto == null) {
-            return "";
+    private record Coincidencia(CategoriaResponse categoria, String clave) {
+    }
+
+    /** Palabra clave de la categoría que aparece en el mensaje, o null. */
+    private String coincidencia(CategoriaResponse categoria, String texto) {
+        String nombre = normalizar(categoria.name());
+        if (nombre.length() >= 4 && texto.length() >= 4
+                && (texto.contains(nombre) || nombre.contains(texto))) {
+            return nombre;
         }
-        return texto.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;");
+
+        for (String token : nombre.split("[^a-z0-9]+")) {
+            if (token.length() < 4 || token.chars().allMatch(Character::isDigit)) {
+                continue;
+            }
+            if (texto.contains(token) || texto.contains(singular(token))) {
+                return token;
+            }
+        }
+        return null;
+    }
+
+    /** Singular aproximado: "monitores" → "monitor", "laptops" → "laptop". */
+    private String singular(String palabra) {
+        if (palabra.endsWith("es") && palabra.length() > 4) {
+            return palabra.substring(0, palabra.length() - 2);
+        }
+        if (palabra.endsWith("s") && palabra.length() > 3) {
+            return palabra.substring(0, palabra.length() - 1);
+        }
+        return palabra;
+    }
+
+    /** Minúsculas y sin acentos, para comparar sin fricción de tipeo. */
+    private String normalizar(String texto) {
+        String sinAcentos = Normalizer.normalize(texto, Normalizer.Form.NFD);
+        sinAcentos = DIACRITICOS.matcher(sinAcentos).replaceAll("");
+        return sinAcentos.toLowerCase(Locale.ROOT).trim();
     }
 
     private boolean contiene(String texto, String... claves) {
@@ -149,6 +223,20 @@ public class ChatbotService {
             }
         }
         return false;
+    }
+
+    /**
+     * El texto del usuario (o el nombre de una categoría) se inserta en HTML,
+     * así que se escapa: un nombre con etiquetas no debe convertirse en markup.
+     */
+    private String escapar(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        return texto.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
     }
 
     private static final String TEXTO_ENVIO = """
