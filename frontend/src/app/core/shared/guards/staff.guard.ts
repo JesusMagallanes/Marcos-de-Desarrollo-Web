@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../../usuarios/services/auth.service';
 
-/** EMPLEADO o ADMINISTRADOR: cubre la gestión de envíos y pedidos. */
+/** Staff de tienda (pedidos y envíos): rol clásico o permiso de gestión. */
 export const staffGuard: CanActivateFn = (_ruta, estado) => {
   const auth = inject(AuthService);
   const router = inject(Router);

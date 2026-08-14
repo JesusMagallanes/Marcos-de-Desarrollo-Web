@@ -18,7 +18,7 @@
 
     <nav class="nav flex-column">
       <span class="grupo-nav">Gestión</span>
-      @for (s of secciones; track s.ruta) {
+      @for (s of secciones(); track s.ruta) {
         <a class="nav-link" [routerLink]="s.ruta" routerLinkActive="activo" (click)="cerrarMenu()">
           <i class="fa-solid {{ s.icono }}"></i>
           <span class="etiqueta">{{ s.etiqueta }}</span>
@@ -28,10 +28,6 @@
 
     <nav class="nav flex-column seccion-inferior">
       <span class="grupo-nav">Tienda</span>
-      <a class="nav-link" routerLink="/envios" routerLinkActive="activo" (click)="cerrarMenu()">
-        <i class="fa-solid fa-truck"></i>
-        <span class="etiqueta">Envíos</span>
-      </a>
       <a class="nav-link" routerLink="/" (click)="cerrarMenu()">
         <i class="fa-solid fa-store"></i>
         <span class="etiqueta">Ver tienda</span>

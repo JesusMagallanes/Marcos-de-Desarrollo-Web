@@ -56,33 +56,33 @@ public class GuiaController {
     /* ── Panel de administración ── */
 
     @GetMapping("/admin/todas")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_GUIAS_GESTIONAR')")
     public List<GuiaResumen> listarTodas() {
         return servicio.listarTodas();
     }
 
     @GetMapping("/admin/{slug}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_GUIAS_GESTIONAR')")
     public GuiaResponse obtenerParaEdicion(
             @PathVariable @Pattern(regexp = Limites.SLUG, message = "Slug no válido") String slug) {
         return servicio.obtenerParaEdicion(slug);
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_GUIAS_GESTIONAR')")
     public ResponseEntity<GuiaResponse> crear(@Valid @RequestBody GuiaRequest dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(servicio.crear(dto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_GUIAS_GESTIONAR')")
     public GuiaResponse actualizar(@PathVariable @Positive Long id,
             @Valid @RequestBody GuiaRequest dto) {
         return servicio.actualizar(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_GUIAS_GESTIONAR')")
     public ResponseEntity<Void> eliminar(@PathVariable @Positive Long id) {
         servicio.eliminar(id);
         return ResponseEntity.noContent().build();

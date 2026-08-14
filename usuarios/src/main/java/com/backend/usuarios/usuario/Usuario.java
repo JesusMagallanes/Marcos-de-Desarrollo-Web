@@ -55,10 +55,10 @@ public class Usuario {
     @Builder.Default
     private Proveedor proveedor = Proveedor.LOCAL;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    /** Nombre del rol (clave natural de la tabla `rol`); viaja en el JWT. */
+    @Column(nullable = false, length = 50)
     @Builder.Default
-    private Rol rol = Rol.CLIENTE;
+    private String rol = "CLIENTE";
 
     @Column(name = "creado_en", nullable = false, updatable = false)
     private LocalDateTime creadoEn;
@@ -69,7 +69,7 @@ public class Usuario {
             creadoEn = LocalDateTime.now();
         }
         if (rol == null) {
-            rol = Rol.CLIENTE;
+            rol = "CLIENTE";
         }
         if (proveedor == null) {
             proveedor = Proveedor.LOCAL;

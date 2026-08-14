@@ -1,0 +1,183 @@
+<div class="cabecera-seccion">
+  <h5 class="mb-0">Roles y permisos</h5>
+  <button type="button" class="btn btn-sm btn-success" (click)="nuevo()">
+    <i class="fa-solid fa-plus me-1"></i>Nuevo rol
+  </button>
+</div>
+
+<p class="text-muted small mb-3">
+  Los roles asignan permisos a los usuarios. «Personal» accede a las secciones de
+  gestión de la tienda; «Clientes» son cuentas de compra. Un rol de sistema no se
+  puede borrar ni cambiar de tipo.
+</p>
+
+@if (estado.aviso()) {
+  <div class="alert alert-success py-2 small">{{ estado.aviso() }}</div>
+}
+@if (estado.hayError()) {
+  <div class="alert alert-danger py-2 small">{{ estado.mensajeError() }}</div>
+}
+
+@if (estado.cargando()) {
+  <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+} @else {
+  <div class="btn-group btn-group-sm mb-3" role="group">
+    <button
+      type="button"
+      class="btn"
+      [class.btn-success]="filtroTipo() === 'TRABAJADOR'"
+      [class.btn-outline-success]="filtroTipo() !== 'TRABAJADOR'"
+      (click)="filtrar('TRABAJADOR')"
+    >
+      <i class="fa-solid fa-briefcase me-1"></i>Personal
+    </button>
+    <button
+      type="button"
+      class="btn"
+      [class.btn-success]="filtroTipo() === 'CLIENTE'"
+      [class.btn-outline-success]="filtroTipo() !== 'CLIENTE'"
+      (click)="filtrar('CLIENTE')"
+    >
+      <i class="fa-solid fa-users me-1"></i>Clientes
+    </button>
+  </div>
+
+  <div class="tarjeta-tabla">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th style="width: 200px">Rol</th>
+          <th>Descripción</th>
+          <th class="text-center" style="width: 90px">Permisos</th>
+          <th class="text-center" style="width: 90px">Usuarios</th>
+          <th class="text-end" style="width: 130px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of visibles(); track r.nombre) {
+          <tr>
+            <td>
+              <span class="badge" [class]="claseRol(r.tipo)">{{ r.nombre }}</span>
+              @if (r.sistema) {
+                <span class="badge bg-light text-dark ms-1">sistema</span>
+              }
+            </td>
+            <td class="small text-muted">{{ r.descripcion }}</td>
+            <td class="text-center">{{ r.permisos.length }}</td>
+            <td class="text-center">{{ r.usuarios }}</td>
+            <td class="text-end">
+              @if (confirmandoNombre() === r.nombre) {
+                <button type="button" class="btn btn-sm btn-danger me-1" (click)="eliminar(r.nombre)">Sí</button>
+                <button type="button" class="btn btn-sm btn-secondary" (click)="confirmandoNombre.set(null)">No</button>
+              } @else {
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary me-1"
+                  title="Editar"
+                  (click)="editar(r)"
+                >
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  title="Eliminar"
+                  [disabled]="r.sistema || r.usuarios > 0"
+                  (click)="confirmandoNombre.set(r.nombre)"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">No hay roles de este tipo.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (formAbierto()) {
+  <div class="fondo-modal" (click)="cerrar()"></div>
+  <div class="panel-modal shadow">
+    <div class="cabecera-modal">
+      <h6 class="mb-0">{{ editandoNombre() ? 'Editar rol' : 'Nuevo rol' }}</h6>
+      <button type="button" class="btn-close" (click)="cerrar()"></button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="cuerpo-modal">
+      <div class="row g-2">
+        <div class="col-md-6 mb-2">
+          <label class="form-label small fw-semibold">Nombre</label>
+          <input
+            class="form-control form-control-sm"
+            formControlName="nombre"
+            [class.is-invalid]="invalido('nombre')"
+            [readonly]="!!editandoNombre()"
+            placeholder="GERENTE"
+          />
+          <div class="form-text">Mayúsculas, números y guiones bajos.</div>
+        </div>
+        <div class="col-md-6 mb-2">
+          <label class="form-label small fw-semibold">Tipo</label>
+          <select class="form-select form-select-sm" formControlName="tipo" [disabled]="sistemaEditando()">
+            <option value="TRABAJADOR">Personal</option>
+            <option value="CLIENTE">Clientes</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Descripción</label>
+        <input
+          class="form-control form-control-sm"
+          formControlName="descripcion"
+          [class.is-invalid]="invalido('descripcion')"
+          placeholder="Quién lo usa y para qué"
+        />
+      </div>
+
+      <label class="form-label small fw-semibold d-block">Permisos</label>
+      <div class="acordeon-permisos">
+        @for (grupo of permisosPorModulo(); track grupo[0]) {
+          <div class="bloque-permisos">
+            <div class="titulo-modulo">{{ grupo[0] }}</div>
+            <div class="row g-2">
+              @for (p of grupo[1]; track p.codigo) {
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      [id]="p.codigo"
+                      [checked]="marcado(p.codigo)"
+                      (change)="alternarPermiso(p.codigo)"
+                    />
+                    <label class="form-check-label small" [for]="p.codigo">
+                      {{ p.descripcion }}
+                    </label>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <hr class="my-3" />
+
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="cerrar()">Cancelar</button>
+        <button type="submit" class="btn btn-sm btn-success" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+}

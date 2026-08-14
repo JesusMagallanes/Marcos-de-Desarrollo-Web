@@ -2,12 +2,10 @@ package com.backend.usuarios.usuario.dto;
 
 import com.backend.usuarios.shared.validacion.Saneador;
 import com.backend.usuarios.usuario.Proveedor;
-import com.backend.usuarios.usuario.Rol;
 import com.backend.usuarios.usuario.Usuario;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -28,10 +26,11 @@ public final class UsuarioDtos {
             String emailAddress,
             String phoneNumber,
             String address,
-            Rol rol,
-            Proveedor proveedor) {
+            String rol,
+            Proveedor proveedor,
+            java.util.List<String> permisos) {
 
-        public static UsuarioResponse desde(Usuario u) {
+        public static UsuarioResponse desde(Usuario u, java.util.List<String> permisos) {
             return new UsuarioResponse(
                     u.getId(),
                     u.getName(),
@@ -40,7 +39,8 @@ public final class UsuarioDtos {
                     u.getPhoneNumber(),
                     u.getAddress(),
                     u.getRol(),
-                    u.getProveedor());
+                    u.getProveedor(),
+                    permisos);
         }
     }
 
@@ -75,7 +75,7 @@ public final class UsuarioDtos {
             @NotBlank @Pattern(regexp = PATRON_PASSWORD, message = MENSAJE_PASSWORD) String password,
             @NotBlank @Pattern(regexp = "\\d{9}", message = "El teléfono debe tener 9 dígitos") String phoneNumber,
             @NotBlank @Size(max = MAX_DIRECCION) String address,
-            Rol rol) {
+            String rol) {
 
         /**
          * A03. Ojo con lo que NO se toca: `password` se deja exactamente como
@@ -93,7 +93,7 @@ public final class UsuarioDtos {
         }
     }
 
-    /** Cambio de rol: endpoint aparte, solo ADMINISTRADOR. */
-    public record CambioRol(@NotNull Rol rol) {
+    /** Cambio de rol: endpoint aparte, requiere gestión de usuarios. */
+    public record CambioRol(@NotBlank String rol) {
     }
 }

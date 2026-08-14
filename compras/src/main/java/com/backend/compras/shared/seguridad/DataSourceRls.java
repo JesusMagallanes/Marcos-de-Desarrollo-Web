@@ -6,6 +6,7 @@ import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -65,11 +66,13 @@ public class DataSourceRls extends DelegatingDataSource {
         try (var sentencia = conexion.prepareStatement(
                 "SELECT set_config('app.usuario_id', ?, false),"
                         + " set_config('app.rol', ?, false),"
+                        + " set_config('app.permisos', ?, false),"
                         + " set_config('app.omitir_rls', ?, false)")) {
 
             sentencia.setString(1, identidad.usuarioId() == null ? "" : identidad.usuarioId().toString());
             sentencia.setString(2, identidad.rol() == null ? "" : identidad.rol());
-            sentencia.setString(3, identidad.sistema() ? "on" : "off");
+            sentencia.setString(3, identidad.permisos());
+            sentencia.setString(4, identidad.sistema() ? "on" : "off");
             sentencia.execute();
         }
     }
@@ -81,17 +84,30 @@ public class DataSourceRls extends DelegatingDataSource {
      */
     private Identidad identidadActual() {
         if (ContextoRls.esSistema()) {
-            return new Identidad(null, null, true);
+            return new Identidad(null, null, "", true);
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof Jwt jwt)) {
-            return new Identidad(null, null, false);
+            return new Identidad(null, null, "", false);
         }
 
         Object uid = jwt.getClaim("uid");
         Long id = uid instanceof Number numero ? numero.longValue() : null;
-        return new Identidad(id, jwt.getClaimAsString("rol"), false);
+        return new Identidad(id, jwt.getClaimAsString("rol"), permisos(jwt), false);
+    }
+
+    /** Los permisos del JWT, separados por coma; "" si el token no los trae. */
+    private String permisos(Jwt jwt) {
+        Object claim = jwt.getClaim("permisos");
+        if (!(claim instanceof List<?> lista)) {
+            return "";
+        }
+        return lista.stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .reduce((a, b) -> a + "," + b)
+                .orElse("");
     }
 
     /** Devuelve la conexión al pool sin rastro del usuario anterior. */
@@ -102,7 +118,7 @@ public class DataSourceRls extends DelegatingDataSource {
                 new LimpiezaAlCerrar(conexion));
     }
 
-    private record Identidad(Long usuarioId, String rol, boolean sistema) {
+    private record Identidad(Long usuarioId, String rol, String permisos, boolean sistema) {
     }
 
     private static final class LimpiezaAlCerrar implements InvocationHandler {
@@ -155,6 +171,7 @@ public class DataSourceRls extends DelegatingDataSource {
                 try (Statement sentencia = real.createStatement()) {
                     sentencia.execute("SELECT set_config('app.usuario_id', '', false),"
                             + " set_config('app.rol', '', false),"
+                            + " set_config('app.permisos', '', false),"
                             + " set_config('app.omitir_rls', 'off', false)");
                 }
             } catch (SQLException ex) {

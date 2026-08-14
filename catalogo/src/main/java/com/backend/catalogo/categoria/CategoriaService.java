@@ -56,7 +56,7 @@ public class CategoriaService {
                 .name(dto.name())
                 .slug(dto.slug())
                 .description(dto.description())
-                .urlImage(dto.urlImage())
+                .icono(dto.icono())
                 .build();
 
         return CategoriaResponse.desde(repositorio.save(categoria));
@@ -76,7 +76,7 @@ public class CategoriaService {
         categoria.setName(dto.name());
         categoria.setSlug(dto.slug());
         categoria.setDescription(dto.description());
-        categoria.setUrlImage(dto.urlImage());
+        categoria.setIcono(dto.icono());
 
         return CategoriaResponse.desde(repositorio.save(categoria));
     }

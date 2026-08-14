@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AuthService, SECCIONES_ADMIN } from '../../core';
 
 @Component({
   selector: 'app-admin',
@@ -8,16 +9,12 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   styleUrl: './admin.css',
 })
 export class Admin {
-  protected readonly secciones = [
-    { ruta: 'productos', icono: 'fa-box', etiqueta: 'Productos' },
-    { ruta: 'descuentos', icono: 'fa-percent', etiqueta: 'Descuentos' },
-    { ruta: 'categorias', icono: 'fa-layer-group', etiqueta: 'Categorías' },
-    { ruta: 'marcas', icono: 'fa-tag', etiqueta: 'Marcas' },
-    { ruta: 'usuarios', icono: 'fa-users', etiqueta: 'Usuarios' },
-    { ruta: 'valoraciones', icono: 'fa-comment', etiqueta: 'Valoraciones' },
-    { ruta: 'metodos-pago', icono: 'fa-credit-card', etiqueta: 'Métodos de pago' },
-    { ruta: 'guias', icono: 'fa-book-open', etiqueta: 'Guías de ayuda' },
-  ];
+  private auth = inject(AuthService);
+
+  /** Solo las secciones que el rol de la sesión puede gestionar. */
+  protected readonly secciones = computed(() =>
+    SECCIONES_ADMIN.filter((s) => this.auth.tienePermiso(s.permiso)),
+  );
 
   /** En escritorio: sidebar minimizado a solo iconos. */
   protected colapsada = signal(false);

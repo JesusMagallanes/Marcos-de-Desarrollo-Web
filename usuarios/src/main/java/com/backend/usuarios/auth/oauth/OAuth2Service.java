@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.usuarios.usuario.Proveedor;
-import com.backend.usuarios.usuario.Rol;
 import com.backend.usuarios.usuario.Usuario;
 import com.backend.usuarios.usuario.UsuarioRepository;
 
@@ -58,7 +57,7 @@ public class OAuth2Service {
                 .emailAddress(email)
                 .password(null)
                 .proveedor(proveedor)
-                .rol(Rol.CLIENTE)
+                .rol("CLIENTE")
                 // Teléfono y dirección los completa el usuario en "Mi cuenta":
                 // el proveedor no los entrega y no tiene sentido inventarlos.
                 .phoneNumber(null)

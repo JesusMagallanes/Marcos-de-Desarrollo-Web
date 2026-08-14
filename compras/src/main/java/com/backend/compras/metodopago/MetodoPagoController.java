@@ -37,19 +37,19 @@ class MetodoPagoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_METODOS_PAGO_GESTIONAR')")
     public ResponseEntity<MetodoPagoResponse> crear(@Valid @RequestBody MetodoPagoRequest dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(servicio.crear(dto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_METODOS_PAGO_GESTIONAR')")
     public MetodoPagoResponse actualizar(@PathVariable Long id, @Valid @RequestBody MetodoPagoRequest dto) {
         return servicio.actualizar(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_METODOS_PAGO_GESTIONAR')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         servicio.eliminar(id);
         return ResponseEntity.noContent().build();

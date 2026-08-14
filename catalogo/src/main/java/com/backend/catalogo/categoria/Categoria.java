@@ -39,9 +39,8 @@ public class Categoria {
     private String description;
 
     /**
-     * Admite un `data:image/` (base64) subido desde el panel, por eso la columna
-     * creció hasta 200.000 (ver V11__categoria_url_imagen_amplia.sql).
+     * Nombre de ícono de FontAwesome, sin el prefijo (p. ej. "laptop").
      */
-    @Column(name = "url_image", length = 200_000)
-    private String urlImage;
+    @Column(length = 60)
+    private String icono;
 }

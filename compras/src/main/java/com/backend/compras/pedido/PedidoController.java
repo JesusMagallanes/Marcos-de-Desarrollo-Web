@@ -34,7 +34,7 @@ public class PedidoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('EMPLEADO', 'ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_PEDIDOS_GESTIONAR')")
     public List<PedidoResponse> listar(@RequestParam(required = false) EstadoPedido estado) {
         return servicio.listar(estado);
     }
@@ -45,13 +45,13 @@ public class PedidoController {
     }
 
     @PatchMapping("/{id}/estado")
-    @PreAuthorize("hasAnyRole('EMPLEADO', 'ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_PEDIDOS_GESTIONAR')")
     public PedidoResponse cambiarEstado(@PathVariable Long id, @Valid @RequestBody CambioEstado dto) {
         return servicio.cambiarEstado(id, dto.estado());
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_PEDIDOS_GESTIONAR')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         servicio.eliminar(id);
         return ResponseEntity.noContent().build();

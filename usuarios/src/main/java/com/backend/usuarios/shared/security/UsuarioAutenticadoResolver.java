@@ -10,8 +10,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import com.backend.usuarios.usuario.Rol;
-
 /** Permite declarar {@code UsuarioAutenticado} como parámetro en los controladores. */
 @Component
 public class UsuarioAutenticadoResolver implements HandlerMethodArgumentResolver {
@@ -36,8 +34,7 @@ public class UsuarioAutenticadoResolver implements HandlerMethodArgumentResolver
 
     static UsuarioAutenticado desde(Jwt jwt) {
         Long id = jwt.getClaim("uid") == null ? null : ((Number) jwt.getClaim("uid")).longValue();
-        String rolCrudo = jwt.getClaimAsString("rol");
-        Rol rol = rolCrudo == null ? Rol.CLIENTE : Rol.valueOf(rolCrudo);
-        return new UsuarioAutenticado(id, jwt.getSubject(), rol);
+        String rol = jwt.getClaimAsString("rol");
+        return new UsuarioAutenticado(id, jwt.getSubject(), rol == null ? "CLIENTE" : rol);
     }
 }

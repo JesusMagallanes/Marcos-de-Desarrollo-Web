@@ -1,16 +1,23 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { ErrorApi, EstadoPedido, Pedido, PedidoService, siguienteEstado, accionSiguiente } from '../../core';
+import {
+  ErrorApi,
+  EstadoPedido,
+  Pedido,
+  PedidoService,
+  siguienteEstado,
+  accionSiguiente,
+} from '../../../core';
 
 type Pestana = 'PENDIENTE' | 'EN_TRANSITO' | 'ENTREGADO';
 
 @Component({
-  selector: 'app-envios',
+  selector: 'app-admin-envios',
   imports: [CurrencyPipe, DatePipe],
-  templateUrl: './envios.html',
-  styleUrl: './envios.css',
+  templateUrl: './admin-envios.html',
+  styleUrls: ['../admin-tabla.css', './admin-envios.css'],
 })
-export class Envios implements OnInit {
+export class AdminEnvios implements OnInit {
   private pedidoService = inject(PedidoService);
 
   protected cargando = signal(true);

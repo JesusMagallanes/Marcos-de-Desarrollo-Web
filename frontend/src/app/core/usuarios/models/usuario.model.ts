@@ -1,4 +1,4 @@
-import { Proveedor, Rol } from './rol.model';
+import { Proveedor } from './rol.model';
 
 /** Usuario tal como lo devuelve el backend. Nunca incluye el hash de la contraseña. */
 export interface Usuario {
@@ -9,8 +9,10 @@ export interface Usuario {
   /** Nulos en cuentas de Google/Facebook hasta que el usuario los complete. */
   phoneNumber: string | null;
   address: string | null;
-  rol: Rol;
+  rol: string;
   proveedor: Proveedor;
+  /** Permisos que el backend resuelve a partir del rol. */
+  permisos: string[];
 }
 
 /** Actualización de perfil. */
@@ -30,12 +32,12 @@ export interface UsuarioCreate {
   password: string;
   phoneNumber: string;
   address: string;
-  rol: Rol;
+  rol: string;
 }
 
 /** Cuerpo de `PATCH /api/usuarios/{id}/rol`. */
 export interface CambioRol {
-  rol: Rol;
+  rol: string;
 }
 
 export function nombreCompleto(usuario: Usuario | null): string {

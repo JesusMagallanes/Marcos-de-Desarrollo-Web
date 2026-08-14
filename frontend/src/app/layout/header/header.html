@@ -131,11 +131,11 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
               <li><a class="dropdown-item" routerLink="/perfil">Mi cuenta</a></li>
-              @if (auth.esAdmin()) {
-                <li><a class="dropdown-item" routerLink="/admin">Panel Administrador</a></li>
+              @if (auth.esAdminPanel()) {
+                <li><a class="dropdown-item" routerLink="/admin">Panel {{ auth.rol() }}</a></li>
               }
-              @if (auth.esStaff()) {
-                <li><a class="dropdown-item" routerLink="/envios">Panel Empleado</a></li>
+              @if (auth.tienePermiso('PEDIDOS_GESTIONAR')) {
+                <li><a class="dropdown-item" routerLink="/admin/envios">Gestión de envíos</a></li>
               }
               <li><hr class="dropdown-divider" /></li>
               <li>
@@ -377,10 +377,10 @@
             <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar Sesión
           </button>
         </li>
-        @if (auth.esAdmin()) {
+        @if (auth.esAdminPanel()) {
           <li class="nav-item mb-2">
             <a class="nav-link fw-bold" routerLink="/admin" data-bs-dismiss="offcanvas">
-              <i class="fa-solid fa-user-gear me-2"></i> Ver panel admin
+              <i class="fa-solid fa-user-gear me-2"></i> Panel {{ auth.rol() }}
             </a>
           </li>
         }

@@ -123,77 +123,6 @@ code {
   color: #83948a;
 }
 
-/* ── Selector de íconos (categorías) ───────────────────────────── */
-.vista-previa-icono {
-  width: 88px;
-  height: 88px;
-  margin-bottom: 0.8rem;
-  border: 1px solid #edf1ee;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 8px 20px rgb(23 51 36 / 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.vista-previa-icono img {
-  max-width: 56px;
-  max-height: 56px;
-  object-fit: contain;
-}
-
-.iconos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-  gap: 0.5rem;
-}
-
-.opcion-icono {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 64px;
-  padding: 8px;
-  border: 1px solid #e6ece8;
-  border-radius: 12px;
-  background: #fbfdfc;
-  cursor: pointer;
-  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
-}
-
-.opcion-icono img {
-  max-width: 40px;
-  max-height: 40px;
-  object-fit: contain;
-}
-
-.opcion-icono:hover {
-  border-color: rgb(6 181 108 / 0.6);
-  transform: translateY(-1px);
-}
-
-.opcion-icono.seleccionado {
-  border-color: #06b56c;
-  background: #eefaf3;
-  box-shadow: 0 0 0 3px rgb(6 181 108 / 0.18);
-}
-
-.iconos-atribucion {
-  margin-top: 0.4rem;
-  opacity: 0.8;
-}
-
-.iconos-atribucion a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.iconos-atribucion a:hover {
-  color: #06b56c;
-}
-
 /* ── Botones y formularios ─────────────────────────────────────── */
 .btn {
   border-radius: 9px;
@@ -383,4 +312,30 @@ code {
   font-size: 0.78rem;
   font-weight: 700;
   box-shadow: 0 4px 10px rgb(6 181 108 / 0.3);
+}
+
+/* ── Permisos de rol ───────────────────────────────────────────── */
+.acordeon-permisos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  max-height: 40vh;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.bloque-permisos {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #e6ece8;
+  border-radius: 12px;
+  background: #fbfdfc;
+}
+
+.titulo-modulo {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #06b56c;
+  margin-bottom: 0.5rem;
 }

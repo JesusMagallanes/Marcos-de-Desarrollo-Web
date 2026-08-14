@@ -4,14 +4,14 @@ class Categoria {
   final String nombre;
   final String slug;
   final String descripcion;
-  final String? imagenUrl;
+  final String? icono;
 
   const Categoria({
     required this.id,
     required this.nombre,
     required this.slug,
     required this.descripcion,
-    this.imagenUrl,
+    this.icono,
   });
 
   factory Categoria.desdeJson(Map<String, dynamic> j) => Categoria(
@@ -19,6 +19,6 @@ class Categoria {
         nombre: (j['name'] ?? '') as String,
         slug: (j['slug'] ?? '') as String,
         descripcion: (j['description'] ?? '') as String,
-        imagenUrl: j['urlImage'] as String?,
+        icono: j['icono'] as String?,
       );
 }

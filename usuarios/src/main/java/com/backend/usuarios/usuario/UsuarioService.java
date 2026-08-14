@@ -24,16 +24,20 @@ import lombok.RequiredArgsConstructor;
 public class UsuarioService {
 
     private final UsuarioRepository repositorio;
+    private final RolService roles;
     private final PasswordEncoder codificador;
     private final AuditoriaService auditoria;
     private final MetricasSeguridad metricas;
 
     public List<UsuarioResponse> listar() {
-        return repositorio.findAllByOrderByIdAsc().stream().map(UsuarioResponse::desde).toList();
+        return repositorio.findAllByOrderByIdAsc().stream()
+                .map(u -> UsuarioResponse.desde(u, roles.permisosDe(u.getRol())))
+                .toList();
     }
 
     public UsuarioResponse obtener(Long id) {
-        return UsuarioResponse.desde(buscar(id));
+        Usuario usuario = buscar(id);
+        return UsuarioResponse.desde(usuario, roles.permisosDe(usuario.getRol()));
     }
 
     public Usuario buscar(Long id) {
@@ -53,6 +57,11 @@ public class UsuarioService {
             throw new ConflictoException("Ya existe un usuario con el correo " + email);
         }
 
+        String rol = dto.rol() == null || dto.rol().isBlank() ? "CLIENTE" : dto.rol().trim().toUpperCase();
+        if (!roles.existe(rol)) {
+            throw new RecursoNoEncontradoException("El rol " + rol + " no existe");
+        }
+
         Usuario usuario = Usuario.builder()
                 .name(dto.name())
                 .lastname(dto.lastname())
@@ -60,10 +69,11 @@ public class UsuarioService {
                 .password(codificador.encode(dto.password()))
                 .phoneNumber(dto.phoneNumber())
                 .address(dto.address())
-                .rol(dto.rol() != null ? dto.rol() : Rol.CLIENTE)
+                .rol(rol)
                 .build();
 
-        return UsuarioResponse.desde(repositorio.save(usuario));
+        Usuario guardado = repositorio.save(usuario);
+        return UsuarioResponse.desde(guardado, roles.permisosDe(rol));
     }
 
     /** Actualiza solo los campos del perfil. Rol y contraseña quedan intactos. */
@@ -82,26 +92,32 @@ public class UsuarioService {
         usuario.setPhoneNumber(dto.phoneNumber());
         usuario.setAddress(dto.address());
 
-        return UsuarioResponse.desde(repositorio.save(usuario));
+        Usuario guardado = repositorio.save(usuario);
+        return UsuarioResponse.desde(guardado, roles.permisosDe(guardado.getRol()));
     }
 
     @Transactional
     public UsuarioResponse cambiarRol(Long id, CambioRol dto) {
         Usuario usuario = buscar(id);
-        Rol anterior = usuario.getRol();
-        usuario.setRol(dto.rol());
+        String rolNuevo = dto.rol().trim().toUpperCase();
+        if (!roles.existe(rolNuevo)) {
+            throw new RecursoNoEncontradoException("El rol " + rolNuevo + " no existe");
+        }
+
+        String anterior = usuario.getRol();
+        usuario.setRol(rolNuevo);
         Usuario guardado = repositorio.save(usuario);
 
         // A01: el rol viaja dentro del JWT, así que un token emitido antes del
         // cambio seguiría concediendo el rol viejo hasta caducar. Se registra
         // para que quede traza; la ventana la acota la vida corta del token.
         auditoria.registrar(Evento.CAMBIO_ROL, usuario.getEmailAddress(),
-                "de=%s a=%s".formatted(anterior, dto.rol()));
+                "de=%s a=%s".formatted(anterior, rolNuevo));
         // Se cuenta al final: un intento sobre un usuario inexistente no es un
         // cambio de rol y no debe inflar la métrica.
-        metricas.cambioRol(dto.rol().name());
+        metricas.cambioRol(rolNuevo);
 
-        return UsuarioResponse.desde(guardado);
+        return UsuarioResponse.desde(guardado, roles.permisosDe(rolNuevo));
     }
 
     @Transactional

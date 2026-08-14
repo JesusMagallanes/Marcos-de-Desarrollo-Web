@@ -61,6 +61,13 @@ public class GlobalExceptionHandler {
         return problema;
     }
 
+    /** Reglas de los constructores compactos de los DTO (p. ej. rol sin permisos). */
+    @ExceptionHandler(IllegalArgumentException.class)
+    ProblemDetail argumentoInvalido(IllegalArgumentException ex) {
+        metricas.entradaRechazada("regla");
+        return construir(HttpStatus.BAD_REQUEST, "Datos inválidos", ex.getMessage());
+    }
+
     /** Parámetro o variable de ruta fuera de los límites de `Limites`. */
     @ExceptionHandler(ConstraintViolationException.class)
     ProblemDetail validacionParametro(ConstraintViolationException ex) {

@@ -19,13 +19,13 @@
           <a class="nav-link" routerLink="/perfil/compras" routerLinkActive="activo">
             <i class="fa-solid fa-bag-shopping me-2"></i>Mis compras
           </a>
-          @if (auth.esAdmin()) {
+          @if (auth.esAdminPanel()) {
             <a class="nav-link" routerLink="/admin" routerLinkActive="activo">
               <i class="fa-solid fa-user-gear me-2"></i>Panel admin
             </a>
           }
-          @if (auth.esStaff()) {
-            <a class="nav-link" routerLink="/envios" routerLinkActive="activo">
+          @if (auth.tienePermiso('PEDIDOS_GESTIONAR')) {
+            <a class="nav-link" routerLink="/admin/envios" routerLinkActive="activo">
               <i class="fa-solid fa-truck me-2"></i>Envíos
             </a>
           }

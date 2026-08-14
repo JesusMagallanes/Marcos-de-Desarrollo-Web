@@ -39,7 +39,7 @@ public class ValoracionModeracionController {
 
     /** Todas las valoraciones, o solo las de un estado. Sin estado = todas. */
     @GetMapping("/admin")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_VALORACIONES_GESTIONAR')")
     public List<ValoracionAdminResponse> listar(
             @RequestParam(required = false) EstadoValoracion estado) {
         return servicio.listarParaModeracion(estado);
@@ -47,7 +47,7 @@ public class ValoracionModeracionController {
 
     /** Aprobar, rechazar o devolver a pendiente. */
     @PatchMapping("/admin/{id}/estado")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_VALORACIONES_GESTIONAR')")
     public ValoracionAdminResponse cambiarEstado(@PathVariable @Positive Long id,
             @Valid @RequestBody CambioEstadoValoracion dto) {
         return servicio.cambiarEstado(id, dto.estado());
@@ -55,7 +55,7 @@ public class ValoracionModeracionController {
 
     /** Retirar una reseña (abusiva, duplicada, …). */
     @DeleteMapping("/admin/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_VALORACIONES_GESTIONAR')")
     public ResponseEntity<Void> eliminar(@PathVariable @Positive Long id) {
         servicio.eliminarComoAdmin(id);
         return ResponseEntity.noContent().build();

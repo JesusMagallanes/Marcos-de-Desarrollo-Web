@@ -70,13 +70,13 @@ public class ProductoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_PRODUCTOS_GESTIONAR')")
     public ResponseEntity<ProductoResponse> crear(@Valid @RequestBody ProductoRequest dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(servicio.crear(dto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_PRODUCTOS_GESTIONAR')")
     public ProductoResponse actualizar(@PathVariable @Positive Long id,
             @Valid @RequestBody ProductoRequest dto) {
         return servicio.actualizar(id, dto);
@@ -84,7 +84,7 @@ public class ProductoController {
 
     /** POST /api/productos/descuento — aplica un descuento a un lote de productos. */
     @PostMapping("/descuento")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_PRODUCTOS_GESTIONAR')")
     public List<ProductoResponse> aplicarDescuento(
             @Valid @RequestBody AplicarDescuentoRequest dto) {
         return servicio.aplicarDescuento(dto);
@@ -92,14 +92,14 @@ public class ProductoController {
 
     /** POST /api/productos/descuento/limpiar — quita el descuento de un lote. */
     @PostMapping("/descuento/limpiar")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_PRODUCTOS_GESTIONAR')")
     public List<ProductoResponse> quitarDescuento(
             @Valid @RequestBody QuitarDescuentoRequest dto) {
         return servicio.quitarDescuento(dto.productoIds());
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_PRODUCTOS_GESTIONAR')")
     public ResponseEntity<Void> eliminar(@PathVariable @Positive Long id) {
         servicio.eliminar(id);
         return ResponseEntity.noContent().build();

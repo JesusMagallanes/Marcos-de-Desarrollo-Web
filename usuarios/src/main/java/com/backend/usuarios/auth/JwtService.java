@@ -12,7 +12,7 @@ import javax.crypto.SecretKey;
 import org.springframework.stereotype.Service;
 
 import com.backend.usuarios.shared.security.JwtProperties;
-import com.backend.usuarios.usuario.Rol;
+import com.backend.usuarios.usuario.RolService;
 import com.backend.usuarios.usuario.Usuario;
 
 import io.jsonwebtoken.Claims;
@@ -37,10 +37,12 @@ public class JwtService {
     public static final String TIPO_REFRESH = "refresh";
 
     private final JwtProperties propiedades;
+    private final RolService roles;
     private final SecretKey clave;
 
-    public JwtService(JwtProperties propiedades) {
+    public JwtService(JwtProperties propiedades, RolService roles) {
         this.propiedades = propiedades;
+        this.roles = roles;
         byte[] bytes = propiedades.secreto().getBytes(StandardCharsets.UTF_8);
 
         // A02: HS256 con una clave corta es trivial de romper por fuerza bruta.
@@ -68,7 +70,10 @@ public class JwtService {
                 // `uid` evita que los otros servicios tengan que consultar a usuarios
                 // solo para saber de quién es un carrito o un pedido.
                 .claim("uid", usuario.getId())
-                .claim("rol", usuario.getRol().name())
+                .claim("rol", usuario.getRol())
+                // Los permisos del rol viajan en el token: catálogo y compras los
+                // convierten en autoridades PERMISO_* sin volver a consultar.
+                .claim("permisos", permisosDe(usuario.getRol()))
                 .claim(CLAIM_TIPO, TIPO_ACCESO)
                 .issuedAt(new Date(ahora))
                 .expiration(new Date(ahora + duracion))
@@ -110,16 +115,21 @@ public class JwtService {
                 Instant.ofEpochMilli(claims.getExpiration().getTime()), ZoneId.systemDefault());
     }
 
-    public long duracionSegundos(Rol rol) {
+    public long duracionSegundos(String rol) {
         return duracionMillis(rol) / 1000;
     }
 
-    private long duracionMillis(Rol rol) {
+    private long duracionMillis(String rol) {
         return switch (rol) {
-            case CLIENTE -> propiedades.expiracionCliente();
-            case EMPLEADO -> propiedades.expiracionEmpleado();
-            case ADMINISTRADOR -> propiedades.expiracionAdministrador();
+            case "EMPLEADO" -> propiedades.expiracionEmpleado();
+            case "ADMINISTRADOR" -> propiedades.expiracionAdministrador();
+            default -> propiedades.expiracionCliente();
         };
+    }
+
+    /** Los permisos del rol; si el rol no existe aún, el token nace sin permisos. */
+    private java.util.List<String> permisosDe(String rol) {
+        return roles.permisosDe(rol);
     }
 
     private boolean esSecretoDeEjemplo(String secreto) {

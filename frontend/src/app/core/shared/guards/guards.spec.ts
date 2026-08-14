@@ -7,14 +7,32 @@ import { AuthService } from '../../usuarios/services/auth.service';
 import { adminGuard } from './admin.guard';
 import { authGuard } from './auth.guard';
 import { invitadoGuard } from './invitado.guard';
+import { permisoGuard } from './permiso.guard';
 import { staffGuard } from './staff.guard';
 
 /** Doble de AuthService con solo los signals que consultan los guards. */
-function authFalso(opciones: { autenticado?: boolean; admin?: boolean; staff?: boolean } = {}) {
+function authFalso(
+  opciones: {
+    autenticado?: boolean;
+    admin?: boolean;
+    adminPanel?: boolean;
+    staff?: boolean;
+    permisos?: string[];
+  } = {},
+) {
+  const permisos = opciones.permisos ?? [];
   return {
     autenticado: signal(opciones.autenticado ?? false),
     esAdmin: signal(opciones.admin ?? false),
-    esStaff: signal(opciones.staff ?? false),
+    esAdminPanel: signal(
+      (opciones.adminPanel ?? false) || permisos.some((p) => p.endsWith('_GESTIONAR')),
+    ),
+    esStaff: signal(
+      (opciones.staff ?? false) ||
+        permisos.includes('PEDIDOS_GESTIONAR') ||
+        permisos.includes('ENVIOS_GESTIONAR'),
+    ),
+    tienePermiso: (p: string) => permisos.includes(p) || (opciones.admin ?? false),
   };
 }
 
@@ -48,8 +66,18 @@ describe('authGuard', () => {
 
 describe('adminGuard', () => {
   it('deja pasar a un administrador', () => {
-    expect(ejecutar(adminGuard, authFalso({ autenticado: true, admin: true, staff: true })))
-      .toBe(true);
+    expect(
+      ejecutar(adminGuard, authFalso({ autenticado: true, admin: true, adminPanel: true, staff: true })),
+    ).toBe(true);
+  });
+
+  it('deja pasar a un rol dinámico con algún permiso de gestión', () => {
+    expect(
+      ejecutar(
+        adminGuard,
+        authFalso({ autenticado: true, adminPanel: true, permisos: ['GUIAS_GESTIONAR'] }),
+      ),
+    ).toBe(true);
   });
 
   it('a un usuario identificado sin permiso lo manda a la portada, no al login', () => {
@@ -70,9 +98,58 @@ describe('staffGuard', () => {
     expect(ejecutar(staffGuard, authFalso({ autenticado: true, staff: true }))).toBe(true);
   });
 
+  it('deja pasar a un rol dinámico con permiso de pedidos', () => {
+    expect(
+      ejecutar(
+        staffGuard,
+        authFalso({ autenticado: true, permisos: ['PEDIDOS_GESTIONAR'] }),
+      ),
+    ).toBe(true);
+  });
+
   it('bloquea a un cliente', () => {
     const r = ejecutar(staffGuard, authFalso({ autenticado: true }), '/envios');
     expect(destino(r)).toBe('/');
+  });
+});
+
+describe('permisoGuard', () => {
+  it('deja pasar si el usuario tiene el permiso', () => {
+    expect(
+      ejecutar(
+        permisoGuard('PRODUCTOS_GESTIONAR'),
+        authFalso({ autenticado: true, permisos: ['PRODUCTOS_GESTIONAR'] }),
+        '/admin/productos',
+      ),
+    ).toBe(true);
+  });
+
+  it('deja pasar a un ADMINISTRADOR aunque el permiso no figure en el token', () => {
+    expect(
+      ejecutar(
+        permisoGuard('PRODUCTOS_GESTIONAR'),
+        authFalso({ autenticado: true, admin: true }),
+        '/admin/productos',
+      ),
+    ).toBe(true);
+  });
+
+  it('a un identificado sin el permiso lo manda a la portada', () => {
+    const r = ejecutar(
+      permisoGuard('PRODUCTOS_GESTIONAR'),
+      authFalso({ autenticado: true }),
+      '/admin/productos',
+    );
+    expect(destino(r)).toBe('/');
+  });
+
+  it('a un anónimo lo manda al login', () => {
+    const r = ejecutar(
+      permisoGuard('PRODUCTOS_GESTIONAR'),
+      authFalso(),
+      '/admin/productos',
+    );
+    expect(destino(r)).toContain('/login');
   });
 });
 
@@ -86,3 +163,4 @@ describe('invitadoGuard', () => {
     expect(destino(r)).toBe('/');
   });
 });
+

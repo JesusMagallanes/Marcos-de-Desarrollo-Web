@@ -38,19 +38,19 @@ public class MarcaController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_MARCAS_GESTIONAR')")
     public ResponseEntity<MarcaResponse> crear(@Valid @RequestBody MarcaRequest dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(servicio.crear(dto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_MARCAS_GESTIONAR')")
     public MarcaResponse actualizar(@PathVariable Long id, @Valid @RequestBody MarcaRequest dto) {
         return servicio.actualizar(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_MARCAS_GESTIONAR')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         servicio.eliminar(id);
         return ResponseEntity.noContent().build();

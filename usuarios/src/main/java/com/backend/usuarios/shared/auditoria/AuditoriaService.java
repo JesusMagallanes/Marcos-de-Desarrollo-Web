@@ -16,6 +16,9 @@ public class AuditoriaService {
         REGISTRO,
         LOGIN_OAUTH,
         CAMBIO_ROL,
+        ROL_CREADO,
+        ROL_EDITADO,
+        ROL_ELIMINADO,
         USUARIO_ELIMINADO,
         ACCESO_DENEGADO
     }

@@ -1,5 +1,11 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, invitadoGuard, staffGuard } from './core';
+import {
+  adminGuard,
+  adminInicioGuard,
+  authGuard,
+  invitadoGuard,
+  permisoGuard,
+} from './core';
 
 /**
  * Cada página se carga de forma diferida, así el bundle inicial no arrastra
@@ -67,53 +73,72 @@ export const routes: Routes = [
     ],
   },
 
-  /* ── staff ── */
-  {
-    path: 'envios',
-    canActivate: [staffGuard],
-    loadComponent: () => import('./pages/envios/envios').then((m) => m.Envios),
-    title: 'Envíos — SmartZone',
-  },
-
   /* ── administración ── */
+  /* La ruta antigua /envios redirige a la sección del panel admin. */
+  { path: 'envios', redirectTo: 'admin/envios' },
+
   {
     path: 'admin',
     canActivate: [adminGuard],
     loadComponent: () => import('./pages/admin/admin').then((m) => m.Admin),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'productos' },
+      {
+        path: '',
+        pathMatch: 'full',
+        canActivate: [adminInicioGuard],
+        redirectTo: 'productos',
+      },
       {
         path: 'productos',
+        canActivate: [permisoGuard('PRODUCTOS_GESTIONAR')],
         loadComponent: () =>
           import('./pages/admin/admin-productos/admin-productos').then((m) => m.AdminProductos),
         title: 'Admin · Productos',
       },
       {
         path: 'descuentos',
+        canActivate: [permisoGuard('DESCUENTOS_GESTIONAR')],
         loadComponent: () =>
           import('./pages/admin/admin-descuentos/admin-descuentos').then((m) => m.AdminDescuentos),
         title: 'Admin · Descuentos',
       },
       {
         path: 'categorias',
+        canActivate: [permisoGuard('CATEGORIAS_GESTIONAR')],
         loadComponent: () =>
           import('./pages/admin/admin-categorias/admin-categorias').then((m) => m.AdminCategorias),
         title: 'Admin · Categorías',
       },
       {
         path: 'marcas',
+        canActivate: [permisoGuard('MARCAS_GESTIONAR')],
         loadComponent: () =>
           import('./pages/admin/admin-marcas/admin-marcas').then((m) => m.AdminMarcas),
         title: 'Admin · Marcas',
       },
       {
         path: 'usuarios',
+        canActivate: [permisoGuard('USUARIOS_GESTIONAR')],
         loadComponent: () =>
           import('./pages/admin/admin-usuarios/admin-usuarios').then((m) => m.AdminUsuarios),
         title: 'Admin · Usuarios',
       },
       {
+        path: 'roles',
+        canActivate: [permisoGuard('ROLES_GESTIONAR')],
+        loadComponent: () => import('./pages/admin/admin-roles/admin-roles').then((m) => m.AdminRoles),
+        title: 'Admin · Roles y permisos',
+      },
+      {
+        path: 'envios',
+        canActivate: [permisoGuard('PEDIDOS_GESTIONAR')],
+        loadComponent: () =>
+          import('./pages/admin/admin-envios/admin-envios').then((m) => m.AdminEnvios),
+        title: 'Admin · Envíos',
+      },
+      {
         path: 'metodos-pago',
+        canActivate: [permisoGuard('METODOS_PAGO_GESTIONAR')],
         loadComponent: () =>
           import('./pages/admin/admin-metodos-pago/admin-metodos-pago').then(
             (m) => m.AdminMetodosPago,
@@ -122,6 +147,7 @@ export const routes: Routes = [
       },
       {
         path: 'valoraciones',
+        canActivate: [permisoGuard('VALORACIONES_GESTIONAR')],
         loadComponent: () =>
           import('./pages/admin/admin-valoraciones/admin-valoraciones').then(
             (m) => m.AdminValoraciones,
@@ -130,6 +156,7 @@ export const routes: Routes = [
       },
       {
         path: 'guias',
+        canActivate: [permisoGuard('GUIAS_GESTIONAR')],
         loadComponent: () =>
           import('./pages/admin/admin-guias/admin-guias').then((m) => m.AdminGuias),
         title: 'Admin · Guías',
@@ -170,3 +197,4 @@ export const routes: Routes = [
     title: 'Página no encontrada',
   },
 ];
+

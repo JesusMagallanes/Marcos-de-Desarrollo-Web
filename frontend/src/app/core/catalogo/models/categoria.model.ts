@@ -5,14 +5,22 @@ export interface Categoria {
   /** Identificador de la URL pública: /categoria/{slug}. */
   slug: string;
   description: string;
-  urlImage: string | null;
+  /** Nombre de ícono de FontAwesome, sin el prefijo (p. ej. "laptop"). */
+  icono: string | null;
 }
 
 export interface CategoriaRequest {
   name: string;
   slug: string;
   description: string;
-  urlImage: string | null;
+  icono: string | null;
+}
+
+/** Ícono de respaldo cuando la categoría no trae uno. */
+export const ICONO_CATEGORIA_POR_DEFECTO = 'tag';
+
+export function iconoCategoria(categoria: Pick<Categoria, 'icono'>): string {
+  return `fa-solid fa-${categoria.icono?.trim() || ICONO_CATEGORIA_POR_DEFECTO}`;
 }
 
 /** El backend valida este mismo patrón; se comparte para no duplicarlo. */

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RUTAS_USUARIOS } from '../usuarios.routes';
-import { CambioRol, PerfilUpdate, Rol, Usuario, UsuarioCreate } from '../models';
+import { CambioRol, PerfilUpdate, Usuario, UsuarioCreate } from '../models';
 
 /** Gestión administrativa de usuarios — servicio `usuarios` (:8082). */
 @Injectable({ providedIn: 'root' })
@@ -29,13 +29,13 @@ export class UsuarioService {
     return this.http.put<Usuario>(RUTAS_USUARIOS.usuarios.perfil(id), dto);
   }
 
-  /** PATCH /api/usuarios/{id}/rol — ADMINISTRADOR. */
-  cambiarRol(id: number, rol: Rol): Observable<Usuario> {
+  /** PATCH /api/usuarios/{id}/rol — requiere PERMISO_USUARIOS_GESTIONAR. */
+  cambiarRol(id: number, rol: string): Observable<Usuario> {
     const cuerpo: CambioRol = { rol };
     return this.http.patch<Usuario>(RUTAS_USUARIOS.usuarios.rol(id), cuerpo);
   }
 
-  /** DELETE /api/usuarios/{id} — ADMINISTRADOR. 409 si intenta borrarse a sí mismo. */
+  /** DELETE /api/usuarios/{id} — requiere PERMISO_USUARIOS_GESTIONAR. 409 si intenta borrarse a sí mismo. */
   eliminar(id: number): Observable<void> {
     return this.http.delete<void>(RUTAS_USUARIOS.usuarios.porId(id));
   }

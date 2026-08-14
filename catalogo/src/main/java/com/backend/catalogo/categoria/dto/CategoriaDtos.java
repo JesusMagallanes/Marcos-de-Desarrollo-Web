@@ -2,7 +2,6 @@ package com.backend.catalogo.categoria.dto;
 
 import com.backend.catalogo.categoria.Categoria;
 import com.backend.catalogo.shared.validacion.Saneador;
-import com.backend.catalogo.shared.validacion.UrlSegura;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -18,29 +17,29 @@ public final class CategoriaDtos {
             String name,
             String slug,
             String description,
-            String urlImage) {
+            String icono) {
 
         public static CategoriaResponse desde(Categoria c) {
-            return new CategoriaResponse(c.getId(), c.getName(), c.getSlug(), c.getDescription(), c.getUrlImage());
+            return new CategoriaResponse(c.getId(), c.getName(), c.getSlug(), c.getDescription(), c.getIcono());
         }
     }
 
     /**
      * Los topes coinciden con los de las columnas (ver V1__esquema_inicial.sql y
-     * V11__categoria_url_imagen_amplia.sql): sin ellos una cadena más larga no la
+     * V14__categoria_icono_fontawesome.sql): sin ellos una cadena más larga no la
      * rechaza la validación sino Postgres, y el usuario recibe un 500 en vez de un
      * 400 explicando el campo.
      *
-     * `urlImage` admite además un `data:image/` (base64) de hasta 200.000
-     * caracteres: el ícono de categoría se elige en el panel desde una lista o se
-     * sube como archivo y viaja incrustado.
+     * `icono` es el nombre de un ícono de FontAwesome sin el prefijo (p. ej.
+     * "laptop"), igual que en las guías.
      */
     public record CategoriaRequest(
             @NotBlank @Size(max = 100) String name,
             @NotBlank @Size(max = 120)
             @Pattern(regexp = "^[a-z0-9-]+$", message = "El slug solo admite minúsculas, números y guiones") String slug,
             @NotBlank @Size(max = 500) String description,
-            @Size(max = 200_000) @UrlSegura String urlImage) {
+            @Size(max = 60)
+            @Pattern(regexp = "^[a-z0-9-]*$", message = "El icono solo admite minúsculas, números y guiones") String icono) {
 
         /**
          * A03: el saneado ocurre AQUÍ, en el constructor compacto, y no en el
@@ -54,7 +53,7 @@ public final class CategoriaDtos {
             name = Saneador.texto(name);
             slug = Saneador.texto(slug);
             description = Saneador.textoMultilinea(description);
-            urlImage = Saneador.textoONulo(urlImage);
+            icono = Saneador.textoONulo(icono);
         }
     }
 }

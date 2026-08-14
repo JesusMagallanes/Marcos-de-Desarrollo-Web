@@ -42,6 +42,7 @@ public class RutasConfig {
         return route("usuarios")
                 .route(path("/api/auth/**"), http())
                 .route(path("/api/usuarios/**"), http())
+                .route(path("/api/roles/**"), http())
                 .before(uri(usuariosUrl))
                 .build();
     }

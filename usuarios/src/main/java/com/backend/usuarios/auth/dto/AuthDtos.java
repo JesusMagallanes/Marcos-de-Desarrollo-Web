@@ -1,7 +1,6 @@
 package com.backend.usuarios.auth.dto;
 
 import com.backend.usuarios.shared.validacion.Saneador;
-import com.backend.usuarios.usuario.Rol;
 import com.backend.usuarios.usuario.dto.UsuarioDtos;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.UsuarioResponse;
 
@@ -68,7 +67,7 @@ public final class AuthDtos {
     public record AuthResponse(
             String accessToken,
             String refreshToken,
-            Rol rol,
+            String rol,
             long expiraEn,
             UsuarioResponse usuario) {
     }

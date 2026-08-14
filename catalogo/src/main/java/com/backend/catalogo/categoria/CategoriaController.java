@@ -43,19 +43,19 @@ public class CategoriaController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_CATEGORIAS_GESTIONAR')")
     public ResponseEntity<CategoriaResponse> crear(@Valid @RequestBody CategoriaRequest dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(servicio.crear(dto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_CATEGORIAS_GESTIONAR')")
     public CategoriaResponse actualizar(@PathVariable Long id, @Valid @RequestBody CategoriaRequest dto) {
         return servicio.actualizar(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_CATEGORIAS_GESTIONAR')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         servicio.eliminar(id);
         return ResponseEntity.noContent().build();

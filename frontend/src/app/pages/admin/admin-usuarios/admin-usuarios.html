@@ -42,15 +42,29 @@
             <td class="small text-muted">{{ u.phoneNumber }}</td>
             <td>
               @if (esYo(u)) {
-                <span class="badge" [class]="claseRol(u.rol)">{{ u.rol }}</span>
+                <span class="badge" [class]="claseRol(u)">{{ u.rol }}</span>
               } @else {
                 <select
                   class="form-select form-select-sm"
-                  [value]="u.rol"
                   (change)="cambiarRol(u, $any($event.target).value)"
                 >
-                  @for (r of roles; track r) {
-                    <option [value]="r">{{ r }}</option>
+                  @if (rolesPorTipo().trabajador.length > 0) {
+                    <optgroup label="Personal">
+                      @for (r of rolesPorTipo().trabajador; track r.nombre) {
+                        <option [value]="r.nombre" [selected]="r.nombre === u.rol">
+                          {{ r.nombre }}
+                        </option>
+                      }
+                    </optgroup>
+                  }
+                  @if (rolesPorTipo().cliente.length > 0) {
+                    <optgroup label="Clientes">
+                      @for (r of rolesPorTipo().cliente; track r.nombre) {
+                        <option [value]="r.nombre" [selected]="r.nombre === u.rol">
+                          {{ r.nombre }}
+                        </option>
+                      }
+                    </optgroup>
                   }
                 </select>
               }

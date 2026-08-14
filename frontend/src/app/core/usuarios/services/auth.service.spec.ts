@@ -27,7 +27,10 @@ function instalarAlmacenamiento(): Storage {
   return almacen;
 }
 
-function usuario(rol: Usuario['rol'] = 'CLIENTE'): Usuario {
+function usuario(
+  rol: Usuario['rol'] = 'CLIENTE',
+  permisos: string[] = [],
+): Usuario {
   return {
     id: 7,
     name: 'Ana',
@@ -37,16 +40,20 @@ function usuario(rol: Usuario['rol'] = 'CLIENTE'): Usuario {
     address: 'Av. Lima 123',
     rol,
     proveedor: 'LOCAL',
+    permisos,
   };
 }
 
-function respuesta(rol: Usuario['rol'] = 'CLIENTE'): AuthResponse {
+function respuesta(
+  rol: Usuario['rol'] = 'CLIENTE',
+  permisos: string[] = [],
+): AuthResponse {
   return {
     accessToken: 'token-acceso',
     refreshToken: 'token-refresco',
     rol,
     expiraEn: 3600,
-    usuario: usuario(rol),
+    usuario: usuario(rol, permisos),
   };
 }
 
@@ -96,6 +103,27 @@ describe('AuthService', () => {
 
     expect(servicio.esAdmin()).toBe(false);
     expect(servicio.esStaff()).toBe(true);
+  });
+
+  it('un rol dinámico con permiso de gestión es staff y puede acceder al panel', () => {
+    servicio.login({ email: 'a@b.c', password: 'x' }).subscribe();
+    http.expectOne('/api/auth/login').flush(
+      respuesta('GERENTE', ['PEDIDOS_GESTIONAR', 'VALORACIONES_GESTIONAR']),
+    );
+
+    expect(servicio.esAdmin()).toBe(false);
+    expect(servicio.esStaff()).toBe(true);
+    expect(servicio.esAdminPanel()).toBe(true);
+    expect(servicio.tienePermiso('PEDIDOS_GESTIONAR')).toBe(true);
+    expect(servicio.tienePermiso('USUARIOS_GESTIONAR')).toBe(false);
+  });
+
+  it('un cliente sin permisos no es staff ni accede al panel', () => {
+    servicio.login({ email: 'a@b.c', password: 'x' }).subscribe();
+    http.expectOne('/api/auth/login').flush(respuesta());
+
+    expect(servicio.esStaff()).toBe(false);
+    expect(servicio.esAdminPanel()).toBe(false);
   });
 
   it('refrescar() envía el token guardado y sustituye el par', () => {
@@ -217,3 +245,4 @@ describe('AuthService', () => {
     expect(servicio.loginVisible()).toBe(false);
   });
 });
+

@@ -92,15 +92,29 @@ public class SecurityConfig {
         return decodificador;
     }
 
-    /** Convierte el claim `rol` en la autoridad ROLE_x que espera @PreAuthorize. */
+    /**
+     * Traduce los claims del token a autoridades. El claim `rol` (una cadena)
+     * se convierte en {@code ROLE_x} como hasta ahora; el claim `permisos`
+     * (una lista de códigos) en {@code PERMISO_x}. Así conviven las reglas
+     * viejas basadas en rol y las nuevas basadas en permisos.
+     */
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter autoridades = new JwtGrantedAuthoritiesConverter();
-        autoridades.setAuthorityPrefix("ROLE_");
-        autoridades.setAuthoritiesClaimName("rol");
+        JwtGrantedAuthoritiesConverter roles = new JwtGrantedAuthoritiesConverter();
+        roles.setAuthorityPrefix("ROLE_");
+        roles.setAuthoritiesClaimName("rol");
+
+        JwtGrantedAuthoritiesConverter permisos = new JwtGrantedAuthoritiesConverter();
+        permisos.setAuthorityPrefix("PERMISO_");
+        permisos.setAuthoritiesClaimName("permisos");
 
         JwtAuthenticationConverter convertidor = new JwtAuthenticationConverter();
-        convertidor.setJwtGrantedAuthoritiesConverter(autoridades);
+        convertidor.setJwtGrantedAuthoritiesConverter(jwt -> {
+            var autoridades = new java.util.ArrayList<org.springframework.security.core.GrantedAuthority>();
+            autoridades.addAll(roles.convert(jwt));
+            autoridades.addAll(permisos.convert(jwt));
+            return autoridades;
+        });
         return convertidor;
     }
 

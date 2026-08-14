@@ -1,4 +1,3 @@
-import { Rol } from './rol.model';
 import { Usuario } from './usuario.model';
 
 export interface LoginRequest {
@@ -23,7 +22,7 @@ export interface RefreshRequest {
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
-  rol: Rol;
+  rol: string;
   /** Segundos de validez del access token. */
   expiraEn: number;
   usuario: Usuario;

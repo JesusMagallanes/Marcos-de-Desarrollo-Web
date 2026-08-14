@@ -26,7 +26,7 @@ public class EnvioController {
     private final EnvioService servicio;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('EMPLEADO', 'ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_ENVIOS_GESTIONAR')")
     public List<EnvioResponse> listar(@RequestParam(required = false) EstadoEnvio estado) {
         return servicio.listar(estado);
     }
@@ -37,7 +37,7 @@ public class EnvioController {
     }
 
     @PatchMapping("/{id}/estado")
-    @PreAuthorize("hasAnyRole('EMPLEADO', 'ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_ENVIOS_GESTIONAR')")
     public EnvioResponse cambiarEstado(@PathVariable Long id, @Valid @RequestBody CambioEstadoEnvio dto) {
         return servicio.cambiarEstado(id, dto.estadoEnvio());
     }

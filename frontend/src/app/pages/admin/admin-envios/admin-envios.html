@@ -1,0 +1,68 @@
+<div class="cabecera-seccion">
+  <h5 class="mb-0">Gestión de envíos</h5>
+</div>
+
+@if (exito()) {
+  <div class="alert alert-success py-2 small">{{ exito() }}</div>
+}
+@if (error()) {
+  <div class="alert alert-danger py-2 small">{{ error() }}</div>
+}
+
+<ul class="nav nav-tabs mb-4">
+  @for (t of pestanas; track t.clave) {
+    <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="pestana() === t.clave"
+        (click)="pestana.set(t.clave)"
+      >
+        <i class="fa-solid {{ t.icono }} me-1"></i>{{ t.etiqueta }}
+        <span class="badge bg-secondary ms-1">{{ contar(t.clave) }}</span>
+      </button>
+    </li>
+  }
+</ul>
+
+@if (cargando()) {
+  <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+} @else if (visibles().length) {
+  <div class="rejilla-envios">
+    @for (p of visibles(); track p.id) {
+      <div class="tarjeta-envio">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <div class="fw-bold">Pedido #{{ p.id }}</div>
+            <div class="small text-muted">{{ p.fecha | date: 'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+          <div class="fw-bold text-success">{{ p.total | currency: 'PEN' : 'S/ ' }}</div>
+        </div>
+
+        <div class="small text-muted mb-2">
+          <i class="fa-solid fa-credit-card me-1"></i>{{ p.metodoPago }}
+        </div>
+
+        <ul class="lista-articulos">
+          @for (d of p.detalles; track d.productoId) {
+            <li>{{ d.cantidad }} × {{ d.productoNombre }}</li>
+          }
+        </ul>
+
+        @if (p.estado !== 'ENTREGADO' && p.estado !== 'CANCELADO') {
+          <div class="d-flex gap-2 mt-3">
+            <button type="button" class="btn btn-sm btn-success flex-grow-1" (click)="avanzar(p)">
+              {{ textoBoton(p.estado) }}
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="cancelar(p)">Cancelar</button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+} @else {
+  <div class="text-center py-5">
+    <i class="fa-solid fa-boxes-packing icono-vacio"></i>
+    <p class="text-muted mt-3 mb-0">No hay pedidos en este estado.</p>
+  </div>
+}

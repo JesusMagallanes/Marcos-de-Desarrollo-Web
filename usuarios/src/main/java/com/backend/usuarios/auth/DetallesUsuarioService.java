@@ -32,7 +32,7 @@ public class DetallesUsuarioService implements UserDetailsService {
 
         return User.withUsername(usuario.getEmailAddress())
                 .password(usuario.getPassword())
-                .authorities(new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name()))
+                .authorities(new SimpleGrantedAuthority("ROLE_" + usuario.getRol()))
                 .build();
     }
 }

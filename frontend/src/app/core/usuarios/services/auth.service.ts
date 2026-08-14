@@ -25,13 +25,36 @@ export class AuthService {
   readonly usuario = this.usuarioSig.asReadonly();
   readonly autenticado = computed(() => this.usuarioSig() !== null);
   readonly rol = computed(() => this.usuarioSig()?.rol ?? null);
+  readonly permisos = computed(() => this.usuarioSig()?.permisos ?? []);
   readonly esAdmin = computed(() => this.rol() === 'ADMINISTRADOR');
   readonly esEmpleado = computed(() => this.rol() === 'EMPLEADO');
-  readonly esStaff = computed(() => this.esAdmin() || this.esEmpleado());
+  /**
+   * Staff del panel de tienda (pedidos y envíos): rol clásico o permiso de
+   * gestión. Un rol dinámico de tipo TRABAJADOR con esos permisos también lo es.
+   */
+  readonly esStaff = computed(
+    () =>
+      this.esAdmin() ||
+      this.esEmpleado() ||
+      this.permisos().includes('PEDIDOS_GESTIONAR') ||
+      this.permisos().includes('ENVIOS_GESTIONAR'),
+  );
+  /**
+   * Acceso al panel admin: ADMINISTRADOR o cualquier permiso de gestión. Cada
+   * sección del panel se controla luego con {@link tienePermiso}.
+   */
+  readonly esAdminPanel = computed(
+    () => this.esAdmin() || this.permisos().some((p) => p.endsWith('_GESTIONAR')),
+  );
   readonly esCuentaSocial = computed(() => {
     const proveedor = this.usuarioSig()?.proveedor;
     return proveedor !== undefined && proveedor !== 'LOCAL';
   });
+
+  /** True si el usuario de la sesión tiene el permiso indicado. */
+  tienePermiso(permiso: string): boolean {
+    return this.esAdmin() || this.permisos().includes(permiso);
+  }
 
   /* ── sesión ── */
 

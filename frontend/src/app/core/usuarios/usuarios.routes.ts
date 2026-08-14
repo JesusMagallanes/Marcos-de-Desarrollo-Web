@@ -17,6 +17,12 @@ export const RUTAS_USUARIOS = {
     perfil: (id: number) => `${API}/usuarios/${id}/perfil`,
     rol: (id: number) => `${API}/usuarios/${id}/rol`,
   },
+
+  roles: {
+    base: `${API}/roles`,
+    porNombre: (nombre: string) => `${API}/roles/${encodeURIComponent(nombre)}`,
+    permisos: `${API}/roles/permisos`,
+  },
 } as const;
 
 /**

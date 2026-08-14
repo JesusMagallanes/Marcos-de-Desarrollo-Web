@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.backend.usuarios.usuario.Rol;
 import com.backend.usuarios.usuario.Usuario;
 import com.backend.usuarios.usuario.UsuarioRepository;
 
@@ -42,7 +41,7 @@ public class AdminSeeder {
                     .password(codificador.encode(password))
                     .phoneNumber("999999999")
                     .address("Oficina central")
-                    .rol(Rol.ADMINISTRADOR)
+                    .rol("ADMINISTRADOR")
                     .build());
 
             log.info("Administrador inicial creado: {}", correo);

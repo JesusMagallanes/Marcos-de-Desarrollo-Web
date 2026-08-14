@@ -17,7 +17,7 @@ import com.backend.usuarios.shared.metricas.MetricasSeguridad;
 import com.backend.usuarios.shared.auditoria.AuditoriaService.Evento;
 import com.backend.usuarios.shared.error.ConflictoException;
 import com.backend.usuarios.shared.seguridad.LimitadorPeticiones;
-import com.backend.usuarios.usuario.Rol;
+import com.backend.usuarios.usuario.RolService;
 import com.backend.usuarios.usuario.Usuario;
 import com.backend.usuarios.usuario.UsuarioRepository;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.UsuarioResponse;
@@ -34,6 +34,7 @@ public class AuthService {
 
     private final AuthenticationManager gestorAutenticacion;
     private final UsuarioRepository repositorio;
+    private final RolService roles;
     private final PasswordEncoder codificador;
     private final JwtService jwtService;
     private final TokenService tokenService;
@@ -59,7 +60,7 @@ public class AuthService {
 
         Usuario usuario = repositorio.findByEmailAddress(email).orElseThrow();
         auditoria.registrar(Evento.LOGIN_OK, email, "rol=" + usuario.getRol());
-        metricas.loginCorrecto(usuario.getRol().name());
+        metricas.loginCorrecto(usuario.getRol());
 
         // Login correcto: se libera el cupo de intentos de esa IP+correo.
         limitador.limpiar("login|" + email);
@@ -129,7 +130,7 @@ public class AuthService {
                 .password(codificador.encode(peticion.password()))
                 .phoneNumber(peticion.phoneNumber())
                 .address(peticion.address())
-                .rol(Rol.CLIENTE)
+                .rol("CLIENTE")
                 .build();
 
         Usuario guardado = repositorio.save(usuario);
@@ -145,7 +146,7 @@ public class AuthService {
                 jwtService.generarRefreshToken(usuario),
                 usuario.getRol(),
                 jwtService.duracionSegundos(usuario.getRol()),
-                UsuarioResponse.desde(usuario));
+                UsuarioResponse.desde(usuario, roles.permisosDe(usuario.getRol())));
     }
 
     private static String normalizar(String email) {

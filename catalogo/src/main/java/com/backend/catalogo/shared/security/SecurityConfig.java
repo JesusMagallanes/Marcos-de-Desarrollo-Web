@@ -2,6 +2,7 @@ package com.backend.catalogo.shared.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -70,12 +71,23 @@ public class SecurityConfig {
 
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter autoridades = new JwtGrantedAuthoritiesConverter();
-        autoridades.setAuthorityPrefix("ROLE_");
-        autoridades.setAuthoritiesClaimName("rol");
+        // El token lleva el rol en `rol` (pasa a ROLE_) y los permisos del rol en
+        // `permisos` (pasan a PERMISO_). Los @PreAuthorize de los controladores se
+        // escriben contra estos permisos para que un rol dinámico, con sus
+        // permisos, se evalúe aquí sin tocar el código de los servicios.
+        JwtGrantedAuthoritiesConverter rol = new JwtGrantedAuthoritiesConverter();
+        rol.setAuthorityPrefix("ROLE_");
+        rol.setAuthoritiesClaimName("rol");
+
+        JwtGrantedAuthoritiesConverter permisos = new JwtGrantedAuthoritiesConverter();
+        permisos.setAuthorityPrefix("PERMISO_");
+        permisos.setAuthoritiesClaimName("permisos");
 
         JwtAuthenticationConverter convertidor = new JwtAuthenticationConverter();
-        convertidor.setJwtGrantedAuthoritiesConverter(autoridades);
+        convertidor.setJwtGrantedAuthoritiesConverter(
+                jwt -> Stream.concat(
+                        rol.convert(jwt).stream(),
+                        permisos.convert(jwt).stream()).toList());
         return convertidor;
     }
 
@@ -96,11 +108,11 @@ public class SecurityConfig {
                         // cuelgan de /api/guias/admin/** y también son GET, así que si
                         // la regla pública fuera primero se las tragaría y los
                         // borradores quedarían a la vista. El orden aquí importa.
-                        .requestMatchers("/api/guias/admin/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/guias/admin/**").hasAuthority("PERMISO_GUIAS_GESTIONAR")
                         // La moderación de valoraciones también es del panel; sin
                         // esta regla los GET caerían en `.anyRequest().authenticated()`
                         // y cualquier autenticado (no admin) leería todo el coladero.
-                        .requestMatchers("/api/valoraciones/admin/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/valoraciones/admin/**").hasAuthority("PERMISO_VALORACIONES_GESTIONAR")
                         // Vitrina pública: cualquiera puede navegar el catálogo y leer
                         // las guías de ayuda que estén publicadas.
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**",

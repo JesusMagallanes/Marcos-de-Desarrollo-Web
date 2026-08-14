@@ -2,6 +2,7 @@ package com.backend.compras.shared.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -66,12 +67,23 @@ public class SecurityConfig {
 
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter autoridades = new JwtGrantedAuthoritiesConverter();
-        autoridades.setAuthorityPrefix("ROLE_");
-        autoridades.setAuthoritiesClaimName("rol");
+        // El token lleva el rol en `rol` (pasa a ROLE_) y los permisos del rol en
+        // `permisos` (pasan a PERMISO_). Los @PreAuthorize de los controladores se
+        // escriben contra estos permisos para que un rol dinámico, con sus
+        // permisos, se evalúe aquí sin tocar el código de los servicios.
+        JwtGrantedAuthoritiesConverter rol = new JwtGrantedAuthoritiesConverter();
+        rol.setAuthorityPrefix("ROLE_");
+        rol.setAuthoritiesClaimName("rol");
+
+        JwtGrantedAuthoritiesConverter permisos = new JwtGrantedAuthoritiesConverter();
+        permisos.setAuthorityPrefix("PERMISO_");
+        permisos.setAuthoritiesClaimName("permisos");
 
         JwtAuthenticationConverter convertidor = new JwtAuthenticationConverter();
-        convertidor.setJwtGrantedAuthoritiesConverter(autoridades);
+        convertidor.setJwtGrantedAuthoritiesConverter(
+                jwt -> Stream.concat(
+                        rol.convert(jwt).stream(),
+                        permisos.convert(jwt).stream()).toList());
         return convertidor;
     }
 

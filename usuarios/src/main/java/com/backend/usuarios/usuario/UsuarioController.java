@@ -32,20 +32,20 @@ public class UsuarioController {
     private final UsuarioService servicio;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_USUARIOS_GESTIONAR')")
     public List<UsuarioResponse> listar() {
         return servicio.listar();
     }
 
-    /** El propio usuario o un administrador. */
+    /** El propio usuario o quien gestione usuarios. */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR') or #id == principal.claims['uid']")
+    @PreAuthorize("hasAuthority('PERMISO_USUARIOS_GESTIONAR') or #id == principal.claims['uid']")
     public UsuarioResponse obtener(@PathVariable Long id) {
         return servicio.obtener(id);
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_USUARIOS_GESTIONAR')")
     public ResponseEntity<UsuarioResponse> crear(@Valid @RequestBody UsuarioCreate dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(servicio.crear(dto));
     }
@@ -55,19 +55,19 @@ public class UsuarioController {
      * de otro por cambiar el número en la URL.
      */
     @PutMapping("/{id}/perfil")
-    @PreAuthorize("hasRole('ADMINISTRADOR') or #id == principal.claims['uid']")
+    @PreAuthorize("hasAuthority('PERMISO_USUARIOS_GESTIONAR') or #id == principal.claims['uid']")
     public UsuarioResponse actualizarPerfil(@PathVariable Long id, @Valid @RequestBody PerfilUpdate dto) {
         return servicio.actualizarPerfil(id, dto);
     }
 
     @PatchMapping("/{id}/rol")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_USUARIOS_GESTIONAR')")
     public UsuarioResponse cambiarRol(@PathVariable Long id,
             @Valid @RequestBody CambioRol dto,
             UsuarioAutenticado autenticado) {
 
         // Un admin no puede quitarse a sí mismo el rol y dejar el sistema sin nadie.
-        if (id.equals(autenticado.id()) && dto.rol() != Rol.ADMINISTRADOR) {
+        if (id.equals(autenticado.id()) && !"ADMINISTRADOR".equals(dto.rol())) {
             throw new com.backend.usuarios.shared.error.ConflictoException(
                     "No puedes cambiar tu propio rol de administrador");
         }
@@ -75,7 +75,7 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAuthority('PERMISO_USUARIOS_GESTIONAR')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id, UsuarioAutenticado autenticado) {
         if (id.equals(autenticado.id())) {
             throw new com.backend.usuarios.shared.error.ConflictoException("No puedes eliminarte a ti mismo");
