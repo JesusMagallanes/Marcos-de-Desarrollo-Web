@@ -38,6 +38,10 @@ public class Categoria {
     @Column(nullable = false, length = 500)
     private String description;
 
-    @Column(name = "url_image", length = 1000)
+    /**
+     * Admite un `data:image/` (base64) subido desde el panel, por eso la columna
+     * creció hasta 200.000 (ver V11__categoria_url_imagen_amplia.sql).
+     */
+    @Column(name = "url_image", length = 200_000)
     private String urlImage;
 }

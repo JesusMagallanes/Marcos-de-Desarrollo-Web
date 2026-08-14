@@ -54,6 +54,15 @@ public final class Saneador {
             "^\\s*(javascript|data|vbscript|file|blob):", Pattern.CASE_INSENSITIVE);
 
     /**
+     * `data:` admitido SOLO para imágenes rasterizadas (nunca SVG, que puede
+     * llevar scripts). El formato es `data:image/png;base64,…`; tras el tipo va
+     * siempre `;` (base64) o `,`.
+     */
+    private static final Pattern DATA_IMAGEN_SEGURA = Pattern.compile(
+            "^data:image/(?:png|jpe?g|gif|webp|bmp|avif|x-icon)[;,]",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
      * Texto de una sola línea: nombres, títulos, direcciones. Los saltos de línea
      * se convierten en espacio.
      */
@@ -101,19 +110,27 @@ public final class Saneador {
     }
 
     /**
-     * true si la URL es segura para un atributo src: http, https o una ruta del
-     * propio sitio. Se usa desde la validación para responder 400, no para
+     * true si la URL es segura para un atributo src: http, https, una ruta del
+     * propio sitio o un `data:image/` rasterizado (base64) de un ícono subido
+     * desde el panel. Se usa desde la validación para responder 400, no para
      * descartar en silencio.
+     *
+     * `data:` se admite SOLO para imágenes rasterizadas (PNG, JPG, GIF, WebP…):
+     * un `data:text/html`, un `data:image/svg+xml` con script o cualquier otro
+     * esquema sigue rechazado.
      */
     public static boolean urlSegura(String valor) {
         if (valor == null || valor.isBlank()) {
             return true;
         }
         String limpio = texto(valor);
-        if (ESQUEMA_PELIGROSO.matcher(limpio).find()) {
+        String enMinusculas = limpio.toLowerCase(Locale.ROOT);
+        if (ESQUEMA_PELIGROSO.matcher(limpio).find()
+                && !DATA_IMAGEN_SEGURA.matcher(enMinusculas).find()) {
             return false;
         }
-        return limpio.startsWith("/") || limpio.startsWith("http://") || limpio.startsWith("https://");
+        return limpio.startsWith("/") || limpio.startsWith("http://") || limpio.startsWith("https://")
+                || DATA_IMAGEN_SEGURA.matcher(enMinusculas).find();
     }
 
     private static String base(String valor) {

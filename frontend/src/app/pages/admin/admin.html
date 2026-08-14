@@ -1,27 +1,60 @@
-<div class="contenedor-admin">
+<div
+  class="contenedor-admin"
+  [class.colapsada]="colapsada()"
+  [class.abierta]="abierta()"
+>
+  @if (abierta()) {
+    <div class="fondo-menu" (click)="cerrarMenu()"></div>
+  }
+
   <aside class="barra-admin">
     <div class="marca-admin">
       <img src="/Img/logo.png" alt="SmartZone" height="30" />
-      <span>Admin</span>
+      <span class="nombre">
+        SmartZone
+        <small>Panel admin</small>
+      </span>
     </div>
 
     <nav class="nav flex-column">
+      <span class="grupo-nav">Gestión</span>
       @for (s of secciones; track s.ruta) {
-        <a class="nav-link" [routerLink]="s.ruta" routerLinkActive="activo">
-          <i class="fa-solid {{ s.icono }} me-2"></i>{{ s.etiqueta }}
+        <a class="nav-link" [routerLink]="s.ruta" routerLinkActive="activo" (click)="cerrarMenu()">
+          <i class="fa-solid {{ s.icono }}"></i>
+          <span class="etiqueta">{{ s.etiqueta }}</span>
         </a>
       }
-      <hr />
-      <a class="nav-link" routerLink="/envios" routerLinkActive="activo">
-        <i class="fa-solid fa-truck me-2"></i>Envíos
+    </nav>
+
+    <nav class="nav flex-column seccion-inferior">
+      <span class="grupo-nav">Tienda</span>
+      <a class="nav-link" routerLink="/envios" routerLinkActive="activo" (click)="cerrarMenu()">
+        <i class="fa-solid fa-truck"></i>
+        <span class="etiqueta">Envíos</span>
       </a>
-      <a class="nav-link" routerLink="/">
-        <i class="fa-solid fa-store me-2"></i>Ver tienda
+      <a class="nav-link" routerLink="/" (click)="cerrarMenu()">
+        <i class="fa-solid fa-store"></i>
+        <span class="etiqueta">Ver tienda</span>
       </a>
     </nav>
   </aside>
 
   <main class="contenido-admin">
-    <router-outlet />
+    <header class="barra-superior">
+      <div class="grupo-titulo">
+        <button type="button" class="boton-menu" (click)="alternarMenu()" aria-label="Abrir menú">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <span class="titulo-panel">Panel de administración</span>
+      </div>
+      <a class="enlace-tienda" routerLink="/">
+        <i class="fa-solid fa-store"></i>
+        <span>Ver tienda</span>
+      </a>
+    </header>
+
+    <div class="envoltura-contenido">
+      <router-outlet />
+    </div>
   </main>
 </div>

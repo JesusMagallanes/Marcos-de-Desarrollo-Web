@@ -1,22 +1,52 @@
 /* Estilos compartidos por las pantallas CRUD del panel admin. */
 
+/* ── Cabecera de sección ───────────────────────────────────────── */
 .cabecera-seccion {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 1rem;
+  margin-bottom: 1.15rem;
+}
+
+.cabecera-seccion h5 {
+  margin-bottom: 0;
+  font-weight: 700;
+  color: #1b3a2a;
+  letter-spacing: -0.01em;
+  position: relative;
+  padding-left: 0.9rem;
+}
+
+.cabecera-seccion h5::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 1.15em;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #00c476, #06b56c);
 }
 
 .campo-filtro {
-  width: 200px;
+  width: 220px;
 }
 
+.form-control:focus,
+.form-select:focus {
+  border-color: rgb(6 181 108 / 0.6);
+  box-shadow: 0 0 0 0.2rem rgb(6 181 108 / 0.14);
+}
+
+/* ── Tarjeta de tabla ──────────────────────────────────────────── */
 .tarjeta-tabla {
   background: #fff;
-  border: 1px solid #ececec;
-  border-radius: 10px;
+  border: 1px solid #edf1ee;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgb(23 51 36 / 0.06);
   overflow-x: auto;
 }
 
@@ -25,32 +55,251 @@
 }
 
 .tarjeta-tabla thead th {
-  background: #fafafa;
-  font-size: 0.78rem;
+  background: #fafcfb;
+  font-size: 0.71rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: #8a8a8a;
-  border-bottom: 1px solid #ececec;
+  letter-spacing: 0.07em;
+  color: #7d9086;
+  border-bottom: 1px solid #edf1ee;
   white-space: nowrap;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
 }
 
-.tarjeta-tabla td {
+.tarjeta-tabla tbody td {
   font-size: 0.88rem;
+  border-color: #f1f4f2;
+  padding-top: 0.72rem;
+  padding-bottom: 0.72rem;
+}
+
+.tarjeta-tabla tbody tr {
+  transition: background-color 140ms ease;
+}
+
+.tarjeta-tabla tbody tr:hover {
+  background-color: #f5fbf7;
+}
+
+.tarjeta-tabla tbody tr.table-success {
+  --bs-table-bg: #eefaf3;
+  --bs-table-hover-bg: #e4f6eb;
+}
+
+.tarjeta-tabla h6 {
+  font-weight: 700;
+  color: #1b3a2a;
+}
+
+.tarjeta-tabla .text-muted {
+  color: #97a79e;
 }
 
 .miniatura {
-  width: 44px;
-  height: 34px;
+  width: 46px;
+  height: 38px;
   object-fit: contain;
-  background: #fafafa;
-  border-radius: 4px;
+  background: #f6f8f7;
+  border: 1px solid #eef1ef;
+  border-radius: 8px;
 }
 
+/* ── Insignias y código ────────────────────────────────────────── */
+.badge {
+  padding: 0.4em 0.65em;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+code {
+  color: #067a4c;
+  background: #eef9f3;
+  padding: 0.12em 0.35em;
+  border-radius: 5px;
+}
+
+.form-text {
+  color: #83948a;
+}
+
+/* ── Selector de íconos (categorías) ───────────────────────────── */
+.vista-previa-icono {
+  width: 88px;
+  height: 88px;
+  margin-bottom: 0.8rem;
+  border: 1px solid #edf1ee;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgb(23 51 36 / 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vista-previa-icono img {
+  max-width: 56px;
+  max-height: 56px;
+  object-fit: contain;
+}
+
+.iconos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 0.5rem;
+}
+
+.opcion-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  padding: 8px;
+  border: 1px solid #e6ece8;
+  border-radius: 12px;
+  background: #fbfdfc;
+  cursor: pointer;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.opcion-icono img {
+  max-width: 40px;
+  max-height: 40px;
+  object-fit: contain;
+}
+
+.opcion-icono:hover {
+  border-color: rgb(6 181 108 / 0.6);
+  transform: translateY(-1px);
+}
+
+.opcion-icono.seleccionado {
+  border-color: #06b56c;
+  background: #eefaf3;
+  box-shadow: 0 0 0 3px rgb(6 181 108 / 0.18);
+}
+
+.iconos-atribucion {
+  margin-top: 0.4rem;
+  opacity: 0.8;
+}
+
+.iconos-atribucion a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.iconos-atribucion a:hover {
+  color: #06b56c;
+}
+
+/* ── Botones y formularios ─────────────────────────────────────── */
+.btn {
+  border-radius: 9px;
+}
+
+.btn-success {
+  --bs-btn-bg: #06b56c;
+  --bs-btn-border-color: #06b56c;
+  --bs-btn-hover-bg: #05975a;
+  --bs-btn-hover-border-color: #05975a;
+  --bs-btn-active-bg: #047a4a;
+  --bs-btn-active-border-color: #047a4a;
+  background-image: linear-gradient(90deg, #00c476, #06b56c);
+  box-shadow: 0 6px 16px rgb(6 181 108 / 0.28);
+}
+
+.btn-success:hover,
+.btn-success:focus {
+  background-image: linear-gradient(90deg, #00b56c, #05975a);
+  box-shadow: 0 8px 18px rgb(6 181 108 / 0.35);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: #06b56c;
+  --bs-btn-border-color: rgb(6 181 108 / 0.5);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #06b56c;
+  --bs-btn-hover-border-color: #06b56c;
+  --bs-btn-active-bg: #05975a;
+  --bs-btn-active-border-color: #05975a;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: #d64541;
+  --bs-btn-border-color: rgb(214 69 65 / 0.5);
+  --bs-btn-hover-bg: #d64541;
+  --bs-btn-hover-border-color: #d64541;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #eef1ef;
+  border-color: #eef1ef;
+  color: #34453b;
+}
+
+.form-check-input:checked {
+  background-color: #06b56c;
+  border-color: #06b56c;
+}
+
+/* ── Avisos ────────────────────────────────────────────────────── */
+.alert {
+  border-radius: 12px;
+}
+
+.alert-success {
+  background: #eefaf3;
+  border: 1px solid #c3ecd3;
+  color: #0e6a3e;
+}
+
+.alert-danger {
+  background: #fdf1f0;
+  border: 1px solid #f5cbc8;
+  color: #a11e16;
+}
+
+/* ── Pestañas (descuentos) ─────────────────────────────────────── */
+.nav-tabs {
+  border-bottom: 1px solid #e7ece9;
+  gap: 0.3rem;
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  border-radius: 10px;
+  color: #5c7166;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #06b56c;
+  background: rgb(6 181 108 / 0.07);
+}
+
+.nav-tabs .nav-link.active {
+  background: #06b56c;
+  color: #fff;
+}
+
+.nav-tabs .nav-link.active .badge {
+  background: rgb(255 255 255 / 0.22);
+  color: #fff;
+}
+
+/* ── Modales ───────────────────────────────────────────────────── */
 .fondo-modal {
   position: fixed;
   inset: 0;
-  background: rgb(0 0 0 / 45%);
+  background: rgb(10 20 15 / 0.5);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   z-index: 1055;
+  animation: admin-aparecer 180ms ease;
 }
 
 .panel-modal {
@@ -58,57 +307,80 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(560px, calc(100vw - 32px));
-  max-height: calc(100vh - 64px);
+  width: min(580px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
   background: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   z-index: 1060;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow: 0 34px 80px rgb(0 25 12 / 0.32);
+  animation: admin-modal 220ms cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 
 .cabecera-modal {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #ececec;
+  padding: 1rem 1.4rem;
+  border-bottom: 1px solid #edf1ee;
+  background: linear-gradient(90deg, rgb(6 181 108 / 0.07), rgb(6 181 108 / 0.02));
+}
+
+.cabecera-modal h6 {
+  font-weight: 700;
+  color: #1b3a2a;
 }
 
 .cuerpo-modal {
-  padding: 1.25rem;
+  padding: 1.4rem;
   overflow-y: auto;
 }
 
-/* ── Editor de pasos (guías) ─────────────────────────────────────────
-   Cada paso va en su propio bloque para que se distinga del siguiente:
-   son varios campos repetidos y sin separación visual el formulario se
-   vuelve una pared de cajas iguales. */
+.cuerpo-modal .form-label {
+  color: #2c4a3a;
+}
+
+@keyframes admin-aparecer {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes admin-modal {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -46%) scale(0.985);
+  }
+}
+
+/* ── Editor de pasos (guías) ───────────────────────────────────── */
 .bloque-paso {
-  padding: 0.75rem;
-  margin-bottom: 0.75rem;
-  border: 1px solid #e6e9e7;
-  border-radius: 8px;
-  background: #fafbfa;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.8rem;
+  border: 1px solid #e6ece8;
+  border-radius: 12px;
+  background: #fbfdfc;
 }
 
 .cabecera-paso {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
 .numero-paso {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: #06b56c;
+  background: linear-gradient(135deg, #00c476, #06b56c);
   color: #fff;
   font-size: 0.78rem;
   font-weight: 700;
+  box-shadow: 0 4px 10px rgb(6 181 108 / 0.3);
 }

@@ -93,8 +93,64 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label small fw-semibold">URL de imagen</label>
-        <input class="form-control form-control-sm" formControlName="urlImage" [class.is-invalid]="invalido('urlImage')" />
+        <label class="form-label small fw-semibold">Icono</label>
+
+        <div class="vista-previa-icono">
+          <img [src]="form.controls.urlImage.value || '/Img/img.png'" alt="Vista previa del ícono" />
+        </div>
+
+        <div class="iconos-grid" aria-label="Íconos predeterminados">
+          @for (icono of iconosPredeterminados; track icono) {
+            <button
+              type="button"
+              class="opcion-icono"
+              [class.seleccionado]="form.controls.urlImage.value === icono"
+              (click)="elegirIcono(icono)"
+              [title]="'Usar este ícono'"
+            >
+              <img [src]="icono" alt="" />
+            </button>
+          }
+        </div>
+
+        <div class="iconos-atribucion small text-muted">
+          <a target="_blank" rel="noopener" href="https://icons8.com/icon/EWaqodvxAU2c/studio-display">pantalla</a>
+          icon by <a target="_blank" rel="noopener" href="https://icons8.com">Icons8</a>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 mt-2">
+          <input
+            #archivoIcono
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            class="d-none"
+            (change)="subirIcono(archivoIcono)"
+          />
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            [disabled]="procesandoIcono()"
+            (click)="archivoIcono.click()"
+          >
+            @if (procesandoIcono()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            <i class="fa-solid fa-upload me-1"></i>Subir icono
+          </button>
+          @if (esPersonalizado(form.controls.urlImage.value)) {
+            <span class="badge bg-light text-dark">personalizado</span>
+          }
+        </div>
+
+        @if (errorIcono()) {
+          <div class="small text-danger mt-1">{{ errorIcono() }}</div>
+        } @else {
+          <div class="form-text">Elige uno de la lista o sube el tuyo (PNG, JPG, WebP o GIF, máx. 128px).</div>
+        }
+
+        @if (invalido('urlImage')) {
+          <div class="invalid-feedback d-block">Selecciona o sube un ícono.</div>
+        }
       </div>
 
       <div class="d-flex justify-content-end gap-2">

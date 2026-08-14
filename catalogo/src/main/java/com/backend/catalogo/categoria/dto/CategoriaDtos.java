@@ -26,16 +26,21 @@ public final class CategoriaDtos {
     }
 
     /**
-     * Los topes coinciden con los de las columnas (ver V1__esquema_inicial.sql):
-     * sin ellos una cadena más larga no la rechaza la validación sino Postgres, y
-     * el usuario recibe un 500 en vez de un 400 explicando el campo.
+     * Los topes coinciden con los de las columnas (ver V1__esquema_inicial.sql y
+     * V11__categoria_url_imagen_amplia.sql): sin ellos una cadena más larga no la
+     * rechaza la validación sino Postgres, y el usuario recibe un 500 en vez de un
+     * 400 explicando el campo.
+     *
+     * `urlImage` admite además un `data:image/` (base64) de hasta 200.000
+     * caracteres: el ícono de categoría se elige en el panel desde una lista o se
+     * sube como archivo y viaja incrustado.
      */
     public record CategoriaRequest(
             @NotBlank @Size(max = 100) String name,
             @NotBlank @Size(max = 120)
             @Pattern(regexp = "^[a-z0-9-]+$", message = "El slug solo admite minúsculas, números y guiones") String slug,
             @NotBlank @Size(max = 500) String description,
-            @Size(max = 1000) @UrlSegura String urlImage) {
+            @Size(max = 200_000) @UrlSegura String urlImage) {
 
         /**
          * A03: el saneado ocurre AQUÍ, en el constructor compacto, y no en el
