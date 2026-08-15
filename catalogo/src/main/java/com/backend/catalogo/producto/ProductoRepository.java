@@ -23,6 +23,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             SELECT p FROM Producto p
             LEFT JOIN FETCH p.categoria
             LEFT JOIN FETCH p.marca
+            WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
             ORDER BY p.id
             """)
     List<Producto> listarConRelaciones();
@@ -40,16 +41,22 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             LEFT JOIN FETCH p.categoria c
             LEFT JOIN FETCH p.marca
             WHERE c.slug = :slug
+              AND p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
             """,
-            countQuery = "SELECT COUNT(p) FROM Producto p WHERE p.categoria.slug = :slug")
+            countQuery = """
+                    SELECT COUNT(p) FROM Producto p
+                    WHERE p.categoria.slug = :slug
+                      AND p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
+                    """)
     Page<Producto> listarPorCategoriaSlug(@Param("slug") String slug, Pageable pageable);
 
     @Query("""
             SELECT p FROM Producto p
             LEFT JOIN FETCH p.categoria
             LEFT JOIN FETCH p.marca
-            WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :texto, '%'))
-               OR LOWER(p.description) LIKE LOWER(CONCAT('%', :texto, '%'))
+            WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
+              AND (LOWER(p.name) LIKE LOWER(CONCAT('%', :texto, '%'))
+                   OR LOWER(p.description) LIKE LOWER(CONCAT('%', :texto, '%')))
             ORDER BY p.id
             """)
     List<Producto> buscarPorTexto(@Param("texto") String texto);
@@ -64,4 +71,35 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     boolean existsByCategoriaId(Long categoriaId);
 
     boolean existsByMarcaId(Long marcaId);
+
+    /* ── Productos de colaborador (SZ-B08) ── */
+
+    /**
+     * Lo que ve el colaborador en su panel: todo lo suyo, esté aprobado o no.
+     *
+     * <p>A diferencia de las de arriba, esta NO filtra por estado: el dueño tiene
+     * que ver sus rechazados para saber qué corregir.
+     */
+    @Query("""
+            SELECT p FROM Producto p
+            LEFT JOIN FETCH p.categoria
+            LEFT JOIN FETCH p.marca
+            WHERE p.propietarioId = :propietarioId
+            ORDER BY p.id DESC
+            """)
+    List<Producto> listarDelPropietario(@Param("propietarioId") Long propietarioId);
+
+    /** La cola de moderación. Lo más antiguo primero: nadie debe quedarse atrás. */
+    @Query("""
+            SELECT p FROM Producto p
+            LEFT JOIN FETCH p.categoria
+            LEFT JOIN FETCH p.marca
+            WHERE p.estadoModeracion = :estado
+              AND p.propietarioId IS NOT NULL
+            ORDER BY p.id ASC
+            """)
+    List<Producto> listarPorEstadoModeracion(@Param("estado") EstadoModeracion estado);
+
+    /** Cuántos lleva publicados, para el tope por colaborador. */
+    long countByPropietarioId(Long propietarioId);
 }

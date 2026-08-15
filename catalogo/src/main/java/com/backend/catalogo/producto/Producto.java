@@ -10,6 +10,8 @@ import com.backend.catalogo.marca.Marca;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -101,10 +103,88 @@ public class Producto {
     @Builder.Default
     private List<ProductoImagen> imagenes = new ArrayList<>();
 
+    /* ── Dueño y moderación (SZ-B08) ── */
+
+    /**
+     * Colaborador que lo publicó. {@code null} = producto de la tienda.
+     *
+     * <p>Es un id plano y no una relación: el usuario vive en el esquema de otro
+     * servicio, y cruzar servicios con una clave foránea es justo lo que este
+     * proyecto evita.
+     */
+    @Column(name = "propietario_id")
+    private Long propietarioId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_moderacion", nullable = false, length = 12)
+    @Builder.Default
+    private EstadoModeracion estadoModeracion = EstadoModeracion.APROBADO;
+
+    /** Obligatorio al rechazar. El colaborador lo ve para saber qué corregir. */
+    @Column(name = "motivo_rechazo", length = 500)
+    private String motivoRechazo;
+
+    @Column(name = "moderado_por")
+    private Long moderadoPor;
+
+    @Column(name = "moderado_en")
+    private Instant moderadoEn;
+
     /** Bloqueo optimista: dos descuentos de stock simultáneos no se pisan. */
     @Version
     @Column(name = "version")
     private Long version;
+
+    /* ── Moderación ── */
+
+    public boolean esDeLaTienda() {
+        return propietarioId == null;
+    }
+
+    public boolean perteneceA(Long usuarioId) {
+        return propietarioId != null && propietarioId.equals(usuarioId);
+    }
+
+    /**
+     * Lo manda (o lo devuelve) a la cola de revisión.
+     *
+     * <p>Se llama en cada edición del colaborador, no solo al crearlo. Si no,
+     * bastaría con publicar algo inocuo, esperar el visto bueno y cambiarlo
+     * después por otra cosa: la moderación no serviría de nada.
+     */
+    public void enviarAModeracion() {
+        this.estadoModeracion = EstadoModeracion.PENDIENTE;
+        this.motivoRechazo = null;
+        this.moderadoPor = null;
+        this.moderadoEn = null;
+    }
+
+    public void aprobarModeracion(Long moderadorId) {
+        exigirQueSeaModerable();
+        this.estadoModeracion = EstadoModeracion.APROBADO;
+        this.motivoRechazo = null;
+        this.moderadoPor = moderadorId;
+        this.moderadoEn = Instant.now();
+    }
+
+    public void rechazarModeracion(Long moderadorId, String motivo) {
+        exigirQueSeaModerable();
+        this.estadoModeracion = EstadoModeracion.RECHAZADO;
+        this.motivoRechazo = motivo;
+        this.moderadoPor = moderadorId;
+        this.moderadoEn = Instant.now();
+    }
+
+    /**
+     * Lo de la tienda no pasa por revisión. Si se permitiera, el administrador
+     * estaría aprobándose a sí mismo y el estado dejaría de significar nada.
+     */
+    private void exigirQueSeaModerable() {
+        if (esDeLaTienda()) {
+            throw new IllegalStateException(
+                    "Los productos de la tienda no pasan por moderación");
+        }
+    }
 
     public void descontarStock(int cantidad) {
         if (cantidad <= 0) {

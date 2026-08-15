@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 
+import com.backend.catalogo.producto.EstadoModeracion;
 import com.backend.catalogo.producto.Producto;
 import com.backend.catalogo.producto.ProductoImagen;
 import com.backend.catalogo.shared.validacion.Limites;
@@ -57,7 +58,15 @@ public final class ProductoDtos {
             Long categoriaId,
             String categoriaName,
             Long marcaId,
-            String marcaName) {
+            String marcaName,
+            // ── Dueño y moderación (SZ-B08) ──
+            // Van en la respuesta de siempre y no en un DTO aparte porque el
+            // colaborador consulta sus productos por el mismo camino que la
+            // tienda los suyos. Para el visitante son siempre `null` y APROBADO:
+            // solo se le devuelve lo publicado.
+            Long propietarioId,
+            EstadoModeracion estadoModeracion,
+            String motivoRechazo) {
 
         public static ProductoResponse desde(Producto p) {
             return desde(p, Instant.now(), null, null);
@@ -91,7 +100,10 @@ public final class ProductoDtos {
                     p.getCategoria().getId(),
                     p.getCategoria().getName(),
                     p.getMarca() != null ? p.getMarca().getId() : null,
-                    p.getMarca() != null ? p.getMarca().getName() : null);
+                    p.getMarca() != null ? p.getMarca().getName() : null,
+                    p.getPropietarioId(),
+                    p.getEstadoModeracion(),
+                    p.getMotivoRechazo());
         }
     }
 
@@ -197,5 +209,15 @@ public final class ProductoDtos {
     /** Lo que paga el cliente: precio de oferta si está vigente, si no el de lista. */
     static BigDecimal precioEfectivo(Producto p, Instant ahora) {
         return estaEnOferta(p, ahora) ? p.getPrecioOferta() : p.getPrecio();
+    }
+
+    /** Motivo del rechazo. Se le enseña al colaborador, así que tiene que servirle. */
+    public record RechazoProductoRequest(
+            @NotBlank @Size(min = 10, max = 500,
+                    message = "Explica el motivo en entre 10 y 500 caracteres") String motivo) {
+
+        public RechazoProductoRequest {
+            motivo = Saneador.textoMultilinea(motivo);
+        }
     }
 }

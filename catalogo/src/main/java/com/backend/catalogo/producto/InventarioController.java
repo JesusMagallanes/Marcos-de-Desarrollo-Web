@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.catalogo.inventario.InventarioService;
 import com.backend.catalogo.producto.dto.ProductoDtos.AjusteStockLote;
+import com.backend.catalogo.shared.seguridad.ContextoRls;
 import com.backend.catalogo.producto.dto.ProductoDtos.LineaPrecio;
 
 import jakarta.validation.Valid;
@@ -41,18 +42,37 @@ public class InventarioController {
 
     /* ── Participante de la saga ── */
 
+    /*
+     * Los tres movimientos de stock van marcados como sistema. El motivo no es
+     * comodidad: mover stock NO es «editar un producto».
+     *
+     * Desde la V15 `producto` tiene Row Level Security, y su política de
+     * escritura dice «solo el dueño o el personal», que es lo que impide que un
+     * colaborador toque el producto de otro. Pero quien descuenta stock aquí es
+     * un CLIENTE comprando, y el producto es de la tienda: con su contexto, la
+     * política no deja tocar la fila, el UPDATE afecta a cero registros y la
+     * compra se rompe.
+     *
+     * Lo que autoriza estas operaciones no es la propiedad del producto sino la
+     * reserva: llegan con una referencia de saga emitida por `compras` y el
+     * endpoint ya exige estar autenticado. Por eso se ejecutan con identidad de
+     * sistema, y por eso la marca va AQUÍ y no dentro del servicio: sus métodos
+     * son @Transactional, así que Spring pide la conexión —y con ella se fija el
+     * contexto— antes de entrar en el cuerpo.
+     */
+
     @PostMapping("/reservas/{referencia}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> reservar(@PathVariable String referencia,
             @Valid @RequestBody AjusteStockLote lote) {
-        inventarioService.reservar(referencia, lote.lineas());
+        ContextoRls.comoSistema(() -> inventarioService.reservar(referencia, lote.lineas()));
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/reservas/{referencia}/confirmar")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> confirmar(@PathVariable String referencia) {
-        inventarioService.confirmar(referencia);
+        ContextoRls.comoSistema(() -> inventarioService.confirmar(referencia));
         return ResponseEntity.noContent().build();
     }
 
@@ -60,7 +80,7 @@ public class InventarioController {
     @PostMapping("/reservas/{referencia}/liberar")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> liberar(@PathVariable String referencia) {
-        inventarioService.liberar(referencia);
+        ContextoRls.comoSistema(() -> inventarioService.liberar(referencia));
         return ResponseEntity.noContent().build();
     }
 }

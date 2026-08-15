@@ -19,6 +19,7 @@ import com.backend.catalogo.producto.dto.ProductoDtos.PaginaResponse;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoRequest;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoResponse;
 import com.backend.catalogo.shared.error.ConflictoException;
+import com.backend.catalogo.shared.metricas.MetricasSeguridad;
 import com.backend.catalogo.shared.error.RecursoNoEncontradoException;
 import com.backend.catalogo.valoracion.ValoracionRepository;
 import com.backend.catalogo.valoracion.ValoracionService;
@@ -36,6 +37,7 @@ public class ProductoService {
     private final CategoriaService categoriaService;
     private final MarcaService marcaService;
     private final ValoracionService valoracionService;
+    private final MetricasSeguridad metricas;
 
     public List<ProductoResponse> listar(String busqueda) {
         List<Producto> productos = (busqueda == null || busqueda.isBlank())
@@ -149,6 +151,10 @@ public class ProductoService {
         return productos.stream().map(ProductoResponse::desde).toList();
     }
 
+    /**
+     * Alta desde el panel: producto de la tienda, sin dueño y ya publicado.
+     * Para el alta de un colaborador está {@link #crearComoColaborador}.
+     */
     @Transactional
     public ProductoResponse crear(ProductoRequest dto) {
         Producto producto = Producto.builder()
@@ -180,6 +186,135 @@ public class ProductoService {
         aplicarImagenes(producto, dto.imagenes());
 
         return ProductoResponse.desde(repositorio.save(producto));
+    }
+
+
+    /* ── Productos de colaborador (SZ-B08) ── */
+
+    /**
+     * Tope de productos por colaborador.
+     *
+     * <p>No es una regla de negocio caprichosa: sin tope, una cuenta aprobada
+     * puede llenar la cola de moderación de basura y dejar a los demás sin que
+     * nadie les revise nada. El número es alto para no estorbar a quien vende de
+     * verdad.
+     */
+    private static final long MAXIMO_POR_COLABORADOR = 200;
+
+    /** Lo que ve el colaborador en su panel: todo lo suyo, aprobado o no. */
+    public List<ProductoResponse> mios(Long propietarioId) {
+        return aRespuestas(repositorio.listarDelPropietario(propietarioId));
+    }
+
+    /** La cola de revisión. Lo más antiguo primero. */
+    public List<ProductoResponse> enModeracion(EstadoModeracion estado) {
+        return aRespuestas(repositorio.listarPorEstadoModeracion(
+                estado == null ? EstadoModeracion.PENDIENTE : estado));
+    }
+
+    /**
+     * Publica un producto a nombre de un colaborador. Nace PENDIENTE: nadie
+     * publica en la tienda sin que lo mire una persona.
+     */
+    @Transactional
+    public ProductoResponse crearComoColaborador(Long propietarioId, ProductoRequest dto) {
+        if (repositorio.countByPropietarioId(propietarioId) >= MAXIMO_POR_COLABORADOR) {
+            throw new ConflictoException(
+                    "Has alcanzado el máximo de %d productos. Elimina alguno para publicar otro."
+                            .formatted(MAXIMO_POR_COLABORADOR));
+        }
+
+        Producto producto = Producto.builder()
+                .name(dto.name())
+                .description(dto.description())
+                .specifications(dto.specifications())
+                .precio(dto.precio())
+                .stock(dto.stock())
+                .categoria(categoriaService.buscar(dto.categoriaId()))
+                .marca(dto.marcaId() != null ? marcaService.buscar(dto.marcaId()) : null)
+                .propietarioId(propietarioId)
+                .build();
+        producto.enviarAModeracion();
+        aplicarImagenes(producto, dto.imagenes());
+
+        log.info("Producto de colaborador {} enviado a moderación", propietarioId);
+        return ProductoResponse.desde(repositorio.save(producto));
+    }
+
+    /**
+     * Edita un producto propio. <b>Vuelve a PENDIENTE.</b>
+     *
+     * <p>Eso es lo que hace útil la moderación: si al editar conservara el visto
+     * bueno, bastaría con publicar algo inocuo, esperar la aprobación y cambiarlo
+     * después por otra cosa.
+     */
+    @Transactional
+    public ProductoResponse actualizarComoColaborador(Long id, Long propietarioId, ProductoRequest dto) {
+        Producto producto = exigirPropio(id, propietarioId);
+
+        producto.setName(dto.name());
+        producto.setDescription(dto.description());
+        producto.setSpecifications(dto.specifications());
+        producto.setPrecio(dto.precio());
+        producto.setStock(dto.stock());
+        producto.setCategoria(categoriaService.buscar(dto.categoriaId()));
+        producto.setMarca(dto.marcaId() != null ? marcaService.buscar(dto.marcaId()) : null);
+        aplicarImagenes(producto, dto.imagenes());
+        producto.enviarAModeracion();
+
+        return ProductoResponse.desde(repositorio.save(producto));
+    }
+
+    @Transactional
+    public void eliminarComoColaborador(Long id, Long propietarioId) {
+        repositorio.delete(exigirPropio(id, propietarioId));
+    }
+
+    @Transactional
+    public ProductoResponse aprobarModeracion(Long id, Long moderadorId) {
+        Producto producto = buscarParaModerar(id);
+        producto.aprobarModeracion(moderadorId);
+        log.info("Producto {} aprobado por {}", id, moderadorId);
+        metricas.moderacionProducto("aprobado");
+        return ProductoResponse.desde(repositorio.save(producto));
+    }
+
+    @Transactional
+    public ProductoResponse rechazarModeracion(Long id, Long moderadorId, String motivo) {
+        Producto producto = buscarParaModerar(id);
+        producto.rechazarModeracion(moderadorId, motivo);
+        log.info("Producto {} rechazado por {}", id, moderadorId);
+        // Una tasa de rechazo alta avisa de dos cosas posibles: colaboradores
+        // que no entienden qué se pide, o alguien colando basura.
+        metricas.moderacionProducto("rechazado");
+        return ProductoResponse.desde(repositorio.save(producto));
+    }
+
+    /**
+     * El producto tiene que existir Y ser suyo.
+     *
+     * <p>Se responde 404 y no 403 cuando es de otro: un 403 confirmaría que ese
+     * id existe, y probando números se sabría qué publica la competencia antes de
+     * que se apruebe.
+     */
+    private Producto exigirPropio(Long id, Long propietarioId) {
+        Producto producto = repositorio.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Producto " + id + " no encontrado"));
+
+        if (!producto.perteneceA(propietarioId)) {
+            throw new RecursoNoEncontradoException("Producto " + id + " no encontrado");
+        }
+        return producto;
+    }
+
+    private Producto buscarParaModerar(Long id) {
+        Producto producto = repositorio.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Producto " + id + " no encontrado"));
+
+        if (producto.esDeLaTienda()) {
+            throw new ConflictoException("Los productos de la tienda no pasan por moderación");
+        }
+        return producto;
     }
 
     /**

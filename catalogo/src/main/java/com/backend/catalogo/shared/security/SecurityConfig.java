@@ -113,6 +113,14 @@ public class SecurityConfig {
                         // esta regla los GET caerían en `.anyRequest().authenticated()`
                         // y cualquier autenticado (no admin) leería todo el coladero.
                         .requestMatchers("/api/valoraciones/admin/**").hasAuthority("PERMISO_VALORACIONES_GESTIONAR")
+                        // Mismo motivo, y por eso también van ANTES: los productos de
+                        // colaborador y su cola de revisión cuelgan de /api/productos/**
+                        // y se consultan con GET, así que la regla pública de abajo se
+                        // las tragaría. Las anotaciones de los controladores ya las
+                        // protegen, pero un permiso que solo vive en una anotación
+                        // desaparece el día que alguien la quita al refactorizar.
+                        .requestMatchers("/api/productos/mios/**").hasAuthority("PERMISO_PRODUCTOS_PROPIOS")
+                        .requestMatchers("/api/productos/moderacion/**").hasAuthority("PERMISO_PRODUCTOS_GESTIONAR")
                         // Vitrina pública: cualquiera puede navegar el catálogo y leer
                         // las guías de ayuda que estén publicadas.
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**",
