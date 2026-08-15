@@ -57,6 +57,14 @@ printf '%%PDF-1.4 ficha de prueba'       > "$TMP/ficha.pdf"
 printf 'MZ\x90\x00 esto no es una imagen' > "$TMP/trampa.jpg"
 # Un SVG es una imagen de verdad, pero puede llevar scripts: tambien fuera.
 printf '<svg xmlns="http://www.w3.org/2000/svg"><script/></svg>' > "$TMP/vector.svg"
+# Un PDF de 3 MB, del tamanio de un escaneo real.
+#
+# Los de arriba son de unos pocos bytes y por eso no detectaron que el GATEWAY
+# tenia su propio limite de 2 MB: las subidas se rechazaban ahi, antes de llegar
+# al servicio, y el usuario solo veia que su documento no se guardaba. Este
+# archivo existe para que eso no vuelva a pasar sin que nadie se entere.
+{ printf '%%PDF-1.4
+'; head -c 3000000 /dev/urandom; } > "$TMP/grande.pdf"
 
 SUF=$(date +%s)
 # Los documentos se derivan de la marca de tiempo: la regla "un documento
@@ -143,6 +151,15 @@ DOC_A=$(echo "$SUBIDA" | campo id)
 REEMPLAZO=$(subir "$TOK_A" DOCUMENTO_ANVERSO "$TMP/anverso.jpg")
 DOC_A=$(echo "$REEMPLAZO" | campo id)
 comprobar "resubir el mismo tipo -> otro id (sustituye)" "si" "$([ -n "$DOC_A" ] && echo si || echo no)"
+
+# Tamanio real, por el gateway: es donde estaba el limite que rompia las subidas.
+#
+# Va como ANVERSO y no como FICHA_RUC a proposito: subir la ficha aqui
+# completaria los tres adjuntos antes de tiempo y la seccion siguiente, que
+# comprueba que FALTAN, dejaria de comprobar nada.
+GRANDE=$(subir "$TOK_A" DOCUMENTO_ANVERSO "$TMP/grande.pdf")
+comprobar "un PDF de 3 MB pasa por el gateway" "application/pdf" "$(echo "$GRANDE" | campo tipoMime)"
+DOC_A=$(echo "$GRANDE" | campo id)
 
 echo ""
 echo "############ FALTAN ADJUNTOS ############"
