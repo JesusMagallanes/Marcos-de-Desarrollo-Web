@@ -36,7 +36,7 @@ public class PagoController {
     @PostMapping("/preferencia")
     public PreferenciaResponse crearPreferencia(UsuarioAutenticado usuario,
             @Valid @RequestBody PreferenciaRequest peticion) {
-        return orquestador.iniciar(usuario.id(), peticion.metodoPagoId(), TokenActual.valor());
+        return orquestador.iniciar(usuario.id(), peticion, TokenActual.valor());
     }
 
     /** Fase 2: verifica el pago contra la pasarela y cierra la saga. */

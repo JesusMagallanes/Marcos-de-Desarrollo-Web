@@ -71,6 +71,28 @@ public class SagaCheckout {
     @Column(name = "pedido_id")
     private Long pedidoId;
 
+    /*
+     * Destino del pedido, capturado al iniciar el checkout. Viaja con la saga
+     * porque entre el inicio y la confirmación el comprador se va a MercadoPago:
+     * cuando vuelve (o cuando llega el webhook) ya no hay formulario del que
+     * leerlo, y el envío se creaba con un "Por confirmar" que no servía a nadie.
+     */
+    @Column(name = "direccion_envio", length = 200)
+    private String direccionEnvio;
+
+    @Column(name = "referencia_envio", length = 200)
+    private String referenciaEnvio;
+
+    @Column(name = "telefono_contacto", length = 9)
+    private String telefonoContacto;
+
+    /** Coordenadas del punto de entrega, si el comprador las compartió. */
+    @Column(precision = 9, scale = 6)
+    private BigDecimal latitud;
+
+    @Column(precision = 9, scale = 6)
+    private BigDecimal longitud;
+
     @Column(name = "payment_id", length = 100)
     private String paymentId;
 

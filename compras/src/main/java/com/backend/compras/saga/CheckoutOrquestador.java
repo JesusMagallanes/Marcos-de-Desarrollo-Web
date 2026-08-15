@@ -15,6 +15,7 @@ import com.backend.compras.envio.EnvioService;
 import com.backend.compras.pago.MercadoPagoClient;
 import com.backend.compras.pago.MercadoPagoClient.Pago;
 import com.backend.compras.pago.MercadoPagoClient.Preferencia;
+import com.backend.compras.pago.dto.PagoDtos.PreferenciaRequest;
 import com.backend.compras.pago.dto.PagoDtos.PreferenciaResponse;
 import com.backend.compras.pedido.EstadoPedido;
 import com.backend.compras.pedido.Pedido;
@@ -51,7 +52,8 @@ public class CheckoutOrquestador {
     /* ══════════════ Fase 1: iniciar el checkout ══════════════ */
 
     @Transactional
-    public PreferenciaResponse iniciar(Long usuarioId, Long metodoPagoId, String token) {
+    public PreferenciaResponse iniciar(Long usuarioId, PreferenciaRequest peticion, String token) {
+        Long metodoPagoId = peticion.metodoPagoId();
 
         // Una compra a la vez por usuario: dos sagas simultáneas reservarían
         // el stock dos veces para el mismo carrito.
@@ -79,6 +81,13 @@ public class CheckoutOrquestador {
                 .referencia(Referencia.crear(usuarioId, metodoPagoId).formatear())
                 .usuarioId(usuarioId)
                 .metodoPagoId(metodoPagoId)
+                // El destino se guarda ya: cuando vuelva el comprador (o llegue
+                // el webhook) no habrá formulario del que leerlo.
+                .direccionEnvio(peticion.direccionEnvio())
+                .referenciaEnvio(peticion.referenciaEnvio())
+                .telefonoContacto(peticion.telefonoContacto())
+                .latitud(peticion.latitud())
+                .longitud(peticion.longitud())
                 .total(total)
                 .estado(Estado.INICIADA)
                 .paso(Paso.INICIO)
@@ -196,7 +205,7 @@ public class CheckoutOrquestador {
             sagas.save(saga);
 
             // Paso 7 — envío.
-            envioService.crearParaPedido(pedido);
+            envioService.crearParaPedido(pedido, saga);
             saga.avanzarA(Paso.ENVIO_CREADO);
 
             // Paso 8 — vaciar el carrito, ya convertido en pedido.

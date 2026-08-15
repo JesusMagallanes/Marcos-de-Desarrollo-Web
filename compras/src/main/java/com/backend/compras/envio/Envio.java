@@ -1,5 +1,6 @@
 package com.backend.compras.envio;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.backend.compras.pedido.Pedido;
@@ -44,6 +45,26 @@ public class Envio {
 
     @Column(nullable = false, length = 200)
     private String direccion;
+
+    /** Piso, referencia o indicación para el repartidor. Opcional. */
+    @Column(length = 200)
+    private String referencia;
+
+    /** Para avisar de la entrega. Sale del checkout, no del perfil: quien compra
+     *  puede estar mandando el pedido a otra persona. */
+    @Column(name = "telefono_contacto", length = 9)
+    private String telefonoContacto;
+
+    /*
+     * Punto de entrega, si el comprador quiso compartirlo (Épica 3). Opcional a
+     * propósito: nadie se queda sin comprar por no dar su posición, y sin ellas
+     * el envío funciona igual, solo que sin el cálculo de distancia.
+     */
+    @Column(precision = 9, scale = 6)
+    private BigDecimal latitud;
+
+    @Column(precision = 9, scale = 6)
+    private BigDecimal longitud;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_envio", nullable = false, length = 20)
