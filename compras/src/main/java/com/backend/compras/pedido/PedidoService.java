@@ -113,4 +113,9 @@ public class PedidoService {
         }
         pedidoRepositorio.deleteById(id);
     }
+
+    /** ¿Este usuario compró este producto? Ver PedidoRepository.comproElProducto. */
+    public boolean comproElProducto(Long usuarioId, Long productoId) {
+        return pedidoRepositorio.comproElProducto(usuarioId, productoId);
+    }
 }

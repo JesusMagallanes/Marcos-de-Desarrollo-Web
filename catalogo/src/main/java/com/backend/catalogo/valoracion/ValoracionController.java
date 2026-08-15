@@ -55,7 +55,10 @@ public class ValoracionController {
     public ValoracionResponse crear(@PathVariable @Positive Long productoId,
             @Valid @RequestBody ValoracionRequest dto,
             @AuthenticationPrincipal Jwt jwt) {
-        return servicio.guardar(productoId, uidDe(jwt), dto);
+        // El token del propio usuario viaja a `compras`: la pregunta es
+        // "compre yo esto", y la responde mirando SUS pedidos.
+        return servicio.guardar(productoId, uidDe(jwt), dto,
+                jwt == null ? null : jwt.getTokenValue());
     }
 
     @DeleteMapping("/mia")

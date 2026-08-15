@@ -143,6 +143,8 @@ services:
     environment:
       <<: *entorno-bd
       RESERVA_MINUTOS: ${RESERVA_MINUTOS:-20}
+      # Para comprobar que quien valora un producto lo compro.
+      COMPRAS_URL: http://compras:8083
     depends_on:
       verificador: {condition: service_completed_successfully}
       postgres: {condition: service_healthy, required: false}

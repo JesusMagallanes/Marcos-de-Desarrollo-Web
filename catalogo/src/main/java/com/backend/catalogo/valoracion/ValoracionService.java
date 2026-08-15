@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.catalogo.producto.ProductoRepository;
 import com.backend.catalogo.shared.error.ConflictoException;
+import com.backend.catalogo.shared.compras.ComprasClient;
 import com.backend.catalogo.shared.error.RecursoNoEncontradoException;
 import com.backend.catalogo.valoracion.dto.ValoracionDtos.ValoracionAdminResponse;
 import com.backend.catalogo.valoracion.dto.ValoracionDtos.ValoracionDestacadaResponse;
@@ -26,6 +27,7 @@ public class ValoracionService {
 
     private final ValoracionRepository repositorio;
     private final ProductoRepository productoRepository;
+    private final ComprasClient compras;
 
     /** Las reseñas que ve la tienda: solo las aprobadas por un administrador. */
     public List<ValoracionResponse> listar(Long productoId) {
@@ -55,9 +57,22 @@ public class ValoracionService {
      * revisarlo otra vez.
      */
     @Transactional
-    public ValoracionResponse guardar(Long productoId, Long usuarioId, ValoracionRequest dto) {
+    public ValoracionResponse guardar(Long productoId, Long usuarioId, ValoracionRequest dto,
+            String token) {
         var producto = productoRepository.findById(productoId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto " + productoId + " no encontrado"));
+
+        // Solo valora quien compro. Sin esto, cualquiera con una cuenta podia
+        // puntuar cualquier cosa sin haberla comprado nunca, que es como se
+        // llenan de resenias falsas las tiendas.
+        //
+        // Se comprueba en el servidor y no en la interfaz porque el boton se
+        // puede saltar: la peticion sale igual desde la consola del navegador.
+        if (!compras.comproElProducto(token, productoId)) {
+            throw new ConflictoException(
+                    "Solo puedes valorar productos que hayas comprado. "
+                    + "Si lo compraste, espera a que el pedido figure como pagado.");
+        }
 
         Valoracion valoracion = repositorio.findByProductoIdAndUsuarioId(productoId, usuarioId)
                 .orElseGet(() -> Valoracion.builder()

@@ -1,6 +1,8 @@
 package com.backend.compras.pedido;
 
+import jakarta.validation.constraints.Positive;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +33,22 @@ public class PedidoController {
     @GetMapping("/mios")
     public List<PedidoResponse> mios(UsuarioAutenticado usuario) {
         return servicio.misPedidos(usuario.id());
+    }
+
+    /**
+     * ¿Compré este producto? Lo pregunta `catalogo` antes de dejar valorar.
+     *
+     * <p>El usuario sale del token, no de la URL: si se aceptara por parámetro,
+     * cualquiera podría preguntar por las compras de otro y averiguar qué compró.
+     *
+     * <p>Devuelve un booleano y no la lista de pedidos a proposito: es lo minimo
+     * que `catalogo` necesita saber, y no hay motivo para que conozca el historial
+     * de compras de nadie.
+     */
+    @GetMapping("/compre/{productoId}")
+    public Map<String, Boolean> compre(@PathVariable @Positive Long productoId,
+            UsuarioAutenticado usuario) {
+        return Map.of("comprado", servicio.comproElProducto(usuario.id(), productoId));
     }
 
     @GetMapping

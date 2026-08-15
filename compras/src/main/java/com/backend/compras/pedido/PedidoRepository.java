@@ -47,4 +47,26 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     Optional<Pedido> findByPaymentId(String paymentId);
 
     boolean existsByPaymentId(String paymentId);
+
+    /**
+     * ¿Este usuario llegó a comprar este producto?
+     *
+     * <p>Lo pregunta `catalogo` antes de dejar valorar: sin esto, cualquiera con
+     * una cuenta podía puntuar cualquier cosa sin haberla comprado nunca, que es
+     * como se llenan de reseñas falsas las tiendas.
+     *
+     * <p>Cuentan los estados en los que el dinero ya se cobró. Un PENDIENTE es
+     * una compra empezada y no pagada: quien la abandona no ha comprado nada. Un
+     * CANCELADO tampoco, y ademas se le devolvio el dinero.
+     */
+    @Query("""
+            SELECT COUNT(d) > 0 FROM Pedido p JOIN p.detalles d
+            WHERE p.usuarioId = :usuarioId
+              AND d.productoId = :productoId
+              AND p.estado IN (com.backend.compras.pedido.EstadoPedido.PAGADO,
+                               com.backend.compras.pedido.EstadoPedido.EN_TRANSITO,
+                               com.backend.compras.pedido.EstadoPedido.ENTREGADO)
+            """)
+    boolean comproElProducto(@Param("usuarioId") Long usuarioId,
+            @Param("productoId") Long productoId);
 }
