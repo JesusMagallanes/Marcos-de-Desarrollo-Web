@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.backend.usuarios.shared.seguridad.ContextoRls;
 import com.backend.usuarios.auth.JwtService;
 import com.backend.usuarios.shared.auditoria.AuditoriaService;
 import com.backend.usuarios.shared.auditoria.AuditoriaService.Evento;
@@ -53,7 +54,15 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             OAuth2User principal = token.getPrincipal();
 
             DatosOAuth datos = DatosOAuth.desde(proveedor, principal.getAttributes());
-            Usuario usuario = oauth2Service.buscarOCrear(proveedor, datos);
+            // Entrar con Google o Facebook es tan "sin identidad previa" como el
+            // login normal: hay que buscar al usuario por su correo, o crearlo,
+            // antes de que exista sesión. Con RLS y sin esta marca la consulta
+            // no vería nada y cada entrada crearía una cuenta duplicada.
+            //
+            // Va aquí y no dentro de buscarOCrear porque ese método es
+            // @Transactional: la conexión, y con ella el contexto, se fijan
+            // antes de entrar en su cuerpo.
+            Usuario usuario = ContextoRls.comoSistema(() -> oauth2Service.buscarOCrear(proveedor, datos));
 
             auditoria.registrar(Evento.LOGIN_OAUTH, usuario.getEmailAddress(),
                     "proveedor=" + proveedor);

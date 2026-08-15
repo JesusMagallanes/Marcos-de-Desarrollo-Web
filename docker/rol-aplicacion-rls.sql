@@ -67,6 +67,13 @@ GRANT EXECUTE ON FUNCTION catalogo.rls_usuario_actual(), catalogo.rls_es_sistema
 GRANT EXECUTE ON FUNCTION compras.rls_usuario_actual(), compras.rls_es_sistema(),
     compras.rls_es_staff() TO smartzone_app;
 
+-- Postgres ya concede EXECUTE a PUBLIC por defecto, así que hoy esto no cambia
+-- nada. Se pone igualmente porque el día que alguien endurezca la base con un
+-- REVOKE ... FROM PUBLIC, las políticas que faltasen aquí dejarían de poder
+-- evaluarse y el servicio devolvería cero filas sin decir por qué.
+GRANT EXECUTE ON FUNCTION usuarios.rls_usuario_actual(), usuarios.rls_es_sistema(),
+    usuarios.rls_es_staff(), usuarios.rls_es_admin() TO smartzone_app;
+
 -- Y lo que creen las migraciones futuras, para no repetir estos GRANT cada vez.
 ALTER DEFAULT PRIVILEGES IN SCHEMA catalogo
     GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO smartzone_app;

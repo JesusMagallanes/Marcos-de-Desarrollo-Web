@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.backend.usuarios.shared.seguridad.ContextoRls;
 import com.backend.usuarios.usuario.Usuario;
 import com.backend.usuarios.usuario.UsuarioRepository;
 
@@ -22,29 +23,39 @@ public class AdminSeeder {
             @Value("${admin.seed.email}") String email,
             @Value("${admin.seed.password}") String password) {
 
-        return args -> {
-            if (password == null || password.isBlank()) {
-                log.info("ADMIN_PASSWORD no definido: se omite la creación del administrador inicial.");
-                return;
-            }
+        // Corre al arrancar, sin ninguna petición ni usuario detrás. Con RLS
+        // activo y sin contexto, `existsByEmailAddress` diría siempre que no
+        // existe y el INSERT chocaría contra la restricción de correo único: el
+        // arranque fallaría en cada reinicio con un error que no explica nada.
+        return args -> ContextoRls.comoSistema(() -> sembrar(repositorio, codificador, email, password));
+    }
 
-            String correo = email.trim().toLowerCase();
-            if (repositorio.existsByEmailAddress(correo)) {
-                log.info("El administrador {} ya existe.", correo);
-                return;
-            }
+    private void sembrar(UsuarioRepository repositorio, PasswordEncoder codificador,
+            String email, String password) {
 
-            repositorio.save(Usuario.builder()
-                    .name("Admin")
-                    .lastname("Principal")
-                    .emailAddress(correo)
-                    .password(codificador.encode(password))
-                    .phoneNumber("999999999")
-                    .address("Oficina central")
-                    .rol("ADMINISTRADOR")
-                    .build());
+        if (password == null || password.isBlank()) {
+            log.info("ADMIN_PASSWORD no definido: se omite la creación del administrador inicial.");
+            return;
+        }
 
-            log.info("Administrador inicial creado: {}", correo);
-        };
+        String correo = email.trim().toLowerCase();
+        if (repositorio.existsByEmailAddress(correo)) {
+            log.info("El administrador {} ya existe.", correo);
+            return;
+        }
+
+        repositorio.save(Usuario.builder()
+                .name("Admin")
+                .lastname("Principal")
+                .emailAddress(correo)
+                .password(codificador.encode(password))
+                .phoneNumber("999999999")
+                .address("Oficina central")
+                // El rol es el NOMBRE de una fila de `rol`, no un enum: los roles
+                // pasaron a ser datos editables desde el panel.
+                .rol("ADMINISTRADOR")
+                .build());
+
+        log.info("Administrador inicial creado: {}", correo);
     }
 }

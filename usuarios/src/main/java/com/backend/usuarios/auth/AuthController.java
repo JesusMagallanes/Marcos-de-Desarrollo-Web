@@ -12,6 +12,7 @@ import com.backend.usuarios.auth.dto.AuthDtos.AuthResponse;
 import com.backend.usuarios.auth.dto.AuthDtos.LoginRequest;
 import com.backend.usuarios.auth.dto.AuthDtos.RefreshRequest;
 import com.backend.usuarios.auth.dto.AuthDtos.RegistroRequest;
+import com.backend.usuarios.shared.seguridad.ContextoRls;
 import com.backend.usuarios.shared.security.UsuarioAutenticado;
 import com.backend.usuarios.usuario.UsuarioService;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.UsuarioResponse;
@@ -33,14 +34,38 @@ public class AuthController {
         return usuarioService.obtener(autenticado.id());
     }
 
+    /*
+     * ── Por qué estos cuatro van envueltos en ContextoRls.comoSistema ──
+     *
+     * Con Row Level Security activo (V6), una consulta sin usuario en contexto
+     * no ve ninguna fila. Y autenticarse es, por definición, la operación que
+     * ocurre ANTES de que haya usuario: el login busca por correo a alguien de
+     * quien todavía no se sabe nada, y el refresco consulta la lista de tokens
+     * revocados sin JWT en contexto.
+     *
+     * Sin esta marca, el login respondería "credenciales incorrectas" a quien
+     * las escribió bien; y la comprobación de revocación no encontraría el
+     * token, con lo que uno revocado pasaría por bueno. Eso falla ABRIENDO, que
+     * es la peor manera.
+     *
+     * Va aquí, en el controlador, y no dentro del servicio, por un detalle que
+     * no se ve: los métodos de AuthService son @Transactional, así que Spring
+     * pide la conexión —y con ella se fija el contexto— ANTES de entrar en el
+     * cuerpo del método. Marcarlo dentro llegaría tarde.
+     *
+     * Nótese que `/yo` NO va envuelto: esa sí llega autenticada y debe pasar
+     * por las políticas como cualquier otra.
+     */
+
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest peticion) {
-        return servicio.login(peticion);
+        return ContextoRls.comoSistema(() -> servicio.login(peticion));
     }
 
     @PostMapping("/registrar")
     public ResponseEntity<AuthResponse> registrar(@Valid @RequestBody RegistroRequest peticion) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(servicio.registrar(peticion));
+        AuthResponse creado = ContextoRls.comoSistema(() -> servicio.registrar(peticion));
+        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     /**
@@ -49,7 +74,7 @@ public class AuthController {
      */
     @PostMapping("/refresh")
     public AuthResponse refrescar(@Valid @RequestBody RefreshRequest peticion) {
-        return servicio.refrescar(peticion.refreshToken());
+        return ContextoRls.comoSistema(() -> servicio.refrescar(peticion.refreshToken()));
     }
 
     /**
@@ -59,7 +84,7 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody(required = false) RefreshRequest peticion) {
-        servicio.logout(peticion == null ? null : peticion.refreshToken());
+        ContextoRls.comoSistema(() -> servicio.logout(peticion == null ? null : peticion.refreshToken()));
         return ResponseEntity.noContent().build();
     }
 }
