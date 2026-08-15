@@ -1,0 +1,423 @@
+<div class="container py-4 py-lg-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-9 col-xl-8">
+      @if (cargando()) {
+        <div class="text-center py-5">
+          <span class="spinner-border text-primary"></span>
+        </div>
+      } @else if (solicitud(); as s) {
+        <!-- ─── Ya solicitó: se le enseña en qué punto está ─── -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4 p-lg-5">
+            @switch (s.estado) {
+              @case ('PENDIENTE') {
+                <div class="text-center">
+                  <div class="estado-icono bg-warning-subtle text-warning-emphasis">⏳</div>
+                  <h1 class="h4 mt-3">Tu solicitud está en revisión</h1>
+                  <p class="text-body-secondary mb-0">
+                    La enviaste el {{ s.creadaEn | date: 'd MMM y' }}. Revisamos los documentos a
+                    mano, así que puede tardar unos días.
+                  </p>
+                </div>
+              }
+              @case ('APROBADA') {
+                <div class="text-center">
+                  <div class="estado-icono bg-success-subtle text-success-emphasis">✓</div>
+                  <h1 class="h4 mt-3">¡Ya puedes vender!</h1>
+                  <p class="text-body-secondary">
+                    Aprobamos tu solicitud el {{ s.resueltaEn | date: 'd MMM y' }}.
+                  </p>
+
+                  @if (yaEsColaborador()) {
+                    <a routerLink="/vender/mis-productos" class="btn btn-primary rounded-pill px-4">
+                      Publicar mi primer producto
+                    </a>
+                  } @else {
+                    <!--
+                      El rol viaja dentro del token: hasta renovarlo, el backend
+                      le sigue viendo como cliente y todo daría 403.
+                    -->
+                    <p class="small text-body-secondary">
+                      Falta un paso para activar tu cuenta de vendedor.
+                    </p>
+                    <button
+                      type="button"
+                      class="btn btn-primary rounded-pill px-4"
+                      (click)="activarMiCuenta()"
+                    >
+                      Activar mi cuenta
+                    </button>
+                  }
+                </div>
+              }
+              @case ('RECHAZADA') {
+                <div class="text-center">
+                  <div class="estado-icono bg-danger-subtle text-danger-emphasis">✕</div>
+                  <h1 class="h4 mt-3">No pudimos aprobarla</h1>
+                </div>
+                <div class="alert alert-light border mt-3">
+                  <strong class="d-block mb-1">Motivo</strong>
+                  {{ s.motivoRechazo }}
+                </div>
+                <p class="text-body-secondary small">
+                  Puedes corregir lo que te indicamos y volver a enviarla.
+                </p>
+                <button type="button" class="btn btn-primary rounded-pill px-4" (click)="volverAIntentar()">
+                  Enviar otra solicitud
+                </button>
+              }
+            }
+
+            <hr class="my-4" />
+            <h2 class="h6 text-body-secondary">Lo que enviaste</h2>
+            <dl class="row small mb-0">
+              <dt class="col-5 col-sm-4 fw-normal text-body-secondary">Negocio</dt>
+              <dd class="col-7 col-sm-8">{{ s.nombreComercial }}</dd>
+              <dt class="col-5 col-sm-4 fw-normal text-body-secondary">Titular</dt>
+              <dd class="col-7 col-sm-8">{{ s.nombreTitular }}</dd>
+              <dt class="col-5 col-sm-4 fw-normal text-body-secondary">Documento</dt>
+              <dd class="col-7 col-sm-8">{{ s.tipoDocumento }} {{ s.documento }}</dd>
+              <dt class="col-5 col-sm-4 fw-normal text-body-secondary">Dirección</dt>
+              <dd class="col-7 col-sm-8">
+                {{ s.domicilio.direccion }}, {{ s.domicilio.distrito }}
+              </dd>
+              <dt class="col-5 col-sm-4 fw-normal text-body-secondary">Archivos</dt>
+              <dd class="col-7 col-sm-8">
+                @for (a of s.adjuntos; track a.id) {
+                  <span class="badge text-bg-light border me-1">{{ a.etiqueta }}</span>
+                }
+              </dd>
+            </dl>
+          </div>
+        </div>
+      } @else {
+        <!-- ─── Formulario ─── -->
+        <header class="mb-4">
+          <h1 class="h3">Vende en SmartZone</h1>
+          <p class="text-body-secondary mb-0">
+            Necesitamos comprobar quién eres antes de que publiques. Es el mismo trámite para una
+            persona que para una empresa, solo cambian los documentos.
+          </p>
+        </header>
+
+        @if (error()) {
+          <div class="alert alert-danger">{{ error() }}</div>
+        }
+
+        <!-- 1 · Quién eres -->
+        <section class="card border-0 shadow-sm mb-3">
+          <div class="card-body p-4">
+            <h2 class="h6 mb-3">1 · Quién eres</h2>
+
+            <div class="btn-group w-100 mb-3" role="group">
+              <input
+                type="radio"
+                class="btn-check"
+                name="tipo-persona"
+                id="tp-natural"
+                [checked]="tipoPersona() === 'NATURAL'"
+                (change)="cambiarTipoPersona('NATURAL')"
+              />
+              <label class="btn btn-outline-primary" for="tp-natural">Soy una persona</label>
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="tipo-persona"
+                id="tp-juridica"
+                [checked]="tipoPersona() === 'JURIDICA'"
+                (change)="cambiarTipoPersona('JURIDICA')"
+              />
+              <label class="btn btn-outline-primary" for="tp-juridica">Soy una empresa</label>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-12 col-sm-4">
+                <label for="tipo-doc" class="form-label small fw-semibold">Documento</label>
+                <select
+                  id="tipo-doc"
+                  class="form-select"
+                  [value]="tipoDocumento()"
+                  (change)="tipoDocumento.set($any($event.target).value)"
+                >
+                  @for (d of reglas().documentos; track d) {
+                    <option [value]="d">{{ d }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-12 col-sm-8">
+                <label for="documento" class="form-label small fw-semibold">Número</label>
+                <input
+                  id="documento"
+                  class="form-control"
+                  maxlength="12"
+                  [value]="documento()"
+                  (input)="documento.set($any($event.target).value)"
+                  [placeholder]="tipoDocumento() === 'RUC' ? '20512345678' : '45678912'"
+                />
+              </div>
+
+              <div class="col-12">
+                <label for="titular" class="form-label small fw-semibold">
+                  {{ tipoPersona() === 'JURIDICA' ? 'Razón social' : 'Nombre completo' }}
+                </label>
+                <input
+                  id="titular"
+                  class="form-control"
+                  maxlength="160"
+                  [value]="nombreTitular()"
+                  (input)="nombreTitular.set($any($event.target).value)"
+                />
+                <div class="form-text">Tal como aparece en el documento.</div>
+              </div>
+
+              @if (reglas().exigeRepresentante) {
+                <div class="col-12">
+                  <label for="representante" class="form-label small fw-semibold">
+                    Representante legal
+                  </label>
+                  <input
+                    id="representante"
+                    class="form-control"
+                    maxlength="160"
+                    [value]="representanteLegal()"
+                    (input)="representanteLegal.set($any($event.target).value)"
+                  />
+                </div>
+              }
+
+              @if (reglas().exigeFechaNacimiento) {
+                <div class="col-12 col-sm-6">
+                  <label for="nacimiento" class="form-label small fw-semibold">
+                    Fecha de nacimiento
+                  </label>
+                  <input
+                    id="nacimiento"
+                    type="date"
+                    class="form-control"
+                    [value]="fechaNacimiento()"
+                    (input)="fechaNacimiento.set($any($event.target).value)"
+                  />
+                  <div class="form-text">Hay que ser mayor de 18 años.</div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- 2 · Documentos -->
+        <section class="card border-0 shadow-sm mb-3">
+          <div class="card-body p-4">
+            <h2 class="h6 mb-1">2 · Documentos</h2>
+            <p class="small text-body-secondary">
+              JPG, PNG o PDF, hasta 5 MB. Se guardan cifrados y solo los ve quien revisa tu
+              solicitud.
+            </p>
+
+            @for (tipo of reglas().adjuntos; track tipo) {
+              <div class="adjunto d-flex align-items-center gap-3 py-2">
+                <div class="flex-grow-1">
+                  <label [for]="'adj-' + tipo" class="form-label small fw-semibold mb-1">
+                    {{ etiquetas[tipo] }}
+                  </label>
+                  @if (subidos()[tipo]; as nombre) {
+                    <div class="small text-success">
+                      ✓ {{ nombre }}
+                      <span class="text-body-secondary">— elige otro para reemplazarlo</span>
+                    </div>
+                  } @else {
+                    <div class="small text-body-secondary">Sin subir</div>
+                  }
+                </div>
+
+                <div>
+                  <input
+                    [id]="'adj-' + tipo"
+                    type="file"
+                    class="form-control form-control-sm"
+                    [accept]="tiposAceptados"
+                    [disabled]="subiendo() !== null"
+                    (change)="elegirArchivo(tipo, $event)"
+                  />
+                  @if (subiendo() === tipo) {
+                    <span class="spinner-border spinner-border-sm text-primary mt-1"></span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 3 · Tu negocio -->
+        <section class="card border-0 shadow-sm mb-3">
+          <div class="card-body p-4">
+            <h2 class="h6 mb-3">3 · Tu negocio</h2>
+            <div class="row g-3">
+              <div class="col-12 col-sm-7">
+                <label for="comercial" class="form-label small fw-semibold">Nombre comercial</label>
+                <input
+                  id="comercial"
+                  class="form-control"
+                  maxlength="120"
+                  [value]="nombreComercial()"
+                  (input)="nombreComercial.set($any($event.target).value)"
+                />
+              </div>
+              <div class="col-12 col-sm-5">
+                <label for="tel" class="form-label small fw-semibold">Teléfono</label>
+                <input
+                  id="tel"
+                  type="tel"
+                  inputmode="numeric"
+                  class="form-control"
+                  maxlength="9"
+                  [value]="telefonoContacto()"
+                  (input)="telefonoContacto.set($any($event.target).value)"
+                />
+              </div>
+              <div class="col-12">
+                <label for="rubro" class="form-label small fw-semibold">Rubro</label>
+                <input
+                  id="rubro"
+                  class="form-control"
+                  maxlength="120"
+                  placeholder="Componentes y periféricos de PC"
+                  [value]="rubro()"
+                  (input)="rubro.set($any($event.target).value)"
+                />
+              </div>
+              <div class="col-12">
+                <label for="desc" class="form-label small fw-semibold">Cuéntanos qué vendes</label>
+                <textarea
+                  id="desc"
+                  class="form-control"
+                  rows="3"
+                  maxlength="1000"
+                  [value]="descripcion()"
+                  (input)="descripcion.set($any($event.target).value)"
+                ></textarea>
+                <div class="form-text">
+                  {{ descripcion().length }}/1000 — mínimo 30 caracteres.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4 · Dónde estás -->
+        <section class="card border-0 shadow-sm mb-3">
+          <div class="card-body p-4">
+            <h2 class="h6 mb-3">4 · Dónde estás</h2>
+            <div class="row g-3">
+              <div class="col-12">
+                <label for="dir" class="form-label small fw-semibold">Dirección</label>
+                <input
+                  id="dir"
+                  class="form-control"
+                  maxlength="200"
+                  [value]="direccion()"
+                  (input)="direccion.set($any($event.target).value)"
+                />
+              </div>
+              <div class="col-12">
+                <label for="ref" class="form-label small fw-semibold">
+                  Referencia <span class="fw-normal text-body-secondary">(opcional)</span>
+                </label>
+                <input
+                  id="ref"
+                  class="form-control"
+                  maxlength="200"
+                  [value]="referencia()"
+                  (input)="referencia.set($any($event.target).value)"
+                />
+              </div>
+              <div class="col-6 col-sm-3">
+                <label for="dist" class="form-label small fw-semibold">Distrito</label>
+                <input
+                  id="dist"
+                  class="form-control"
+                  maxlength="80"
+                  [value]="distrito()"
+                  (input)="distrito.set($any($event.target).value)"
+                />
+              </div>
+              <div class="col-6 col-sm-3">
+                <label for="prov" class="form-label small fw-semibold">Provincia</label>
+                <input
+                  id="prov"
+                  class="form-control"
+                  maxlength="80"
+                  [value]="provincia()"
+                  (input)="provincia.set($any($event.target).value)"
+                />
+              </div>
+              <div class="col-6 col-sm-3">
+                <label for="dep" class="form-label small fw-semibold">Departamento</label>
+                <input
+                  id="dep"
+                  class="form-control"
+                  maxlength="80"
+                  [value]="departamento()"
+                  (input)="departamento.set($any($event.target).value)"
+                />
+              </div>
+              <div class="col-6 col-sm-3">
+                <label for="cp" class="form-label small fw-semibold">Código postal</label>
+                <input
+                  id="cp"
+                  class="form-control"
+                  inputmode="numeric"
+                  maxlength="5"
+                  placeholder="15039"
+                  [value]="codigoPostal()"
+                  (input)="codigoPostal.set($any($event.target).value)"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Enviar -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="form-check mb-3">
+              <input
+                id="terminos"
+                class="form-check-input"
+                type="checkbox"
+                [checked]="aceptaTerminos()"
+                (change)="aceptaTerminos.set($any($event.target).checked)"
+              />
+              <label class="form-check-label small" for="terminos">
+                Acepto las condiciones para vender en SmartZone y confirmo que los datos y
+                documentos son míos y son verdaderos.
+              </label>
+            </div>
+
+            @if (adjuntosQueFaltan().length) {
+              <p class="small text-body-secondary mb-2">
+                Faltan por subir:
+                @for (t of adjuntosQueFaltan(); track t) {
+                  <span class="badge text-bg-light border ms-1">{{ etiquetas[t] }}</span>
+                }
+              </p>
+            }
+
+            <button
+              type="button"
+              class="btn btn-primary w-100 rounded-pill py-2"
+              [disabled]="!puedeEnviar()"
+              (click)="enviar()"
+            >
+              @if (enviando()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>Enviando…
+              } @else {
+                Enviar solicitud
+              }
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

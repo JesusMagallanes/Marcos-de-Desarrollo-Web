@@ -43,6 +43,34 @@
           <i class="fa-solid fa-credit-card me-1"></i>{{ p.metodoPago }}
         </div>
 
+        @if (entregaDe(p.id); as e) {
+          <div class="small mb-2">
+            <div><i class="fa-solid fa-location-dot me-1 text-muted"></i>{{ e.direccion }}</div>
+            @if (e.referencia) {
+              <div class="text-muted ms-3">{{ e.referencia }}</div>
+            }
+            @if (e.telefonoContacto) {
+              <div class="text-muted"><i class="fa-solid fa-phone me-1"></i>{{ e.telefonoContacto }}</div>
+            }
+
+            <!--
+              Se escribe "aprox." y no el número a secas: el cálculo es en línea
+              recta con un ajuste, no una ruta. Quien organiza el reparto tiene
+              que saber que es orientativo.
+            -->
+            @if (e.distanciaKm !== null) {
+              <div class="mt-1">
+                <span class="badge text-bg-light border">
+                  <i class="fa-solid fa-route me-1"></i>
+                  {{ e.distanciaKm }} km · aprox. {{ e.minutosEstimados }} min
+                </span>
+              </div>
+            } @else {
+              <div class="text-muted fst-italic mt-1">Sin ubicación compartida</div>
+            }
+          </div>
+        }
+
         <ul class="lista-articulos">
           @for (d of p.detalles; track d.productoId) {
             <li>{{ d.cantidad }} × {{ d.productoNombre }}</li>

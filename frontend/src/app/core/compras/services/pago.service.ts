@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RUTAS_COMPRAS } from '../compras.routes';
-import { ConfirmarPagoRequest, Pedido, PreferenciaRequest, PreferenciaResponse } from '../models';
+import { ConfirmarPagoRequest, DatosEntrega, Pedido, PreferenciaRequest, PreferenciaResponse } from '../models';
 
 /** Checkout — servicio `compras` (:8083). Fachada de la saga de compra. */
 @Injectable({ providedIn: 'root' })
@@ -10,11 +10,20 @@ export class PagoService {
   private readonly http = inject(HttpClient);
 
   /**
-   * POST /api/pagos/preferencia Solo se envía el medio de pago: el importe lo recalcula
+   * POST /api/pagos/preferencia Medio de pago y destino: el importe lo recalcula
    * el servidor releyendo el carrito, así que no se puede manipular desde el navegador.
    */
-  crearPreferencia(metodoPagoId: number): Observable<PreferenciaResponse> {
-    const cuerpo: PreferenciaRequest = { metodoPagoId };
+  crearPreferencia(metodoPagoId: number, entrega: DatosEntrega): Observable<PreferenciaResponse> {
+    const cuerpo: PreferenciaRequest = {
+      metodoPagoId,
+      direccionEnvio: entrega.direccionEnvio.trim(),
+      // Cadena vacía y `undefined` no son lo mismo para el backend: el campo es
+      // opcional, así que si no hay referencia no se manda.
+      referenciaEnvio: entrega.referenciaEnvio.trim() || undefined,
+      telefonoContacto: entrega.telefonoContacto.trim(),
+      latitud: entrega.latitud,
+      longitud: entrega.longitud,
+    };
     return this.http.post<PreferenciaResponse>(RUTAS_COMPRAS.pagos.preferencia, cuerpo);
   }
 

@@ -6,6 +6,13 @@ export const RUTAS_CATALOGO = {
     base: `${API}/productos`,
     porId: (id: number) => `${API}/productos/${id}`,
     porCategoria: (slug: string) => `${API}/productos/categoria/${slug}`,
+    // Productos de colaborador y su cola de revisión (SZ-B08).
+    mios: `${API}/productos/mios`,
+    mio: (id: number) => `${API}/productos/mios/${id}`,
+    moderacion: `${API}/productos/moderacion`,
+    aprobarProducto: (id: number) => `${API}/productos/moderacion/${id}/aprobar`,
+    rechazarProducto: (id: number) => `${API}/productos/moderacion/${id}/rechazar`,
+
     descuento: `${API}/productos/descuento`,
     descuentoLimpiar: `${API}/productos/descuento/limpiar`,
     valoraciones: (productoId: number) => `${API}/productos/${productoId}/valoraciones`,

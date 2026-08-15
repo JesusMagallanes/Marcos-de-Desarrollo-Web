@@ -10,6 +10,10 @@ export const SECCIONES_ADMIN: readonly {
   { ruta: 'categorias', icono: 'fa-layer-group', etiqueta: 'Categorías', permiso: 'CATEGORIAS_GESTIONAR' },
   { ruta: 'marcas', icono: 'fa-tag', etiqueta: 'Marcas', permiso: 'MARCAS_GESTIONAR' },
   { ruta: 'usuarios', icono: 'fa-users', etiqueta: 'Usuarios', permiso: 'USUARIOS_GESTIONAR' },
+  // Van junto a Usuarios y a Productos porque es donde el administrador las
+  // busca: una concede un rol, la otra decide qué se ve en la tienda.
+  { ruta: 'solicitudes', icono: 'fa-id-card', etiqueta: 'Solicitudes de venta', permiso: 'USUARIOS_GESTIONAR' },
+  { ruta: 'moderacion-productos', icono: 'fa-clipboard-check', etiqueta: 'Revisar productos', permiso: 'PRODUCTOS_GESTIONAR' },
   { ruta: 'roles', icono: 'fa-user-shield', etiqueta: 'Roles y permisos', permiso: 'ROLES_GESTIONAR' },
   { ruta: 'envios', icono: 'fa-truck', etiqueta: 'Envíos', permiso: 'PEDIDOS_GESTIONAR' },
   { ruta: 'valoraciones', icono: 'fa-comment', etiqueta: 'Valoraciones', permiso: 'VALORACIONES_GESTIONAR' },

@@ -18,6 +18,15 @@ export const RUTAS_USUARIOS = {
     rol: (id: number) => `${API}/usuarios/${id}/rol`,
   },
 
+  colaboradores: {
+    solicitudes: `${API}/colaboradores/solicitudes`,
+    mia: `${API}/colaboradores/solicitudes/mia`,
+    adjuntos: `${API}/colaboradores/solicitudes/adjuntos`,
+    adjunto: (id: number) => `${API}/colaboradores/solicitudes/adjuntos/${id}`,
+    aprobar: (id: number) => `${API}/colaboradores/solicitudes/${id}/aprobar`,
+    rechazar: (id: number) => `${API}/colaboradores/solicitudes/${id}/rechazar`,
+  },
+
   roles: {
     base: `${API}/roles`,
     porNombre: (nombre: string) => `${API}/roles/${encodeURIComponent(nombre)}`,

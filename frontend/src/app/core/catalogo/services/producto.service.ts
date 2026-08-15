@@ -7,9 +7,11 @@ import { Pagina } from '../../shared/models';
 import { RUTAS_CATALOGO } from '../catalogo.routes';
 import {
   AplicarDescuentoRequest,
+  EstadoModeracion,
   Producto,
   ProductoRequest,
   QuitarDescuentoRequest,
+  RechazoProducto,
 } from '../models';
 
 /** Productos — servicio `catalogo` (:8081). */
@@ -101,5 +103,53 @@ export class ProductoService {
   /** Descarta la caché. */
   invalidar(): void {
     this.cacheTodos$ = undefined;
+  }
+
+  /* ── Productos de colaborador (SZ-B08) ── */
+
+  /**
+   * GET /productos/mios — todo lo suyo, aprobado o no.
+   *
+   * A diferencia del catálogo público, esta lista SÍ trae los pendientes y los
+   * rechazados: el dueño necesita ver por qué le rechazaron algo para corregirlo.
+   */
+  mios(): Observable<Producto[]> {
+    return this.http.get<Producto[]>(RUTAS_CATALOGO.productos.mios);
+  }
+
+  /** POST /productos/mios — nace PENDIENTE: nadie publica sin revisión. */
+  crearMio(dto: ProductoRequest): Observable<Producto> {
+    return this.http.post<Producto>(RUTAS_CATALOGO.productos.mios, dto);
+  }
+
+  /**
+   * PUT /productos/mios/{id} — **vuelve a dejarlo PENDIENTE**.
+   *
+   * Conviene avisarlo en la interfaz: el colaborador espera que su cambio se vea
+   * al momento, y el producto desaparece de la tienda hasta que lo revisen.
+   */
+  actualizarMio(id: number, dto: ProductoRequest): Observable<Producto> {
+    return this.http.put<Producto>(RUTAS_CATALOGO.productos.mio(id), dto);
+  }
+
+  eliminarMio(id: number): Observable<void> {
+    return this.http.delete<void>(RUTAS_CATALOGO.productos.mio(id));
+  }
+
+  /* ── Moderación (personal) ── */
+
+  /** GET /productos/moderacion — sin estado devuelve los pendientes. */
+  colaModeracion(estado?: EstadoModeracion): Observable<Producto[]> {
+    const params = estado ? new HttpParams().set('estado', estado) : undefined;
+    return this.http.get<Producto[]>(RUTAS_CATALOGO.productos.moderacion, { params });
+  }
+
+  aprobarProducto(id: number): Observable<Producto> {
+    return this.http.post<Producto>(RUTAS_CATALOGO.productos.aprobarProducto(id), null);
+  }
+
+  /** El motivo es obligatorio: se le enseña al colaborador para que corrija. */
+  rechazarProducto(id: number, dto: RechazoProducto): Observable<Producto> {
+    return this.http.post<Producto>(RUTAS_CATALOGO.productos.rechazarProducto(id), dto);
   }
 }

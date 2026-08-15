@@ -1,0 +1,30 @@
+/* Marco del visor: alto fijo para que abrir un documento no dé un salto de
+   página, y el contenido se ajusta dentro. */
+.visor {
+  height: 22rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  overflow: hidden;
+  background: var(--bs-tertiary-bg);
+}
+
+.visor img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.visor iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.visor-vacio {
+  border-style: dashed;
+}
+
+/* Sin esto, un nombre largo estira la tarjeta y rompe el truncado. */
+.min-w-0 {
+  min-width: 0;
+}

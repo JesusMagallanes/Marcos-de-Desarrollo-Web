@@ -28,6 +28,10 @@ function producto(id: number, nombre = 'Monitor'): Producto {
     categoriaName: 'Monitores',
     marcaId: 1,
     marcaName: 'LG',
+    // Un producto de la tienda: sin dueño y ya publicado.
+    propietarioId: null,
+    estadoModeracion: 'APROBADO',
+    motivoRechazo: null,
   };
 }
 

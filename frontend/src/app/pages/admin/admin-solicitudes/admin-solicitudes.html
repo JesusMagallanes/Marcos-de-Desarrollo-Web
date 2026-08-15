@@ -1,0 +1,238 @@
+<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+  <h1 class="h5 mb-0 me-auto">Solicitudes para vender</h1>
+
+  <div class="btn-group btn-group-sm" role="group">
+    @for (f of [['PENDIENTE', 'Pendientes'], ['APROBADA', 'Aprobadas'], ['RECHAZADA', 'Rechazadas'], ['', 'Todas']]; track f[0]) {
+      <button
+        type="button"
+        class="btn"
+        [class.btn-primary]="filtro() === f[0]"
+        [class.btn-outline-secondary]="filtro() !== f[0]"
+        (click)="cambiarFiltro($any(f[0]))"
+      >
+        {{ f[1] }}
+      </button>
+    }
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert alert-danger">{{ error() }}</div>
+}
+
+@if (cargando()) {
+  <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+} @else if (!solicitudes().length) {
+  <p class="text-body-secondary py-4 text-center mb-0">No hay solicitudes con ese filtro.</p>
+} @else {
+  <div class="row g-3">
+    <!-- Lista -->
+    <div class="col-12" [class.col-lg-5]="abierta()">
+      <div class="list-group shadow-sm">
+        @for (s of solicitudes(); track s.id) {
+          <button
+            type="button"
+            class="list-group-item list-group-item-action"
+            [class.active]="abierta()?.id === s.id"
+            (click)="abrir(s)"
+          >
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div class="min-w-0">
+                <div class="fw-semibold text-truncate">{{ s.nombreComercial }}</div>
+                <div class="small text-truncate opacity-75">
+                  {{ s.solicitante.nombreCompleto }} · {{ s.tipoDocumento }} {{ s.documento }}
+                </div>
+              </div>
+              <span
+                class="badge flex-shrink-0"
+                [class.text-bg-warning]="s.estado === 'PENDIENTE'"
+                [class.text-bg-success]="s.estado === 'APROBADA'"
+                [class.text-bg-danger]="s.estado === 'RECHAZADA'"
+              >
+                {{ s.estado }}
+              </span>
+            </div>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Panel de revisión -->
+    @if (abierta(); as s) {
+      <div class="col-12 col-lg-7">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h2 class="h6 mb-0">{{ s.nombreComercial }}</h2>
+                <span class="small text-body-secondary">
+                  Enviada el {{ s.creadaEn | date: 'd MMM y, HH:mm' }}
+                </span>
+              </div>
+              <button type="button" class="btn-close" (click)="cerrar()"></button>
+            </div>
+
+            <!--
+              Los datos y los documentos, juntos. Revisar es comparar el nombre
+              escrito con el que se lee en la foto: separarlos en dos pantallas
+              haría que nadie los comparase.
+            -->
+            <div class="row g-3">
+              <div class="col-12 col-xl-6">
+                <dl class="row small mb-0">
+                  <dt class="col-5 fw-normal text-body-secondary">Titular</dt>
+                  <dd class="col-7 fw-semibold">{{ s.nombreTitular }}</dd>
+
+                  <dt class="col-5 fw-normal text-body-secondary">Tipo</dt>
+                  <dd class="col-7">
+                    {{ s.tipoPersona === 'JURIDICA' ? 'Empresa' : 'Persona' }}
+                  </dd>
+
+                  <dt class="col-5 fw-normal text-body-secondary">Documento</dt>
+                  <dd class="col-7 fw-semibold">{{ s.tipoDocumento }} {{ s.documento }}</dd>
+
+                  @if (s.representanteLegal) {
+                    <dt class="col-5 fw-normal text-body-secondary">Representante</dt>
+                    <dd class="col-7">{{ s.representanteLegal }}</dd>
+                  }
+                  @if (s.fechaNacimiento) {
+                    <dt class="col-5 fw-normal text-body-secondary">Nacimiento</dt>
+                    <dd class="col-7">{{ s.fechaNacimiento | date: 'd MMM y' }}</dd>
+                  }
+
+                  <dt class="col-5 fw-normal text-body-secondary">Cuenta</dt>
+                  <dd class="col-7">{{ s.solicitante.email }}</dd>
+
+                  <dt class="col-5 fw-normal text-body-secondary">Teléfono</dt>
+                  <dd class="col-7">{{ s.telefonoContacto }}</dd>
+
+                  <dt class="col-5 fw-normal text-body-secondary">Dirección</dt>
+                  <dd class="col-7">
+                    {{ s.domicilio.direccion }}<br />
+                    <span class="text-body-secondary">
+                      {{ s.domicilio.distrito }}, {{ s.domicilio.provincia }},
+                      {{ s.domicilio.departamento }} {{ s.domicilio.codigoPostal }}
+                    </span>
+                  </dd>
+
+                  <dt class="col-5 fw-normal text-body-secondary">Rubro</dt>
+                  <dd class="col-7">{{ s.rubro }}</dd>
+                </dl>
+
+                <p class="small mt-3 mb-0">{{ s.descripcion }}</p>
+              </div>
+
+              <div class="col-12 col-xl-6">
+                <h3 class="small fw-semibold text-body-secondary mb-2">Documentos</h3>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                  @for (a of s.adjuntos; track a.id) {
+                    <button
+                      type="button"
+                      class="btn btn-sm"
+                      [class.btn-outline-primary]="a.disponible"
+                      [class.btn-outline-secondary]="!a.disponible"
+                      [disabled]="!a.disponible"
+                      [title]="a.disponible ? a.nombreOriginal : 'Se eliminó por política de retención'"
+                      (click)="verAdjunto(a)"
+                    >
+                      {{ a.etiqueta }}
+                      <span class="opacity-75">· {{ tamano(a.tamanoBytes) }}</span>
+                    </button>
+                  }
+                </div>
+
+                @if (cargandoAdjunto()) {
+                  <div class="visor d-flex align-items-center justify-content-center">
+                    <span class="spinner-border text-primary"></span>
+                  </div>
+                } @else if (adjuntoAbierto(); as a) {
+                  <div class="visor">
+                    @if (esPdf(a)) {
+                      <iframe [src]="urlAdjunto()" [title]="a.etiqueta"></iframe>
+                    } @else {
+                      <img [src]="urlAdjunto()" [alt]="a.etiqueta" />
+                    }
+                  </div>
+                  <button type="button" class="btn btn-sm btn-link px-0" (click)="soltarAdjunto()">
+                    Cerrar documento
+                  </button>
+                } @else {
+                  <div class="visor visor-vacio d-flex align-items-center justify-content-center">
+                    <span class="small text-body-secondary">Elige un documento para verlo</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            @if (s.estado === 'PENDIENTE') {
+              <hr class="my-4" />
+
+              @if (pidiendoMotivo()) {
+                <label for="motivo" class="form-label small fw-semibold">
+                  ¿Por qué se rechaza?
+                </label>
+                <textarea
+                  id="motivo"
+                  class="form-control mb-2"
+                  rows="2"
+                  maxlength="500"
+                  placeholder="La foto del reverso está movida y no se lee el código."
+                  [value]="motivoRechazo()"
+                  (input)="motivoRechazo.set($any($event.target).value)"
+                ></textarea>
+                <div class="form-text mb-2">Se le enseña tal cual al solicitante.</div>
+
+                <div class="d-flex gap-2">
+                  <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    [disabled]="resolviendo()"
+                    (click)="rechazar()"
+                  >
+                    Confirmar rechazo
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    (click)="pidiendoMotivo.set(false)"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              } @else {
+                <div class="d-flex gap-2">
+                  <button
+                    type="button"
+                    class="btn btn-success"
+                    [disabled]="resolviendo()"
+                    (click)="aprobar()"
+                  >
+                    @if (resolviendo()) {
+                      <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    Aprobar
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger"
+                    [disabled]="resolviendo()"
+                    (click)="pidiendoMotivo.set(true)"
+                  >
+                    Rechazar
+                  </button>
+                </div>
+              }
+            } @else if (s.estado === 'RECHAZADA' && s.motivoRechazo) {
+              <hr class="my-4" />
+              <div class="alert alert-light border small mb-0">
+                <strong class="d-block">Motivo del rechazo</strong>
+                {{ s.motivoRechazo }}
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}

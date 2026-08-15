@@ -1,4 +1,12 @@
 /** Servicio `catalogo` (:8081). */
+/** Si un producto se puede enseñar en la tienda. */
+export type EstadoModeracion = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
+
+/** Motivo del rechazo de un producto. Se le enseña al colaborador. */
+export interface RechazoProducto {
+  motivo: string;
+}
+
 export interface Producto {
   id: number;
   name: string;
@@ -32,6 +40,12 @@ export interface Producto {
   categoriaName: string;
   marcaId: number | null;
   marcaName: string | null;
+  /* ── Dueño y moderación (SZ-B08) ── */
+  /** `null` = producto de la tienda. */
+  propietarioId: number | null;
+  estadoModeracion: EstadoModeracion;
+  /** Sólo con texto si está RECHAZADO. */
+  motivoRechazo: string | null;
 }
 
 export interface ProductoRequest {

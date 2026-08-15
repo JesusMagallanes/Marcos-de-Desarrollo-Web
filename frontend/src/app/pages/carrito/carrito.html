@@ -121,6 +121,79 @@
           <span class="text-primary">{{ total() | currency: 'PEN' : 'S/ ' }}</span>
         </div>
 
+        <!--
+          Datos de entrega. Van ANTES del botón de pagar a propósito: después el
+          comprador se va a MercadoPago, y si la dirección se pidiera al volver,
+          quien cierre la pestaña dejaría un pedido pagado y sin destino.
+        -->
+        <label for="direccion-envio" class="form-label small fw-semibold mt-3 mb-1">
+          Dirección de entrega
+        </label>
+        <input
+          id="direccion-envio"
+          type="text"
+          class="form-control form-control-sm"
+          maxlength="200"
+          autocomplete="shipping street-address"
+          placeholder="Av. Los Próceres 1420, Surco"
+          [value]="direccionEnvio()"
+          (input)="direccionEnvio.set($any($event.target).value)"
+        />
+
+        <label for="referencia-envio" class="form-label small fw-semibold mt-2 mb-1">
+          Referencia <span class="text-body-secondary fw-normal">(opcional)</span>
+        </label>
+        <input
+          id="referencia-envio"
+          type="text"
+          class="form-control form-control-sm"
+          maxlength="200"
+          placeholder="Portón verde, frente al parque"
+          [value]="referenciaEnvio()"
+          (input)="referenciaEnvio.set($any($event.target).value)"
+        />
+
+        <label for="telefono-contacto" class="form-label small fw-semibold mt-2 mb-1">
+          Teléfono de contacto
+        </label>
+        <input
+          id="telefono-contacto"
+          type="tel"
+          inputmode="numeric"
+          class="form-control form-control-sm"
+          maxlength="9"
+          autocomplete="tel-national"
+          placeholder="987654321"
+          [value]="telefonoContacto()"
+          (input)="telefonoContacto.set($any($event.target).value)"
+        />
+
+        <!-- Épica 3: opcional, y con un botón porque un permiso que salta solo
+             se deniega casi siempre y luego no se vuelve a preguntar. -->
+        <div class="mt-2">
+          @if (tieneUbicacion()) {
+            <span class="badge text-bg-success-subtle text-success-emphasis border">
+              ✓ Ubicación añadida
+            </span>
+          } @else {
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary w-100"
+              [disabled]="ubicandose()"
+              (click)="usarMiUbicacion()"
+            >
+              @if (ubicandose()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>Buscando…
+              } @else {
+                Usar mi ubicación (opcional)
+              }
+            </button>
+          }
+          @if (avisoUbicacion()) {
+            <div class="form-text">{{ avisoUbicacion() }}</div>
+          }
+        </div>
+
         @if (metodosPago().length) {
           <label class="form-label small fw-semibold mt-3 mb-1">Método de pago</label>
           <select
@@ -137,7 +210,7 @@
         <button
           type="button"
           class="btn btn-success w-100 rounded-pill mt-2"
-          [disabled]="procesando() || !metodoElegido()"
+          [disabled]="procesando() || !metodoElegido() || entregaIncompleta()"
           (click)="pagar()"
         >
           @if (procesando()) {

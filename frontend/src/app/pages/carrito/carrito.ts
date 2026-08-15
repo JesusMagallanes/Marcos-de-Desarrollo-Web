@@ -1,7 +1,8 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import {
+  AuthService,
   CarritoService,
   ErrorApi,
   MetodoPago,
@@ -22,6 +23,7 @@ export class Carrito implements OnInit {
   protected carrito = inject(CarritoService);
   private metodoPagoService = inject(MetodoPagoService);
   private pagoService = inject(PagoService);
+  private auth = inject(AuthService);
   private router = inject(Router);
   private ruta = inject(ActivatedRoute);
 
@@ -30,6 +32,44 @@ export class Carrito implements OnInit {
   protected error = signal('');
   protected metodosPago = signal<MetodoPago[]>([]);
   protected metodoElegido = signal<number | null>(null);
+
+  /*
+   * Datos de entrega. Se piden aquí, antes de ir a MercadoPago: si se pidieran
+   * al volver, el comprador que cierra la pestaña dejaría un pedido pagado y sin
+   * destino.
+   */
+  protected direccionEnvio = signal('');
+  protected referenciaEnvio = signal('');
+  protected telefonoContacto = signal('');
+
+  /*
+   * Ubicación del punto de entrega (Épica 3). Sirve para que quien reparte vea
+   * a qué distancia queda desde la tienda.
+   *
+   * Es OPCIONAL y se pide con un botón, no al cargar la página: un permiso de
+   * ubicación que salta solo, sin que el usuario haya pedido nada, se deniega
+   * casi siempre — y una vez denegado el navegador no vuelve a preguntar.
+   */
+  protected latitud = signal<number | undefined>(undefined);
+  protected longitud = signal<number | undefined>(undefined);
+  protected ubicandose = signal(false);
+  protected avisoUbicacion = signal('');
+
+  /*
+   * Se prerrellena con lo del perfil: la mayoría manda el pedido a su propia
+   * casa y reescribirlo cada vez sobra. Sigue siendo editable, porque a veces se
+   * envía a otra persona.
+   *
+   * Es un `effect` y no una lectura en ngOnInit porque el usuario puede llegar
+   * después (la sesión se restaura de forma asíncrona al cargar la app). Solo
+   * escribe si el campo sigue vacío, para no pisar lo que ya esté tecleando.
+   */
+  private prerrelleno = effect(() => {
+    const u = this.auth.usuario();
+    if (!u) return;
+    if (!this.direccionEnvio()) this.direccionEnvio.set(u.address ?? '');
+    if (!this.telefonoContacto()) this.telefonoContacto.set(u.phoneNumber ?? '');
+  });
 
   protected costoEnvio = computed(() =>
     this.carrito.subtotal() >= UMBRAL_ENVIO_GRATIS || this.carrito.subtotal() === 0 ? 0 : COSTO_ENVIO,
@@ -89,29 +129,56 @@ export class Carrito implements OnInit {
     });
   }
 
+  /**
+   * Comprobación en el navegador, no la única: el backend valida lo mismo. Está
+   * aquí para no mandar al usuario a MercadoPago y traerlo de vuelta con un 400.
+   */
+  protected entregaIncompleta(): boolean {
+    return (
+      this.direccionEnvio().trim().length < 5 ||
+      !/^[0-9]{9}$/.test(this.telefonoContacto().trim())
+    );
+  }
+
   protected pagar(): void {
     const metodo = this.metodoElegido();
     if (!metodo || this.vacio()) return;
 
+    if (this.entregaIncompleta()) {
+      this.error.set('Completa la dirección de entrega y un teléfono de 9 dígitos.');
+      return;
+    }
+
     this.procesando.set(true);
     this.error.set('');
 
-    // El importe lo calcula el backend desde el carrito; aquí solo se elige el medio.
-    this.pagoService.crearPreferencia(metodo).subscribe({
-      next: (pref) => {
-        const url = pref.init_point || pref.sandbox_init_point;
-        if (url) {
-          window.location.href = url;
-        } else {
+    // El importe lo calcula el backend desde el carrito; aquí van el medio y el
+    // destino. El destino se manda AHORA porque después el comprador se va a
+    // MercadoPago y puede no volver: antes esto no se pedía y el pedido acababa
+    // con la dirección literal "Por confirmar".
+    this.pagoService
+      .crearPreferencia(metodo, {
+        direccionEnvio: this.direccionEnvio(),
+        referenciaEnvio: this.referenciaEnvio(),
+        telefonoContacto: this.telefonoContacto(),
+        latitud: this.latitud(),
+        longitud: this.longitud(),
+      })
+      .subscribe({
+        next: (pref) => {
+          const url = pref.init_point || pref.sandbox_init_point;
+          if (url) {
+            window.location.href = url;
+          } else {
+            this.procesando.set(false);
+            this.error.set('El proveedor de pago no devolvió una URL de checkout.');
+          }
+        },
+        error: (e: ErrorApi) => {
           this.procesando.set(false);
-          this.error.set('El proveedor de pago no devolvió una URL de checkout.');
-        }
-      },
-      error: (e: ErrorApi) => {
-        this.procesando.set(false);
-        this.error.set(e.mensaje);
-      },
-    });
+          this.error.set(e.mensaje);
+        },
+      });
   }
 
   private confirmar(paymentId: string): void {
@@ -127,5 +194,43 @@ export class Carrito implements OnInit {
         this.error.set(e.mensaje);
       },
     });
+  }
+
+  /**
+   * Pide la ubicación al navegador.
+   *
+   * <p>Nunca bloquea la compra: si el usuario la deniega o el dispositivo no
+   * puede, se avisa y se sigue igual. Lo único que se pierde es el cálculo de
+   * distancia para quien reparte.
+   */
+  protected usarMiUbicacion(): void {
+    if (!navigator.geolocation) {
+      this.avisoUbicacion.set('Tu navegador no puede compartir la ubicación.');
+      return;
+    }
+
+    this.ubicandose.set(true);
+    this.avisoUbicacion.set('');
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        // Seis decimales son ~11 cm: más precisión no aporta nada y solo
+        // guarda datos de más sobre dónde vive alguien.
+        this.latitud.set(Number(pos.coords.latitude.toFixed(6)));
+        this.longitud.set(Number(pos.coords.longitude.toFixed(6)));
+        this.ubicandose.set(false);
+        this.avisoUbicacion.set('Ubicación añadida. Ayudará a que el reparto llegue antes.');
+      },
+      () => {
+        this.ubicandose.set(false);
+        // Ni error rojo ni insistir: es opcional de verdad.
+        this.avisoUbicacion.set('Sin ubicación. Puedes comprar igual.');
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 },
+    );
+  }
+
+  protected tieneUbicacion(): boolean {
+    return this.latitud() !== undefined && this.longitud() !== undefined;
   }
 }

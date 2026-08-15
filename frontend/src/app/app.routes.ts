@@ -77,6 +77,25 @@ export const routes: Routes = [
   /* La ruta antigua /envios redirige a la sección del panel admin. */
   { path: 'envios', redirectTo: 'admin/envios' },
 
+  /*
+   * Vender en la tienda. La solicitud solo pide sesión: cualquier cliente puede
+   * pedirlo. Publicar productos exige ya el permiso, que llega con el rol
+   * COLABORADOR tras la aprobación.
+   */
+  {
+    path: 'vender',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/vender/vender').then((m) => m.Vender),
+    title: 'Vender en SmartZone',
+  },
+  {
+    path: 'vender/mis-productos',
+    canActivate: [permisoGuard('PRODUCTOS_PROPIOS')],
+    loadComponent: () =>
+      import('./pages/vender/mis-productos/mis-productos').then((m) => m.MisProductos),
+    title: 'Mis productos',
+  },
+
   {
     path: 'admin',
     canActivate: [adminGuard],

@@ -9,6 +9,20 @@ export interface Envio {
   estadoEnvio: EstadoEnvio;
   fechaEnvioProgramado: string | null;
   fechaEnvioEntregado: string | null;
+  referencia: string | null;
+  telefonoContacto: string | null;
+
+  /*
+   * Épica 3: a qué distancia está el destino y cuánto se tarda. `null` si el
+   * comprador no compartió su ubicación.
+   *
+   * `distanciaEsEstimada` viene siempre en true cuando hay cálculo, y hay que
+   * enseñarlo: NO es una ruta real, es línea recta con un ajuste. Un "37 min"
+   * a secas se leería como un dato exacto.
+   */
+  distanciaKm: number | null;
+  minutosEstimados: number | null;
+  distanciaEsEstimada: boolean | null;
 }
 
 export interface CambioEstadoEnvio {

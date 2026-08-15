@@ -1,0 +1,168 @@
+<div class="container py-4">
+  <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+    <div class="me-auto">
+      <h1 class="h5 mb-0">Mis productos</h1>
+      <p class="small text-body-secondary mb-0">
+        Todo lo que publiques pasa por revisión antes de verse en la tienda.
+      </p>
+    </div>
+    <a routerLink="/vender" class="btn btn-sm btn-outline-secondary">Mi solicitud</a>
+    <button type="button" class="btn btn-sm btn-primary" (click)="nuevo()">Publicar producto</button>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+
+  @if (pendientes()) {
+    <div class="alert alert-warning py-2 small">
+      Tienes {{ pendientes() }} producto(s) esperando revisión. No se ven en la tienda todavía.
+    </div>
+  }
+  @if (rechazados()) {
+    <div class="alert alert-danger py-2 small">
+      {{ rechazados() }} producto(s) fueron rechazados. Abre cada uno para ver el motivo.
+    </div>
+  }
+
+  <!-- Formulario -->
+  @if (editando() !== null) {
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body p-4">
+        <h2 class="h6 mb-3">
+          {{ editando() === 0 ? 'Nuevo producto' : 'Editar producto' }}
+        </h2>
+
+        @if (editando() !== 0) {
+          <!-- Se avisa ANTES de guardar: si no, el colaborador ve desaparecer
+               su producto de la tienda sin entender por qué. -->
+          <div class="alert alert-warning py-2 small">
+            Al guardar, este producto vuelve a revisión y deja de verse en la tienda hasta que lo
+            aprueben.
+          </div>
+        }
+
+        <div class="row g-3">
+          <div class="col-12 col-md-8">
+            <label for="p-nombre" class="form-label small fw-semibold">Nombre</label>
+            <input id="p-nombre" class="form-control" maxlength="150"
+              [value]="nombre()" (input)="nombre.set($any($event.target).value)" />
+          </div>
+          <div class="col-6 col-md-2">
+            <label for="p-precio" class="form-label small fw-semibold">Precio S/</label>
+            <input id="p-precio" type="number" min="0" step="0.01" class="form-control"
+              [value]="precio()" (input)="precio.set($any($event.target).value)" />
+          </div>
+          <div class="col-6 col-md-2">
+            <label for="p-stock" class="form-label small fw-semibold">Stock</label>
+            <input id="p-stock" type="number" min="0" class="form-control"
+              [value]="stock()" (input)="stock.set($any($event.target).value)" />
+          </div>
+
+          <div class="col-12">
+            <label for="p-desc" class="form-label small fw-semibold">Descripción</label>
+            <textarea id="p-desc" class="form-control" rows="2" maxlength="500"
+              [value]="descripcion()" (input)="descripcion.set($any($event.target).value)"></textarea>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="p-cat" class="form-label small fw-semibold">Categoría</label>
+            <select id="p-cat" class="form-select"
+              [value]="categoriaId() ?? ''"
+              (change)="categoriaId.set(+$any($event.target).value)">
+              @for (c of catalogoCategorias(); track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="p-marca" class="form-label small fw-semibold">
+              Marca <span class="fw-normal text-body-secondary">(opcional)</span>
+            </label>
+            <select id="p-marca" class="form-select"
+              [value]="marcaId() ?? ''"
+              (change)="marcaId.set($any($event.target).value ? +$any($event.target).value : null)">
+              <option value="">Sin marca</option>
+              @for (m of catalogoMarcas(); track m.id) {
+                <option [value]="m.id">{{ m.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="col-12">
+            <label for="p-img" class="form-label small fw-semibold">Imágenes</label>
+            <textarea id="p-img" class="form-control" rows="3"
+              placeholder="Una URL por línea"
+              [value]="imagenes()" (input)="imagenes.set($any($event.target).value)"></textarea>
+            <div class="form-text">La primera es la principal.</div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+          <button type="button" class="btn btn-primary" [disabled]="!puedeGuardar()" (click)="guardar()">
+            @if (guardando()) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            Enviar a revisión
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelar()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Lista -->
+  @if (cargando()) {
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+  } @else if (!lista().length) {
+    <div class="text-center py-5">
+      <p class="text-body-secondary">Todavía no has publicado nada.</p>
+      <button type="button" class="btn btn-primary rounded-pill px-4" (click)="nuevo()">
+        Publicar mi primer producto
+      </button>
+    </div>
+  } @else {
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th class="text-end">Precio</th>
+            <th class="text-end">Stock</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of lista(); track p.id) {
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ p.name }}</div>
+                @if (p.estadoModeracion === 'RECHAZADO' && p.motivoRechazo) {
+                  <div class="small text-danger">{{ p.motivoRechazo }}</div>
+                }
+              </td>
+              <td class="text-end">{{ p.precio | currency: 'PEN' : 'S/ ' }}</td>
+              <td class="text-end">{{ p.stock }}</td>
+              <td>
+                <span class="badge"
+                  [class.text-bg-warning]="p.estadoModeracion === 'PENDIENTE'"
+                  [class.text-bg-success]="p.estadoModeracion === 'APROBADO'"
+                  [class.text-bg-danger]="p.estadoModeracion === 'RECHAZADO'">
+                  {{ p.estadoModeracion === 'APROBADO' ? 'En la tienda' :
+                     p.estadoModeracion === 'PENDIENTE' ? 'En revisión' : 'Rechazado' }}
+                </span>
+              </td>
+              <td class="text-end text-nowrap">
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editar(p)">
+                  Editar
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-1" (click)="eliminar(p)">
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

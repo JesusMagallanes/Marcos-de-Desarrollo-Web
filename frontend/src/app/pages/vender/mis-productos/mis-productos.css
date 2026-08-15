@@ -1,0 +1,5 @@
+/* La tabla ya viene de Bootstrap; solo se evita que el motivo de rechazo
+   ensanche la columna en pantallas pequeñas. */
+td .small {
+  max-width: 28rem;
+}

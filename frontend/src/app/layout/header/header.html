@@ -131,6 +131,15 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
               <li><a class="dropdown-item" routerLink="/perfil">Mi cuenta</a></li>
+              <!--
+                Quien ya vende va a sus productos; quien no, al formulario. Es el
+                mismo sitio del menú porque para el usuario es "lo de vender".
+              -->
+              @if (auth.tienePermiso('PRODUCTOS_PROPIOS')) {
+                <li><a class="dropdown-item" routerLink="/vender/mis-productos">Mis productos</a></li>
+              } @else {
+                <li><a class="dropdown-item" routerLink="/vender">Vender en SmartZone</a></li>
+              }
               @if (auth.esAdminPanel()) {
                 <li><a class="dropdown-item" routerLink="/admin">Panel {{ auth.rol() }}</a></li>
               }

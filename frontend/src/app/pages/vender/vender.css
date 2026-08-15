@@ -1,0 +1,25 @@
+/* Icono grande del estado de la solicitud. */
+.estado-icono {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+/* Cada archivo, separado del siguiente sin cargar la pantalla de líneas. */
+.adjunto + .adjunto {
+  border-top: 1px solid var(--bs-border-color-translucent);
+}
+
+/* En móvil el selector de archivo no cabe al lado de la etiqueta. */
+@media (max-width: 575.98px) {
+  .adjunto {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+}

@@ -2,9 +2,31 @@
  * Checkout — servicio `compras` (:8083). Es la fachada de la saga de compra.
  */
 
-/** Solo lleva el medio de pago. */
+/**
+ * Medio de pago y destino. El importe NO viaja: lo recalcula el backend desde
+ * el carrito.
+ *
+ * La dirección se manda al iniciar el checkout y no al confirmarlo, porque
+ * después el comprador se va a MercadoPago y puede no volver: si no se pidiera
+ * aquí, el pedido quedaría pagado y sin destino.
+ */
 export interface PreferenciaRequest {
   metodoPagoId: number;
+  direccionEnvio: string;
+  referenciaEnvio?: string;
+  telefonoContacto: string;
+  /** Opcionales: solo si el comprador acepta compartir su ubicación. */
+  latitud?: number;
+  longitud?: number;
+}
+
+/** Lo que el usuario rellena en el bloque de entrega del carrito. */
+export interface DatosEntrega {
+  direccionEnvio: string;
+  referenciaEnvio: string;
+  telefonoContacto: string;
+  latitud?: number;
+  longitud?: number;
 }
 
 export interface PreferenciaResponse {
