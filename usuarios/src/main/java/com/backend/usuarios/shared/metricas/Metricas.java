@@ -43,6 +43,32 @@ public final class Metricas {
     /** Contador de eventos que delatan manipulación. */
     public static final String INTEGRIDAD = "smartzone_seguridad_integridad_total";
 
+    /* ── Documentos de identidad ── */
+
+    /**
+     * Contador. Etiqueta: evento (subido|descargado|rechazado|purgado).
+     *
+     * <p>`rechazado` es el que merece vigilancia: significa que alguien mandó un
+     * archivo que decía ser una imagen y no lo era. Uno suelto es un usuario
+     * confundido; una racha, alguien probando.
+     */
+    public static final String DOCUMENTO = "smartzone_seguridad_documento_total";
+
+    /* ── Moderación de contenido ── */
+
+    /** Contador. Etiqueta: resultado (aprobado|rechazado). */
+    public static final String MODERACION = "smartzone_catalogo_moderacion_total";
+
+    /* ── Avisos ── */
+
+    /**
+     * Contador. Etiqueta: resultado (enviado|fallido|omitido).
+     *
+     * <p>Sin esto, un servidor de correo caído es invisible: los avisos fallan en
+     * silencio a propósito para no deshacer la operación que los provocó.
+     */
+    public static final String CORREO = "smartzone_correo_total";
+
     /* ── Negocio ── */
 
     /** Contador. Etiqueta: resultado (completada|compensada|fallida). */

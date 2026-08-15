@@ -111,6 +111,26 @@ public class MetricasSeguridad {
                 Tags.of("evento", evento)).increment();
     }
 
+    /* ── Documentos de identidad ── */
+
+    /**
+     * @param evento subido | descargado | rechazado | purgado
+     */
+    public void documento(String evento) {
+        contador(Metricas.DOCUMENTO, "Operaciones sobre documentos de identidad",
+                Tags.of("evento", evento)).increment();
+    }
+
+    /* ── Avisos ── */
+
+    /**
+     * @param resultado enviado | fallido | omitido
+     */
+    public void correo(String resultado) {
+        contador(Metricas.CORREO, "Avisos por correo",
+                Tags.of("resultado", resultado)).increment();
+    }
+
     private Counter contador(String nombre, String descripcion, Tags etiquetas) {
         return Counter.builder(nombre)
                 .description(descripcion)

@@ -99,6 +99,7 @@ class MetricasSeguridadTest {
                 Metricas.AUTENTICACION, Metricas.TOKEN, Metricas.AUTORIZACION_DENEGADA,
                 Metricas.CAMBIO_ROL, Metricas.RATE_LIMIT, Metricas.ENTRADA_RECHAZADA,
                 Metricas.INTEGRIDAD, Metricas.SAGA,
+                Metricas.DOCUMENTO, Metricas.MODERACION, Metricas.CORREO,
         };
 
         for (String nombre : contadores) {
@@ -123,6 +124,10 @@ class MetricasSeguridadTest {
     void cardinalidadBaja() {
         metricas.loginFallido("credenciales");
         metricas.accesoDenegado("usuarios");
+        // Las nuevas también: los documentos y los correos son justo donde
+        // resulta tentador etiquetar con el correo del usuario.
+        metricas.documento("rechazado");
+        metricas.correo("fallido");
 
         // Si alguien colara un correo o una IP como etiqueta, cada valor
         // distinto crearía una serie temporal nueva y tumbaría al recolector.
@@ -135,5 +140,29 @@ class MetricasSeguridadTest {
                             .as("etiqueta '%s' no debe parecer una IP", etiqueta.getKey())
                             .doesNotMatch("^\\d+\\.\\d+\\.\\d+\\.\\d+$");
                 }));
+    }
+
+    @Test
+    @DisplayName("las etiquetas usan un vocabulario cerrado, no texto libre")
+    void vocabularioCerrado() {
+        // El riesgo de estas dos es distinto al de un correo: si alguien pasara
+        // el nombre del archivo o el asunto del correo como etiqueta, cada valor
+        // crearía una serie nueva. Los valores válidos son pocos y conocidos.
+        for (String evento : new String[] { "subido", "descargado", "rechazado", "purgado" }) {
+            metricas.documento(evento);
+        }
+        for (String resultado : new String[] { "enviado", "fallido", "omitido" }) {
+            metricas.correo(resultado);
+        }
+
+        long seriesDocumento = registro.getMeters().stream()
+                .filter(m -> m.getId().getName().equals(Metricas.DOCUMENTO))
+                .count();
+        long seriesCorreo = registro.getMeters().stream()
+                .filter(m -> m.getId().getName().equals(Metricas.CORREO))
+                .count();
+
+        assertThat(seriesDocumento).as("una serie por evento, ni una más").isEqualTo(4);
+        assertThat(seriesCorreo).as("una serie por resultado, ni una más").isEqualTo(3);
     }
 }

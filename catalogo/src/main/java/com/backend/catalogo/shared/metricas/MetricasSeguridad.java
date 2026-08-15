@@ -55,6 +55,18 @@ public class MetricasSeguridad {
                 Tags.of("evento", "invalido", "motivo", motivo)).increment();
     }
 
+    /* ── Moderación de contenido ── */
+
+    /**
+     * Productos de colaborador revisados.
+     *
+     * @param resultado aprobado | rechazado
+     */
+    public void moderacionProducto(String resultado) {
+        contador(Metricas.MODERACION, "Productos de colaborador revisados",
+                Tags.of("resultado", resultado)).increment();
+    }
+
     private Counter contador(String nombre, String descripcion, Tags etiquetas) {
         return Counter.builder(nombre)
                 .description(descripcion)
