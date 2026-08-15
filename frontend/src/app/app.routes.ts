@@ -142,6 +142,27 @@ export const routes: Routes = [
           import('./pages/admin/admin-usuarios/admin-usuarios').then((m) => m.AdminUsuarios),
         title: 'Admin · Usuarios',
       },
+      /*
+       * Estas dos van justo detrás de Usuarios y Productos porque es donde el
+       * administrador las busca: una concede el rol de vendedor, la otra decide
+       * qué llega a la tienda. El orden es el mismo que en `SECCIONES_ADMIN`, y
+       * conviene que siga siéndolo: el menú se pinta desde allí, así que una
+       * entrada de menú sin ruta aquí no da un error, da un 404.
+       */
+      {
+        path: 'solicitudes',
+        canActivate: [permisoGuard('USUARIOS_GESTIONAR')],
+        loadComponent: () =>
+          import('./pages/admin/admin-solicitudes/admin-solicitudes').then((m) => m.AdminSolicitudes),
+        title: 'Admin · Solicitudes de venta',
+      },
+      {
+        path: 'moderacion-productos',
+        canActivate: [permisoGuard('PRODUCTOS_GESTIONAR')],
+        loadComponent: () =>
+          import('./pages/admin/admin-moderacion/admin-moderacion').then((m) => m.AdminModeracion),
+        title: 'Admin · Revisar productos',
+      },
       {
         path: 'roles',
         canActivate: [permisoGuard('ROLES_GESTIONAR')],
