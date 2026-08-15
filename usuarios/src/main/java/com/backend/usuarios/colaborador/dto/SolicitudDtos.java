@@ -1,5 +1,6 @@
 package com.backend.usuarios.colaborador.dto;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Period;
@@ -17,6 +18,8 @@ import com.backend.usuarios.usuario.Usuario;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -49,7 +52,16 @@ public final class SolicitudDtos {
             @NotBlank @Pattern(regexp = "^\\d{5}$",
                     message = "El código postal son 5 dígitos") String codigoPostal,
             @Pattern(regexp = "^[A-Z]{2}$",
-                    message = "El país es un código de dos letras, como PE") String pais) {
+                    message = "El país es un código de dos letras, como PE") String pais,
+            /*
+             * El punto en el mapa, opcional. Los rangos se validan porque unas
+             * coordenadas imposibles no salen de un GPS: salen de un enlace mal
+             * pegado, y guardarlas dejaría un mapa apuntando al vacío.
+             */
+            @DecimalMin(value = "-90.0", message = "La latitud está fuera de rango")
+            @DecimalMax(value = "90.0", message = "La latitud está fuera de rango") BigDecimal latitud,
+            @DecimalMin(value = "-180.0", message = "La longitud está fuera de rango")
+            @DecimalMax(value = "180.0", message = "La longitud está fuera de rango") BigDecimal longitud) {
 
         public Domicilio {
             direccion = Saneador.texto(direccion);
@@ -61,6 +73,11 @@ public final class SolicitudDtos {
             // Casi todo el mundo vende desde Perú: se asume en vez de obligar a
             // rellenarlo. Sigue siendo un campo por si algún día deja de serlo.
             pais = (pais == null || pais.isBlank()) ? "PE" : Saneador.texto(pais).toUpperCase();
+            // O van las dos o no va ninguna: media coordenada no ubica nada.
+            if (latitud == null || longitud == null) {
+                latitud = null;
+                longitud = null;
+            }
         }
     }
 
@@ -212,12 +229,14 @@ public final class SolicitudDtos {
     /** Domicilio ya guardado. */
     public record DomicilioResponse(
             String direccion, String referencia, String distrito,
-            String provincia, String departamento, String codigoPostal, String pais) {
+            String provincia, String departamento, String codigoPostal, String pais,
+            BigDecimal latitud, BigDecimal longitud) {
 
         public static DomicilioResponse desde(SolicitudColaborador s) {
             return new DomicilioResponse(
                     s.getDireccion(), s.getReferencia(), s.getDistrito(),
-                    s.getProvincia(), s.getDepartamento(), s.getCodigoPostal(), s.getPais());
+                    s.getProvincia(), s.getDepartamento(), s.getCodigoPostal(), s.getPais(),
+                    s.getLatitud(), s.getLongitud());
         }
     }
 

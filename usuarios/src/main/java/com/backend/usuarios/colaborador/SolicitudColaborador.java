@@ -1,5 +1,6 @@
 package com.backend.usuarios.colaborador;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -109,6 +110,20 @@ public class SolicitudColaborador {
     /** ISO 3166-1 alfa-2. */
     @Column(nullable = false, length = 2)
     private String pais;
+
+    /*
+     * El punto en el mapa. Es opcional: hay quien vende desde su casa y no
+     * quiere marcarla, y hay quien entra desde un ordenador sin GPS.
+     *
+     * <p>Cuando sí está, es lo que le permite a quien revisa comprobar que el
+     * negocio queda donde dice la dirección escrita. Se guarda con la precisión
+     * que da un navegador y no más: DECIMAL(9,6) son ~11 cm, de sobra.
+     */
+    @Column(precision = 9, scale = 6)
+    private BigDecimal latitud;
+
+    @Column(precision = 9, scale = 6)
+    private BigDecimal longitud;
 
     /* ── Condiciones aceptadas ── */
 

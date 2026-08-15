@@ -219,6 +219,8 @@ public class SolicitudService {
                 .departamento(dto.domicilio().departamento())
                 .codigoPostal(dto.domicilio().codigoPostal())
                 .pais(dto.domicilio().pais())
+                .latitud(dto.domicilio().latitud())
+                .longitud(dto.domicilio().longitud())
                 .terminosVersion(dto.terminosVersion())
                 .terminosAceptadosEn(Instant.now())
                 .estado(EstadoSolicitud.PENDIENTE)

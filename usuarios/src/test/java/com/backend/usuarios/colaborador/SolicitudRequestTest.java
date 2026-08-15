@@ -3,6 +3,7 @@ package com.backend.usuarios.colaborador;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +24,8 @@ import com.backend.usuarios.shared.error.DatosInvalidosException;
 class SolicitudRequestTest {
 
     private static final Domicilio DOMICILIO = new Domicilio(
-            "Av. Los Próceres 1420", "Frente al parque", "Surco", "Lima", "Lima", "15039", "PE");
+            "Av. Los Próceres 1420", "Frente al parque", "Surco", "Lima", "Lima", "15039", "PE",
+            null, null);
 
     private SolicitudRequest persona(TipoDocumento tipo, String documento, LocalDate nacimiento) {
         return new SolicitudRequest(TipoPersona.NATURAL, tipo, documento, "Ana Vega Ríos",
@@ -160,9 +162,34 @@ class SolicitudRequestTest {
         @DisplayName("el país se asume Perú si no viene")
         void paisPorDefecto() {
             Domicilio sinPais = new Domicilio("Av. Siempre Viva 742", null,
-                    "Surco", "Lima", "Lima", "15039", null);
+                    "Surco", "Lima", "Lima", "15039", null, null, null);
 
             org.assertj.core.api.Assertions.assertThat(sinPais.pais()).isEqualTo("PE");
+        }
+
+        @Test
+        @DisplayName("media coordenada se descarta entera: no ubica nada")
+        void coordenadaAMedias() {
+            // Guardar solo la latitud dejaria un mapa apuntando al meridiano de
+            // Greenwich, que es peor que no tener punto: parece un dato.
+            Domicilio soloLatitud = new Domicilio("Av. Siempre Viva 742", null,
+                    "Surco", "Lima", "Lima", "15039", "PE", new BigDecimal("-12.046374"), null);
+
+            org.assertj.core.api.Assertions.assertThat(soloLatitud.latitud()).isNull();
+            org.assertj.core.api.Assertions.assertThat(soloLatitud.longitud()).isNull();
+        }
+
+        @Test
+        @DisplayName("las dos coordenadas juntas sí se guardan")
+        void coordenadasCompletas() {
+            Domicilio conPunto = new Domicilio("Av. Siempre Viva 742", null,
+                    "Surco", "Lima", "Lima", "15039", "PE",
+                    new BigDecimal("-12.046374"), new BigDecimal("-77.042793"));
+
+            org.assertj.core.api.Assertions.assertThat(conPunto.latitud())
+                    .isEqualByComparingTo("-12.046374");
+            org.assertj.core.api.Assertions.assertThat(conPunto.longitud())
+                    .isEqualByComparingTo("-77.042793");
         }
 
         @Test

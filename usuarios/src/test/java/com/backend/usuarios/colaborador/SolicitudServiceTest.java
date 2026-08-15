@@ -88,7 +88,7 @@ class SolicitudServiceTest {
                 "Ana Vega Ríos", null, LocalDate.now().minusYears(30),
                 "Taller de Ana", "987654321", "Accesorios",
                 "Vendo accesorios para computadora que armo yo misma desde hace años.",
-                new Domicilio("Jr. Unión 200", null, "Surco", "Lima", "Lima", "15039", "PE"),
+                new Domicilio("Jr. Unión 200", null, "Surco", "Lima", "Lima", "15039", "PE", null, null),
                 true, "2026-08");
     }
 
