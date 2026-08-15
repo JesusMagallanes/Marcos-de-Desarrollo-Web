@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.backend.compras.pago.MercadoPagoClient;
+import com.backend.compras.shared.seguridad.TokenServicio;
 import com.backend.compras.shared.seguridad.ContextoRls;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,8 @@ public class SagaBarrendero {
 
     private final SagaCheckoutRepository sagas;
     private final CheckoutOrquestador orquestador;
+    private final MercadoPagoClient mercadoPago;
+    private final TokenServicio tokenServicio;
 
     /** Tras este tiempo sin confirmarse, se da el pago por abandonado. */
     @Value("${compras.saga.minutos-abandono:25}")
@@ -50,12 +54,27 @@ public class SagaBarrendero {
             return;
         }
 
-        log.info("Compensando {} compras abandonadas", abandonadas.size());
+        log.info("Revisando {} compras sin confirmar", abandonadas.size());
+
+        // El servicio se identifica con su propio token. Antes se pasaba `null`
+        // y la cabecera de autorización no viajaba: catálogo respondía 401 y la
+        // compensación fallaba en silencio, apoyándose en que la reserva
+        // caducase sola.
+        String token = tokenServicio.emitir();
+
         for (SagaCheckout saga : abandonadas) {
             try {
-                // Sin token de usuario: las llamadas de compensación las hace
-                // el propio servicio con su identidad de sistema.
-                orquestador.compensar(saga, null, "pago no completado a tiempo");
+                // ANTES DE CANCELAR, PREGUNTAR SI SE PAGÓ.
+                //
+                // Sin esto, quien pagaba y cerraba la pestaña se quedaba sin
+                // pedido, con el stock devuelto a la tienda y con el cobro hecho.
+                // El `paymentId` solo llega por la URL de retorno, así que para
+                // los que no volvieron hay que buscar por la referencia.
+                if (conciliarSiSePago(saga, token)) {
+                    continue;
+                }
+
+                orquestador.compensar(saga, token, "pago no completado a tiempo");
             } catch (RuntimeException ex) {
                 log.error("Error compensando la saga {}: {}", saga.getReferencia(), ex.getMessage());
             }
@@ -81,10 +100,32 @@ public class SagaBarrendero {
         log.info("Reintentando {} compensaciones pendientes", pendientes.size());
         for (SagaCheckout saga : pendientes) {
             try {
-                orquestador.compensar(saga, null, "reintento de compensación");
+                orquestador.compensar(saga, tokenServicio.emitir(), "reintento de compensación");
             } catch (RuntimeException ex) {
                 log.error("Reintento fallido de la saga {}: {}", saga.getReferencia(), ex.getMessage());
             }
         }
+    }
+
+    /**
+     * Completa la compra si la pasarela dice que sí se pagó.
+     *
+     * @return true si se completó, y entonces NO hay que compensar
+     */
+    private boolean conciliarSiSePago(SagaCheckout saga, String token) {
+        var pago = mercadoPago.buscarPagoAprobado(saga.getReferencia());
+        if (pago.isEmpty()) {
+            return false;
+        }
+
+        log.warn("La compra {} estaba por compensar pero SÍ se pagó (pago={}). Se completa.",
+                saga.getReferencia(), pago.get().id());
+
+        // Se cierra por el mismo camino que el retorno del navegador, con el
+        // dueño de la saga: así el pedido, el stock y el envío quedan igual que
+        // si el comprador hubiera vuelto, y las comprobaciones de importe y de
+        // propiedad se aplican una sola vez y en un único sitio.
+        orquestador.confirmar(saga.getUsuarioId(), pago.get().id(), token);
+        return true;
     }
 }

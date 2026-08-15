@@ -1,6 +1,7 @@
 package com.backend.compras.pago;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +119,46 @@ public class MercadoPagoClient {
         } catch (RestClientException ex) {
             log.error("Fallo consultando el pago {}: {}", paymentId, ex.getMessage());
             throw new ServicioNoDisponibleException("No se pudo verificar el pago.");
+        }
+    }
+
+    /** Lo que devuelve la búsqueda de pagos: solo interesa la lista. */
+    public record BusquedaPagos(List<Pago> results) {
+    }
+
+    /**
+     * Busca si existe un pago aprobado para una referencia de compra.
+     *
+     * <p>Hace falta para conciliar: cuando alguien paga y cierra la pestaña sin
+     * volver, no tenemos su {@code paymentId} —ese llega por la URL de retorno—,
+     * solo la referencia que pusimos en la preferencia. Sin esta consulta, el
+     * barrendero daba la compra por abandonada y la compensaba: pedido cancelado,
+     * stock devuelto y el cobro hecho.
+     *
+     * @return el pago aprobado, o vacío si no hay ninguno
+     */
+    public Optional<Pago> buscarPagoAprobado(String referencia) {
+        exigirConfiguracion();
+        try {
+            BusquedaPagos respuesta = cliente.get()
+                    .uri(uri -> uri.path("/v1/payments/search")
+                            .queryParam("external_reference", referencia)
+                            .build())
+                    .header("Authorization", "Bearer " + accessToken)
+                    .retrieve()
+                    .body(BusquedaPagos.class);
+
+            if (respuesta == null || respuesta.results() == null) {
+                return Optional.empty();
+            }
+            return respuesta.results().stream().filter(Pago::aprobado).findFirst();
+
+        } catch (RestClientException ex) {
+            // No se propaga: si la pasarela no responde, lo prudente es NO tocar
+            // la saga y reintentar en la siguiente pasada. Compensar a ciegas es
+            // lo que se está evitando.
+            log.warn("No se pudo consultar pagos de {}: {}", referencia, ex.getMessage());
+            return Optional.empty();
         }
     }
 

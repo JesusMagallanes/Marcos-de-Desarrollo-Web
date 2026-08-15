@@ -28,7 +28,11 @@ class WebhookMercadoPagoTest {
 
     @BeforeEach
     void preparar() {
-        webhook = new WebhookMercadoPago();
+        // Estas pruebas son solo de la FIRMA: comprueban que no entre un aviso
+        // falso. Lo que ocurre después de verificarla —conciliar la compra— tiene
+        // sus propias dependencias, y aquí van en nulo a propósito para que un
+        // fallo en esa parte no se disfrace de fallo de firma.
+        webhook = new WebhookMercadoPago(null, null, null, null);
         ReflectionTestUtils.setField(webhook, "secreto", SECRETO);
     }
 
