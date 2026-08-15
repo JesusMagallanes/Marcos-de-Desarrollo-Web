@@ -1,3 +1,4 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -21,7 +22,7 @@ import {
  */
 @Component({
   selector: 'app-mis-productos',
-  imports: [RouterLink, CurrencyPipe],
+  imports: [RouterLink, CurrencyPipe, Cargando],
   templateUrl: './mis-productos.html',
   styleUrl: './mis-productos.css',
 })

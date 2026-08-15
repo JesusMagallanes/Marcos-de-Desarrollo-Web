@@ -3,7 +3,7 @@
   <p class="text-muted small mb-4">{{ resultados().length }} productos encontrados</p>
 
   @if (cargando()) {
-    <div class="text-center py-5"><div class="spinner-border text-success" role="status"></div></div>
+    <app-cargando />
   } @else if (resultados().length) {
     <div class="rejilla-productos">
       @for (p of resultados(); track p.id) {

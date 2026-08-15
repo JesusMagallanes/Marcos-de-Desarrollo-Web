@@ -1,3 +1,4 @@
+import { Cargando } from '../../shared/cargando/cargando';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
@@ -52,7 +53,7 @@ const ESTRELLAS = [1, 2, 3, 4, 5] as const;
 
 @Component({
   selector: 'app-producto-detalle',
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, Cargando],
   templateUrl: './producto-detalle.html',
   styleUrl: './producto-detalle.css',
 })

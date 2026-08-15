@@ -1,3 +1,4 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -12,7 +13,7 @@ import {
 
 @Component({
   selector: 'app-mis-compras',
-  imports: [CurrencyPipe, DatePipe, RouterLink],
+  imports: [CurrencyPipe, DatePipe, RouterLink, Cargando],
   templateUrl: './mis-compras.html',
   styleUrl: './mis-compras.css',
 })

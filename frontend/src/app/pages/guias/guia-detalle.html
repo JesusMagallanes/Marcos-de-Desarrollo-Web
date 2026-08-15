@@ -6,7 +6,7 @@
   </nav>
 
   @if (estado.cargando()) {
-    <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+    <app-cargando />
   } @else if (estado.hayError()) {
     <div class="alert alert-danger">
       {{ estado.mensajeError() }}

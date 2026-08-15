@@ -1,3 +1,4 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -19,7 +20,7 @@ import {
  */
 @Component({
   selector: 'app-admin-guias',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Cargando],
   templateUrl: './admin-guias.html',
   styleUrl: '../admin-tabla.css',
 })

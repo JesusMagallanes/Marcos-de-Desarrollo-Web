@@ -1,3 +1,4 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CurrencyPipe } from '@angular/common';
@@ -17,7 +18,7 @@ import {
 
 @Component({
   selector: 'app-admin-productos',
-  imports: [ReactiveFormsModule, CurrencyPipe],
+  imports: [ReactiveFormsModule, CurrencyPipe, Cargando],
   templateUrl: './admin-productos.html',
   styleUrl: '../admin-tabla.css',
 })

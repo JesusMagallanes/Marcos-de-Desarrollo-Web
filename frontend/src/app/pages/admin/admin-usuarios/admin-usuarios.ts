@@ -1,3 +1,4 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import {
   AuthService,
@@ -12,7 +13,7 @@ import {
 
 @Component({
   selector: 'app-admin-usuarios',
-  imports: [],
+  imports: [Cargando],
   templateUrl: './admin-usuarios.html',
   styleUrl: '../admin-tabla.css',
 })

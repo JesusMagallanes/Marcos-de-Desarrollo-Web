@@ -1,0 +1,10 @@
+<div class="cargando" [class.cargando-pantalla]="modo() === 'pantalla'" role="status" aria-live="polite">
+  <div class="icono-wrap">
+    <div class="anillo"></div>
+    <img class="icono" src="/Img/loading-screen/icon-sz.svg" alt="" aria-hidden="true" />
+  </div>
+
+  <p class="texto">
+    {{ texto() }}<span class="puntos"><i></i><i></i><i></i></span>
+  </p>
+</div>

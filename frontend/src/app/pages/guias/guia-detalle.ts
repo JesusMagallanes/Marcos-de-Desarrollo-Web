@@ -1,3 +1,4 @@
+import { Cargando } from '../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ErrorApi, EstadoPeticion, Guia, GuiaResumen, GuiaService, iconoDe } from '../../core';
@@ -11,7 +12,7 @@ import { ErrorApi, EstadoPeticion, Guia, GuiaResumen, GuiaService, iconoDe } fro
  */
 @Component({
   selector: 'app-guia-detalle',
-  imports: [RouterLink],
+  imports: [RouterLink, Cargando],
   templateUrl: './guia-detalle.html',
   styleUrl: './guia-detalle.css',
 })

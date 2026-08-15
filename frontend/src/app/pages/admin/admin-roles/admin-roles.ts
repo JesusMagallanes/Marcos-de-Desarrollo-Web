@@ -1,3 +1,4 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -15,7 +16,7 @@ const PATRON_NOMBRE_ROL = /^[A-Z0-9_]{2,50}$/;
 
 @Component({
   selector: 'app-admin-roles',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Cargando],
   templateUrl: './admin-roles.html',
   styleUrl: '../admin-tabla.css',
 })

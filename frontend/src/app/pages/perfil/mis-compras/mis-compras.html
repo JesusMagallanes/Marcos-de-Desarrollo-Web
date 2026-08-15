@@ -12,7 +12,7 @@
     }
 
     @if (cargando()) {
-      <div class="text-center py-5"><div class="spinner-border text-success" role="status"></div></div>
+      <app-cargando />
     } @else if (lista().length) {
       @for (p of lista(); track p.id) {
         <div class="tarjeta-pedido" [class.destacado]="p.id === recienCreado()">

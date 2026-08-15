@@ -1,3 +1,4 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -12,7 +13,7 @@ import {
 
 @Component({
   selector: 'app-admin-marcas',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Cargando],
   templateUrl: './admin-marcas.html',
   styleUrl: '../admin-tabla.css',
 })

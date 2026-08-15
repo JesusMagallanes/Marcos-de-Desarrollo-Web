@@ -1,3 +1,4 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import {
@@ -19,7 +20,7 @@ type Seccion = 'TODAS' | EstadoValoracion;
  */
 @Component({
   selector: 'app-admin-valoraciones',
-  imports: [DatePipe],
+  imports: [DatePipe, Cargando],
   templateUrl: './admin-valoraciones.html',
   styleUrl: '../admin-tabla.css',
 })

@@ -1,10 +1,11 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ErrorApi, EstadoPeticion, MetodoPago, MetodoPagoService } from '../../../core';
 
 @Component({
   selector: 'app-admin-metodos-pago',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Cargando],
   templateUrl: './admin-metodos-pago.html',
   styleUrl: '../admin-tabla.css',
 })

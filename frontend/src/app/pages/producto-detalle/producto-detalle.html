@@ -4,7 +4,7 @@
 
 <div class="container-fluid px-lg-5 py-4">
   @if (cargando()) {
-    <div class="text-center py-5"><div class="spinner-border text-success" role="status"></div></div>
+    <app-cargando />
   } @else if (noEncontrado()) {
     <div class="text-center py-5">
       <h4>Producto no encontrado</h4>

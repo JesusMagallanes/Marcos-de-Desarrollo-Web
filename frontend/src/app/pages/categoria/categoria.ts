@@ -1,3 +1,4 @@
+import { Cargando } from '../../shared/cargando/cargando';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -17,7 +18,7 @@ type Disponibilidad = 'todas' | 'stock' | 'agotado';
 
 @Component({
   selector: 'app-categoria',
-  imports: [RouterLink, ProductoCard],
+  imports: [RouterLink, ProductoCard, Cargando],
   templateUrl: './categoria.html',
   styleUrl: './categoria.css',
 })

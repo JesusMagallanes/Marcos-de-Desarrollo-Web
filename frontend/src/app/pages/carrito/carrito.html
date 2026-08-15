@@ -15,7 +15,7 @@
           }
 
           @if (cargando()) {
-            <div class="text-center py-5"><div class="spinner-border text-success" role="status"></div></div>
+            <app-cargando />
           } @else if (vacio()) {
             <p class="text-center">Tu carrito está vacío.</p>
           } @else {

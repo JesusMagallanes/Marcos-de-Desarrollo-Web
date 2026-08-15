@@ -1,0 +1,83 @@
+/* Mismos tiempos y colores que la pantalla de carga de index.html: es la misma
+   espera y tiene que verse igual. */
+.cargando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem 1rem;
+  min-height: 12rem;
+}
+
+.cargando-pantalla {
+  min-height: 60vh;
+}
+
+.icono-wrap {
+  position: relative;
+  width: 4.5rem;
+  height: 4.5rem;
+  display: grid;
+  place-items: center;
+}
+
+.icono {
+  width: 3rem;
+  height: 3rem;
+  animation: latido 1.4s ease-in-out infinite;
+}
+
+/* El anillo sale del icono hacia fuera y se desvanece. */
+.anillo {
+  position: absolute;
+  inset: 0;
+  border: 2px solid #06b56c;
+  border-radius: 50%;
+  animation: anillo 1.4s ease-out infinite;
+}
+
+.texto {
+  margin: 0;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.9rem;
+}
+
+.puntos {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 2px;
+}
+
+.puntos i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #06b56c;
+  align-self: flex-end;
+  animation: brincar 1.2s infinite;
+}
+
+.puntos i:nth-child(2) { animation-delay: 0.2s; }
+.puntos i:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes latido {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.07); opacity: 0.85; }
+}
+
+@keyframes anillo {
+  0% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+@keyframes brincar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Quien pide menos movimiento ve el logo quieto, no una pantalla en blanco. */
+@media (prefers-reduced-motion: reduce) {
+  .icono, .anillo, .puntos i { animation: none; }
+  .anillo { opacity: 0.35; }
+}

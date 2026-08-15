@@ -1,10 +1,11 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Categoria, CategoriaService, ErrorApi, EstadoPeticion, iconoCategoria } from '../../../core';
 
 @Component({
   selector: 'app-admin-categorias',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Cargando],
   templateUrl: './admin-categorias.html',
   styleUrl: '../admin-tabla.css',
 })

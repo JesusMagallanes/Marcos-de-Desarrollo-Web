@@ -6,9 +6,7 @@
 
 <div class="container-fluid" style="padding-inline: 9rem;">
   @if (cargando()) {
-    <div class="text-center py-5">
-      <div class="spinner-border text-success" role="status"></div>
-    </div>
+    <app-cargando />
   } @else if (noEncontrada()) {
     <div class="text-center py-5">
       <h4>Categoría no encontrada</h4>

@@ -1,3 +1,4 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import {
@@ -17,7 +18,7 @@ import {
  */
 @Component({
   selector: 'app-admin-solicitudes',
-  imports: [DatePipe],
+  imports: [DatePipe, Cargando],
   templateUrl: './admin-solicitudes.html',
   styleUrl: './admin-solicitudes.css',
 })

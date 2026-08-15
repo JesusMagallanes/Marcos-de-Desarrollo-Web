@@ -1,3 +1,4 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -47,7 +48,7 @@ function aISO(datetimeLocal: string): string {
 
 @Component({
   selector: 'app-admin-descuentos',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Cargando],
   templateUrl: './admin-descuentos.html',
   styleUrl: '../admin-tabla.css',
 })

@@ -1,3 +1,4 @@
+import { Cargando } from '../../shared/cargando/cargando';
 import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
@@ -15,7 +16,7 @@ const COSTO_ENVIO = 15;
 
 @Component({
   selector: 'app-carrito',
-  imports: [RouterLink, CurrencyPipe],
+  imports: [RouterLink, CurrencyPipe, Cargando],
   templateUrl: './carrito.html',
   styleUrl: './carrito.css',
 })

@@ -1,3 +1,4 @@
+import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import {
@@ -15,7 +16,7 @@ type Pestana = 'PENDIENTE' | 'EN_TRANSITO' | 'ENTREGADO';
 
 @Component({
   selector: 'app-admin-envios',
-  imports: [CurrencyPipe, DatePipe],
+  imports: [CurrencyPipe, DatePipe, Cargando],
   templateUrl: './admin-envios.html',
   styleUrls: ['../admin-tabla.css', './admin-envios.css'],
 })

@@ -26,7 +26,7 @@
 </ul>
 
 @if (cargando()) {
-  <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+  <app-cargando />
 } @else if (visibles().length) {
   <div class="rejilla-envios">
     @for (p of visibles(); track p.id) {

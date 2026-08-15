@@ -1,3 +1,4 @@
+import { Cargando } from '../../shared/cargando/cargando';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Producto, ProductoService } from '../../core';
@@ -5,7 +6,7 @@ import { ProductoCard } from '../../shared/producto-card/producto-card';
 
 @Component({
   selector: 'app-buscar',
-  imports: [RouterLink, ProductoCard],
+  imports: [RouterLink, ProductoCard, Cargando],
   templateUrl: './buscar.html',
   styleUrl: './buscar.css',
 })

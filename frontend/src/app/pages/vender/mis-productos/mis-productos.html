@@ -111,7 +111,7 @@
 
   <!-- Lista -->
   @if (cargando()) {
-    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+    <app-cargando />
   } @else if (!lista().length) {
     <div class="text-center py-5">
       <p class="text-body-secondary">Todavía no has publicado nada.</p>
