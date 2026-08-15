@@ -97,6 +97,55 @@
             </div>
           </dl>
         </div>
+      } @else if (paso() === 'eleccion') {
+        <!-- ─── Guía: primero, qué tipo de vendedor eres ─── -->
+        <header class="hero-vender mb-4">
+          <div class="hero-vender-contenido">
+            <span class="hero-vender-badge d-inline-flex align-items-center gap-1">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3z" /><path d="M9 11.5l2 2 4-4" /></svg>
+              Trabaja con nosotros
+            </span>
+            <h1 class="hero-vender-titulo">Vende en <span class="hero-vender-marca">SmartZone</span></h1>
+            <p class="hero-vender-subtitulo">
+              Antes de empezar, dinos cómo vas a vender. De eso depende qué documentos te vamos a
+              pedir, y así los tienes a mano antes de rellenar nada.
+            </p>
+          </div>
+        </header>
+
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <button type="button" class="tarjeta-tipo" (click)="abrirGuia('NATURAL')">
+              <span class="tipo-icono" aria-hidden="true">🧑</span>
+              <strong class="d-block mt-2 mb-1">Vendo como persona</strong>
+              <span class="small text-body-secondary d-block">
+                Vendes a tu nombre. Te pediremos tu DNI o carné de extranjería.
+              </span>
+              <span class="tipo-enlace">Ver qué necesito →</span>
+            </button>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <button type="button" class="tarjeta-tipo" (click)="abrirGuia('JURIDICA')">
+              <span class="tipo-icono" aria-hidden="true">🏢</span>
+              <strong class="d-block mt-2 mb-1">Vendo como empresa</strong>
+              <span class="small text-body-secondary d-block">
+                Tienes RUC. Te pediremos además la ficha de SUNAT.
+              </span>
+              <span class="tipo-enlace">Ver qué necesito →</span>
+            </button>
+          </div>
+        </div>
+
+        <!--
+          Omitir está a la vista y no escondido: quien ya sabe lo que hace no
+          tiene por qué leer dos tarjetas para llegar al formulario.
+        -->
+        <div class="text-center mt-4">
+          <button type="button" class="btn btn-link text-body-secondary" (click)="omitirGuia()">
+            Ya sé cómo funciona, ir directo al formulario
+          </button>
+        </div>
       } @else {
         <!-- ─── Formulario ─── -->
         <header class="hero-vender mb-4">
@@ -111,6 +160,11 @@
               comprobar quién eres antes de que empieces: es el mismo trámite para una persona
               que para una empresa.
             </p>
+            <!-- Salida de vuelta: la guía se omite una vez y queda omitida, así
+                 que sin esto no habría forma de volver a consultarla. -->
+            <button type="button" class="btn btn-sm btn-link px-0" (click)="volverALaGuia()">
+              ← Ver qué documentos necesito
+            </button>
             <ul class="list-unstyled d-flex flex-wrap row-gap-2 column-gap-3 mt-4 mb-0">
               <li class="d-inline-flex align-items-center gap-1">
                 <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" /></svg>
@@ -540,4 +594,89 @@
       }
     </div>
   </div>
+
+  <!--
+    ─── Guía de lo que hay que preparar ───
+
+    Es un modal y no otra página porque se abre para consultar y se cierra para
+    seguir: mandar al usuario a otra ruta y traerlo de vuelta le haría perder el
+    sitio. Se puede cerrar por la X, por el fondo o con Escape, y desde dentro se
+    puede empezar directamente con ese tipo ya elegido.
+  -->
+  @if (guiaAbierta(); as tipo) {
+    <div class="guia-fondo" (click)="cerrarGuia()"></div>
+
+    <div class="guia-modal" role="dialog" aria-modal="true" aria-labelledby="guia-titulo">
+      <div class="guia-cabecera">
+        <span class="tipo-icono" aria-hidden="true">{{ tipo === 'JURIDICA' ? '🏢' : '🧑' }}</span>
+        <div>
+          <h2 class="h6 mb-0" id="guia-titulo">
+            {{ tipo === 'JURIDICA' ? 'Vender como empresa' : 'Vender como persona' }}
+          </h2>
+          <p class="small text-body-secondary mb-0">Esto es todo lo que necesitas</p>
+        </div>
+        <button type="button" class="btn-close ms-auto" aria-label="Cerrar" (click)="cerrarGuia()"></button>
+      </div>
+
+      <div class="guia-cuerpo">
+        <ol class="guia-pasos">
+          <li>
+            <strong>Ten a mano tus documentos</strong>
+            <p>Foto o escaneo, en JPG, PNG o PDF, hasta 5 MB cada uno:</p>
+            <ul class="guia-docs">
+              @for (a of adjuntosDeLaGuia(tipo); track a) {
+                <li>{{ etiquetas[a] }}</li>
+              }
+            </ul>
+            <p class="small text-body-secondary mb-0">
+              Que se lea bien: si sale movido, tendremos que rechazarlo y volver a pedírtelo.
+            </p>
+          </li>
+
+          <li>
+            <strong>Rellena tus datos</strong>
+            <p>
+              @if (tipo === 'JURIDICA') {
+                Razón social, RUC, quién firma por la empresa y la dirección fiscal.
+              } @else {
+                Tu nombre tal como aparece en el documento, tu fecha de nacimiento y dónde estás.
+              }
+            </p>
+            <p class="small text-body-secondary mb-0">
+              @if (tipo === 'JURIDICA') {
+                El RUC tiene 11 dígitos y empieza por 10 o 20.
+              } @else {
+                Hay que ser mayor de 18 años para vender.
+              }
+            </p>
+          </li>
+
+          <li>
+            <strong>Espera la revisión</strong>
+            <p>
+              Comparamos tus datos con los documentos a mano. Suele tardar un par de días hábiles y
+              te avisamos por correo.
+            </p>
+            <p class="small text-body-secondary mb-0">
+              Si algo no cuadra te decimos exactamente qué corregir y puedes volver a enviarla.
+            </p>
+          </li>
+        </ol>
+
+        <div class="alert alert-light border small mb-0">
+          Después, lo que publiques pasa por una revisión antes de aparecer en la tienda. Es rápido,
+          y también se aplica cada vez que edites un producto.
+        </div>
+      </div>
+
+      <div class="guia-pie">
+        <button type="button" class="btn btn-primary rounded-pill px-4" (click)="empezar(tipo)">
+          Entendido, empezar
+        </button>
+        <button type="button" class="btn btn-link text-body-secondary" (click)="omitirGuia()">
+          Omitir la guía
+        </button>
+      </div>
+    </div>
+  }
 </div>

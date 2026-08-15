@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
@@ -19,6 +19,14 @@ import {
 const TERMINOS_VERSION = '2026-08';
 
 /**
+ * Recuerda que ya vio la guía.
+ *
+ * <p>Enseñarla de nuevo a quien vuelve --porque le faltaba una foto, porque
+ * cerró la pestaña-- es tratarle como si no supiera lo que viene a hacer.
+ */
+const CLAVE_GUIA_VISTA = 'sz_vender_guia_vista';
+
+/**
  * Solicitar ser colaborador.
  *
  * <p>Tres bloques: quién eres, dónde estás y qué vendes; más los documentos que
@@ -37,6 +45,19 @@ export class Vender implements OnInit {
 
   protected readonly tiposAceptados = TIPOS_ACEPTADOS;
   protected readonly etiquetas = ETIQUETA_ADJUNTO;
+
+  /*
+   * En qué punto está: primero se elige si vende como persona o como empresa
+   * --que es de lo que depende todo lo demás-- y luego el formulario.
+   *
+   * Se separa porque el trámite pide documentos que hay que ir a buscar. Verlo
+   * de golpe, con los cuatro bloques y las subidas, hace que se abandone; saber
+   * antes qué te van a pedir hace que lo prepares.
+   */
+  protected paso = signal<'eleccion' | 'formulario'>('eleccion');
+
+  /** Qué modal de guía está abierto; `null` = ninguno. */
+  protected guiaAbierta = signal<TipoPersona | null>(null);
 
   protected cargando = signal(true);
   protected enviando = signal(false);
@@ -106,6 +127,11 @@ export class Vender implements OnInit {
   protected yaEsColaborador = computed(() => this.auth.usuario()?.rol === 'COLABORADOR');
 
   ngOnInit(): void {
+    // Quien ya la vio va directo al formulario.
+    if (localStorage.getItem(CLAVE_GUIA_VISTA)) {
+      this.paso.set('formulario');
+    }
+
     this.colaboradores.miSolicitud().subscribe({
       next: (s) => {
         this.solicitud.set(s);
@@ -225,5 +251,63 @@ export class Vender implements OnInit {
     this.auth.refrescar().subscribe({
       error: (e: ErrorApi) => this.error.set(e.mensaje),
     });
+  }
+
+  /* ── Guía previa ── */
+
+  /**
+   * Abre la explicación del tipo elegido. No cambia todavía el formulario: el
+   * usuario está mirando qué implica, no decidiendo.
+   */
+  protected abrirGuia(tipo: TipoPersona): void {
+    this.guiaAbierta.set(tipo);
+  }
+
+  protected cerrarGuia(): void {
+    this.guiaAbierta.set(null);
+  }
+
+  /**
+   * Escape cierra el modal.
+   *
+   * <p>Es lo que espera cualquiera que use el teclado, y sin esto la unica
+   * salida seria el raton: la guia se convertiria en una trampa para quien
+   * navega con tabulador.
+   */
+  @HostListener('document:keydown.escape')
+  protected alPulsarEscape(): void {
+    if (this.guiaAbierta()) {
+      this.cerrarGuia();
+    }
+  }
+
+  /** Los documentos que le van a pedir, según lo que haya elegido. */
+  protected adjuntosDeLaGuia(tipo: TipoPersona): readonly TipoAdjunto[] {
+    return REGLAS_POR_PERSONA[tipo].adjuntos;
+  }
+
+  /** Sale de la guía con el tipo ya elegido: no se le vuelve a preguntar. */
+  protected empezar(tipo: TipoPersona): void {
+    this.cambiarTipoPersona(tipo);
+    this.guiaAbierta.set(null);
+    this.paso.set('formulario');
+    localStorage.setItem(CLAVE_GUIA_VISTA, '1');
+  }
+
+  /**
+   * Saltarse la guía.
+   *
+   * <p>Quien ya sabe lo que hace no tiene por qué leer tres tarjetas. Se guarda
+   * igual que si la hubiera visto, para no volver a interponerla.
+   */
+  protected omitirGuia(): void {
+    this.guiaAbierta.set(null);
+    this.paso.set('formulario');
+    localStorage.setItem(CLAVE_GUIA_VISTA, '1');
+  }
+
+  /** Volver a la elección desde el formulario, por si se equivocó de tipo. */
+  protected volverALaGuia(): void {
+    this.paso.set('eleccion');
   }
 }
