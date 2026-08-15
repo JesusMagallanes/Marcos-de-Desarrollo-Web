@@ -100,3 +100,99 @@
   color: #00ff95;
   text-decoration: underline;
 }
+
+/*
+ * «Vende en SmartZone»: la llamada a la acción del pie.
+ *
+ * Antes era un enlace de 13 px indistinguible de «Métodos de pago», y desde que
+ * salió del menú de usuario es la ÚNICA puerta de entrada para quien quiere
+ * vender. Un enlace más de la lista no sirve para eso: tiene que verse desde
+ * lejos, aunque el pie sea lo último de la página.
+ *
+ * El color es el verde de la marca (--bs-primary), pero puesto como acento sobre
+ * un fondo apenas teñido, no como un botón verde macizo. Un bloque saturado en
+ * mitad de un pie gris grita más de la cuenta y ademas dejaria el texto blanco
+ * sin contraste; así destaca sin romper el resto.
+ */
+.cta-vender {
+  display: block;
+  margin-top: 0.35rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 149, 0.45);
+  background: linear-gradient(135deg, rgba(0, 255, 149, 0.16), rgba(13, 199, 99, 0.06));
+  color: #fff;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.cta-vender:hover,
+.cta-vender:focus-visible {
+  border-color: #00ff95;
+  background: linear-gradient(135deg, rgba(0, 255, 149, 0.28), rgba(13, 199, 99, 0.12));
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.cta-vender:focus-visible {
+  outline: 2px solid #00ff95;
+  outline-offset: 2px;
+}
+
+/* Quien se marea con el movimiento sigue viendo el cambio de color. */
+@media (prefers-reduced-motion: reduce) {
+  .cta-vender {
+    transition: none;
+  }
+
+  .cta-vender:hover,
+  .cta-vender:focus-visible {
+    transform: none;
+  }
+}
+
+/* El antetítulo conserva las palabras que ya estaban («Trabaja con nosotros»):
+   quien las buscaba las sigue encontrando, solo que ahora ordenadas. */
+.cta-vender-eyebrow {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8C8C8C;
+}
+
+.cta-vender-titulo {
+  display: block;
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #00ff95;
+  margin-top: 0.15rem;
+}
+
+.cta-vender-pie {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* La flecha se adelanta al pasar el ratón: es el gesto que dice «esto lleva a
+   otro sitio» sin necesidad de escribirlo. */
+.cta-vender-pie span {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.cta-vender:hover .cta-vender-pie span {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-vender-pie span,
+  .cta-vender:hover .cta-vender-pie span {
+    transition: none;
+    transform: none;
+  }
+}
