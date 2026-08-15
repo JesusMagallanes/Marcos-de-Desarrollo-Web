@@ -119,6 +119,13 @@
                   <dd class="col-7">{{ s.rubro }}</dd>
                 </dl>
 
+                <!-- El mapa es parte de la revisión, no un adorno: una dirección
+                     escrita no se puede comprobar sin salir de esta pantalla, y
+                     el punto sí enseña si el sitio existe y cuadra con lo que
+                     dice el solicitante. -->
+                <h3 class="small fw-semibold text-body-secondary mt-3 mb-2">Ubicación</h3>
+                <app-ubicacion [soloLectura]="true" [coordenadas]="ubicacionDe(s)" />
+
                 <p class="small mt-3 mb-0">{{ s.descripcion }}</p>
               </div>
 

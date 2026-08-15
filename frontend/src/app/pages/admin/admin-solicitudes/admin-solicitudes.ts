@@ -1,4 +1,5 @@
 import { Cargando } from '../../../shared/cargando/cargando';
+import { Coordenadas, Ubicacion } from '../../../shared/ubicacion/ubicacion';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import {
@@ -18,7 +19,7 @@ import {
  */
 @Component({
   selector: 'app-admin-solicitudes',
-  imports: [DatePipe, Cargando],
+  imports: [DatePipe, Cargando, Ubicacion],
   templateUrl: './admin-solicitudes.html',
   styleUrl: './admin-solicitudes.css',
 })
@@ -120,6 +121,19 @@ export class AdminSolicitudes implements OnInit, OnDestroy {
     }
     this.urlAdjunto.set(null);
     this.adjuntoAbierto.set(null);
+  }
+
+  /**
+   * El punto del domicilio, si el solicitante lo marcó.
+   *
+   * <p>Se comprueban las dos: el backend las guarda juntas o no las guarda, pero
+   * esta pantalla lee JSON que viene de la red, y media coordenada pintaría un
+   * mapa en el centro del océano.
+   */
+  protected ubicacionDe(s: SolicitudAdminResponse): Coordenadas | null {
+    const { latitud, longitud } = s.domicilio;
+    if (latitud == null || longitud == null) return null;
+    return { latitud, longitud };
   }
 
   protected esPdf(a: AdjuntoResponse): boolean {

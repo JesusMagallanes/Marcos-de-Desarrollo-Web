@@ -1,0 +1,80 @@
+/*
+ * El mapa es un hueco de alto fijo por el que se asoma una cuadrícula de
+ * teselas mucho más grande. El alto es fijo a propósito: las teselas llegan de
+ * fuera y sin reservar el sitio la página pega un salto cuando terminan de
+ * cargar.
+ */
+.mapa {
+  display: block;
+  position: relative;
+  height: 10rem;
+  /* La cuadrícula mide 768 px: mas ancho que eso deja franjas vacias a los
+     lados. Ampliarla costaria seis peticiones mas por un mapa que tampoco gana
+     nada siendo un panoramico. */
+  max-width: 34rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--bs-border-color);
+  background: var(--bs-tertiary-bg);
+  text-decoration: none;
+}
+
+/*
+ * La cuadrícula se ancla en el centro del hueco y desde ahí el componente la
+ * desplaza lo que haga falta para que el punto quede justo en el medio.
+ */
+.mapa-teselas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 768px;
+  height: 768px;
+}
+
+.mapa-teselas img {
+  position: absolute;
+  display: block;
+  width: 256px;
+  height: 256px;
+}
+
+/*
+ * La chincheta. Va dibujada con CSS y no como imagen porque es un círculo con
+ * borde: una petición más para esto no se justifica.
+ */
+.mapa-marca {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin: -0.425rem 0 0 -0.425rem;
+  border-radius: 50%;
+  background: var(--bs-danger);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.mapa-pie {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border-top-left-radius: 0.4rem;
+}
+
+/* OpenStreetMap pide que se le acredite allí donde se usen sus mapas. */
+.mapa-credito {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.65rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+  border-top-right-radius: 0.4rem;
+}

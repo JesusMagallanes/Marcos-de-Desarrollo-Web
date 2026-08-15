@@ -51,6 +51,15 @@ export interface Domicilio {
   departamento: string;
   codigoPostal: string;
   pais?: string;
+  /*
+   * El punto en el mapa, opcional. Van las dos o no va ninguna.
+   *
+   * <p>Admiten `null` además de faltar porque la respuesta del backend las trae
+   * explícitamente nulas cuando el solicitante no marcó nada, y `DomicilioResponse`
+   * extiende esta interfaz.
+   */
+  latitud?: number | null;
+  longitud?: number | null;
 }
 
 /** El `usuarioId` NO viaja: sale del token. */
@@ -94,6 +103,8 @@ export interface SubidaResponse {
 
 export interface DomicilioResponse extends Domicilio {
   pais: string;
+  latitud: number | null;
+  longitud: number | null;
 }
 
 export interface SolicitudResponse {

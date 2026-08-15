@@ -1,0 +1,87 @@
+<div class="ubicacion">
+  @if (tiene()) {
+    <!-- Ver el punto es lo que hace útil todo esto: el usuario comprueba que
+         es su casa antes de pagar. -->
+    <a
+      class="mapa"
+      [href]="urlGoogleMaps()"
+      target="_blank"
+      rel="noopener"
+      title="Abrir en Google Maps para comprobarlo o moverlo"
+    >
+      <!-- El mapa son las teselas de OpenStreetMap puestas en cuadrícula y
+           desplazadas para que el punto quede en el centro. -->
+      <span class="mapa-teselas" [style.transform]="desplazamiento()" aria-hidden="true">
+        @for (t of mapa()?.teselas ?? []; track t.url) {
+          <img [src]="t.url" [style.left.px]="t.x" [style.top.px]="t.y" alt="" loading="lazy" />
+        }
+      </span>
+      <span class="mapa-marca" aria-hidden="true"></span>
+      <span class="visually-hidden">Mapa del punto en {{ texto() }}</span>
+      <span class="mapa-pie">Abrir en Google Maps →</span>
+      <!-- OpenStreetMap pide que se le acredite donde se usen sus mapas. -->
+      <span class="mapa-credito">© OpenStreetMap</span>
+    </a>
+
+    <div class="d-flex align-items-center gap-2 mt-2">
+      @if (!soloLectura()) {
+        <span class="badge text-bg-success-subtle text-success-emphasis border">✓ Ubicación puesta</span>
+      }
+      <span class="small text-body-secondary">{{ texto() }}</span>
+      @if (!soloLectura()) {
+        <button type="button" class="btn btn-sm btn-link text-body-secondary ms-auto" (click)="quitar()">
+          Quitar
+        </button>
+      }
+    </div>
+  } @else if (soloLectura()) {
+    <!-- Que el solicitante no marcara el punto se dice, no se deja en blanco:
+         quien revisa tiene que saber si falta el dato o falla la pantalla. -->
+    <p class="small text-body-secondary mb-0">Sin ubicación en el mapa.</p>
+  } @else {
+    <div class="d-flex flex-wrap gap-2">
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-secondary flex-grow-1"
+        [disabled]="buscando()"
+        (click)="usarMiUbicacion()"
+      >
+        @if (buscando()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>Buscando…
+        } @else {
+          Usar mi ubicación
+        }
+      </button>
+
+      <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" (click)="alternarPegado()">
+        Pegar enlace de Maps
+      </button>
+    </div>
+
+    @if (pegando()) {
+      <!-- Es la vía que de verdad usa la gente: busca su casa en Maps, comparte
+           y pega. Y salva a quien deniega el permiso o entra desde un ordenador. -->
+      <div class="input-group input-group-sm mt-2">
+        <input
+          type="url"
+          class="form-control"
+          placeholder="https://www.google.com/maps/@-12.046374,-77.042793,17z"
+          [value]="enlacePegado()"
+          (input)="enlacePegado.set($any($event.target).value)"
+          (keyup.enter)="aplicarEnlace()"
+        />
+        <button type="button" class="btn btn-primary" (click)="aplicarEnlace()">Usar</button>
+      </div>
+      <div class="form-text">
+        En Google Maps: busca el sitio, pulsa Compartir y copia el enlace. También vale pegar
+        <code>-12.046374, -77.042793</code>.
+      </div>
+    }
+  }
+
+  @if (aviso()) {
+    <div class="form-text text-warning-emphasis">{{ aviso() }}</div>
+  } @else if (!soloLectura()) {
+    <div class="form-text">{{ ayuda() }}</div>
+  }
+</div>

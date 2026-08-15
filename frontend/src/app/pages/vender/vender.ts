@@ -1,6 +1,7 @@
 import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Coordenadas, Ubicacion } from '../../shared/ubicacion/ubicacion';
 import {
   AuthService,
   ColaboradorService,
@@ -35,7 +36,7 @@ const CLAVE_GUIA_VISTA = 'sz_vender_guia_vista';
  */
 @Component({
   selector: 'app-vender',
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, Ubicacion],
   templateUrl: './vender.html',
   styleUrl: './vender.css',
 })
@@ -84,6 +85,13 @@ export class Vender implements OnInit {
   protected provincia = signal('');
   protected departamento = signal('');
   protected codigoPostal = signal('');
+
+  /*
+   * El punto en el mapa. Opcional: hay quien vende desde su casa y no quiere
+   * marcarla. Cuando se marca, quien revisa puede comprobar de un vistazo que
+   * el negocio queda donde dice la dirección escrita.
+   */
+  protected ubicacion = signal<Coordenadas | null>(null);
 
   protected aceptaTerminos = signal(false);
 
@@ -216,6 +224,8 @@ export class Vender implements OnInit {
           provincia: this.provincia().trim(),
           departamento: this.departamento().trim(),
           codigoPostal: this.codigoPostal().trim(),
+          latitud: this.ubicacion()?.latitud,
+          longitud: this.ubicacion()?.longitud,
         },
         aceptaTerminos: true,
         terminosVersion: TERMINOS_VERSION,

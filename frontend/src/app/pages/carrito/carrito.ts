@@ -1,4 +1,5 @@
 import { Cargando } from '../../shared/cargando/cargando';
+import { Coordenadas, Ubicacion } from '../../shared/ubicacion/ubicacion';
 import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
@@ -16,7 +17,7 @@ const COSTO_ENVIO = 15;
 
 @Component({
   selector: 'app-carrito',
-  imports: [RouterLink, CurrencyPipe, Cargando],
+  imports: [RouterLink, CurrencyPipe, Cargando, Ubicacion],
   templateUrl: './carrito.html',
   styleUrl: './carrito.css',
 })
@@ -51,10 +52,7 @@ export class Carrito implements OnInit {
    * ubicación que salta solo, sin que el usuario haya pedido nada, se deniega
    * casi siempre — y una vez denegado el navegador no vuelve a preguntar.
    */
-  protected latitud = signal<number | undefined>(undefined);
-  protected longitud = signal<number | undefined>(undefined);
-  protected ubicandose = signal(false);
-  protected avisoUbicacion = signal('');
+  protected ubicacion = signal<Coordenadas | null>(null);
 
   /*
    * Se prerrellena con lo del perfil: la mayoría manda el pedido a su propia
@@ -162,8 +160,8 @@ export class Carrito implements OnInit {
         direccionEnvio: this.direccionEnvio(),
         referenciaEnvio: this.referenciaEnvio(),
         telefonoContacto: this.telefonoContacto(),
-        latitud: this.latitud(),
-        longitud: this.longitud(),
+        latitud: this.ubicacion()?.latitud,
+        longitud: this.ubicacion()?.longitud,
       })
       .subscribe({
         next: (pref) => {
@@ -197,41 +195,4 @@ export class Carrito implements OnInit {
     });
   }
 
-  /**
-   * Pide la ubicación al navegador.
-   *
-   * <p>Nunca bloquea la compra: si el usuario la deniega o el dispositivo no
-   * puede, se avisa y se sigue igual. Lo único que se pierde es el cálculo de
-   * distancia para quien reparte.
-   */
-  protected usarMiUbicacion(): void {
-    if (!navigator.geolocation) {
-      this.avisoUbicacion.set('Tu navegador no puede compartir la ubicación.');
-      return;
-    }
-
-    this.ubicandose.set(true);
-    this.avisoUbicacion.set('');
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        // Seis decimales son ~11 cm: más precisión no aporta nada y solo
-        // guarda datos de más sobre dónde vive alguien.
-        this.latitud.set(Number(pos.coords.latitude.toFixed(6)));
-        this.longitud.set(Number(pos.coords.longitude.toFixed(6)));
-        this.ubicandose.set(false);
-        this.avisoUbicacion.set('Ubicación añadida. Ayudará a que el reparto llegue antes.');
-      },
-      () => {
-        this.ubicandose.set(false);
-        // Ni error rojo ni insistir: es opcional de verdad.
-        this.avisoUbicacion.set('Sin ubicación. Puedes comprar igual.');
-      },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 },
-    );
-  }
-
-  protected tieneUbicacion(): boolean {
-    return this.latitud() !== undefined && this.longitud() !== undefined;
-  }
 }

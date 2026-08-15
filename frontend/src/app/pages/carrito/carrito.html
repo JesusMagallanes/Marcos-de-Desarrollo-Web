@@ -168,31 +168,19 @@
           (input)="telefonoContacto.set($any($event.target).value)"
         />
 
-        <!-- Épica 3: opcional, y con un botón porque un permiso que salta solo
-             se deniega casi siempre y luego no se vuelve a preguntar. -->
-        <div class="mt-2">
-          @if (tieneUbicacion()) {
-            <span class="badge text-bg-success-subtle text-success-emphasis border">
-              ✓ Ubicación añadida
-            </span>
-          } @else {
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-secondary w-100"
-              [disabled]="ubicandose()"
-              (click)="usarMiUbicacion()"
-            >
-              @if (ubicandose()) {
-                <span class="spinner-border spinner-border-sm me-2"></span>Buscando…
-              } @else {
-                Usar mi ubicación (opcional)
-              }
-            </button>
-          }
-          @if (avisoUbicacion()) {
-            <div class="form-text">{{ avisoUbicacion() }}</div>
-          }
-        </div>
+        <!--
+          El punto en el mapa. La dirección escrita es lo que lee el repartidor,
+          pero un texto no dice si el sitio es el correcto: con el mapa el
+          comprador LO VE antes de pagar. Sigue siendo opcional.
+        -->
+        <label class="form-label small fw-semibold mt-3 mb-1">
+          Ubicación en el mapa <span class="text-body-secondary fw-normal">(opcional)</span>
+        </label>
+        <app-ubicacion
+          ayuda="Ayuda a que el reparto te encuentre. Usa tu ubicación o pega el enlace de Google Maps."
+          [coordenadas]="ubicacion()"
+          (cambio)="ubicacion.set($event)"
+        />
 
         @if (metodosPago().length) {
           <label class="form-label small fw-semibold mt-3 mb-1">Método de pago</label>
