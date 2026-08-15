@@ -45,6 +45,13 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
+		<!-- Avisos al solicitante cuando se resuelve su solicitud. Si no hay
+		     credenciales de correo configuradas, el servicio arranca igual y
+		     los avisos se registran en el log en vez de enviarse. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
