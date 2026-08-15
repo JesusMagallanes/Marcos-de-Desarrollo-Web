@@ -1,0 +1,138 @@
+# Ejecuta las pruebas en cada push y en cada pull request.
+#
+# Por qué hacía falta: son 247 pruebas (160 de backend + 87 de frontend) que
+# hasta ahora solo corrían si alguien se acordaba de lanzarlas a mano. En esta
+# misma rama se coló una migración que rompía el descuento de stock al comprar y
+# no lo vio nadie hasta que se probó por casualidad.
+#
+# Los cuatro servicios van en paralelo: son independientes y así el aviso llega
+# en el tiempo del más lento, no en la suma de los cuatro.
+
+name: Pruebas
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# Un push nuevo cancela la ejecución anterior de la misma rama: nadie necesita
+# el resultado de un commit que ya quedó atrás.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: ${{ matrix.servicio }}
+    runs-on: ubuntu-latest
+    strategy:
+      # Sin esto, el primer servicio que falla cancela los demás y solo se ve
+      # uno de los problemas por vuelta.
+      fail-fast: false
+      matrix:
+        servicio: [usuarios, catalogo, compras, web-gateway]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          # Cachea ~/.m2 por servicio: la primera vuelta baja dependencias, las
+          # siguientes arrancan en segundos.
+          cache: maven
+
+      - name: Compilar y probar
+        working-directory: ${{ matrix.servicio }}
+        # `verify` y no `test` para que corran también las *IT con Testcontainers
+        # donde las haya. Las que necesitan Docker se saltan solas si no lo hay.
+        run: ./mvnw -B --no-transfer-progress verify
+
+      - name: Guardar los informes si algo falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informes-${{ matrix.servicio }}
+          path: ${{ matrix.servicio }}/target/surefire-reports/
+          retention-days: 7
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      # --frozen-lockfile falla si el lockfile no cuadra con el package.json, que
+      # es justo lo que se quiere saber antes de fusionar.
+      - name: Instalar
+        run: pnpm install --frozen-lockfile
+
+      - name: Probar
+        run: pnpm test
+
+      # Compilar es media prueba más: cazaría un error de tipos que las pruebas
+      # unitarias no tocan.
+      - name: Compilar
+        run: pnpm run build
+
+  migraciones:
+    name: migraciones
+    runs-on: ubuntu-latest
+
+    # Postgres de verdad, no H2: las migraciones usan índices parciales, RLS y
+    # CHECK con expresiones que solo existen en Postgres.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: prueba
+          POSTGRES_DB: smartzone
+        options: >-
+          --health-cmd "pg_isready -U postgres -d smartzone"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+        ports: ['5432:5432']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Aplica las migraciones de cada servicio en orden de versión, en su
+      # esquema. Sirve para dos cosas: que ninguna esté rota, y que la cadena
+      # entera siga aplicando desde cero (que es como arranca cualquiera nuevo
+      # en el equipo).
+      - name: Aplicar todas las migraciones desde cero
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+          export PGPASSWORD=prueba
+          fallo=0
+          for servicio in usuarios catalogo compras; do
+            echo "── $servicio ──"
+            psql -h localhost -U postgres -d smartzone -q \
+              -c "CREATE SCHEMA IF NOT EXISTS $servicio;"
+            for f in $(ls $servicio/src/main/resources/db/migration/V*.sql | sort -V); do
+              printf '   %-46s ' "$(basename "$f")"
+              if psql -h localhost -U postgres -d smartzone -v ON_ERROR_STOP=1 -q \
+                   -c "SET search_path TO $servicio;" -f "$f" > /tmp/salida 2>&1; then
+                echo OK
+              else
+                echo FALLO
+                sed 's/^/      /' /tmp/salida
+                fallo=1
+              fi
+            done
+          done
+          exit $fallo
