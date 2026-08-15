@@ -25,6 +25,16 @@ RUN apk add --no-cache wget
 
 # Usuario sin privilegios: si alguien escapa del proceso, no es root.
 RUN addgroup -S spring && adduser -S spring -G spring
+
+# Punto de montaje para datos que tienen que sobrevivir al contenedor (hoy solo
+# lo usa `usuarios`, para los documentos de identidad).
+#
+# Se crea AQUI y no en Compose por como funcionan los volumenes con nombre:
+# Docker copia el contenido y los permisos de esta carpeta al volumen la primera
+# vez que se monta vacio. Sin esta linea el volumen queda de root, y el proceso,
+# que corre como `spring`, no puede escribir dentro.
+RUN mkdir -p /datos/identidad && chown -R spring:spring /datos
+
 USER spring:spring
 
 COPY --from=build --chown=spring:spring /build/target/*.jar app.jar

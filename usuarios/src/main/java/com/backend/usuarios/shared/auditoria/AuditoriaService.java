@@ -20,7 +20,22 @@ public class AuditoriaService {
         ROL_EDITADO,
         ROL_ELIMINADO,
         USUARIO_ELIMINADO,
-        ACCESO_DENEGADO
+        ACCESO_DENEGADO,
+
+        /* Solicitudes para vender en la tienda. Quedan en auditoría porque
+         * aprobar a alguien le da permiso para publicar en el catálogo, y hay
+         * que poder reconstruir quién concedió qué y cuándo. */
+        SOLICITUD_COLABORADOR,
+        COLABORADOR_APROBADO,
+        COLABORADOR_RECHAZADO,
+
+        /* Documentos de identidad. La descarga se audita aparte y siempre,
+         * incluso cuando la hace el propio dueño: son los datos más sensibles
+         * que guarda el sistema, y "quién miró el DNI de quién" es exactamente
+         * lo que hay que poder responder después. */
+        DOCUMENTO_SUBIDO,
+        DOCUMENTO_DESCARGADO,
+        DOCUMENTO_PURGADO
     }
 
     public void registrar(Evento evento, String sujeto, String detalle) {

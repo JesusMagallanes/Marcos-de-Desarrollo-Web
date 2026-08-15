@@ -119,6 +119,16 @@ public class JwtService {
         return duracionMillis(rol) / 1000;
     }
 
+    /**
+     * Cuánto vive el token de acceso según el rol.
+     *
+     * <p>Los roles son datos, así que esto no puede ser un switch exhaustivo:
+     * cualquiera creado desde el panel cae en el `default` y dura lo mismo que
+     * un cliente. Para COLABORADOR es justo lo que se quiere —solo toca sus
+     * propios productos y todo lo que publica pasa por moderación, así que el
+     * alcance de un token robado es pequeño—, pero conviene saber que un rol
+     * nuevo de tipo TRABAJADOR heredaría esa duración sin que nadie lo decida.
+     */
     private long duracionMillis(String rol) {
         return switch (rol) {
             case "EMPLEADO" -> propiedades.expiracionEmpleado();

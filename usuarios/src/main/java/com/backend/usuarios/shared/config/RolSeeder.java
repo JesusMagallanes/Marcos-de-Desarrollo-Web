@@ -39,6 +39,23 @@ public class RolSeeder {
             crearSiFalta(repositorio, "ADMINISTRADOR",
                     "Administración completa de la tienda.",
                     TipoRol.TRABAJADOR, EnumSet.allOf(Permiso.class));
+
+            // Vendedor externo aprobado por un administrador (ver
+            // docs/contrato-colaboradores.md).
+            //
+            // `TipoRol.CLIENTE` y no TRABAJADOR: vende en la tienda, pero no es
+            // personal de la casa ni entra al panel de administración.
+            //
+            // PRODUCTOS_PROPIOS y no PRODUCTOS_GESTIONAR: aquel da el catálogo
+            // entero, incluidos los productos ajenos.
+            //
+            // OJO: `catalogo` todavía no comprueba este permiso ni sabe de quién
+            // es cada producto (ticket SZ-B08). Hasta que lo haga, tenerlo no
+            // concede nada; está aquí para que el frente 2 tenga contra qué
+            // programar y no se invente otro nombre.
+            crearSiFalta(repositorio, "COLABORADOR",
+                    "Vendedor externo: publica productos que pasan por moderación.",
+                    TipoRol.CLIENTE, Set.of(Permiso.PRODUCTOS_PROPIOS));
         };
     }
 

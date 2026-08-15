@@ -114,6 +114,18 @@ services:
       FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
       OAUTH_REDIRECT_BASE: ${OAUTH_REDIRECT_BASE:-http://localhost:8080}
+      # Opcionales: sin ellas los avisos se escriben en el log en vez de enviarse.
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_REMITENTE: ${MAIL_REMITENTE:-}
+    # Documentos de identidad de los colaboradores. En un volumen y no dentro
+    # del contenedor porque si no se perderian en cada despliegue, y con ellos
+    # la prueba de que la identidad se verifico. No lo monta nadie mas: solo
+    # salen por el endpoint que comprueba quien pregunta.
+    volumes:
+      - documentos-identidad:/datos/identidad
     depends_on:
       verificador: {condition: service_completed_successfully}
       postgres: {condition: service_healthy, required: false}
@@ -215,3 +227,4 @@ networks:
 
 volumes:
   datos-postgres:
+  documentos-identidad:

@@ -36,6 +36,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final Duration VENTANA_REGISTRO = Duration.ofHours(1);
     private static final int MAXIMO_REGISTRO = 5;
 
+    // Subida de documentos de identidad. Cupo propio y mucho más estrecho que el
+    // general porque cada petición trae hasta 5 MB: con el general (300 por
+    // minuto) una sola cuenta podía mandar 1,5 GB por minuto.
+    //
+    // Quien de verdad acota el DISCO es el índice único de la migración: un
+    // archivo por tipo y usuario, se suba las veces que se suba. Esto es la
+    // segunda capa, contra el ancho de banda y el trabajo de validar. Por eso el
+    // número no necesita ser mezquino: el trámite pide tres archivos y 30 cada
+    // diez minutos deja repetir de sobra los que salgan borrosos.
+    private static final String RUTA_ADJUNTOS = "/api/colaboradores/solicitudes/adjuntos";
+    private static final Duration VENTANA_ADJUNTOS = Duration.ofMinutes(10);
+    private static final int MAXIMO_ADJUNTOS = 30;
+
     private static final Duration VENTANA_GENERAL = Duration.ofMinutes(1);
     private static final int MAXIMO_GENERAL = 300;
 
@@ -56,12 +69,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
         } else if (ruta.startsWith("/api/auth/registrar")) {
             maximo = MAXIMO_REGISTRO;
             ventana = VENTANA_REGISTRO;
+        } else if (esSubidaDeDocumento(peticion, ruta)) {
+            maximo = MAXIMO_ADJUNTOS;
+            ventana = VENTANA_ADJUNTOS;
         } else {
             maximo = MAXIMO_GENERAL;
             ventana = VENTANA_GENERAL;
         }
 
-        String clave = ip + "|" + (ruta.startsWith("/api/auth/") ? ruta : "general");
+        String clave = ip + "|" + claveDeAmbito(peticion, ruta);
 
         if (!limitador.permitir(clave, maximo, ventana)) {
             long reintentar = limitador.segundosParaReintentar(clave, ventana);
@@ -81,10 +97,28 @@ public class RateLimitFilter extends OncePerRequestFilter {
         cadena.doFilter(peticion, respuesta);
     }
 
+    /**
+     * Solo la SUBIDA lleva cupo estrecho, no la descarga: comparten prefijo pero
+     * son cosas distintas. Mirar la descarga con el mismo rasero dejaría al
+     * administrador sin poder revisar una bandeja con varias solicitudes.
+     */
+    private boolean esSubidaDeDocumento(HttpServletRequest peticion, String ruta) {
+        return "POST".equals(peticion.getMethod()) && ruta.startsWith(RUTA_ADJUNTOS);
+    }
+
+    /** Cada cupo necesita su propia clave, o compartirían el contador. */
+    private String claveDeAmbito(HttpServletRequest peticion, String ruta) {
+        if (ruta.startsWith("/api/auth/")) {
+            return ruta;
+        }
+        return esSubidaDeDocumento(peticion, ruta) ? "adjuntos" : "general";
+    }
+
     /** Etiqueta de baja cardinalidad para la métrica. */
     private String ambito(String ruta) {
         if (ruta.startsWith("/api/auth/login")) return "login";
         if (ruta.startsWith("/api/auth/registrar")) return "registro";
+        if (ruta.startsWith(RUTA_ADJUNTOS)) return "adjuntos";
         return "general";
     }
 

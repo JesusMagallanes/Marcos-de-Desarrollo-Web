@@ -16,6 +16,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.backend.usuarios.shared.metricas.MetricasSeguridad;
@@ -45,6 +46,26 @@ public class GlobalExceptionHandler {
     }
 
     /* ── Validación de entrada (A03) ── */
+
+    /**
+     * Reglas que no puede expresar una anotación: las que cruzan campos o las
+     * que dependen del contenido real de un fichero.
+     */
+    @ExceptionHandler(DatosInvalidosException.class)
+    ProblemDetail datosInvalidos(DatosInvalidosException ex) {
+        return construir(HttpStatus.BAD_REQUEST, "Datos inválidos", ex.getMessage());
+    }
+
+    /**
+     * Fichero por encima del tope. Sin este manejador caía en el genérico y
+     * salía un 500: el usuario leía "error interno" cuando lo único que pasa es
+     * que su foto pesa demasiado y solo tiene que mandarla más pequeña.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    ProblemDetail ficheroDemasiadoGrande(MaxUploadSizeExceededException ex) {
+        return construir(HttpStatus.PAYLOAD_TOO_LARGE, "Archivo demasiado grande",
+                "El archivo supera el máximo permitido de 5 MB");
+    }
 
     /** Cuerpo inválido: se devuelve el detalle por campo, que es seguro y útil. */
     @ExceptionHandler(MethodArgumentNotValidException.class)

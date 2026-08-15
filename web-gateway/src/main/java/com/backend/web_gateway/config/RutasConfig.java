@@ -43,6 +43,9 @@ public class RutasConfig {
                 .route(path("/api/auth/**"), http())
                 .route(path("/api/usuarios/**"), http())
                 .route(path("/api/roles/**"), http())
+                // Solicitudes para vender en la tienda: viven en `usuarios`
+                // porque lo que conceden es un rol, no un producto.
+                .route(path("/api/colaboradores/**"), http())
                 .before(uri(usuariosUrl))
                 .build();
     }
