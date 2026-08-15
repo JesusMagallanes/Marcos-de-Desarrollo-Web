@@ -78,3 +78,49 @@ Los 33 endpoints están cubiertos por 11 services, uno por controlador del backe
 completa de rutas, roles y cuerpos vive en el
 [README de la raíz](../README.md#frontend), junto con la explicación de `ErrorApi`,
 `EstadoPeticion`, la caché de catálogo y los límites replicados.
+
+---
+
+## Las pantallas de colaborador
+
+Ya están. El contrato del backend, con la forma exacta de cada petición y respuesta, está en
+[docs/contrato-colaboradores.md](../docs/contrato-colaboradores.md).
+
+| Ruta | Para quién | Qué hace |
+|---|---|---|
+| `/vender` | cliente | solicitar: identidad, domicilio y **subida de documentos** |
+| `/vender/mis-productos` | colaborador | publicar y editar lo suyo, ver por qué le rechazaron |
+| `/admin/solicitudes` | admin | revisar los datos **junto a las fotos**, aprobar o rechazar |
+| `/admin/moderacion-productos` | admin | aprobar o rechazar productos de colaborador |
+
+### Cuatro cosas que tienen truco, y cómo están resueltas
+
+**1 · `GET /api/auth/yo` miente sobre el rol.** Lee de la base de datos, no del token, así que
+dice `COLABORADOR` en cuanto el admin aprueba — pero el token guardado sigue diciendo `CLIENTE` y
+es el token quien decide los 403.
+
+Por eso `/vender` no enseña «ya puedes vender» y ya está: cuando la solicitud está aprobada pero
+el token todavía no lo refleja, ofrece un botón de **Activar mi cuenta** que llama a `refrescar()`.
+Sin ese paso, el usuario ve que está aprobado y todo le da 403.
+
+**2 · Los archivos se suben de uno en uno, antes de enviar el formulario.** Cada `<input file>`
+dispara su `POST /adjuntos?tipo=…`, y al enviar la solicitud **no se mandan los ids**: el backend
+coge los últimos de cada tipo. Subir dos veces el mismo tipo **sustituye**, no acumula.
+
+**3 · Para ver un documento no vale un `<img src>`.** El endpoint exige el token, así que se pide
+con `HttpClient` (`responseType: 'blob'`) y se monta un `URL.createObjectURL`. La bandeja lo
+revoca al cambiar de documento y en `ngOnDestroy`: si no, cada foto de DNI abierta se queda en
+memoria hasta recargar.
+
+**4 · Editar un producto lo devuelve a PENDIENTE.** El formulario lo avisa **antes** de guardar,
+no después: el colaborador espera que su cambio se vea al momento, y lo que pasa es que su
+producto desaparece de la tienda hasta que lo revisen.
+
+### Errores que conviene pintar bien
+
+Las reglas que cruzan campos (tipo de documento contra tipo de persona, mayoría de edad, archivos
+que faltan) llegan en `detail` y **ya vienen redactadas para enseñárselas al usuario**. Las de un
+solo campo llegan en `errores`, con la clave del campo, para marcarlo en el formulario.
+
+Códigos propios de esta parte: `413` si el archivo pasa de 5 MB y `429` si se pasan de 30 subidas
+en 10 minutos.

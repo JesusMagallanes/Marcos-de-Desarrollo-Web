@@ -111,3 +111,17 @@ entrega, en lugar de estar ahí sin hacer nada.
 También quedan fuera **pedidos**, **valoraciones** y **guías** en pantalla: la
 capa de datos ya las alcanza (la prueba de integración lee las guías), pero no
 tienen interfaz todavía.
+
+También quedan fuera los **colaboradores**. La app es de compra: no solicita
+vender, no sube documentos de identidad ni publica productos. Todo eso existe ya
+en el backend y está descrito en
+[docs/contrato-colaboradores.md](../docs/contrato-colaboradores.md), pero llevarlo
+al móvil implica cámara, permisos del sistema y un visor de imágenes con token
+—los archivos no se sirven por URL pública—, así que es una entrega propia y no
+un añadido a una pantalla existente.
+
+Un detalle que sí afecta a la app aunque no tenga esas pantallas: **el rol viaja
+dentro del token**. Si a alguien le aprueban como colaborador mientras tiene la
+sesión abierta, su token seguirá diciendo `CLIENTE` hasta que renueve. La app ya
+renueva sola al recibir un 401, así que no hay nada que arreglar; conviene
+saberlo antes de añadir cualquier pantalla que dependa del rol.
