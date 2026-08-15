@@ -446,6 +446,24 @@ botón y no al cargar la página a propósito: un permiso de ubicación que salt
 siempre, y una vez denegado el navegador no vuelve a preguntar. Sin ubicación se compra igual; lo
 único que se pierde es el cálculo.
 
+Además del botón se puede **pegar el enlace de Google Maps**, que es la vía que de verdad usa la
+gente: se busca el sitio en Maps, se comparte y se pega. Salva a quien deniega el permiso y a quien
+compra desde un ordenador, donde la posición del navegador suele estar muy equivocada. Se aceptan
+los cuatro formatos en los que Maps reparte las coordenadas, con prioridad al del sitio (`!3d!4d`)
+sobre el del centro del mapa (`@lat,lng`), que puede estar desplazado si el usuario movió el mapa
+antes de copiar.
+
+El punto **se ve** en un mapa, tanto al pagar como en la solicitud para vender —ahí lo mira quien
+revisa, en solo lectura— porque una dirección escrita no se puede comprobar sin salir de la
+pantalla.
+
+> **El mapa se monta con las teselas de OpenStreetMap**, no con un iframe ni con la API de
+> JavaScript de Google: la CSP declara `frame-src 'none'` y `script-src 'self'`, y está bien que
+> sea así. Tampoco se usa un servicio de mapas estáticos: el de OpenStreetMap
+> (`staticmap.openstreetmap.de`) dejó de existir y lo único que quedaba era el icono de imagen
+> rota. Las teselas son la base de todo mapa web, no necesitan clave de API y `img-src` ya las
+> permite.
+
 > **Es una estimación, no una ruta.** Se calcula la distancia en línea recta (semiverseno), se
 > multiplica por 1,3 para aproximar el recorrido por calle y se divide entre 18 km/h de media
 > urbana. **No conoce calles, ni sentidos únicos, ni tráfico.**
@@ -842,6 +860,7 @@ MercadoPago, con los cuatro servicios y el frontend levantados:
 | Alta de colaborador de punta a punta | 47/47 |
 | Publicar, moderar y editar como colaborador | 13/13 |
 | Checkout con dirección, teléfono y ubicación | 7/7 |
+| Punto del mapa en la solicitud de venta | 11/11 |
 | Rutas que usa el frontend, con RLS activo | 20/20 |
 
 El último bloque está **automatizado** y se puede repetir:
@@ -849,6 +868,7 @@ El último bloque está **automatizado** y se puede repetir:
 ```bash
 docker compose --profile neon up -d
 bash docs/pruebas/colaboradores.sh
+bash docs/pruebas/ubicacion.sh
 ```
 
 Cubre el alta con verificación de identidad, el rechazo de archivos disfrazados, los permisos de
