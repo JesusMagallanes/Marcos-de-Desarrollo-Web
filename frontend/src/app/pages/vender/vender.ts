@@ -91,6 +91,17 @@ export class Vender implements OnInit {
       /^[0-9]{9}$/.test(this.telefonoContacto().trim()),
   );
 
+  /** Qué pasos del formulario ya se completaron, para el indicador superior. */
+  protected pasosCompletos = computed(() => ({
+    1: this.documento().trim().length >= 8 && this.nombreTitular().trim().length >= 3,
+    2: this.adjuntosQueFaltan().length === 0,
+    3:
+      this.nombreComercial().trim().length >= 3 &&
+      this.descripcion().trim().length >= 30 &&
+      /^[0-9]{9}$/.test(this.telefonoContacto().trim()),
+    4: this.direccion().trim().length > 0 && /^[0-9]{5}$/.test(this.codigoPostal().trim()),
+  }));
+
   /** Ya es colaborador: no tiene nada que solicitar. */
   protected yaEsColaborador = computed(() => this.auth.usuario()?.rol === 'COLABORADOR');
 

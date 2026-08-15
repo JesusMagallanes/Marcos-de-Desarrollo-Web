@@ -1,134 +1,203 @@
 <div class="container py-4 py-lg-5">
   <div class="row justify-content-center">
-    <div class="col-12 col-lg-9 col-xl-8">
+    <div class="col-12 col-lg-10 col-xl-9">
       @if (cargando()) {
         <div class="text-center py-5">
-          <span class="spinner-border text-primary"></span>
+          <span class="spinner-border text-primary" role="status"></span>
         </div>
       } @else if (solicitud(); as s) {
         <!-- ─── Ya solicitó: se le enseña en qué punto está ─── -->
-        <div class="card border-0 shadow-sm">
-          <div class="card-body p-4 p-lg-5">
-            @switch (s.estado) {
-              @case ('PENDIENTE') {
-                <div class="text-center">
-                  <div class="estado-icono bg-warning-subtle text-warning-emphasis">⏳</div>
-                  <h1 class="h4 mt-3">Tu solicitud está en revisión</h1>
-                  <p class="text-body-secondary mb-0">
-                    La enviaste el {{ s.creadaEn | date: 'd MMM y' }}. Revisamos los documentos a
-                    mano, así que puede tardar unos días.
-                  </p>
-                </div>
-              }
-              @case ('APROBADA') {
-                <div class="text-center">
-                  <div class="estado-icono bg-success-subtle text-success-emphasis">✓</div>
-                  <h1 class="h4 mt-3">¡Ya puedes vender!</h1>
-                  <p class="text-body-secondary">
-                    Aprobamos tu solicitud el {{ s.resueltaEn | date: 'd MMM y' }}.
-                  </p>
+        <div class="estado-panel mb-3">
+          @switch (s.estado) {
+            @case ('PENDIENTE') {
+              <div class="estado-icono estado-icono-pendiente mx-auto">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></svg>
+              </div>
+              <h1 class="h4 mt-3 mb-2">Tu solicitud está en revisión</h1>
+              <p class="text-body-secondary mb-0">
+                La enviaste el {{ s.creadaEn | date: 'd MMM y' }}. Revisamos los documentos a
+                mano, así que puede tardar unos días.
+              </p>
+            }
+            @case ('APROBADA') {
+              <div class="estado-icono estado-icono-aprobada mx-auto">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.5 2.5L16 9.5" /></svg>
+              </div>
+              <h1 class="h4 mt-3 mb-2">¡Ya puedes vender!</h1>
+              <p class="text-body-secondary mb-4">
+                Aprobamos tu solicitud el {{ s.resueltaEn | date: 'd MMM y' }}.
+              </p>
 
-                  @if (yaEsColaborador()) {
-                    <a routerLink="/vender/mis-productos" class="btn btn-primary rounded-pill px-4">
-                      Publicar mi primer producto
-                    </a>
-                  } @else {
-                    <!--
-                      El rol viaja dentro del token: hasta renovarlo, el backend
-                      le sigue viendo como cliente y todo daría 403.
-                    -->
-                    <p class="small text-body-secondary">
-                      Falta un paso para activar tu cuenta de vendedor.
-                    </p>
-                    <button
-                      type="button"
-                      class="btn btn-primary rounded-pill px-4"
-                      (click)="activarMiCuenta()"
-                    >
-                      Activar mi cuenta
-                    </button>
-                  }
-                </div>
-              }
-              @case ('RECHAZADA') {
-                <div class="text-center">
-                  <div class="estado-icono bg-danger-subtle text-danger-emphasis">✕</div>
-                  <h1 class="h4 mt-3">No pudimos aprobarla</h1>
-                </div>
-                <div class="alert alert-light border mt-3">
-                  <strong class="d-block mb-1">Motivo</strong>
-                  {{ s.motivoRechazo }}
-                </div>
-                <p class="text-body-secondary small">
-                  Puedes corregir lo que te indicamos y volver a enviarla.
+              @if (yaEsColaborador()) {
+                <a routerLink="/vender/mis-productos" class="btn btn-vender rounded-pill px-4 py-2">
+                  Publicar mi primer producto
+                </a>
+              } @else {
+                <!--
+                  El rol viaja dentro del token: hasta renovarlo, el backend
+                  le sigue viendo como cliente y todo daría 403.
+                -->
+                <p class="small text-body-secondary mb-2">
+                  Falta un paso para activar tu cuenta de vendedor.
                 </p>
-                <button type="button" class="btn btn-primary rounded-pill px-4" (click)="volverAIntentar()">
-                  Enviar otra solicitud
+                <button
+                  type="button"
+                  class="btn btn-vender rounded-pill px-4 py-2"
+                  (click)="activarMiCuenta()"
+                >
+                  Activar mi cuenta
                 </button>
               }
             }
+            @case ('RECHAZADA') {
+              <div class="estado-icono estado-icono-rechazada mx-auto">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 9l6 6M15 9l-6 6" /></svg>
+              </div>
+              <h1 class="h4 mt-3 mb-3">No pudimos aprobarla</h1>
+              <div class="alert alert-danger text-start">
+                <strong class="d-block mb-1">Motivo</strong>
+                {{ s.motivoRechazo }}
+              </div>
+              <p class="text-body-secondary small">
+                Puedes corregir lo que te indicamos y volver a enviarla.
+              </p>
+              <button type="button" class="btn btn-vender rounded-pill px-4 py-2" (click)="volverAIntentar()">
+                Enviar otra solicitud
+              </button>
+            }
+          }
+        </div>
 
-            <hr class="my-4" />
-            <h2 class="h6 text-body-secondary">Lo que enviaste</h2>
-            <dl class="row small mb-0">
-              <dt class="col-5 col-sm-4 fw-normal text-body-secondary">Negocio</dt>
-              <dd class="col-7 col-sm-8">{{ s.nombreComercial }}</dd>
-              <dt class="col-5 col-sm-4 fw-normal text-body-secondary">Titular</dt>
-              <dd class="col-7 col-sm-8">{{ s.nombreTitular }}</dd>
-              <dt class="col-5 col-sm-4 fw-normal text-body-secondary">Documento</dt>
-              <dd class="col-7 col-sm-8">{{ s.tipoDocumento }} {{ s.documento }}</dd>
-              <dt class="col-5 col-sm-4 fw-normal text-body-secondary">Dirección</dt>
-              <dd class="col-7 col-sm-8">
-                {{ s.domicilio.direccion }}, {{ s.domicilio.distrito }}
-              </dd>
-              <dt class="col-5 col-sm-4 fw-normal text-body-secondary">Archivos</dt>
-              <dd class="col-7 col-sm-8">
+        <div class="paso-card p-4">
+          <h2 class="h6 text-body-secondary mb-3">Lo que enviaste</h2>
+          <dl class="resumen-lista mb-0">
+            <div>
+              <dt>Negocio</dt>
+              <dd>{{ s.nombreComercial }}</dd>
+            </div>
+            <div>
+              <dt>Titular</dt>
+              <dd>{{ s.nombreTitular }}</dd>
+            </div>
+            <div>
+              <dt>Documento</dt>
+              <dd>{{ s.tipoDocumento }} {{ s.documento }}</dd>
+            </div>
+            <div>
+              <dt>Dirección</dt>
+              <dd>{{ s.domicilio.direccion }}, {{ s.domicilio.distrito }}</dd>
+            </div>
+            <div>
+              <dt>Archivos</dt>
+              <dd>
                 @for (a of s.adjuntos; track a.id) {
-                  <span class="badge text-bg-light border me-1">{{ a.etiqueta }}</span>
+                  <span class="badge badge-adjunto">{{ a.etiqueta }}</span>
                 }
               </dd>
-            </dl>
-          </div>
+            </div>
+          </dl>
         </div>
       } @else {
         <!-- ─── Formulario ─── -->
-        <header class="mb-4">
-          <h1 class="h3">Vende en SmartZone</h1>
-          <p class="text-body-secondary mb-0">
-            Necesitamos comprobar quién eres antes de que publiques. Es el mismo trámite para una
-            persona que para una empresa, solo cambian los documentos.
-          </p>
+        <header class="hero-vender mb-4">
+          <div class="hero-vender-contenido">
+            <span class="hero-vender-badge d-inline-flex align-items-center gap-1">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3z" /><path d="M9 11.5l2 2 4-4" /></svg>
+              Cuenta de vendedor
+            </span>
+            <h1 class="hero-vender-titulo">Vende en <span class="hero-vender-marca">SmartZone</span></h1>
+            <p class="hero-vender-subtitulo">
+              Publica tus productos y llega a miles de compradores en todo el país. Solo pedimos
+              comprobar quién eres antes de que empieces: es el mismo trámite para una persona
+              que para una empresa.
+            </p>
+            <ul class="list-unstyled d-flex flex-wrap row-gap-2 column-gap-3 mt-4 mb-0">
+              <li class="d-inline-flex align-items-center gap-1">
+                <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" /></svg>
+                Sin costos por publicar
+              </li>
+              <li class="d-inline-flex align-items-center gap-1">
+                <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" /></svg>
+                Revisión en un par de días
+              </li>
+              <li class="d-inline-flex align-items-center gap-1">
+                <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" /></svg>
+                Pagos directos y seguros
+              </li>
+            </ul>
+          </div>
         </header>
 
         @if (error()) {
           <div class="alert alert-danger">{{ error() }}</div>
         }
 
+        <ol class="pasos mb-4" aria-label="Pasos de la solicitud">
+          <li class="d-inline-flex align-items-center gap-2" [class.hecho]="pasosCompletos()[1]">
+            <span class="paso-punto">1</span><span>Quién eres</span>
+          </li>
+          <li class="d-inline-flex align-items-center gap-2" [class.hecho]="pasosCompletos()[2]">
+            <span class="paso-punto">2</span><span>Documentos</span>
+          </li>
+          <li class="d-inline-flex align-items-center gap-2" [class.hecho]="pasosCompletos()[3]">
+            <span class="paso-punto">3</span><span>Tu negocio</span>
+          </li>
+          <li class="d-inline-flex align-items-center gap-2" [class.hecho]="pasosCompletos()[4]">
+            <span class="paso-punto">4</span><span>Dónde estás</span>
+          </li>
+        </ol>
+
         <!-- 1 · Quién eres -->
-        <section class="card border-0 shadow-sm mb-3">
-          <div class="card-body p-4">
-            <h2 class="h6 mb-3">1 · Quién eres</h2>
+        <section class="paso-card">
+          <div class="paso-card-cabecera">
+            <span class="paso-numero">1</span>
+            <div>
+              <h2 class="paso-card-titulo">Quién eres</h2>
+              <p class="paso-card-sub">Tu identidad y el documento con el que facturas.</p>
+            </div>
+          </div>
 
-            <div class="btn-group w-100 mb-3" role="group">
-              <input
-                type="radio"
-                class="btn-check"
-                name="tipo-persona"
-                id="tp-natural"
-                [checked]="tipoPersona() === 'NATURAL'"
-                (change)="cambiarTipoPersona('NATURAL')"
-              />
-              <label class="btn btn-outline-primary" for="tp-natural">Soy una persona</label>
+          <div class="paso-card-cuerpo">
+            <div class="tipo-persona-grid" role="radiogroup" aria-label="Tipo de cuenta">
+              <label class="tipo-persona" [class.activo]="tipoPersona() === 'NATURAL'">
+                <input
+                  type="radio"
+                  class="tipo-persona-input"
+                  name="tipo-persona"
+                  [checked]="tipoPersona() === 'NATURAL'"
+                  (change)="cambiarTipoPersona('NATURAL')"
+                />
+                <span class="tipo-persona-icono">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 20.5c0-3.5 3.4-5.5 7.5-5.5s7.5 2 7.5 5.5" /></svg>
+                </span>
+                <span class="tipo-persona-texto">
+                  <strong>Soy una persona</strong>
+                  <small>Vende con tu DNI o carné de extranjería</small>
+                </span>
+                <span class="tipo-persona-check">
+                  <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" /></svg>
+                </span>
+              </label>
 
-              <input
-                type="radio"
-                class="btn-check"
-                name="tipo-persona"
-                id="tp-juridica"
-                [checked]="tipoPersona() === 'JURIDICA'"
-                (change)="cambiarTipoPersona('JURIDICA')"
-              />
-              <label class="btn btn-outline-primary" for="tp-juridica">Soy una empresa</label>
+              <label class="tipo-persona" [class.activo]="tipoPersona() === 'JURIDICA'">
+                <input
+                  type="radio"
+                  class="tipo-persona-input"
+                  name="tipo-persona"
+                  [checked]="tipoPersona() === 'JURIDICA'"
+                  (change)="cambiarTipoPersona('JURIDICA')"
+                />
+                <span class="tipo-persona-icono">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2.5" /><path d="M9 8h6M9 12h6M9 16h3.5" /></svg>
+                </span>
+                <span class="tipo-persona-texto">
+                  <strong>Soy una empresa</strong>
+                  <small>Vende con tu RUC y la ficha del registro</small>
+                </span>
+                <span class="tipo-persona-check">
+                  <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" /></svg>
+                </span>
+              </label>
             </div>
 
             <div class="row g-3">
@@ -206,52 +275,64 @@
         </section>
 
         <!-- 2 · Documentos -->
-        <section class="card border-0 shadow-sm mb-3">
-          <div class="card-body p-4">
-            <h2 class="h6 mb-1">2 · Documentos</h2>
-            <p class="small text-body-secondary">
-              JPG, PNG o PDF, hasta 5 MB. Se guardan cifrados y solo los ve quien revisa tu
-              solicitud.
-            </p>
+        <section class="paso-card">
+          <div class="paso-card-cabecera">
+            <span class="paso-numero">2</span>
+            <div>
+              <h2 class="paso-card-titulo">Documentos</h2>
+              <p class="paso-card-sub">
+                JPG, PNG o PDF, hasta 5 MB. Se guardan cifrados y solo los ve quien revisa tu
+                solicitud.
+              </p>
+            </div>
+          </div>
 
+          <div class="paso-card-cuerpo">
             @for (tipo of reglas().adjuntos; track tipo) {
-              <div class="adjunto d-flex align-items-center gap-3 py-2">
-                <div class="flex-grow-1">
-                  <label [for]="'adj-' + tipo" class="form-label small fw-semibold mb-1">
-                    {{ etiquetas[tipo] }}
-                  </label>
-                  @if (subidos()[tipo]; as nombre) {
-                    <div class="small text-success">
-                      ✓ {{ nombre }}
+              <label class="adjunto" [class.cargado]="!!subidos()[tipo]">
+                <input
+                  [id]="'adj-' + tipo"
+                  type="file"
+                  class="adjunto-input"
+                  [accept]="tiposAceptados"
+                  [disabled]="subiendo() !== null"
+                  (change)="elegirArchivo(tipo, $event)"
+                />
+                <span class="adjunto-icono">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4" /><path d="M7.5 8.5 12 4l4.5 4.5" /><path d="M4.5 20h15" /></svg>
+                </span>
+                <span class="adjunto-cuerpo">
+                  <span class="adjunto-nombre">{{ etiquetas[tipo] }}</span>
+                  <span class="adjunto-detalle">
+                    @if (subidos()[tipo]; as nombre) {
+                      <span class="text-success fw-semibold">✓ {{ nombre }}</span>
                       <span class="text-body-secondary">— elige otro para reemplazarlo</span>
-                    </div>
-                  } @else {
-                    <div class="small text-body-secondary">Sin subir</div>
-                  }
-                </div>
-
-                <div>
-                  <input
-                    [id]="'adj-' + tipo"
-                    type="file"
-                    class="form-control form-control-sm"
-                    [accept]="tiposAceptados"
-                    [disabled]="subiendo() !== null"
-                    (change)="elegirArchivo(tipo, $event)"
-                  />
-                  @if (subiendo() === tipo) {
-                    <span class="spinner-border spinner-border-sm text-primary mt-1"></span>
-                  }
-                </div>
-              </div>
+                    } @else {
+                      Arrastra o elige un archivo
+                    }
+                  </span>
+                </span>
+                @if (subiendo() === tipo) {
+                  <span class="spinner-border spinner-border-sm text-success" aria-hidden="true"></span>
+                } @else {
+                  <span class="adjunto-boton">{{ subidos()[tipo] ? 'Reemplazar' : 'Elegir archivo' }}</span>
+                }
+              </label>
             }
           </div>
         </section>
 
         <!-- 3 · Tu negocio -->
-        <section class="card border-0 shadow-sm mb-3">
-          <div class="card-body p-4">
-            <h2 class="h6 mb-3">3 · Tu negocio</h2>
+        <section class="paso-card">
+          <div class="paso-card-cabecera">
+            <span class="paso-numero">3</span>
+            <div>
+              <h2 class="paso-card-titulo">Tu negocio</h2>
+              <p class="paso-card-sub">Cómo lo conocerán tus futuros compradores.</p>
+            </div>
+          </div>
+
+          <div class="paso-card-cuerpo">
             <div class="row g-3">
               <div class="col-12 col-sm-7">
                 <label for="comercial" class="form-label small fw-semibold">Nombre comercial</label>
@@ -305,9 +386,16 @@
         </section>
 
         <!-- 4 · Dónde estás -->
-        <section class="card border-0 shadow-sm mb-3">
-          <div class="card-body p-4">
-            <h2 class="h6 mb-3">4 · Dónde estás</h2>
+        <section class="paso-card">
+          <div class="paso-card-cabecera">
+            <span class="paso-numero">4</span>
+            <div>
+              <h2 class="paso-card-titulo">Dónde estás</h2>
+              <p class="paso-card-sub">La dirección de tu negocio y a dónde llegan tus ventas.</p>
+            </div>
+          </div>
+
+          <div class="paso-card-cuerpo">
             <div class="row g-3">
               <div class="col-12">
                 <label for="dir" class="form-label small fw-semibold">Dirección</label>
@@ -378,8 +466,8 @@
         </section>
 
         <!-- Enviar -->
-        <div class="card border-0 shadow-sm">
-          <div class="card-body p-4">
+        <div class="paso-card envio-card">
+          <div class="paso-card-cuerpo">
             <div class="form-check mb-3">
               <input
                 id="terminos"
@@ -398,25 +486,57 @@
               <p class="small text-body-secondary mb-2">
                 Faltan por subir:
                 @for (t of adjuntosQueFaltan(); track t) {
-                  <span class="badge text-bg-light border ms-1">{{ etiquetas[t] }}</span>
+                  <span class="badge badge-pendiente ms-1">{{ etiquetas[t] }}</span>
                 }
               </p>
             }
 
             <button
               type="button"
-              class="btn btn-primary w-100 rounded-pill py-2"
+              class="btn btn-vender w-100 rounded-pill py-2"
               [disabled]="!puedeEnviar()"
               (click)="enviar()"
             >
               @if (enviando()) {
-                <span class="spinner-border spinner-border-sm me-2"></span>Enviando…
+                <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Enviando…
               } @else {
                 Enviar solicitud
               }
             </button>
+
+            <p class="small text-body-secondary text-center mt-3 mb-0">
+              Tus datos se guardan cifrados. Solo el equipo de revisión puede verlos.
+            </p>
           </div>
         </div>
+
+        <!-- Cómo funciona -->
+        <section class="como-funciona">
+          <h2 class="h5 text-center fw-bolder mb-4">Cómo funciona</h2>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <div class="funcion-card">
+                <span class="funcion-numero">1</span>
+                <strong>Envía tu solicitud</strong>
+                <p>Cuéntanos quién eres y sube los documentos que lo demuestran.</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="funcion-card">
+                <span class="funcion-numero">2</span>
+                <strong>Revisamos tus datos</strong>
+                <p>Verificamos tu información a mano. Tarda un par de días hábiles.</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="funcion-card">
+                <span class="funcion-numero">3</span>
+                <strong>Publica y vende</strong>
+                <p>Activa tu cuenta y sube tus primeros productos a SmartZone.</p>
+              </div>
+            </div>
+          </div>
+        </section>
       }
     </div>
   </div>

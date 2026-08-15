@@ -1,25 +1,464 @@
-/* Icono grande del estado de la solicitud. */
+.hero-vender {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 2rem 1.75rem;
+  color: #fff;
+  background:
+    radial-gradient(700px 260px at 88% -40%, rgb(0 222 128 / 0.35), transparent 65%),
+    linear-gradient(135deg, #0c120e, #14231a);
+  box-shadow: 0 10px 30px rgb(6 60 35 / 0.18);
+}
+
+.hero-vender-contenido {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-vender-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  background: rgb(0 222 128 / 0.15);
+  color: #4dffab;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.hero-vender-titulo {
+  margin: 0.9rem 0 0.5rem;
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.hero-vender-marca {
+  color: #00ff9d;
+}
+
+.hero-vender-subtitulo {
+  max-width: 34rem;
+  margin: 0;
+  color: rgb(255 255 255 / 0.72);
+  font-size: 0.95rem;
+}
+
+.pasos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.pasos li {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: #f1f4f2;
+  color: var(--bs-secondary-color);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.pasos li.hecho {
+  background: #e5f8ee;
+  color: #0b6e4a;
+}
+
+.pasos li.hecho .paso-punto {
+  background: linear-gradient(135deg, #00de80, #06b56c);
+  color: #fff;
+}
+
+.paso-punto,
+.paso-numero,
+.funcion-numero,
 .estado-icono {
-  width: 4rem;
-  height: 4rem;
-  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.75rem;
-  line-height: 1;
+  border-radius: 50%;
 }
 
-/* Cada archivo, separado del siguiente sin cargar la pantalla de líneas. */
+.paso-punto {
+  width: 22px;
+  height: 22px;
+  background: #dbe2dd;
+  color: #5a665e;
+  font-size: 0.75rem;
+}
+
+.paso-numero {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #00de80, #06b56c);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.paso-card,
+.funcion-card,
+.estado-panel {
+  background: #fff;
+  border: 1px solid var(--bs-border-color-translucent);
+  box-shadow: 0 2px 6px rgb(16 24 19 / 0.04);
+}
+
+.paso-card {
+  border-radius: 18px;
+  margin-bottom: 1.25rem;
+}
+
+.paso-card-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+.paso-card-titulo,
+.paso-card-sub {
+  margin: 0;
+}
+
+.paso-card-titulo {
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.paso-card-sub {
+  color: var(--bs-secondary-color);
+  font-size: 0.83rem;
+}
+
+.paso-card-cuerpo {
+  padding: 1.4rem;
+}
+
+.paso-card-cuerpo .form-control:focus,
+.paso-card-cuerpo .form-select:focus,
+.envio-card .form-check-input:focus {
+  border-color: #4fce9a;
+  box-shadow: 0 0 0 0.25rem rgb(13 199 99 / 0.15);
+}
+
+.tipo-persona-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.tipo-persona,
+.adjunto {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.tipo-persona {
+  border: 1.5px solid var(--bs-border-color);
+  background: #fff;
+}
+
+.tipo-persona:hover {
+  border-color: #b8e8d0;
+}
+
+.tipo-persona.activo {
+  border-color: var(--bs-success);
+  background: #effcf5;
+  box-shadow: 0 0 0 3px rgb(13 199 99 / 0.12);
+}
+
+.tipo-persona-input,
+.adjunto-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tipo-persona-icono,
+.adjunto-icono {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #eef5f1;
+  color: #0b6e4a;
+}
+
+.tipo-persona-icono {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+
+.adjunto-icono {
+  width: 42px;
+  height: 42px;
+}
+
+.tipo-persona.activo .tipo-persona-icono {
+  background: linear-gradient(135deg, #00de80, #06b56c);
+  color: #fff;
+}
+
+.tipo-persona-texto,
+.adjunto-cuerpo {
+  display: flex;
+  flex-direction: column;
+}
+
+.tipo-persona-texto {
+  line-height: 1.25;
+}
+
+.tipo-persona-texto strong {
+  font-size: 0.95rem;
+}
+
+.tipo-persona-texto small {
+  color: var(--bs-secondary-color);
+  font-size: 0.8rem;
+}
+
+.tipo-persona-check {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--bs-success);
+  opacity: 0;
+}
+
+.tipo-persona.activo .tipo-persona-check {
+  opacity: 1;
+}
+
+.adjunto {
+  border: 1.5px dashed #cfd8d1;
+  background: #fafcfb;
+}
+
 .adjunto + .adjunto {
-  border-top: 1px solid var(--bs-border-color-translucent);
+  margin-top: 0.75rem;
 }
 
-/* En móvil el selector de archivo no cabe al lado de la etiqueta. */
+.adjunto:hover,
+.adjunto:focus-within {
+  border-color: #7fddb4;
+}
+
+.adjunto:focus-within {
+  outline: 3px solid rgb(13 199 99 / 0.15);
+}
+
+.adjunto.cargado {
+  border-style: solid;
+  border-color: #bfe8d0;
+  background: #f2fbf5;
+}
+
+.adjunto.cargado .adjunto-icono {
+  background: #d9f7e6;
+}
+
+.adjunto-cuerpo {
+  flex: 1;
+  min-width: 0;
+}
+
+.adjunto-nombre {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.adjunto-detalle {
+  color: var(--bs-secondary-color);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.adjunto-boton {
+  flex-shrink: 0;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 999px;
+  background: #fff;
+  color: #0b6e4a;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.btn-vender {
+  background: linear-gradient(135deg, #00de80, #06b56c);
+  border: none;
+  color: #062b1b;
+  font-weight: 700;
+  box-shadow: 0 6px 16px rgb(6 181 108 / 0.35);
+}
+
+.btn-vender:hover,
+.btn-vender:focus {
+  color: #062b1b;
+  filter: brightness(1.04);
+  box-shadow: 0 8px 20px rgb(6 181 108 / 0.42);
+}
+
+.btn-vender:disabled {
+  opacity: 0.55;
+}
+
+.envio-card {
+  margin-top: 1.5rem;
+  background: #f4fbf7;
+  border-color: #d6ecdf;
+}
+
+.badge-pendiente,
+.badge-adjunto {
+  border: 1px solid;
+  font-weight: 600;
+}
+
+.badge-pendiente {
+  background: #fff4d6;
+  color: #8a6214;
+  border-color: #f0dc9a;
+}
+
+.como-funciona {
+  margin-top: 2.5rem;
+}
+
+.funcion-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.4rem;
+  border-radius: 16px;
+}
+
+.funcion-numero {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 0.25rem;
+  background: #e7f8ef;
+  color: #0b6e4a;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.funcion-card strong {
+  font-size: 0.95rem;
+}
+
+.funcion-card p {
+  margin: 0;
+  color: var(--bs-secondary-color);
+  font-size: 0.85rem;
+}
+
+.estado-panel {
+  padding: 2rem;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgb(16 24 19 / 0.06);
+}
+
+.estado-icono {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.estado-icono-pendiente {
+  background: #fff4d6;
+  color: #b7791f;
+}
+
+.estado-icono-aprobada {
+  background: #d9f7e6;
+  color: #0b6e4a;
+}
+
+.estado-icono-rechazada {
+  background: #fde3e3;
+  color: #b3261e;
+}
+
+.estado-panel .alert {
+  max-width: 30rem;
+  margin-inline: auto;
+}
+
+.resumen-lista {
+  margin: 0;
+}
+
+.resumen-lista > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+.resumen-lista > div:last-child {
+  border-bottom: none;
+}
+
+.resumen-lista dt,
+.resumen-lista dd {
+  margin: 0;
+}
+
+.resumen-lista dt {
+  flex-shrink: 0;
+  color: var(--bs-secondary-color);
+  font-weight: 500;
+}
+
+.resumen-lista dd {
+  text-align: right;
+  word-break: break-word;
+}
+
+.badge-adjunto {
+  background: #e9f8f0;
+  color: #0b6e4a;
+  border-color: #d0ecdd;
+  margin-right: 0.35rem;
+}
+
 @media (max-width: 575.98px) {
+  .tipo-persona-grid {
+    grid-template-columns: 1fr;
+  }
+
   .adjunto {
-    flex-direction: column;
-    align-items: stretch !important;
-    gap: 0.5rem !important;
+    flex-wrap: wrap;
+  }
+
+  .adjunto-boton {
+    margin-left: auto;
+  }
+
+  .estado-panel {
+    padding: 1.5rem 1.25rem;
   }
 }
