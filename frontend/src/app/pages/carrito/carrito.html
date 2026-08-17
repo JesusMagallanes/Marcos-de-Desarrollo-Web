@@ -198,7 +198,8 @@
         <button
           type="button"
           class="btn btn-success w-100 rounded-pill mt-2"
-          [disabled]="procesando() || !metodoElegido() || entregaIncompleta()"
+          [disabled]="procesando() || !metodoElegido()"
+          [title]="entregaIncompleta() ? 'Completa la dirección (≥5 caracteres) y teléfono (9 dígitos)' : ''"
           (click)="pagar()"
         >
           @if (procesando()) {
