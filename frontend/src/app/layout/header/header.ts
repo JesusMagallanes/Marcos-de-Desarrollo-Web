@@ -4,11 +4,14 @@ import { Router, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import {
   AuthService,
+  CarritoItem,
   CarritoService,
   Categoria,
   CategoriaService,
+  ENVIO,
   Producto,
   ProductoService,
+  iconoCategoria,
 } from '../../core';
 
 @Component({
@@ -27,6 +30,9 @@ export class Header implements OnInit {
   protected categorias = signal<Categoria[]>([]);
   protected consulta = signal('');
   protected panelAbierto = signal(false);
+
+  protected readonly iconoCategoria = iconoCategoria;
+  protected readonly umbralEnvioGratis = ENVIO.umbralGratis;
 
   /** Catálogo completo en memoria para la búsqueda incremental, como hacía el header viejo. */
   private todos = signal<Producto[]>([]);
@@ -93,5 +99,14 @@ export class Header implements OnInit {
 
   protected quitarItem(itemId: number): void {
     this.carrito.eliminar(itemId).subscribe();
+  }
+
+  protected cambiarCantidad(item: CarritoItem, delta: number): void {
+    const nueva = item.cantidad + delta;
+    if (nueva < 1) {
+      this.quitarItem(item.itemId);
+    } else if (nueva <= item.stockDisponible) {
+      this.carrito.cambiarCantidad(item.itemId, nueva).subscribe();
+    }
   }
 }

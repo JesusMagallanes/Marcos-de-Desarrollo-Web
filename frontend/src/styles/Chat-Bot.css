@@ -29,7 +29,7 @@
             display: none;
             flex-direction: column;
             overflow: hidden;
-            z-index: 10000;
+            z-index: calc(var(--bs-offcanvas-zindex, 1045) - 1);
             box-shadow: 0 18px 48px rgba(2, 6, 23, 0.35);
             border: 1px solid rgba(17, 24, 39, 0.08);
             animation: fadeIn 0.4s ease;
@@ -232,7 +232,7 @@
             font-size: 20px;
             box-shadow: 0 6px 18px rgba(2, 6, 23, 0.25);
             transition: transform 0.25s ease;
-            z-index: 10001;
+            z-index: calc(var(--bs-offcanvas-zindex, 1045) - 1);
         }
 
         #chat-toggle:hover {

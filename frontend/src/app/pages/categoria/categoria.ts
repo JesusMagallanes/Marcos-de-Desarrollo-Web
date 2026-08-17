@@ -10,6 +10,7 @@ import {
   MarcaService,
   Producto,
   ProductoService,
+  iconoCategoria,
 } from '../../core';
 import { ProductoCard } from '../../shared/producto-card/producto-card';
 
@@ -86,6 +87,10 @@ export class Categoria {
   });
 
   protected paginas = computed(() => Array.from({ length: this.totalPaginas() }, (_, i) => i));
+
+  protected iconoCategoria(): string {
+    return iconoCategoria(this.categoria() ?? { icono: null });
+  }
 
   constructor() {
     // Recarga cuando cambia el slug de la ruta.

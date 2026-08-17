@@ -104,8 +104,9 @@ public class CarritoService {
         CarritoItem item = itemRepositorio.findByIdAndCarritoId(itemId, carrito.getId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("El ítem no está en tu carrito"));
 
-        itemRepositorio.delete(item);
-        return construir(obtenerOCrear(usuarioId));
+        carrito.quitar(item);
+        carritoRepositorio.save(carrito);
+        return construir(carrito);
     }
 
     @Transactional

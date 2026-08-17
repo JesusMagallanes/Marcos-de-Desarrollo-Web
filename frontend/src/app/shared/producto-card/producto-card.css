@@ -1,6 +1,16 @@
 /* La variante 'grid' usa las clases globales de src/styles/Style.css
    (.producto-card y variantes). */
 
+:host {
+  display: block;
+  height: 100%;
+}
+
+:host a {
+  display: block;
+  height: 100%;
+}
+
 /* ── Tarjeta de carrusel (home) ──────────────────────────────────── */
 
 .pc-card {
@@ -129,8 +139,8 @@
   color: #98a69e;
 }
 
-/* Tarjeta compacta en móvil: imagen más baja y cuerpo ajustado para
-   que la tarjeta no ocupe casi toda la pantalla. */
+/* ── Tarjeta de grilla (categoría / búsqueda) ────────────────────── */
+
 @media (max-width: 575.98px) {
   .pc-imagen {
     aspect-ratio: 4 / 3;

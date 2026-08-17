@@ -14,12 +14,35 @@
       <a class="btn btn-success" routerLink="/">Volver al inicio</a>
     </div>
   } @else {
+    <!-- BREADCRUMB -->
+    <nav class="categoria-breadcrumb" aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a routerLink="/">Inicio</a></li>
+        <li class="breadcrumb-item"><a routerLink="/">Catálogo</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ categoria()?.name }}</li>
+      </ol>
+    </nav>
+
+    <!-- BANNER DE CATEGORÍA -->
+    <header class="categoria-banner">
+      <div class="categoria-banner-icono">
+        <i [class]="iconoCategoria()"></i>
+      </div>
+      <div class="categoria-banner-texto">
+        <h1>{{ categoria()?.name }}</h1>
+        @if (categoria()?.description) {
+          <p>{{ categoria()?.description }}</p>
+        }
+        <span class="categoria-banner-contador">{{ totalElementos() }} productos</span>
+      </div>
+    </header>
+
     <div class="row">
       <!-- SIDEBAR DE FILTROS (Desktop) -->
       <div class="col-lg-3 mt-4 mb-4 d-none d-lg-block filtros-sidebar">
         <div class="filtros-container">
           <!-- TÍTULO -->
-          <h4 class="mb-4" style="color: #5a5a5a; font-weight: 600;">{{ categoria()?.name }}</h4>
+          <h4 class="mb-4" style="color: #5a5a5a; font-weight: 600;">Filtros</h4>
 
           <!-- FILTRO DE MARCA -->
           <div class="mb-4">
@@ -157,7 +180,7 @@
         @if (visibles().length) {
           <div class="row mt-3" id="productos-container">
             @for (p of visibles(); track p.id) {
-              <div class="col-lg-4 col-md-6 col-12 mb-4 producto-item producto-col">
+              <div class="col-lg-4 col-md-6 col-12 mb-4 producto-item producto-col d-flex">
                 <app-producto-card [producto]="p" />
               </div>
             }
