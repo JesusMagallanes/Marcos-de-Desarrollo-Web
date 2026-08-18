@@ -98,6 +98,34 @@ opcional "GOOGLE_CLIENT_ID"  "${GOOGLE_CLIENT_ID:-}"  "Login con Google"
 opcional "FACEBOOK_CLIENT_ID" "${FACEBOOK_CLIENT_ID:-}" "Login con Facebook"
 opcional "MP_ACCESS_TOKEN"   "${MP_ACCESS_TOKEN:-}"   "Cobros con MercadoPago"
 opcional "MP_WEBHOOK_SECRET" "${MP_WEBHOOK_SECRET:-}" "Verificacion de webhooks"
+opcional "MP_NOTIFICACION_URL" "${MP_NOTIFICACION_URL:-}" "Aviso de cobro (webhook)"
+
+# El cobro se hace y la tienda no se entera, sin un solo error por ninguna
+# parte. Se avisa aqui porque es lo unico que se lee antes de arrancar, y
+# porque este fallo ya costo semanas de "el pago no llega".
+publica() {
+  case "$1" in
+    ""|*localhost*|*127.0.0.1*|*://192.168.*|*://10.*|*://0.0.0.0*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
+if [ -n "${MP_ACCESS_TOKEN:-}" ]; then
+  if ! publica "${MP_RETORNO_BASE:-}"; then
+    echo ""
+    printf "    [!]  MP_RETORNO_BASE no es publica (%s).
+" "${MP_RETORNO_BASE:-vacia}"
+    echo "         MercadoPago DESCARTA en silencio las back_urls que apuntan ahi:"
+    echo "         responde 201, las guarda vacias, y el comprador paga y se queda"
+    echo "         sin boton para volver. La venta nunca se confirma."
+  fi
+  if ! publica "${MP_NOTIFICACION_URL:-}"; then
+    echo ""
+    echo "    [!]  MP_NOTIFICACION_URL sin URL publica: MercadoPago no avisara del"
+    echo "         cobro y el pedido seguira PENDIENTE hasta que concilie el"
+    echo "         barrendero. En desarrollo:  ngrok http 8080"
+  fi
+fi
 
 echo ""
 

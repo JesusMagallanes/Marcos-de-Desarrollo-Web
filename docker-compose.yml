@@ -167,6 +167,7 @@ services:
       MP_ACCESS_TOKEN: ${MP_ACCESS_TOKEN:-}
       MP_WEBHOOK_SECRET: ${MP_WEBHOOK_SECRET:-}
       MP_RETORNO_BASE: ${MP_RETORNO_BASE:-http://localhost:4200}
+      MP_NOTIFICACION_URL: ${MP_NOTIFICACION_URL:-}
       SAGA_MINUTOS_ABANDONO: ${SAGA_MINUTOS_ABANDONO:-25}
     depends_on:
       verificador: {condition: service_completed_successfully}

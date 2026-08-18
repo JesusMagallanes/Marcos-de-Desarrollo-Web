@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -22,13 +24,49 @@ public class MercadoPagoClient {
     private final RestClient cliente;
     private final String accessToken;
     private final String retornoBase;
+    private final String notificacionUrl;
 
     public MercadoPagoClient(RestClient mercadoPagoRestClient,
             @Value("${mercadopago.access-token}") String accessToken,
-            @Value("${mercadopago.retorno-base}") String retornoBase) {
+            @Value("${mercadopago.retorno-base}") String retornoBase,
+            @Value("${mercadopago.notificacion-url:}") String notificacionUrl) {
         this.cliente = mercadoPagoRestClient;
         this.accessToken = accessToken;
         this.retornoBase = retornoBase;
+        this.notificacionUrl = notificacionUrl;
+    }
+
+    /**
+     * Avisa al arrancar de las dos formas en que este checkout se rompe en
+     * silencio.
+     *
+     * <p>Las dos han pasado de verdad y ninguna da error: MercadoPago acepta la
+     * preferencia con un 201 y guarda las {@code back_urls} VACIAS si apuntan a
+     * localhost, y sin {@code notification_url} no llama al webhook nunca. El
+     * resultado es el mismo por los dos lados —el comprador paga, el dinero
+     * entra en MercadoPago y la tienda no se entera— y solo se descubre mirando
+     * la preferencia en la API, que es donde nadie mira.
+     */
+    @PostConstruct
+    void avisarSiElCobroNoPuedeVolver() {
+        if (!configurado()) {
+            log.warn("MercadoPago sin MP_ACCESS_TOKEN: el checkout respondera 503.");
+            return;
+        }
+
+        if (!esAlcanzablePorMercadoPago(retornoBase)) {
+            log.warn("MP_RETORNO_BASE={} no es publica: MercadoPago DESCARTA las back_urls"
+                    + " (las guarda vacias, sin dar error) y el comprador se queda sin boton"
+                    + " para volver a la tienda, asi que /api/pagos/confirmar no se ejecuta."
+                    + " Usa una URL publica: ngrok en desarrollo, el dominio al desplegar.",
+                    retornoBase);
+        }
+
+        if (!esAlcanzablePorMercadoPago(notificacionUrl)) {
+            log.warn("MP_NOTIFICACION_URL sin URL publica: no se manda notification_url, asi"
+                    + " que MercadoPago no avisara del cobro. La venta solo se cerrara cuando"
+                    + " el barrendero concilie, y hasta entonces el pedido sigue PENDIENTE.");
+        }
     }
 
     public record Preferencia(String id, String init_point, String sandbox_init_point) {
@@ -66,6 +104,20 @@ public class MercadoPagoClient {
                 "success", retornoBase + "/carrito?status=approved",
                 "failure", retornoBase + "/carrito?status=failure",
                 "pending", retornoBase + "/carrito?status=pending"));
+
+        /*
+         * A donde avisa MercadoPago en cuanto se cobra. Es lo que cierra la
+         * venta sin depender de que el comprador vuelva a la tienda, y mucha
+         * gente cierra la pestania nada mas ver "pago aprobado".
+         *
+         * Faltaba por completo, y por eso el webhook --que esta escrito, con su
+         * firma verificada y publicado en /api/pagos/webhook-- no se llamaba
+         * nunca: MercadoPago no adivina la direccion, hay que darsela aqui, en
+         * cada preferencia.
+         */
+        if (esAlcanzablePorMercadoPago(notificacionUrl)) {
+            cuerpo.put("notification_url", notificacionUrl);
+        }
 
         // `auto_return` hace que MercadoPago devuelva al comprador solo cuando
         // el pago se aprueba, pero exige que back_urls.success sea una URL que
