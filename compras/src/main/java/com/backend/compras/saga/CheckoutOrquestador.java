@@ -3,6 +3,7 @@ package com.backend.compras.saga;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CheckoutOrquestador {
 
+    /*
+     * El propio orquestador, pero visto a traves del proxy de Spring.
+     *
+     * Llamar a `compensar(...)` directamente NO pasa por el proxy, y entonces su
+     * @Transactional(REQUIRES_NEW) no se aplica: la compensacion se ejecutaba
+     * dentro de la transaccion que estaba fallando, asi que al relanzar la
+     * excepcion se deshacia junto con todo lo demas. Quedaba el stock liberado
+     * en catalogo --eso es una llamada HTTP y no se deshace-- pero la saga
+     * seguia diciendo ESPERANDO_PAGO y el pedido PENDIENTE.
+     *
+     * Es un ObjectProvider y no una inyeccion normal porque una dependencia a si
+     * mismo por constructor seria un ciclo; asi se resuelve cuando se usa.
+     */
+    private final ObjectProvider<CheckoutOrquestador> proxia;
+
     private final SagaCheckoutRepository sagas;
     private final CarritoRepository carritos;
     private final CarritoService carritoService;
@@ -60,9 +76,30 @@ public class CheckoutOrquestador {
         List<SagaCheckout> activas = sagas.buscarActivasDeUsuario(usuarioId);
         if (!activas.isEmpty()) {
             SagaCheckout previa = activas.get(0);
+
+            /*
+             * ANTES DE TIRARLA, PREGUNTAR SI SE PAGÓ.
+             *
+             * Quien paga y no vuelve a la tienda —porque cierra la pestaña, o
+             * porque MercadoPago no le da botón de volver— tiene una saga viva
+             * con el cobro hecho. Si entonces reintenta la compra desde el
+             * carrito, esto la compensaba: pedido cancelado, stock devuelto y el
+             * dinero cobrado. Y como COMPENSADA es un estado final, el barrendero
+             * ya no la miraba nunca más: el pago se perdía para siempre.
+             *
+             * Es la misma comprobación que hace el barrendero antes de compensar;
+             * faltaba en este camino, que es justo el que recorre alguien
+             * impaciente.
+             */
+            if (conciliarSiSePago(previa, token)) {
+                throw new ConflictoException(
+                        "Tu compra anterior sí se completó: el pago llegó aunque no volvieras "
+                                + "a la tienda. Míralo en Mis compras antes de pagar otra vez.");
+            }
+
             log.info("El usuario {} ya tenía la saga {} en curso; se compensa antes de reiniciar",
                     usuarioId, previa.getReferencia());
-            compensar(previa, token, "reemplazada por un nuevo intento de compra");
+            proxia.getObject().compensar(previa, token, "reemplazada por un nuevo intento de compra");
         }
 
         Carrito carrito = carritos.buscarConItems(usuarioId)
@@ -129,7 +166,7 @@ public class CheckoutOrquestador {
         } catch (RuntimeException ex) {
             log.error("Fallo iniciando la saga {}: {}", saga.getReferencia(), ex.getMessage());
             saga.marcarError(ex.getMessage());
-            compensar(saga, token, ex.getMessage());
+            proxia.getObject().compensar(saga, token, ex.getMessage());
             throw ex;
         }
     }
@@ -225,9 +262,43 @@ public class CheckoutOrquestador {
         } catch (RuntimeException ex) {
             log.error("Fallo confirmando la saga {}: {}", saga.getReferencia(), ex.getMessage());
             saga.marcarError(ex.getMessage());
-            compensar(saga, token, ex.getMessage());
+            proxia.getObject().compensar(saga, token, ex.getMessage());
             throw ex;
         }
+    }
+
+    /* ══════════════ Conciliación ══════════════ */
+
+    /**
+     * Completa la compra si la pasarela dice que sí se pagó.
+     *
+     * <p>Hace falta siempre que se vaya a tirar una compra a la basura, y hay dos
+     * sitios donde eso ocurre: el barrendero, cuando pasa el plazo, y el propio
+     * checkout, cuando el comprador reintenta. Vive aquí y no en el barrendero
+     * porque los dos la necesitan y porque tirar un pago cobrado es el peor error
+     * que puede cometer esta clase.
+     *
+     * <p>El {@code paymentId} no se conoce: solo llega por la URL de retorno, y
+     * precisamente estos son los casos en los que el comprador no volvió. Por eso
+     * se busca por la referencia que se puso en la preferencia.
+     *
+     * @return true si se completó, y entonces NO hay que compensar
+     */
+    public boolean conciliarSiSePago(SagaCheckout saga, String token) {
+        var pago = mercadoPago.buscarPagoAprobado(saga.getReferencia());
+        if (pago.isEmpty()) {
+            return false;
+        }
+
+        log.warn("La compra {} estaba por descartarse pero SÍ se pagó (pago={}). Se completa.",
+                saga.getReferencia(), pago.get().id());
+
+        // Por el mismo camino que el retorno del navegador y con el dueño de la
+        // saga: así el pedido, el stock y el envío quedan igual que si hubiera
+        // vuelto, y las comprobaciones de importe y de propiedad se aplican una
+        // sola vez y en un único sitio.
+        confirmar(saga.getUsuarioId(), pago.get().id(), token);
+        return true;
     }
 
     /* ══════════════ Compensación ══════════════ */

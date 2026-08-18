@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.backend.compras.pago.MercadoPagoClient;
 import com.backend.compras.shared.seguridad.TokenServicio;
 import com.backend.compras.shared.seguridad.ContextoRls;
 
@@ -22,7 +21,6 @@ public class SagaBarrendero {
 
     private final SagaCheckoutRepository sagas;
     private final CheckoutOrquestador orquestador;
-    private final MercadoPagoClient mercadoPago;
     private final TokenServicio tokenServicio;
 
     /** Tras este tiempo sin confirmarse, se da el pago por abandonado. */
@@ -70,7 +68,7 @@ public class SagaBarrendero {
                 // pedido, con el stock devuelto a la tienda y con el cobro hecho.
                 // El `paymentId` solo llega por la URL de retorno, así que para
                 // los que no volvieron hay que buscar por la referencia.
-                if (conciliarSiSePago(saga, token)) {
+                if (orquestador.conciliarSiSePago(saga, token)) {
                     continue;
                 }
 
@@ -105,27 +103,5 @@ public class SagaBarrendero {
                 log.error("Reintento fallido de la saga {}: {}", saga.getReferencia(), ex.getMessage());
             }
         }
-    }
-
-    /**
-     * Completa la compra si la pasarela dice que sí se pagó.
-     *
-     * @return true si se completó, y entonces NO hay que compensar
-     */
-    private boolean conciliarSiSePago(SagaCheckout saga, String token) {
-        var pago = mercadoPago.buscarPagoAprobado(saga.getReferencia());
-        if (pago.isEmpty()) {
-            return false;
-        }
-
-        log.warn("La compra {} estaba por compensar pero SÍ se pagó (pago={}). Se completa.",
-                saga.getReferencia(), pago.get().id());
-
-        // Se cierra por el mismo camino que el retorno del navegador, con el
-        // dueño de la saga: así el pedido, el stock y el envío quedan igual que
-        // si el comprador hubiera vuelto, y las comprobaciones de importe y de
-        // propiedad se aplican una sola vez y en un único sitio.
-        orquestador.confirmar(saga.getUsuarioId(), pago.get().id(), token);
-        return true;
     }
 }
