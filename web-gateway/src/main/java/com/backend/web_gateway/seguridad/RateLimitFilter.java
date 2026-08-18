@@ -38,6 +38,18 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final Cupo AUTENTICACION = new Cupo("autenticacion", 20, Duration.ofMinutes(15));
     private static final Cupo PAGOS = new Cupo("pagos", 20, Duration.ofMinutes(10));
+    /*
+     * El webhook de la pasarela no es una persona: son todas las notificaciones
+     * de todas las compras, y llegan desde el puñado de IPs de MercadoPago. Con
+     * el cupo de "pagos" (20 cada 10 minutos por IP) las notificaciones se
+     * bloqueaban entre ellas en cuanto habia algo de trafico, y una notificacion
+     * perdida es una venta que se queda sin cerrar.
+     *
+     * No se deja sin limite: quien lo llame sin la firma correcta se rechaza en
+     * `compras`, pero cada llamada consulta la API de MercadoPago y eso si tiene
+     * coste. Un cupo amplio corta una inundacion sin estorbar el trafico real.
+     */
+    private static final Cupo WEBHOOK = new Cupo("webhook", 300, Duration.ofMinutes(1));
     private static final Cupo ESCRITURA = new Cupo("escritura", 120, Duration.ofMinutes(1));
     private static final Cupo LECTURA = new Cupo("lectura", 600, Duration.ofMinutes(1));
 
@@ -67,6 +79,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         if (ruta.startsWith("/api/auth/") || ruta.startsWith("/oauth2/")) {
             return AUTENTICACION;
+        }
+        if (ruta.equals("/api/pagos/webhook")) {
+            return WEBHOOK;
         }
         if (ruta.startsWith("/api/pagos/")) {
             return PAGOS;
