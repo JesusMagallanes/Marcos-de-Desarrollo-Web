@@ -3,7 +3,9 @@ package com.backend.compras.pago;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.compras.pago.dto.PagoDtos.ConfirmarRequest;
@@ -49,11 +51,11 @@ public class PagoController {
     /** Notificación servidor-a-servidor de MercadoPago. */
     @PostMapping("/webhook")
     public ResponseEntity<Void> webhook(
-            @org.springframework.web.bind.annotation.RequestHeader(value = "x-signature", required = false) String firma,
-            @org.springframework.web.bind.annotation.RequestHeader(value = "x-request-id", required = false) String requestId,
-            @org.springframework.web.bind.annotation.RequestParam(value = "data.id", required = false) String dataId,
-            @org.springframework.web.bind.annotation.RequestParam(value = "type", required = false) String tipo,
-            @org.springframework.web.bind.annotation.RequestParam(value = "topic", required = false) String topico,
+            @RequestHeader(value = "x-signature", required = false) String firma,
+            @RequestHeader(value = "x-request-id", required = false) String requestId,
+            @RequestParam(value = "data.id", required = false) String dataId,
+            @RequestParam(value = "type", required = false) String tipo,
+            @RequestParam(value = "topic", required = false) String topico,
             @RequestBody(required = false) String cuerpo) {
 
         /*
