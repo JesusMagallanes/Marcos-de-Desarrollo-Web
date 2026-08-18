@@ -88,7 +88,7 @@ services:
       POSTGRES_DB: smartzone
       POSTGRES_USER: ${DB_USER:-smartzone}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-smartzone_local}
-    ports: ['5432:5432']
+    ports: ['${PUERTO_POSTGRES:-5432}:5432']
     volumes: [datos-postgres:/var/lib/postgresql/data]
     networks: [smartzone]
     healthcheck:
@@ -103,7 +103,7 @@ services:
     build:
       context: ./usuarios
       dockerfile: ../docker/Dockerfile.jvm
-    ports: ['8082:8082']
+    ports: ['${PUERTO_USUARIOS:-8082}:8082']
     environment:
       <<: *entorno-bd
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@smartzone.com}
@@ -139,7 +139,7 @@ services:
     build:
       context: ./catalogo
       dockerfile: ../docker/Dockerfile.jvm
-    ports: ['8081:8081']
+    ports: ['${PUERTO_CATALOGO:-8081}:8081']
     environment:
       <<: *entorno-bd
       RESERVA_MINUTOS: ${RESERVA_MINUTOS:-20}
@@ -158,7 +158,7 @@ services:
     build:
       context: ./compras
       dockerfile: ../docker/Dockerfile.jvm
-    ports: ['8083:8083']
+    ports: ['${PUERTO_COMPRAS:-8083}:8083']
     environment:
       <<: *entorno-bd
       # Dentro de la red de Compose los servicios se ven por nombre, no por
@@ -188,7 +188,7 @@ services:
     build:
       context: ./web-gateway
       dockerfile: ../docker/Dockerfile.jvm
-    ports: ['8080:8080']
+    ports: ['${PUERTO_GATEWAY:-8080}:8080']
     environment:
       JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en el .env}
       CATALOGO_URL: http://catalogo:8081
@@ -218,7 +218,7 @@ services:
     build:
       context: ./frontend
       dockerfile: ../docker/Dockerfile.frontend
-    ports: ['4200:80']
+    ports: ['${PUERTO_FRONTEND:-4200}:80']
     restart: unless-stopped
     networks: [smartzone]
     depends_on:
