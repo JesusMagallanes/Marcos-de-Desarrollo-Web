@@ -54,11 +54,6 @@
           <div class="invalid-feedback">Debe tener 9 dígitos.</div>
         </div>
 
-        <div class="col-12 col-md-6">
-          <label class="form-label small fw-semibold">Dirección</label>
-          <input class="form-control" formControlName="address" [class.is-invalid]="invalido('address')" />
-          <div class="invalid-feedback">Ingresa tu dirección.</div>
-        </div>
       </div>
 
       <button type="submit" class="btn btn-success mt-4" [disabled]="guardando()">
@@ -70,3 +65,68 @@
     </form>
   </div>
 </div>
+
+<!--
+  La dirección va en su propia tarjeta y no como un campo más del formulario.
+  Son nueve datos y un mapa: metidos entre el nombre y el correo, cambiar de
+  casa obligaba a repasar todo lo demás. Además es lo único de esta pantalla
+  que hace falta para poder comprar.
+-->
+<div class="card border-0 shadow-sm mt-3">
+  <div class="card-body p-4">
+    <div class="d-flex align-items-start gap-2 mb-3">
+      <div>
+        <h5 class="mb-1">Dirección de entrega</h5>
+        <p class="small text-body-secondary mb-0">
+          A dónde te mandamos los pedidos. Se te pedirá confirmarla al pagar.
+        </p>
+      </div>
+      @if (direccion()) {
+        <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" (click)="abrirDireccion()">
+          Cambiar
+        </button>
+      }
+    </div>
+
+    @if (errorDireccion()) {
+      <div class="alert alert-danger py-2 small">{{ errorDireccion() }}</div>
+    }
+    @if (exitoDireccion()) {
+      <div class="alert alert-success py-2 small">{{ exitoDireccion() }}</div>
+    }
+
+    @if (direccion(); as d) {
+      <div class="entrega-resumen">
+        <div class="fw-semibold">{{ resumenDireccion() }}</div>
+        <div class="small text-body-secondary">CP {{ d.codigoPostal }} · {{ d.departamento }}</div>
+        @if (d.referencia) {
+          <div class="small text-body-secondary">{{ d.referencia }}</div>
+        }
+        @if (d.latitud != null) {
+          <div class="small text-success-emphasis">✓ Punto marcado en el mapa</div>
+        } @else {
+          <div class="small text-body-secondary">Sin punto en el mapa</div>
+        }
+      </div>
+    } @else {
+      <!-- Sin dirección no se puede comprar, así que se dice aquí y no al
+           llegar al carrito con el pedido ya montado. -->
+      <div class="alert alert-warning py-2 small mb-3">
+        Todavía no tienes una dirección guardada. Hace falta para poder comprar.
+      </div>
+      <button type="button" class="btn btn-success" (click)="abrirDireccion()">
+        Añadir mi dirección
+      </button>
+    }
+  </div>
+</div>
+
+@if (direccionAbierta()) {
+  <app-direccion-modal
+    [inicial]="direccionParaEditar()"
+    [pedirReceptor]="false"
+    textoAceptar="Guardar dirección"
+    (guardar)="guardarDireccion($event)"
+    (cerrar)="direccionAbierta.set(false)"
+  />
+}

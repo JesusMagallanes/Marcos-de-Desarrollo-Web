@@ -31,8 +31,16 @@ public class PedidoService {
     private final CarritoService carritoService;
     private final MetodoPagoRepository metodoPagoRepositorio;
 
-    public List<PedidoResponse> misPedidos(Long usuarioId) {
-        return pedidoRepositorio.listarPorUsuario(usuarioId).stream().map(PedidoResponse::desde).toList();
+    /**
+     * «Mis compras»: lo que este usuario compró, no todo lo que empezó.
+     *
+     * <p>Un checkout abandonado deja un pedido PENDIENTE, y la saga lo cancela
+     * al no llegar el pago. Ninguno de los dos es una compra, y verlos en esta
+     * lista es lo que hacía que el comprador no supiera qué había pagado.
+     */
+    public List<PedidoResponse> misCompras(Long usuarioId) {
+        return pedidoRepositorio.listarComprasDeUsuario(usuarioId, EstadoPedido.COMPRADOS)
+                .stream().map(PedidoResponse::desde).toList();
     }
 
     public List<PedidoResponse> listar(EstadoPedido estado) {
@@ -116,6 +124,6 @@ public class PedidoService {
 
     /** ¿Este usuario compró este producto? Ver PedidoRepository.comproElProducto. */
     public boolean comproElProducto(Long usuarioId, Long productoId) {
-        return pedidoRepositorio.comproElProducto(usuarioId, productoId);
+        return pedidoRepositorio.comproElProducto(usuarioId, productoId, EstadoPedido.COMPRADOS);
     }
 }

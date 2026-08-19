@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.usuarios.shared.security.UsuarioAutenticado;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.CambioRol;
+import com.backend.usuarios.usuario.dto.DireccionUsuario;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.PerfilUpdate;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.UsuarioCreate;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.UsuarioResponse;
@@ -58,6 +59,20 @@ public class UsuarioController {
     @PreAuthorize("hasAuthority('PERMISO_USUARIOS_GESTIONAR') or #id == principal.claims['uid']")
     public UsuarioResponse actualizarPerfil(@PathVariable Long id, @Valid @RequestBody PerfilUpdate dto) {
         return servicio.actualizarPerfil(id, dto);
+    }
+
+    /**
+     * La direccion de entrega del perfil.
+     *
+     * <p>Mismo candado que el perfil: o eres tu, o gestionas usuarios. Sin el,
+     * cambiar el numero de la URL bastaria para mandarle el pedido de otro a tu
+     * casa.
+     */
+    @PutMapping("/{id}/direccion")
+    @PreAuthorize("hasAuthority('PERMISO_USUARIOS_GESTIONAR') or #id == principal.claims['uid']")
+    public UsuarioResponse guardarDireccion(@PathVariable Long id,
+            @Valid @RequestBody DireccionUsuario direccion) {
+        return servicio.guardarDireccion(id, direccion);
     }
 
     @PatchMapping("/{id}/rol")

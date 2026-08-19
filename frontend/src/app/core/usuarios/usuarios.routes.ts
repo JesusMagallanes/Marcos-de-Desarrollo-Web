@@ -15,6 +15,7 @@ export const RUTAS_USUARIOS = {
     base: `${API}/usuarios`,
     porId: (id: number) => `${API}/usuarios/${id}`,
     perfil: (id: number) => `${API}/usuarios/${id}/perfil`,
+    direccion: (id: number) => `${API}/usuarios/${id}/direccion`,
     rol: (id: number) => `${API}/usuarios/${id}/rol`,
   },
 

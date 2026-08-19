@@ -1,0 +1,218 @@
+<!-- El fondo cierra al pulsarlo: es lo que se intenta después de Escape. -->
+<div class="direccion-fondo" (click)="cerrar.emit()"></div>
+
+<div
+  class="direccion-panel"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="direccion-titulo"
+  (click)="$event.stopPropagation()"
+>
+  <div class="direccion-cabecera">
+    <div>
+      <h2 id="direccion-titulo" class="h6 fw-bold mb-1">¿A dónde lo enviamos?</h2>
+      <p class="small text-body-secondary mb-0">
+        Cuanto más exacto, antes te llega. Puedes marcarlo en el mapa.
+      </p>
+    </div>
+    <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrar.emit()"></button>
+  </div>
+
+  <div class="direccion-cuerpo">
+    @if (pedirReceptor()) {
+      <!-- Quién recibe. Primero porque no siempre es quien compra: un regalo, un
+           envío a la oficina. Sin esto el repartidor pregunta por el titular de
+           la cuenta y en esa dirección no lo conoce nadie. -->
+      <div class="row g-2">
+        <div class="col-12 col-sm-7">
+          <label for="dir-nombre" class="form-label small fw-semibold mb-1">Quién recibe</label>
+          <input
+            id="dir-nombre"
+            class="form-control form-control-sm"
+            maxlength="120"
+            autocomplete="name"
+            placeholder="Ana Vega Ríos"
+            [class.is-invalid]="errorNombre()"
+            [value]="receptorNombre()"
+            (input)="receptorNombre.set($any($event.target).value)"
+          />
+          @if (errorNombre()) {
+            <div class="invalid-feedback d-block">{{ errorNombre() }}</div>
+    }
+      </div>
+
+      <div class="col-12 col-sm-5">
+        <label for="dir-telefono" class="form-label small fw-semibold mb-1">Teléfono</label>
+        <input
+          id="dir-telefono"
+          type="tel"
+          inputmode="numeric"
+          class="form-control form-control-sm"
+          maxlength="9"
+          autocomplete="tel-national"
+          placeholder="987654321"
+          [class.is-invalid]="errorTelefono()"
+          [value]="telefonoContacto()"
+          (input)="telefonoContacto.set($any($event.target).value)"
+        />
+        @if (errorTelefono()) {
+          <div class="invalid-feedback d-block">{{ errorTelefono() }}</div>
+        }
+      </div>
+    </div>
+
+    <hr class="my-3" />
+    }
+
+    <!-- La calle y el número van separados porque la pasarela los quiere así:
+         `street_name` y `street_number`. Pegados en un solo campo no hay forma
+         fiable de partirlos después. -->
+    <div class="row g-2">
+      <div class="col-8">
+        <label for="dir-calle" class="form-label small fw-semibold mb-1">Calle o avenida</label>
+        <input
+          id="dir-calle"
+          class="form-control form-control-sm"
+          maxlength="200"
+          autocomplete="shipping address-line1"
+          placeholder="Av. Los Próceres"
+          [class.is-invalid]="errorCalle()"
+          [value]="calle()"
+          (input)="calle.set($any($event.target).value)"
+        />
+        @if (errorCalle()) {
+          <div class="invalid-feedback d-block">{{ errorCalle() }}</div>
+        }
+      </div>
+
+      <div class="col-4">
+        <label for="dir-numero" class="form-label small fw-semibold mb-1">Número</label>
+        <input
+          id="dir-numero"
+          class="form-control form-control-sm"
+          maxlength="20"
+          placeholder="1420"
+          [class.is-invalid]="errorNumero()"
+          [value]="numero()"
+          (input)="numero.set($any($event.target).value)"
+        />
+        @if (errorNumero()) {
+          <div class="invalid-feedback d-block">{{ errorNumero() }}</div>
+        }
+      </div>
+    </div>
+
+    <div class="mt-2">
+      <label for="dir-referencia" class="form-label small fw-semibold mb-1">
+        Piso, interior o referencia
+        <span class="text-body-secondary fw-normal">(opcional)</span>
+      </label>
+      <input
+        id="dir-referencia"
+        class="form-control form-control-sm"
+        maxlength="200"
+        placeholder="Piso 4, dpto 402. Portón verde, frente al parque"
+        [value]="referencia()"
+        (input)="referencia.set($any($event.target).value)"
+      />
+      <div class="form-text">Es lo que salva la entrega cuando el número no se ve desde la calle.</div>
+    </div>
+
+    <div class="row g-2 mt-1">
+      <div class="col-12 col-sm-4">
+        <label for="dir-distrito" class="form-label small fw-semibold mb-1">Distrito</label>
+        <input
+          id="dir-distrito"
+          class="form-control form-control-sm"
+          maxlength="80"
+          placeholder="Miraflores"
+          [class.is-invalid]="errorDistrito()"
+          [value]="distrito()"
+          (input)="distrito.set($any($event.target).value)"
+        />
+        @if (errorDistrito()) {
+          <div class="invalid-feedback d-block">{{ errorDistrito() }}</div>
+        }
+      </div>
+
+      <div class="col-6 col-sm-4">
+        <label for="dir-provincia" class="form-label small fw-semibold mb-1">Provincia</label>
+        <input
+          id="dir-provincia"
+          class="form-control form-control-sm"
+          maxlength="80"
+          placeholder="Lima"
+          [class.is-invalid]="errorProvincia()"
+          [value]="provincia()"
+          (input)="provincia.set($any($event.target).value)"
+        />
+        @if (errorProvincia()) {
+          <div class="invalid-feedback d-block">{{ errorProvincia() }}</div>
+        }
+      </div>
+
+      <div class="col-6 col-sm-4">
+        <label for="dir-departamento" class="form-label small fw-semibold mb-1">Departamento</label>
+        <input
+          id="dir-departamento"
+          class="form-control form-control-sm"
+          maxlength="80"
+          placeholder="Lima"
+          [class.is-invalid]="errorDepartamento()"
+          [value]="departamento()"
+          (input)="departamento.set($any($event.target).value)"
+        />
+        @if (errorDepartamento()) {
+          <div class="invalid-feedback d-block">{{ errorDepartamento() }}</div>
+        }
+      </div>
+    </div>
+
+    <div class="row g-2 mt-1">
+      <div class="col-6 col-sm-4">
+        <label for="dir-cp" class="form-label small fw-semibold mb-1">Código postal</label>
+        <input
+          id="dir-cp"
+          class="form-control form-control-sm"
+          inputmode="numeric"
+          maxlength="5"
+          autocomplete="shipping postal-code"
+          placeholder="15074"
+          [class.is-invalid]="errorCodigoPostal()"
+          [value]="codigoPostal()"
+          (input)="codigoPostal.set($any($event.target).value)"
+        />
+        @if (errorCodigoPostal()) {
+          <div class="invalid-feedback d-block">{{ errorCodigoPostal() }}</div>
+        } @else {
+          <div class="form-text">Con esto se calcula el envío.</div>
+        }
+      </div>
+    </div>
+
+    <hr class="my-3" />
+
+    <!-- El mapa. Un texto no dice si el sitio es el correcto; aquí el comprador
+         lo COMPRUEBA antes de pagar, que es cuando todavía se puede arreglar. -->
+    <label class="form-label small fw-semibold mb-1">
+      Marca el punto exacto <span class="text-body-secondary fw-normal">(opcional)</span>
+    </label>
+    <app-ubicacion
+      ayuda="Usa tu ubicación o pega el enlace de Google Maps. Ayuda a que el reparto te encuentre."
+      [coordenadas]="ubicacion()"
+      (cambio)="ubicacion.set($event)"
+    />
+  </div>
+
+  <div class="direccion-pie">
+    @if (intentado() && !completa()) {
+      <span class="small text-danger-emphasis me-auto">Faltan datos por completar.</span>
+    }
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cerrar.emit()">
+      Cancelar
+    </button>
+    <button type="button" class="btn btn-sm btn-primary" (click)="aceptar()">
+      {{ textoAceptar() }}
+    </button>
+  </div>
+</div>

@@ -28,6 +28,7 @@ import com.backend.compras.envio.EnvioService;
 import com.backend.compras.metodopago.MetodoPago;
 import com.backend.compras.pago.MercadoPagoClient;
 import com.backend.compras.pago.MercadoPagoClient.Pago;
+import com.backend.compras.pago.dto.DireccionEntrega;
 import com.backend.compras.pago.dto.PagoDtos.PreferenciaRequest;
 import com.backend.compras.pedido.EstadoPedido;
 import com.backend.compras.pedido.Pedido;
@@ -104,7 +105,10 @@ class CheckoutOrquestadorTest {
     }
 
     private PreferenciaRequest peticion() {
-        return new PreferenciaRequest(1L, "Av. Los Próceres 1420", null, "987654321", null, null);
+        return new PreferenciaRequest(1L, new DireccionEntrega(
+                "Av. Los Próceres", "1420", "Piso 4", "15074",
+                "Miraflores", "Lima", "Lima", "PE",
+                "Ana Vega Ríos", "987654321", null, null));
     }
 
     private Pedido pedidoPagable() {
@@ -142,7 +146,7 @@ class CheckoutOrquestadorTest {
 
         // Lo que NO puede pasar bajo ningún concepto.
         verify(catalogo, never()).liberarReserva(anyString(), anyString());
-        verify(mercadoPago, never()).crearPreferencia(anyString(), any(), anyString());
+        verify(mercadoPago, never()).crearPreferencia(anyString(), any(), anyString(), any());
 
         // Y la compra anterior queda cerrada, no cancelada.
         verify(catalogo).confirmarReserva(TOKEN, REFERENCIA);

@@ -10,23 +10,103 @@
  * después el comprador se va a MercadoPago y puede no volver: si no se pidiera
  * aquí, el pedido quedaría pagado y sin destino.
  */
-export interface PreferenciaRequest {
-  metodoPagoId: number;
-  direccionEnvio: string;
-  referenciaEnvio?: string;
+/**
+ * A dónde va el pedido, en partes.
+ *
+ * Antes era una sola línea de texto libre. Servía para imprimir una etiqueta y
+ * para nada más: sin código postal no hay costo de envío, sin distrito no se
+ * agrupa el reparto, y MercadoPago no acepta una cadena suelta —quiere la
+ * dirección en campos separados para poder enseñarla y calcular el envío.
+ *
+ * La jerarquía es la peruana: departamento > provincia > distrito.
+ */
+export interface DireccionEntrega {
+  calle: string;
+  numero: string;
+  /** Piso, interior, «el portón verde». Es lo que salva la entrega. */
+  referencia?: string | null;
+  codigoPostal: string;
+  distrito: string;
+  provincia: string;
+  departamento: string;
+  /** ISO de dos letras. Se asume PE si no viene. */
+  pais?: string | null;
+  /** Quien recibe, que no siempre es quien compra. */
+  receptorNombre: string;
   telefonoContacto: string;
-  /** Opcionales: solo si el comprador acepta compartir su ubicación. */
-  latitud?: number;
-  longitud?: number;
+  /*
+   * Opcionales: solo si el comprador acepta compartir su ubicación.
+   *
+   * Admiten `null` además de faltar porque así las devuelve el backend cuando
+   * no hay punto guardado, y la dirección del perfil se vuelca aquí tal cual.
+   */
+  latitud?: number | null;
+  longitud?: number | null;
 }
 
-/** Lo que el usuario rellena en el bloque de entrega del carrito. */
-export interface DatosEntrega {
-  direccionEnvio: string;
-  referenciaEnvio: string;
-  telefonoContacto: string;
-  latitud?: number;
-  longitud?: number;
+/** Una dirección recién empezada, con lo que ya se puede dar por sabido. */
+export function direccionVacia(): DireccionEntrega {
+  return {
+    calle: '',
+    numero: '',
+    referencia: '',
+    codigoPostal: '',
+    distrito: '',
+    provincia: '',
+    departamento: '',
+    pais: 'PE',
+    receptorNombre: '',
+    telefonoContacto: '',
+  };
+}
+
+/**
+ * Lo que hace falta para poder entregar. Es la misma regla que aplica el
+ * backend; aquí está para no mandar al comprador a MercadoPago y traerlo de
+ * vuelta con un 400.
+ */
+export function direccionCompleta(d: DireccionEntrega): boolean {
+  return (
+    direccionLugarCompleto(d) &&
+    d.receptorNombre.trim().length >= 3 &&
+    /^[0-9]{9}$/.test(d.telefonoContacto.trim())
+  );
+}
+
+/**
+ * Lo que hace falta para que un SITIO esté completo, sin mirar quién recibe.
+ *
+ * Es lo que se guarda en el perfil: allí el nombre y el teléfono ya están en la
+ * cuenta, y solo se pide el lugar. Al pagar se exige además el receptor.
+ */
+export function direccionLugarCompleto(d: DireccionEntrega): boolean {
+  return (
+    d.calle.trim().length > 0 &&
+    d.numero.trim().length > 0 &&
+    /^[0-9]{5}$/.test(d.codigoPostal.trim()) &&
+    d.distrito.trim().length > 0 &&
+    d.provincia.trim().length > 0 &&
+    d.departamento.trim().length > 0
+  );
+}
+
+/** La línea que se lee de un vistazo en el resumen del carrito. */
+export function direccionEnUnaLinea(d: DireccionEntrega): string {
+  const zona = [d.distrito, d.provincia].filter((x) => x.trim()).join(', ');
+  return `${d.calle} ${d.numero}${zona ? ', ' + zona : ''}`.trim();
+}
+
+/**
+ * Medio de pago y destino. El importe NO viaja: lo recalcula el backend desde
+ * el carrito.
+ *
+ * La dirección se manda al iniciar el checkout y no al confirmarlo, porque
+ * después el comprador se va a MercadoPago y puede no volver: si no se pidiera
+ * aquí, el pedido quedaría pagado y sin destino.
+ */
+export interface PreferenciaRequest {
+  metodoPagoId: number;
+  entrega: DireccionEntrega;
 }
 
 export interface PreferenciaResponse {

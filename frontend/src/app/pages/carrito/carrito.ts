@@ -1,15 +1,17 @@
 import { Cargando } from '../../shared/cargando/cargando';
-import { Coordenadas, Ubicacion } from '../../shared/ubicacion/ubicacion';
-import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { ElegirDireccion } from '../../shared/direccion/elegir-direccion';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import {
   AuthService,
   CarritoService,
+  DireccionEntrega,
   ErrorApi,
   MetodoPago,
   MetodoPagoService,
   PagoService,
+  direccionEnUnaLinea,
 } from '../../core';
 
 const UMBRAL_ENVIO_GRATIS = 200;
@@ -17,7 +19,7 @@ const COSTO_ENVIO = 15;
 
 @Component({
   selector: 'app-carrito',
-  imports: [RouterLink, CurrencyPipe, Cargando, Ubicacion],
+  imports: [RouterLink, CurrencyPipe, Cargando, ElegirDireccion],
   templateUrl: './carrito.html',
   styleUrl: './carrito.css',
 })
@@ -36,38 +38,19 @@ export class Carrito implements OnInit {
   protected metodoElegido = signal<number | null>(null);
 
   /*
-   * Datos de entrega. Se piden aquí, antes de ir a MercadoPago: si se pidieran
+   * A dónde va el pedido. Se pide aquí, antes de ir a MercadoPago: si se pidiera
    * al volver, el comprador que cierra la pestaña dejaría un pedido pagado y sin
    * destino.
-   */
-  protected direccionEnvio = signal('');
-  protected referenciaEnvio = signal('');
-  protected telefonoContacto = signal('');
-
-  /*
-   * Ubicación del punto de entrega (Épica 3). Sirve para que quien reparte vea
-   * a qué distancia queda desde la tienda.
    *
-   * Es OPCIONAL y se pide con un botón, no al cargar la página: un permiso de
-   * ubicación que salta solo, sin que el usuario haya pedido nada, se deniega
-   * casi siempre — y una vez denegado el navegador no vuelve a preguntar.
+   * Es una sola cosa y no nueve campos sueltos porque así viaja: la pasarela
+   * quiere la dirección en partes para poder enseñarla y calcular el envío.
    */
-  protected ubicacion = signal<Coordenadas | null>(null);
+  protected entrega = signal<DireccionEntrega | null>(null);
+  protected direccionAbierta = signal(false);
 
-  /*
-   * Se prerrellena con lo del perfil: la mayoría manda el pedido a su propia
-   * casa y reescribirlo cada vez sobra. Sigue siendo editable, porque a veces se
-   * envía a otra persona.
-   *
-   * Es un `effect` y no una lectura en ngOnInit porque el usuario puede llegar
-   * después (la sesión se restaura de forma asíncrona al cargar la app). Solo
-   * escribe si el campo sigue vacío, para no pisar lo que ya esté tecleando.
-   */
-  private prerrelleno = effect(() => {
-    const u = this.auth.usuario();
-    if (!u) return;
-    if (!this.direccionEnvio()) this.direccionEnvio.set(u.address ?? '');
-    if (!this.telefonoContacto()) this.telefonoContacto.set(u.phoneNumber ?? '');
+  protected resumenDireccion = computed(() => {
+    const e = this.entrega();
+    return e ? direccionEnUnaLinea(e) : '';
   });
 
   protected costoEnvio = computed(() =>
@@ -128,23 +111,26 @@ export class Carrito implements OnInit {
     });
   }
 
-  /**
-   * Comprobación en el navegador, no la única: el backend valida lo mismo. Está
-   * aquí para no mandar al usuario a MercadoPago y traerlo de vuelta con un 400.
-   */
-  protected entregaIncompleta(): boolean {
-    return (
-      this.direccionEnvio().trim().length < 5 ||
-      !/^[0-9]{9}$/.test(this.telefonoContacto().trim())
-    );
+  protected abrirDireccion(): void {
+    this.direccionAbierta.set(true);
+  }
+
+  protected guardarDireccion(direccion: DireccionEntrega): void {
+    this.entrega.set(direccion);
+    this.direccionAbierta.set(false);
+    this.error.set('');
   }
 
   protected pagar(): void {
     const metodo = this.metodoElegido();
     if (!metodo || this.vacio()) return;
 
-    if (this.entregaIncompleta()) {
-      this.error.set('Completa la dirección de entrega y un teléfono de 9 dígitos.');
+    // El backend valida lo mismo. Esto está aquí para no mandar al comprador a
+    // MercadoPago y traerlo de vuelta con un 400.
+    const entrega = this.entrega();
+    if (!entrega) {
+      this.error.set('Añade la dirección de entrega antes de pagar.');
+      this.abrirDireccion();
       return;
     }
 
@@ -156,13 +142,7 @@ export class Carrito implements OnInit {
     // MercadoPago y puede no volver: antes esto no se pedía y el pedido acababa
     // con la dirección literal "Por confirmar".
     this.pagoService
-      .crearPreferencia(metodo, {
-        direccionEnvio: this.direccionEnvio(),
-        referenciaEnvio: this.referenciaEnvio(),
-        telefonoContacto: this.telefonoContacto(),
-        latitud: this.ubicacion()?.latitud,
-        longitud: this.ubicacion()?.longitud,
-      })
+      .crearPreferencia(metodo, entrega)
       .subscribe({
         next: (pref) => {
           const url = pref.init_point || pref.sandbox_init_point;

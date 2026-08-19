@@ -38,6 +38,9 @@ function usuario(
     emailAddress: 'ana@ejemplo.com',
     phoneNumber: '987654321',
     address: 'Av. Lima 123',
+    // Sin dirección guardada: es como llega una cuenta recién creada, y es el
+    // caso que obliga a ponerla antes de poder comprar.
+    direccion: null,
     rol,
     proveedor: 'LOCAL',
     permisos,

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import com.backend.compras.pago.dto.DireccionEntrega;
 import com.backend.compras.shared.error.ServicioNoDisponibleException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -88,7 +89,8 @@ public class MercadoPagoClient {
      * El importe llega ya calculado por el servidor. La URL de retorno se construye desde
      * configuración, no está fija a localhost:8080 como en el monolito.
      */
-    public Preferencia crearPreferencia(String titulo, BigDecimal importe, String referenciaExterna) {
+    public Preferencia crearPreferencia(String titulo, BigDecimal importe, String referenciaExterna,
+            DireccionEntrega entrega) {
         exigirConfiguracion();
 
         Map<String, Object> item = Map.of(
@@ -100,6 +102,19 @@ public class MercadoPagoClient {
         Map<String, Object> cuerpo = new HashMap<>();
         cuerpo.put("items", List.of(item));
         cuerpo.put("external_reference", referenciaExterna);
+
+        /*
+         * El destino, en los campos que entiende la pasarela.
+         *
+         * Con esto MercadoPago enseña la direccion en su propia pantalla y puede
+         * calcular el envio a partir del codigo postal. Sin ello el comprador ve
+         * un importe y un nombre de producto, y tiene que fiarse de que va al
+         * sitio correcto. La traduccion de nuestros nombres a los suyos vive
+         * entera en DireccionEntrega.
+         */
+        if (entrega != null) {
+            cuerpo.put("shipments", Map.of("receiver_address", entrega.comoReceiverAddress()));
+        }
         cuerpo.put("back_urls", Map.of(
                 "success", retornoBase + "/carrito?status=approved",
                 "failure", retornoBase + "/carrito?status=failure",

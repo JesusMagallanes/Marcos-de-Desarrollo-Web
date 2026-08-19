@@ -16,6 +16,7 @@ import com.backend.compras.envio.EnvioService;
 import com.backend.compras.pago.MercadoPagoClient;
 import com.backend.compras.pago.MercadoPagoClient.Pago;
 import com.backend.compras.pago.MercadoPagoClient.Preferencia;
+import com.backend.compras.pago.dto.DireccionEntrega;
 import com.backend.compras.pago.dto.PagoDtos.PreferenciaRequest;
 import com.backend.compras.pago.dto.PagoDtos.PreferenciaResponse;
 import com.backend.compras.pedido.EstadoPedido;
@@ -70,6 +71,7 @@ public class CheckoutOrquestador {
     @Transactional
     public PreferenciaResponse iniciar(Long usuarioId, PreferenciaRequest peticion, String token) {
         Long metodoPagoId = peticion.metodoPagoId();
+        DireccionEntrega entrega = peticion.entrega();
 
         // Una compra a la vez por usuario: dos sagas simultáneas reservarían
         // el stock dos veces para el mismo carrito.
@@ -120,11 +122,23 @@ public class CheckoutOrquestador {
                 .metodoPagoId(metodoPagoId)
                 // El destino se guarda ya: cuando vuelva el comprador (o llegue
                 // el webhook) no habrá formulario del que leerlo.
-                .direccionEnvio(peticion.direccionEnvio())
-                .referenciaEnvio(peticion.referenciaEnvio())
-                .telefonoContacto(peticion.telefonoContacto())
-                .latitud(peticion.latitud())
-                .longitud(peticion.longitud())
+                //
+                // La línea de `direccionEnvio` se compone a partir de las partes
+                // en vez de pedirla escrita: así lo que se imprime en la etiqueta
+                // y lo que se le manda a la pasarela no pueden contradecirse.
+                .direccionEnvio(entrega.enUnaLinea())
+                .referenciaEnvio(entrega.referencia())
+                .telefonoContacto(entrega.telefonoContacto())
+                .calle(entrega.calle())
+                .numero(entrega.numero())
+                .codigoPostal(entrega.codigoPostal())
+                .distrito(entrega.distrito())
+                .provincia(entrega.provincia())
+                .departamento(entrega.departamento())
+                .pais(entrega.pais())
+                .receptorNombre(entrega.receptorNombre())
+                .latitud(entrega.latitud())
+                .longitud(entrega.longitud())
                 .total(total)
                 .estado(Estado.INICIADA)
                 .paso(Paso.INICIO)
@@ -148,8 +162,11 @@ public class CheckoutOrquestador {
             sagas.save(saga);
 
             // Paso 3 — preferencia de pago con el importe calculado aquí.
+            // El destino viaja con la preferencia: MercadoPago lo enseña en su
+            // pantalla y con el código postal puede calcular el envío. Sin él, el
+            // comprador solo ve un importe y tiene que fiarse.
             Preferencia preferencia = mercadoPago.crearPreferencia(
-                    "Compra SmartZone", total, saga.getReferencia());
+                    "Compra SmartZone", total, saga.getReferencia(), entrega);
 
             saga.avanzarA(Paso.PREFERENCIA_CREADA);
             saga.setEstado(Estado.ESPERANDO_PAGO);

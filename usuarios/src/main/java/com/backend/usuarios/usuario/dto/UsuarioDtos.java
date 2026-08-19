@@ -26,6 +26,12 @@ public final class UsuarioDtos {
             String emailAddress,
             String phoneNumber,
             String address,
+            /*
+             * La direccion en partes. Es `null` mientras el usuario no ponga
+             * una, y eso es lo que mira el checkout para exigirsela: sin
+             * direccion no hay a donde entregar.
+             */
+            DireccionUsuario direccion,
             String rol,
             Proveedor proveedor,
             java.util.List<String> permisos) {
@@ -38,6 +44,7 @@ public final class UsuarioDtos {
                     u.getEmailAddress(),
                     u.getPhoneNumber(),
                     u.getAddress(),
+                    DireccionUsuario.desde(u),
                     u.getRol(),
                     u.getProveedor(),
                     permisos);

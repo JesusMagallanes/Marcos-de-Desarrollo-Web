@@ -29,10 +29,15 @@ public class PedidoController {
 
     private final PedidoService servicio;
 
-    /** Sustituye a /pedidos/usuario/{id}: el usuario sale del token. */
+    /**
+     * Las compras del usuario. El usuario sale del token, no de la URL.
+     *
+     * <p>Devuelve solo lo comprado de verdad: los checkouts que se quedaron a
+     * medias no son pedidos que enseñarle a nadie.
+     */
     @GetMapping("/mios")
     public List<PedidoResponse> mios(UsuarioAutenticado usuario) {
-        return servicio.misPedidos(usuario.id());
+        return servicio.misCompras(usuario.id());
     }
 
     /**

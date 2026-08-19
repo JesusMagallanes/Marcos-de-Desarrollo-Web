@@ -12,6 +12,7 @@ import com.backend.usuarios.shared.auditoria.AuditoriaService.Evento;
 import com.backend.usuarios.shared.error.ConflictoException;
 import com.backend.usuarios.shared.error.RecursoNoEncontradoException;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.CambioRol;
+import com.backend.usuarios.usuario.dto.DireccionUsuario;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.PerfilUpdate;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.UsuarioCreate;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.UsuarioResponse;
@@ -90,7 +91,23 @@ public class UsuarioService {
         usuario.setLastname(dto.lastname());
         usuario.setEmailAddress(email);
         usuario.setPhoneNumber(dto.phoneNumber());
-        usuario.setAddress(dto.address());
+
+        Usuario guardado = repositorio.save(usuario);
+        return UsuarioResponse.desde(guardado, roles.permisosDe(guardado.getRol()));
+    }
+
+    /**
+     * Guarda la direccion de entrega del perfil.
+     *
+     * <p>Va aparte del resto del perfil porque son cosas distintas: el nombre y
+     * el correo se corrigen una vez, y la direccion se cambia al mudarse o al
+     * mandar un pedido a otro sitio. Mezcladas en el mismo formulario, cambiar
+     * de casa obligaba a repasar el correo.
+     */
+    @Transactional
+    public UsuarioResponse guardarDireccion(Long id, DireccionUsuario direccion) {
+        Usuario usuario = buscar(id);
+        direccion.aplicarA(usuario);
 
         Usuario guardado = repositorio.save(usuario);
         return UsuarioResponse.desde(guardado, roles.permisosDe(guardado.getRol()));

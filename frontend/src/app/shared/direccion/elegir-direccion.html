@@ -1,0 +1,57 @@
+@if (mostrarEditor()) {
+  <!--
+    Sin nada guardado se va directo al editor: preguntar «¿esta o otra?» cuando
+    no hay «esta» es hacerle dar un paso de más a quien compra por primera vez.
+  -->
+  <app-direccion-modal
+    [inicial]="paraEditar()"
+    textoAceptar="Enviar aquí"
+    (guardar)="alGuardar($event)"
+    (cerrar)="cerrar.emit()"
+  />
+} @else {
+  <div class="direccion-fondo" (click)="cerrar.emit()"></div>
+
+  <div
+    class="direccion-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="elegir-titulo"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="direccion-cabecera">
+      <div>
+        <h2 id="elegir-titulo" class="h6 fw-bold mb-1">¿A dónde lo enviamos?</h2>
+        <p class="small text-body-secondary mb-0">Confirma la dirección de este pedido.</p>
+      </div>
+      <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrar.emit()"></button>
+    </div>
+
+    <div class="direccion-cuerpo">
+      <div class="opcion-direccion">
+        <div class="small text-body-secondary mb-1">Mi dirección</div>
+        <div class="fw-semibold">{{ resumenGuardada() }}</div>
+        <div class="small text-body-secondary">
+          CP {{ guardada()?.codigoPostal }} · {{ guardada()?.departamento }}
+        </div>
+        @if (guardada()?.referencia) {
+          <div class="small text-body-secondary">{{ guardada()?.referencia }}</div>
+        }
+        @if (guardada()?.latitud != null) {
+          <div class="small text-success-emphasis">✓ Punto marcado en el mapa</div>
+        }
+
+        <button type="button" class="btn btn-primary btn-sm w-100 mt-3" (click)="usarLaGuardada()">
+          Enviar aquí
+        </button>
+      </div>
+
+      <!-- Enviar a otro sitio es normal de vez en cuando: un regalo, la
+           oficina. Lo que se escriba aquí NO cambia la del perfil. -->
+      <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-3" (click)="usarOtra()">
+        Enviar a otra dirección
+      </button>
+      <div class="form-text">Solo para este pedido. Tu dirección guardada no cambia.</div>
+    </div>
+  </div>
+}

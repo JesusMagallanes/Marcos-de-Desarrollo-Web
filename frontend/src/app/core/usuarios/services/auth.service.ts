@@ -6,6 +6,7 @@ import { RUTAS_USUARIOS } from '../usuarios.routes';
 import { ALMACENAMIENTO } from '../../shared/config/constantes';
 import {
   AuthResponse,
+  DireccionUsuario,
   LoginRequest,
   PerfilUpdate,
   ProveedorDisponible,
@@ -128,6 +129,19 @@ export class AuthService {
   actualizarPerfil(id: number, datos: PerfilUpdate): Observable<Usuario> {
     return this.http
       .put<Usuario>(RUTAS_USUARIOS.usuarios.perfil(id), datos)
+      .pipe(tap((u) => this.setUsuario(u)));
+  }
+
+  /**
+   * PUT /api/usuarios/{id}/direccion — guarda la dirección de entrega.
+   *
+   * Va aparte del perfil porque son cosas distintas: el nombre y el correo se
+   * corrigen una vez, y la dirección se cambia al mudarse. Refresca el usuario
+   * en memoria para que el checkout vea la nueva sin recargar la página.
+   */
+  guardarDireccion(id: number, direccion: DireccionUsuario): Observable<Usuario> {
+    return this.http
+      .put<Usuario>(RUTAS_USUARIOS.usuarios.direccion(id), direccion)
       .pipe(tap((u) => this.setUsuario(u)));
   }
 

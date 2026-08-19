@@ -86,6 +86,40 @@ public class SagaCheckout {
     @Column(name = "telefono_contacto", length = 9)
     private String telefonoContacto;
 
+    /*
+     * La direccion, en partes.
+     *
+     * `direccionEnvio` sigue siendo la linea que se imprime en la etiqueta, pero
+     * ya no es lo unico: una cadena suelta no sirve para calcular un envio por
+     * codigo postal, ni para agrupar reparto por distrito, ni para mandarsela a
+     * la pasarela, que la quiere en campos separados.
+     */
+    @Column(length = 200)
+    private String calle;
+
+    @Column(length = 20)
+    private String numero;
+
+    @Column(name = "codigo_postal", length = 10)
+    private String codigoPostal;
+
+    @Column(length = 80)
+    private String distrito;
+
+    @Column(length = 80)
+    private String provincia;
+
+    @Column(length = 80)
+    private String departamento;
+
+    /** ISO 3166-1 alfa-2. */
+    @Column(length = 2)
+    private String pais;
+
+    /** Quien recibe, que no siempre es quien compra: regalos, envios a la oficina. */
+    @Column(name = "receptor_nombre", length = 120)
+    private String receptorNombre;
+
     /** Coordenadas del punto de entrega, si el comprador las compartió. */
     @Column(precision = 9, scale = 6)
     private BigDecimal latitud;

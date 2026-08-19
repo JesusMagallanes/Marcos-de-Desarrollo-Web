@@ -1,5 +1,6 @@
 package com.backend.compras.pedido;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,14 +10,27 @@ import org.springframework.data.repository.query.Param;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
+    /**
+     * Lo que el comprador ha comprado de verdad.
+     *
+     * <p>Filtra por estado a propósito: antes devolvía TODOS sus pedidos y en
+     * «Mis compras» aparecían los checkouts abandonados —PENDIENTE— y los que la
+     * saga canceló al no llegar el pago. El comprador veía una lista de pedidos
+     * de cosas que no tenía, sin saber si le habían cobrado por alguna.
+     *
+     * <p>Los estados llegan por parámetro y no escritos aquí para que la regla
+     * viva en un solo sitio: {@link EstadoPedido#COMPRADOS}.
+     */
     @Query("""
             SELECT DISTINCT p FROM Pedido p
             LEFT JOIN FETCH p.detalles
             LEFT JOIN FETCH p.metodoPago
             WHERE p.usuarioId = :usuarioId
+              AND p.estado IN :estados
             ORDER BY p.creadoEn DESC
             """)
-    List<Pedido> listarPorUsuario(@Param("usuarioId") Long usuarioId);
+    List<Pedido> listarComprasDeUsuario(@Param("usuarioId") Long usuarioId,
+            @Param("estados") Collection<EstadoPedido> estados);
 
     @Query("""
             SELECT DISTINCT p FROM Pedido p
@@ -63,10 +77,9 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
             SELECT COUNT(d) > 0 FROM Pedido p JOIN p.detalles d
             WHERE p.usuarioId = :usuarioId
               AND d.productoId = :productoId
-              AND p.estado IN (com.backend.compras.pedido.EstadoPedido.PAGADO,
-                               com.backend.compras.pedido.EstadoPedido.EN_TRANSITO,
-                               com.backend.compras.pedido.EstadoPedido.ENTREGADO)
+              AND p.estado IN :estados
             """)
     boolean comproElProducto(@Param("usuarioId") Long usuarioId,
-            @Param("productoId") Long productoId);
+            @Param("productoId") Long productoId,
+            @Param("estados") Collection<EstadoPedido> estados);
 }

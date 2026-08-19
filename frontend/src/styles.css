@@ -14,3 +14,18 @@
   background: #d5d5d5;
   border-radius: 3px;
 }
+
+/*
+ * Resumen de una direccion de entrega. Lo usan el carrito y el perfil, asi que
+ * vive aqui y no en el CSS de un componente: son la misma tarjeta y tienen que
+ * verse igual en los dos sitios.
+ */
+.entrega-resumen {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  background: var(--bs-tertiary-bg);
+  /* Los nombres y direcciones largos se recortan con text-truncate, y eso
+     necesita que el contenedor pueda encogerse. */
+  min-width: 0;
+}
