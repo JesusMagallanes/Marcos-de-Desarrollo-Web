@@ -37,9 +37,14 @@ public class PedidoService {
      * <p>Un checkout abandonado deja un pedido PENDIENTE, y la saga lo cancela
      * al no llegar el pago. Ninguno de los dos es una compra, y verlos en esta
      * lista es lo que hacía que el comprador no supiera qué había pagado.
+     *
+     * <p>Un contra entrega —CONFIRMADO— sí sale desde el primer momento aunque
+     * no se haya cobrado: el pedido existe y va de camino. Por eso la lista se
+     * pide con EN_MIS_COMPRAS y no con COMPRADOS, que es el conjunto más
+     * estrecho que decide quién puede valorar.
      */
     public List<PedidoResponse> misCompras(Long usuarioId) {
-        return pedidoRepositorio.listarComprasDeUsuario(usuarioId, EstadoPedido.COMPRADOS)
+        return pedidoRepositorio.listarComprasDeUsuario(usuarioId, EstadoPedido.EN_MIS_COMPRAS)
                 .stream().map(PedidoResponse::desde).toList();
     }
 

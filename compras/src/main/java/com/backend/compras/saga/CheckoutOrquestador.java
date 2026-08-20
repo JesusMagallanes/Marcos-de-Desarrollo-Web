@@ -13,6 +13,8 @@ import com.backend.compras.carrito.CarritoItem;
 import com.backend.compras.carrito.CarritoRepository;
 import com.backend.compras.carrito.CarritoService;
 import com.backend.compras.envio.EnvioService;
+import com.backend.compras.metodopago.MetodoPago;
+import com.backend.compras.metodopago.MetodoPagoRepository;
 import com.backend.compras.pago.MercadoPagoClient;
 import com.backend.compras.pago.MercadoPagoClient.Pago;
 import com.backend.compras.pago.MercadoPagoClient.Preferencia;
@@ -29,6 +31,7 @@ import com.backend.compras.saga.SagaCheckout.Paso;
 import com.backend.compras.shared.catalogo.CatalogoClient;
 import com.backend.compras.shared.catalogo.CatalogoClient.AjusteStock;
 import com.backend.compras.shared.error.ConflictoException;
+import com.backend.compras.shared.error.PagoEnCursoException;
 import com.backend.compras.shared.error.RecursoNoEncontradoException;
 import com.backend.compras.shared.metricas.MetricasSeguridad;
 
@@ -61,6 +64,7 @@ public class CheckoutOrquestador {
     private final CarritoService carritoService;
     private final PedidoRepository pedidos;
     private final PedidoService pedidoService;
+    private final MetodoPagoRepository metodosPago;
     private final CatalogoClient catalogo;
     private final MercadoPagoClient mercadoPago;
     private final EnvioService envioService;
@@ -73,11 +77,22 @@ public class CheckoutOrquestador {
         Long metodoPagoId = peticion.metodoPagoId();
         DireccionEntrega entrega = peticion.entrega();
 
+        /*
+         * El método de pago, ANTES de tocar nada.
+         *
+         * Lo comprobaba `crearDesdeCarrito`, que es el paso 2: con un id
+         * inexistente ya se había reservado el stock, y el 404 llegaba con media
+         * saga montada que había que compensar. Un identificador que no existe
+         * es una petición mal formada, no un fallo a mitad de la compra.
+         */
+        MetodoPago metodoPago = metodosPago.findById(metodoPagoId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Método de pago no encontrado"));
+
         // Una compra a la vez por usuario: dos sagas simultáneas reservarían
-        // el stock dos veces para el mismo carrito.
-        List<SagaCheckout> activas = sagas.buscarActivasDeUsuario(usuarioId);
-        if (!activas.isEmpty()) {
-            SagaCheckout previa = activas.get(0);
+        // el stock dos veces para el mismo carrito. Se recorren TODAS las vivas y
+        // no solo la primera: la que quedara sin tocar bloquearía el siguiente
+        // intento igual que ésta, y nadie volvería a mirarla.
+        for (SagaCheckout previa : sagas.buscarActivasDeUsuario(usuarioId)) {
 
             /*
              * ANTES DE TIRARLA, PREGUNTAR SI SE PAGÓ.
@@ -89,19 +104,32 @@ public class CheckoutOrquestador {
              * dinero cobrado. Y como COMPENSADA es un estado final, el barrendero
              * ya no la miraba nunca más: el pago se perdía para siempre.
              *
-             * Es la misma comprobación que hace el barrendero antes de compensar;
-             * faltaba en este camino, que es justo el que recorre alguien
-             * impaciente.
+             * POR QUÉ VA POR EL PROXY, que es el segundo fallo y el peor:
+             * `conciliar` cierra la compra anterior, y aquí se lanza acto seguido
+             * una excepción. Llamándolo directo, todo ese cierre ocurría DENTRO de
+             * esta transacción y la excepción lo deshacía entero —pedido otra vez
+             * PENDIENTE, saga otra vez ESPERANDO_PAGO— mientras la confirmación
+             * del stock, que es una llamada HTTP, sí quedaba hecha. El comprador
+             * leía «míralo en Mis compras» y allí no había nada, y el siguiente
+             * intento repetía lo mismo: encerrado hasta que pasara el barrendero.
+             * Con REQUIRES_NEW el cierre se confirma por su cuenta y sobrevive.
              */
-            if (conciliarSiSePago(previa, token)) {
-                throw new ConflictoException(
+            switch (proxia.getObject().conciliar(previa, token)) {
+                case COMPLETADA -> throw new ConflictoException(
                         "Tu compra anterior sí se completó: el pago llegó aunque no volvieras "
                                 + "a la tienda. Míralo en Mis compras antes de pagar otra vez.");
-            }
 
-            log.info("El usuario {} ya tenía la saga {} en curso; se compensa antes de reiniciar",
-                    usuarioId, previa.getReferencia());
-            proxia.getObject().compensar(previa, token, "reemplazada por un nuevo intento de compra");
+                case PAGO_EN_CURSO -> throw new PagoEnCursoException(
+                        "Tienes un pago anterior todavía en proceso. En cuanto la pasarela lo "
+                                + "confirme cerramos esa compra sola; espera antes de pagar otra vez.");
+
+                case SIN_PAGO -> {
+                    log.info("El usuario {} ya tenía la saga {} en curso; se compensa antes de reiniciar",
+                            usuarioId, previa.getReferencia());
+                    proxia.getObject().compensar(previa, token,
+                            "reemplazada por un nuevo intento de compra");
+                }
+            }
         }
 
         Carrito carrito = carritos.buscarConItems(usuarioId)
@@ -111,7 +139,15 @@ public class CheckoutOrquestador {
             throw new ConflictoException("Tu carrito está vacío");
         }
 
-        BigDecimal total = carritoService.construir(carrito).subtotal();
+        /*
+         * El importe que se cobra: subtotal MÁS ENVÍO.
+         *
+         * Antes se cobraba el subtotal pelado mientras el carrito enseñaba el
+         * total con el envío sumado, así que el comprador veía un número y se le
+         * cobraba otro más bajo. Sale del mismo `construir` que alimenta esa
+         * pantalla justamente para que no puedan volver a discrepar.
+         */
+        BigDecimal total = carritoService.totalACobrar(carrito);
         if (total.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ConflictoException("El importe de tu carrito no es válido");
         }
@@ -161,6 +197,19 @@ public class CheckoutOrquestador {
             saga.avanzarA(Paso.PEDIDO_CREADO);
             sagas.save(saga);
 
+            /*
+             * Aquí se bifurca, y hasta ahora no lo hacía.
+             *
+             * «Contra entrega» estaba en el desplegable desde la primera
+             * migración, pero el checkout mandaba a MercadoPago pasara lo que
+             * pasara: quien elegía pagar en efectivo acababa en la pasarela
+             * igual, y si no estaba configurada se llevaba un 503. Elegía una
+             * opción que la tienda no sabía ejecutar.
+             */
+            if (!metodoPago.esMercadoPago()) {
+                return cerrarContraEntrega(saga, usuarioId, token);
+            }
+
             // Paso 3 — preferencia de pago con el importe calculado aquí.
             // El destino viaja con la preferencia: MercadoPago lo enseña en su
             // pantalla y con el código postal puede calcular el envío. Sin él, el
@@ -174,7 +223,7 @@ public class CheckoutOrquestador {
 
             log.info("Saga {} esperando pago por {}", saga.getReferencia(), total);
 
-            return new PreferenciaResponse(
+            return PreferenciaResponse.conPasarela(
                     preferencia.id(),
                     preferencia.init_point(),
                     preferencia.sandbox_init_point(),
@@ -186,6 +235,61 @@ public class CheckoutOrquestador {
             proxia.getObject().compensar(saga, token, ex.getMessage());
             throw ex;
         }
+    }
+
+    /**
+     * Cierra una compra que se paga al recibirla.
+     *
+     * <p>No hay fase 2: sin pasarela no hay nada que verificar después, así que
+     * los pasos que en el checkout con tarjeta esperan al pago —confirmar la
+     * reserva, dejar listo el pedido, crear el envío y vaciar el carrito— se dan
+     * ahora y la saga termina aquí mismo.
+     *
+     * <p>El pedido queda en CONFIRMADO y no en PAGADO: el dinero llega con el
+     * repartidor. Es la diferencia que hace que no se pueda valorar todavía el
+     * producto y que el panel de envíos vea de un vistazo qué hay que cobrar.
+     *
+     * <p>Corre dentro del try de {@code iniciar}, así que si algo falla —catálogo
+     * no responde al confirmar la reserva— la compensación de allí lo deshace
+     * igual que en cualquier otro paso.
+     */
+    private PreferenciaResponse cerrarContraEntrega(SagaCheckout saga, Long usuarioId, String token) {
+
+        // La reserva pasa a definitiva: el stock sale del inventario ya, no
+        // cuando se cobre. Si se dejara reservado caducaría en catálogo a los
+        // veinte minutos y el repartidor saldría con un pedido sin existencias.
+        catalogo.confirmarReserva(token, saga.getReferencia());
+        saga.avanzarA(Paso.STOCK_CONFIRMADO);
+        sagas.save(saga);
+
+        Pedido pedido = pedidos.buscarConDetalles(saga.getPedidoId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Pedido de la saga no encontrado"));
+        pedido.cambiarEstado(EstadoPedido.CONFIRMADO);
+        pedidos.save(pedido);
+        // Se reutiliza el paso de la saga con pasarela: el nombre habla del
+        // pago, pero lo que marca es «el pedido ya está listo para enviarse», y
+        // partir la máquina de estados en dos por un matiz de nombre haría que
+        // el barrendero y la compensación tuvieran que conocer las dos.
+        saga.avanzarA(Paso.PEDIDO_PAGADO);
+        sagas.save(saga);
+
+        envioService.crearParaPedido(pedido, saga);
+        saga.avanzarA(Paso.ENVIO_CREADO);
+
+        carritos.buscarConItems(usuarioId).ifPresent(carrito -> {
+            carrito.vaciar();
+            carritos.save(carrito);
+        });
+
+        saga.avanzarA(Paso.FIN);
+        saga.setEstado(Estado.COMPLETADA);
+        sagas.save(saga);
+
+        metricas.sagaFinalizada("completada");
+        log.info("Saga {} completada sin pasarela: pedido {} a cobrar contra entrega",
+                saga.getReferencia(), pedido.getId());
+
+        return PreferenciaResponse.sinPasarela(saga.getTotal(), pedido.getId());
     }
 
     /* ══════════════ Fase 2: confirmar el pago ══════════════ */
@@ -226,6 +330,20 @@ public class CheckoutOrquestador {
 
         try {
             // Paso 4 — verificar el pago contra la pasarela.
+            //
+            // Un pago que sigue en curso NO es un pago fallido, y la diferencia
+            // vale la compra entera: un efectivo nace `pending` y una tarjeta en
+            // revisión pasa por `in_process`. Los dos acababan aquí, en el mismo
+            // saco que un rechazo, y salían por el catch de abajo compensando:
+            // pedido cancelado y stock devuelto justo antes de que el cobro
+            // entrara. Y con la saga ya COMPENSADA —estado final— el aviso de
+            // aprobación no tenía después nada que cerrar.
+            if (pago.enCurso()) {
+                throw new PagoEnCursoException(
+                        "Tu pago sigue en proceso (estado: " + pago.status() + "). En cuanto la "
+                                + "pasarela lo confirme cerramos la compra sola; no pagues otra vez.");
+            }
+
             if (!pago.aprobado()) {
                 throw new ConflictoException(
                         "El pago no está aprobado (estado: " + pago.status() + ")");
@@ -276,6 +394,15 @@ public class CheckoutOrquestador {
             log.info("Saga {} completada: pedido {}", saga.getReferencia(), pedido.getId());
             return PedidoResponse.desde(pedido);
 
+        } catch (PagoEnCursoException ex) {
+            // A propósito ANTES del catch de abajo: esta compra no se compensa.
+            // Se queda esperando, tal cual, hasta que la pasarela decida. La
+            // transacción se deshace, así que la saga sigue en ESPERANDO_PAGO y
+            // tanto el webhook como el barrendero podrán cerrarla más tarde.
+            log.info("La saga {} sigue esperando a la pasarela: {}",
+                    saga.getReferencia(), ex.getMessage());
+            throw ex;
+
         } catch (RuntimeException ex) {
             log.error("Fallo confirmando la saga {}: {}", saga.getReferencia(), ex.getMessage());
             saga.marcarError(ex.getMessage());
@@ -286,8 +413,18 @@ public class CheckoutOrquestador {
 
     /* ══════════════ Conciliación ══════════════ */
 
+    /** Qué dice la pasarela de una compra que estaba a punto de tirarse. */
+    public enum Conciliacion {
+        /** Se pagó y la compra ha quedado cerrada. No hay nada que compensar. */
+        COMPLETADA,
+        /** Hay un pago que aún puede aprobarse: esperar, NUNCA compensar. */
+        PAGO_EN_CURSO,
+        /** No hay ningún pago vivo: se puede tirar sin perder dinero. */
+        SIN_PAGO
+    }
+
     /**
-     * Completa la compra si la pasarela dice que sí se pagó.
+     * Pregunta a la pasarela antes de tirar una compra, y la cierra si se pagó.
      *
      * <p>Hace falta siempre que se vaya a tirar una compra a la basura, y hay dos
      * sitios donde eso ocurre: el barrendero, cuando pasa el plazo, y el propio
@@ -299,12 +436,30 @@ public class CheckoutOrquestador {
      * precisamente estos son los casos en los que el comprador no volvió. Por eso
      * se busca por la referencia que se puso en la preferencia.
      *
-     * @return true si se completó, y entonces NO hay que compensar
+     * <p><b>REQUIRES_NEW no es decorativo.</b> Quien llama desde el checkout
+     * lanza una excepción justo después de esto, y sin transacción propia el
+     * cierre de la compra se deshacía con ella: quedaba el stock confirmado en
+     * catálogo —eso es HTTP y no se deshace— pero el pedido volvía a PENDIENTE y
+     * la saga a ESPERANDO_PAGO, así que el comprador no veía su compra por
+     * ninguna parte y el siguiente intento tropezaba con lo mismo. Es la misma
+     * razón por la que {@link #compensar} lleva la anotación, y por la que las
+     * dos se invocan a través de {@code proxia}: una llamada directa se salta el
+     * proxy y con él la anotación.
      */
-    public boolean conciliarSiSePago(SagaCheckout saga, String token) {
-        var pago = mercadoPago.buscarPagoAprobado(saga.getReferencia());
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Conciliacion conciliar(SagaCheckout saga, String token) {
+        var pago = mercadoPago.buscarPagoDeLaCompra(saga.getReferencia());
         if (pago.isEmpty()) {
-            return false;
+            return Conciliacion.SIN_PAGO;
+        }
+
+        // Ni aprobado ni rechazado: la compra se queda como está. Se decide aquí
+        // y no dentro de `confirmar` para no dejar la transacción marcada para
+        // deshacerse por una excepción que sí sabemos manejar.
+        if (pago.get().enCurso()) {
+            log.info("La compra {} no se descarta: tiene un pago en estado {}",
+                    saga.getReferencia(), pago.get().status());
+            return Conciliacion.PAGO_EN_CURSO;
         }
 
         log.warn("La compra {} estaba por descartarse pero SÍ se pagó (pago={}). Se completa.",
@@ -315,7 +470,7 @@ public class CheckoutOrquestador {
         // vuelto, y las comprobaciones de importe y de propiedad se aplican una
         // sola vez y en un único sitio.
         confirmar(saga.getUsuarioId(), pago.get().id(), token);
-        return true;
+        return Conciliacion.COMPLETADA;
     }
 
     /* ══════════════ Compensación ══════════════ */

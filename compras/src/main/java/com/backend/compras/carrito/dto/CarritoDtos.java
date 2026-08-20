@@ -30,8 +30,18 @@ public final class CarritoDtos {
     /**
      * Toda operación de carrito devuelve el carrito completo, así el frontend
      * no necesita un GET extra después de cada cambio.
+     *
+     * <p>El envío y el total viajan calculados desde aquí y no se recomponen en
+     * el navegador. Antes el frontend se traía solo el subtotal y sumaba su
+     * propia copia del umbral y del costo: dos reglas de negocio escritas dos
+     * veces, y la que se cobraba era la otra. Lo que se enseña y lo que se cobra
+     * salen ahora del mismo cálculo.
      */
-    public record CarritoResponse(List<ItemResponse> items, BigDecimal subtotal) {
+    public record CarritoResponse(
+            List<ItemResponse> items,
+            BigDecimal subtotal,
+            BigDecimal costoEnvio,
+            BigDecimal total) {
     }
 
     /**

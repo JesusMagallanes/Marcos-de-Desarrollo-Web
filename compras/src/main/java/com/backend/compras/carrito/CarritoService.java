@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.backend.compras.carrito.dto.CarritoDtos.AgregarItemRequest;
 import com.backend.compras.carrito.dto.CarritoDtos.CarritoResponse;
 import com.backend.compras.carrito.dto.CarritoDtos.ItemResponse;
+import com.backend.compras.envio.TarifaEnvio;
 import com.backend.compras.shared.catalogo.CatalogoClient;
 import com.backend.compras.shared.catalogo.CatalogoClient.LineaPrecio;
 import com.backend.compras.shared.error.ConflictoException;
@@ -28,6 +29,7 @@ public class CarritoService {
     private final CarritoRepository carritoRepositorio;
     private final CarritoItemRepository itemRepositorio;
     private final CatalogoClient catalogo;
+    private final TarifaEnvio tarifaEnvio;
 
     @Transactional
     public Carrito obtenerOCrear(Long usuarioId) {
@@ -114,14 +116,14 @@ public class CarritoService {
         Carrito carrito = obtenerOCrear(usuarioId);
         carrito.vaciar();
         carritoRepositorio.save(carrito);
-        return new CarritoResponse(List.of(), BigDecimal.ZERO);
+        return vacio();
     }
 
-    /** Enriquece los items con datos de catálogo y calcula el subtotal. */
+    /** Enriquece los items con datos de catálogo y calcula subtotal, envío y total. */
     public CarritoResponse construir(Carrito carrito) {
         List<CarritoItem> items = carrito.getItems();
         if (items.isEmpty()) {
-            return new CarritoResponse(List.of(), BigDecimal.ZERO);
+            return vacio();
         }
 
         List<Long> ids = items.stream().map(CarritoItem::getProductoId).toList();
@@ -152,6 +154,27 @@ public class CarritoService {
                     linea.stock()));
         }
 
-        return new CarritoResponse(respuesta, subtotal);
+        return conTotales(respuesta, subtotal);
+    }
+
+    /**
+     * El importe que se le cobra al comprador por este carrito.
+     *
+     * <p>Lo usa el checkout para fijar el total de la saga. Pasa por el mismo
+     * {@code construir} que alimenta la pantalla del carrito a propósito: si el
+     * cobro se calculara aparte, volvería a poder discrepar de lo que el
+     * comprador vio antes de pulsar «pagar».
+     */
+    public BigDecimal totalACobrar(Carrito carrito) {
+        return construir(carrito).total();
+    }
+
+    private CarritoResponse vacio() {
+        return conTotales(List.of(), BigDecimal.ZERO);
+    }
+
+    private CarritoResponse conTotales(List<ItemResponse> items, BigDecimal subtotal) {
+        return new CarritoResponse(items, subtotal,
+                tarifaEnvio.para(subtotal), tarifaEnvio.total(subtotal));
     }
 }

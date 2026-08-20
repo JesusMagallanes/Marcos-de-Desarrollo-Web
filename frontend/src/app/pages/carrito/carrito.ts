@@ -12,10 +12,8 @@ import {
   MetodoPagoService,
   PagoService,
   direccionEnUnaLinea,
+  esMercadoPago,
 } from '../../core';
-
-const UMBRAL_ENVIO_GRATIS = 200;
-const COSTO_ENVIO = 15;
 
 @Component({
   selector: 'app-carrito',
@@ -34,8 +32,20 @@ export class Carrito implements OnInit {
   protected cargando = signal(true);
   protected procesando = signal(false);
   protected error = signal('');
+  /** Aviso que no es un fallo: un pago aceptado pero todavía sin confirmar. */
+  protected aviso = signal('');
   protected metodosPago = signal<MetodoPago[]>([]);
   protected metodoElegido = signal<number | null>(null);
+
+  /*
+   * No todos los medios llevan a una pasarela, y el botón lo decía igual:
+   * ponía «Pagar con MercadoPago» aunque el comprador hubiera elegido pagar en
+   * efectivo al recibir.
+   */
+  protected textoBotonPagar = computed(() => {
+    const metodo = this.metodosPago().find((m) => m.id === this.metodoElegido());
+    return metodo && !esMercadoPago(metodo) ? 'Confirmar pedido' : 'Pagar con MercadoPago';
+  });
 
   /*
    * A dónde va el pedido. Se pide aquí, antes de ir a MercadoPago: si se pidiera
@@ -53,13 +63,15 @@ export class Carrito implements OnInit {
     return e ? direccionEnUnaLinea(e) : '';
   });
 
-  protected costoEnvio = computed(() =>
-    this.carrito.subtotal() >= UMBRAL_ENVIO_GRATIS || this.carrito.subtotal() === 0 ? 0 : COSTO_ENVIO,
-  );
-  protected total = computed(() => this.carrito.subtotal() + this.costoEnvio());
-  protected faltaParaEnvioGratis = computed(() =>
-    Math.max(0, UMBRAL_ENVIO_GRATIS - this.carrito.subtotal()),
-  );
+  /*
+   * Envío y total vienen del backend, que es quien los cobra. Estaban aquí
+   * calculados con una tercera copia del umbral y del costo —había otra en el
+   * servicio de carrito y otra en `constantes`— y el backend no sumaba el envío
+   * en absoluto: el comprador leía «Total S/ 215» y en la pasarela pagaba 200.
+   */
+  protected costoEnvio = this.carrito.costoEnvio;
+  protected total = this.carrito.total;
+  protected faltaParaEnvioGratis = this.carrito.faltaParaEnvioGratis;
   protected vacio = computed(() => this.carrito.items().length === 0);
 
   ngOnInit(): void {
@@ -87,8 +99,26 @@ export class Carrito implements OnInit {
     this.ruta.queryParamMap.subscribe((q) => {
       const estado = q.get('status');
       const paymentId = q.get('payment_id');
-      if (estado === 'approved' && paymentId) this.confirmar(paymentId);
-      else if (estado === 'failure') this.error.set('El pago fue rechazado. Intenta con otro medio.');
+
+      if (estado === 'approved' && paymentId) {
+        this.confirmar(paymentId);
+      } else if (estado === 'failure') {
+        this.error.set('El pago fue rechazado. Intenta con otro medio.');
+      } else if (estado === 'pending') {
+        /*
+         * MercadoPago tiene una tercera back_url y hasta ahora no la miraba
+         * nadie: quien pagaba en efectivo, o con una tarjeta que quedó en
+         * revisión, volvía a un carrito idéntico al que dejó y sin un solo
+         * mensaje. Lo natural entonces es pagar otra vez.
+         *
+         * No se llama a `confirmar`: el pago aún no está hecho. La compra se
+         * cierra sola cuando la pasarela avisa, o cuando el barrendero concilia.
+         */
+        this.aviso.set(
+          'Tu pago quedó pendiente de confirmación. En cuanto la pasarela lo apruebe ' +
+            'verás la compra en «Mis compras»; no hace falta que pagues otra vez.',
+        );
+      }
     });
   }
 
@@ -136,6 +166,7 @@ export class Carrito implements OnInit {
 
     this.procesando.set(true);
     this.error.set('');
+    this.aviso.set('');
 
     // El importe lo calcula el backend desde el carrito; aquí van el medio y el
     // destino. El destino se manda AHORA porque después el comprador se va a
@@ -145,6 +176,19 @@ export class Carrito implements OnInit {
       .crearPreferencia(metodo, entrega)
       .subscribe({
         next: (pref) => {
+          /*
+           * Contra entrega: no hay a dónde ir. El backend ya reservó el stock,
+           * creó el pedido y el envío, y lo dejó listo para cobrarse al
+           * entregarlo, así que se lleva al comprador a verlo.
+           */
+          if (!pref.requierePasarela) {
+            this.carrito.refrescar();
+            this.router.navigate(['/perfil/compras'], {
+              queryParams: pref.pedidoId ? { nuevo: pref.pedidoId } : {},
+            });
+            return;
+          }
+
           const url = pref.init_point || pref.sandbox_init_point;
           if (url) {
             window.location.href = url;

@@ -14,6 +14,15 @@
             <div class="alert alert-danger py-2">{{ error() }}</div>
           }
 
+          <!--
+            Un pago pendiente no es un error: el comprador hizo su parte y solo
+            falta que la pasarela confirme. En rojo parecería que algo salió mal
+            y volvería a pagar, que es justo lo que hay que evitar.
+          -->
+          @if (aviso()) {
+            <div class="alert alert-info py-2">{{ aviso() }}</div>
+          }
+
           @if (cargando()) {
             <app-cargando />
           } @else if (vacio()) {
@@ -187,7 +196,7 @@
           @if (procesando()) {
             <span class="spinner-border spinner-border-sm me-2"></span>Procesando…
           } @else {
-            Pagar con MercadoPago
+            {{ textoBotonPagar() }}
           }
         </button>
       </div>

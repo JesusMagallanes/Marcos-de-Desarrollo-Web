@@ -5,8 +5,10 @@ import java.util.Map;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -117,6 +119,17 @@ public class GlobalExceptionHandler {
         metricas.tokenInvalido("rechazado");
         return construir(HttpStatus.UNAUTHORIZED, "No autorizado",
                 "Necesitas iniciar sesión para esta operación");
+    }
+
+    /**
+     * Cupo por comprador agotado. Lleva `Retry-After` porque un 429 sin él le
+     * dice al cliente que espere pero no cuánto, y entonces reintenta enseguida.
+     */
+    @ExceptionHandler(DemasiadasPeticionesException.class)
+    ResponseEntity<ProblemDetail> demasiadasPeticiones(DemasiadasPeticionesException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.segundosParaReintentar()))
+                .body(construir(HttpStatus.TOO_MANY_REQUESTS, "Demasiadas peticiones", ex.getMessage()));
     }
 
     /* ── Infraestructura ── */

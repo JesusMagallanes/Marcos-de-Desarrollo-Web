@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.backend.compras.saga.CheckoutOrquestador.Conciliacion;
 import com.backend.compras.shared.seguridad.TokenServicio;
 
 /**
@@ -71,7 +72,7 @@ class SagaBarrenderoTest {
     void pagadaNoSeCompensa() {
         when(sagas.buscarAbandonadas(any())).thenReturn(List.of(abandonada()));
         when(tokenServicio.emitir()).thenReturn("token-de-servicio");
-        when(orquestador.conciliarSiSePago(any(), anyString())).thenReturn(true);
+        when(orquestador.conciliar(any(), anyString())).thenReturn(Conciliacion.COMPLETADA);
 
         barrendero.compensarAbandonadas();
 
@@ -85,7 +86,7 @@ class SagaBarrenderoTest {
     void noPagadaSeCompensa() {
         when(sagas.buscarAbandonadas(any())).thenReturn(List.of(abandonada()));
         when(tokenServicio.emitir()).thenReturn("token-de-servicio");
-        when(orquestador.conciliarSiSePago(any(), anyString())).thenReturn(false);
+        when(orquestador.conciliar(any(), anyString())).thenReturn(Conciliacion.SIN_PAGO);
 
         barrendero.compensarAbandonadas();
 
@@ -97,12 +98,12 @@ class SagaBarrenderoTest {
     void preguntaAntesDeCompensar() {
         when(sagas.buscarAbandonadas(any())).thenReturn(List.of(abandonada()));
         when(tokenServicio.emitir()).thenReturn("t");
-        when(orquestador.conciliarSiSePago(any(), anyString())).thenReturn(false);
+        when(orquestador.conciliar(any(), anyString())).thenReturn(Conciliacion.SIN_PAGO);
 
         barrendero.compensarAbandonadas();
 
         var orden = org.mockito.Mockito.inOrder(orquestador);
-        orden.verify(orquestador).conciliarSiSePago(any(), anyString());
+        orden.verify(orquestador).conciliar(any(), anyString());
         orden.verify(orquestador).compensar(any(), anyString(), anyString());
     }
 
@@ -111,7 +112,7 @@ class SagaBarrenderoTest {
     void compensaConTokenPropio() {
         when(sagas.buscarAbandonadas(any())).thenReturn(List.of(abandonada()));
         when(tokenServicio.emitir()).thenReturn("token-de-servicio");
-        when(orquestador.conciliarSiSePago(any(), anyString())).thenReturn(false);
+        when(orquestador.conciliar(any(), anyString())).thenReturn(Conciliacion.SIN_PAGO);
 
         barrendero.compensarAbandonadas();
 
@@ -124,13 +125,28 @@ class SagaBarrenderoTest {
     }
 
     @Test
+    @DisplayName("si el pago sigue en curso NO se compensa: aún puede aprobarse")
+    void pagoEnCursoNoSeCompensa() {
+        when(sagas.buscarAbandonadas(any())).thenReturn(List.of(abandonada()));
+        when(tokenServicio.emitir()).thenReturn("token-de-servicio");
+        when(orquestador.conciliar(any(), anyString())).thenReturn(Conciliacion.PAGO_EN_CURSO);
+
+        barrendero.compensarAbandonadas();
+
+        // Un efectivo nace `pending` y se aprueba cuando el comprador lo paga.
+        // Cancelarlo aquí deja el cobro sin pedido al que asociarlo, y la saga
+        // en un estado final del que el aviso de aprobación ya no la saca.
+        verify(orquestador, never()).compensar(any(), anyString(), anyString());
+    }
+
+    @Test
     @DisplayName("sin compras pendientes no se toca nada")
     void nadaQueHacer() {
         when(sagas.buscarAbandonadas(any())).thenReturn(List.of());
 
         barrendero.compensarAbandonadas();
 
-        verify(orquestador, never()).conciliarSiSePago(any(), anyString());
+        verify(orquestador, never()).conciliar(any(), anyString());
         verify(tokenServicio, never()).emitir();
     }
 }

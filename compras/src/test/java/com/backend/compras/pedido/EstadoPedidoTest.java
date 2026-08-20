@@ -15,12 +15,26 @@ import org.junit.jupiter.api.Test;
 class EstadoPedidoTest {
 
     @Test
-    @DisplayName("un pedido pendiente solo puede pagarse o cancelarse")
+    @DisplayName("un pedido pendiente solo puede cerrarse, confirmarse o cancelarse")
     void desdePendiente() {
         assertThat(EstadoPedido.PENDIENTE.puedePasarA(EstadoPedido.PAGADO)).isTrue();
+        // La salida del checkout contra entrega: el pedido queda en firme sin
+        // haberse cobrado.
+        assertThat(EstadoPedido.PENDIENTE.puedePasarA(EstadoPedido.CONFIRMADO)).isTrue();
         assertThat(EstadoPedido.PENDIENTE.puedePasarA(EstadoPedido.CANCELADO)).isTrue();
         assertThat(EstadoPedido.PENDIENTE.puedePasarA(EstadoPedido.ENTREGADO)).isFalse();
         assertThat(EstadoPedido.PENDIENTE.puedePasarA(EstadoPedido.EN_TRANSITO)).isFalse();
+    }
+
+    @Test
+    @DisplayName("un contra entrega se envía sin pasar por PAGADO: se cobra al entregar")
+    void desdeConfirmado() {
+        assertThat(EstadoPedido.CONFIRMADO.puedePasarA(EstadoPedido.EN_TRANSITO)).isTrue();
+        assertThat(EstadoPedido.CONFIRMADO.puedePasarA(EstadoPedido.CANCELADO)).isTrue();
+        // No se cobra por adelantado, así que no hay vuelta a PAGADO; y tampoco
+        // se salta el envío.
+        assertThat(EstadoPedido.CONFIRMADO.puedePasarA(EstadoPedido.PAGADO)).isFalse();
+        assertThat(EstadoPedido.CONFIRMADO.puedePasarA(EstadoPedido.ENTREGADO)).isFalse();
     }
 
     @Test

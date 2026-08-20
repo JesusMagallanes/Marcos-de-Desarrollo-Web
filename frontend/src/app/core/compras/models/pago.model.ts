@@ -110,13 +110,23 @@ export interface PreferenciaRequest {
 }
 
 export interface PreferenciaResponse {
-  id: string;
+  id: string | null;
   /** URL de checkout de producción. */
   init_point: string | null;
   /** URL de checkout de pruebas. */
   sandbox_init_point: string | null;
   /** Total calculado por el backend. */
   total: number;
+  /*
+   * Si hay que mandar al comprador fuera a pagar.
+   *
+   * El contra entrega no va a ninguna pasarela: la compra queda hecha en la
+   * misma llamada. Se mira este campo y no si las URLs vienen vacías, porque
+   * vacías vienen también cuando MercadoPago falla, y son lo contrario.
+   */
+  requierePasarela: boolean;
+  /** El pedido ya creado. Solo viene cuando no hubo pasarela de por medio. */
+  pedidoId: number | null;
 }
 
 export interface ConfirmarPagoRequest {

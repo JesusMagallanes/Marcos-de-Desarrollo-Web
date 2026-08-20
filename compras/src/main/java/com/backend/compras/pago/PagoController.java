@@ -13,9 +13,13 @@ import com.backend.compras.pago.dto.PagoDtos.PreferenciaRequest;
 import com.backend.compras.pago.dto.PagoDtos.PreferenciaResponse;
 import com.backend.compras.pedido.dto.PedidoDtos.PedidoResponse;
 import com.backend.compras.saga.CheckoutOrquestador;
+import com.backend.compras.shared.error.DemasiadasPeticionesException;
 import com.backend.compras.shared.metricas.MetricasSeguridad;
 import com.backend.compras.shared.security.TokenActual;
 import com.backend.compras.shared.security.UsuarioAutenticado;
+import com.backend.compras.shared.seguridad.LimitadorPeticiones;
+
+import java.time.Duration;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +37,29 @@ public class PagoController {
     private final CheckoutOrquestador orquestador;
     private final WebhookMercadoPago webhook;
     private final MetricasSeguridad metricas;
+    private final LimitadorPeticiones limitador;
+
+    /*
+     * Cupo de checkouts POR COMPRADOR.
+     *
+     * El filtro de rate limit cuenta por IP, y detrás del gateway todos los
+     * compradores comparten la misma: el cupo de pagos era, en la práctica, un
+     * tope para la tienda entera. Aquí la identidad ya está verificada por el
+     * JWT, así que el límite recae sobre quien se quiere limitar de verdad.
+     *
+     * Diez es holgado para alguien que compra —y que puede tener que reintentar
+     * porque se le agotó el stock o cambió de idea— y sigue frenando a quien
+     * intente abrir checkouts en bucle, que cada uno reserva stock y llama a la
+     * pasarela.
+     */
+    private static final int MAX_CHECKOUTS_POR_USUARIO = 10;
+    private static final Duration VENTANA_CHECKOUT = Duration.ofMinutes(10);
 
     /** Fase 1: reserva stock, crea el pedido pendiente y devuelve la URL de pago. */
     @PostMapping("/preferencia")
     public PreferenciaResponse crearPreferencia(UsuarioAutenticado usuario,
             @Valid @RequestBody PreferenciaRequest peticion) {
+        exigirCupoDeCheckout(usuario.id());
         return orquestador.iniciar(usuario.id(), peticion, TokenActual.valor());
     }
 
@@ -79,6 +101,26 @@ public class PagoController {
 
         webhook.procesar(dataId, cuerpo);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Solo lo aplica {@code /preferencia}: confirmar es idempotente y se
+     * reintenta por motivos legítimos —recargar la página de retorno— así que
+     * limitarlo solo estorbaría a quien ya pagó.
+     */
+    private void exigirCupoDeCheckout(Long usuarioId) {
+        String clave = "checkout|usuario:" + usuarioId;
+        if (limitador.permitir(clave, MAX_CHECKOUTS_POR_USUARIO, VENTANA_CHECKOUT)) {
+            return;
+        }
+
+        long espera = limitador.segundosParaReintentar(clave, VENTANA_CHECKOUT);
+        metricas.rateLimitBloqueado("checkout-usuario");
+        log.warn("El usuario {} agotó su cupo de checkouts", usuarioId);
+
+        throw new DemasiadasPeticionesException(
+                "Has empezado demasiadas compras seguidas. Espera " + espera + " segundos.",
+                espera);
     }
 
     /**

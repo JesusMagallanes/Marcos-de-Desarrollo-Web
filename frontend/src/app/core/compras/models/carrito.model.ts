@@ -15,6 +15,17 @@ export interface Carrito {
   items: CarritoItem[];
   /** Calculado en el servidor; el cliente nunca envía importes. */
   subtotal: number;
+  /*
+   * El envío y el total también vienen del servidor, y no se recomponen aquí.
+   *
+   * Antes el frontend traía solo el subtotal y sumaba su propia copia del
+   * umbral y del costo. Eran dos escrituras de la misma regla de negocio, y la
+   * que se cobraba de verdad era la del backend — que ni siquiera sumaba el
+   * envío: el carrito enseñaba 215 y en la pasarela se cobraban 200.
+   */
+  costoEnvio: number;
+  /** Lo que se va a cobrar: subtotal + envío. */
+  total: number;
 }
 
 export interface AgregarItemRequest {
@@ -26,7 +37,7 @@ export interface CambiarCantidadRequest {
   cantidad: number;
 }
 
-export const CARRITO_VACIO: Carrito = { items: [], subtotal: 0 };
+export const CARRITO_VACIO: Carrito = { items: [], subtotal: 0, costoEnvio: 0, total: 0 };
 
 export function subtotalDe(item: CarritoItem): number {
   return item.precio * item.cantidad;

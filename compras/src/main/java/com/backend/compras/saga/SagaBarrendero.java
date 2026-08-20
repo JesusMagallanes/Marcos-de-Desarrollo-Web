@@ -68,11 +68,22 @@ public class SagaBarrendero {
                 // pedido, con el stock devuelto a la tienda y con el cobro hecho.
                 // El `paymentId` solo llega por la URL de retorno, así que para
                 // los que no volvieron hay que buscar por la referencia.
-                if (orquestador.conciliarSiSePago(saga, token)) {
-                    continue;
-                }
+                switch (orquestador.conciliar(saga, token)) {
+                    case COMPLETADA -> log.info("La compra {} se cerró al conciliar, no se compensa",
+                            saga.getReferencia());
 
-                orquestador.compensar(saga, token, "pago no completado a tiempo");
+                    // El plazo se agotó pero el pago sigue vivo. Cancelar ahora
+                    // es exactamente el error que esta comprobación evita, solo
+                    // que unos minutos antes: el cobro entra después y ya no hay
+                    // pedido al que asociarlo. Se deja para la siguiente pasada;
+                    // si nunca se aprueba, la reserva de stock caduca sola en
+                    // catálogo, que es la segunda red de seguridad.
+                    case PAGO_EN_CURSO -> log.warn("La compra {} pasó del plazo pero su pago sigue"
+                            + " en curso: se deja viva y se revisa en la siguiente pasada",
+                            saga.getReferencia());
+
+                    case SIN_PAGO -> orquestador.compensar(saga, token, "pago no completado a tiempo");
+                }
             } catch (RuntimeException ex) {
                 log.error("Error compensando la saga {}: {}", saga.getReferencia(), ex.getMessage());
             }

@@ -258,6 +258,21 @@ Fase 2 — POST /api/pagos/confirmar
   8. VACIAR_CARRITO
 ```
 
+**No todos los medios de pago tienen fase 2.** «Contra entrega» no va a ninguna pasarela: el
+dinero llega con el repartidor, así que no hay nada que verificar después y los pasos 5 a 8 se
+dan en la misma petición. El pedido queda en `CONFIRMADO` —en firme y sin cobrar— y la
+respuesta trae `requierePasarela: false` en lugar de una URL de checkout.
+
+El importe que se cobra es **subtotal + envío**, y sale del mismo cálculo que alimenta la
+pantalla del carrito (`TarifaEnvio`). Estuvieron separados, y entonces el carrito enseñaba un
+total con envío que la pasarela no cobraba.
+
+**Un pago `pending` o `in_process` no es un pago fallido.** Un efectivo nace `pending` y una
+tarjeta en revisión pasa por `in_process`: los dos pueden acabar aprobados, así que la compra
+se queda esperando en vez de compensarse. Cancelarla dejaría el cobro sin pedido al que
+asociarlo, y con la saga en un estado final ya no habría nada que cerrar cuando llegase el
+aviso de aprobación.
+
 **Por qué reserva en vez de descontar al final**: descontar al confirmar permite vender dos
 veces la última unidad mientras el usuario paga; descontar al empezar la bloquea para siempre
 si abandona. La reserva con caducidad resuelve ambos.
@@ -269,8 +284,11 @@ si abandona. La reserva con caducidad resuelve ambos.
 3. Si aun así falla, catálogo libera la reserva por caducidad a los 20 min, y la saga queda
    en `FALLIDA` para revisión manual.
 
-La compensación corre en `REQUIRES_NEW`: si la saga principal hace rollback, el registro de
-lo compensado debe persistir igualmente.
+La compensación **y la conciliación** corren en `REQUIRES_NEW`, y se invocan a través del
+proxy de Spring: si la saga principal hace rollback, lo que ellas escribieron debe persistir
+igualmente. Una llamada directa se salta el proxy y con él la anotación — y entonces
+conciliar una compra ya pagada se deshacía con la excepción que se lanza justo después,
+dejando al comprador sin la compra y sin poder reintentarla.
 
 **Estados de la saga** (`saga_checkout.estado`):
 
@@ -291,10 +309,17 @@ vez de crear otro; las reservas son idempotentes por `referencia` (índice únic
 `pedido.model.ts` del frontend, para no ofrecer botones que acabarían en un 409:
 
 ```
-PENDIENTE ──► PAGADO ──► EN_TRANSITO ──► ENTREGADO
-    │           │             │
-    └───────────┴─────────────┴──────► CANCELADO
+              ┌──► PAGADO ─────┐                              (checkout con pasarela)
+PENDIENTE ────┤                ├──► EN_TRANSITO ──► ENTREGADO
+              └──► CONFIRMADO ─┘                              (contra entrega, sin cobrar)
+    │              │                   │
+    └──────────────┴───────────────────┴──────────────────► CANCELADO
 ```
+
+`CONFIRMADO` es el pedido contra entrega: existe, el stock ya salió y hay que llevarlo, pero
+el dinero no ha entrado. Por eso sale en «Mis compras» —es un pedido de verdad— y en cambio no
+da derecho a valorar el producto hasta que se cobre. Son dos conjuntos distintos en
+`EstadoPedido`: `EN_MIS_COMPRAS` y `COMPRADOS`.
 
 `ENTREGADO` y `CANCELADO` son finales. Una prueba contrasta `siguienteEstado()` con
 `puedePasarA()` para que ambas definiciones no se desincronicen — así se detectó que el panel

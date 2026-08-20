@@ -1,10 +1,12 @@
 package com.backend.compras.pago;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 
@@ -76,8 +78,25 @@ public class MercadoPagoClient {
     /** Estado de un pago consultado a la pasarela. */
     public record Pago(String id, String status, BigDecimal transaction_amount, String external_reference) {
 
+        /*
+         * Estados en los que la pasarela AUN NO HA DICHO la ultima palabra.
+         *
+         * Distinguirlos de un rechazo no es un matiz: un pago en efectivo nace
+         * `pending` y se aprueba cuando el comprador va a pagarlo, y una tarjeta
+         * en revision pasa por `in_process`. Tratandolos como fallo se cancelaba
+         * el pedido y se devolvia el stock de un cobro que despues entraba, y la
+         * saga quedaba COMPENSADA --estado final--, asi que cuando llegaba el
+         * aviso de aprobacion ya no habia nada que cerrar.
+         */
+        private static final Set<String> EN_CURSO = Set.of("pending", "in_process", "authorized");
+
         public boolean aprobado() {
             return "approved".equals(status);
+        }
+
+        /** Ni aprobado ni rechazado todavia: hay que esperar, no compensar. */
+        public boolean enCurso() {
+            return status != null && EN_CURSO.contains(status);
         }
     }
 
@@ -194,7 +213,7 @@ public class MercadoPagoClient {
     }
 
     /**
-     * Busca si existe un pago aprobado para una referencia de compra.
+     * Busca el pago que decide la suerte de una compra.
      *
      * <p>Hace falta para conciliar: cuando alguien paga y cierra la pestaña sin
      * volver, no tenemos su {@code paymentId} —ese llega por la URL de retorno—,
@@ -202,9 +221,14 @@ public class MercadoPagoClient {
      * barrendero daba la compra por abandonada y la compensaba: pedido cancelado,
      * stock devuelto y el cobro hecho.
      *
-     * @return el pago aprobado, o vacío si no hay ninguno
+     * <p>Devuelve el aprobado si lo hay y, si no, uno que siga en curso. Ese
+     * segundo caso importa tanto como el primero: un pago en efectivo o una
+     * tarjeta en revisión todavía pueden aprobarse, y quien vaya a tirar la
+     * compra tiene que saber que no es lo mismo que un rechazo.
+     *
+     * @return el pago aprobado; si no lo hay, uno aún en curso; si tampoco, vacío
      */
-    public Optional<Pago> buscarPagoAprobado(String referencia) {
+    public Optional<Pago> buscarPagoDeLaCompra(String referencia) {
         exigirConfiguracion();
         try {
             BusquedaPagos respuesta = cliente.get()
@@ -218,7 +242,11 @@ public class MercadoPagoClient {
             if (respuesta == null || respuesta.results() == null) {
                 return Optional.empty();
             }
-            return respuesta.results().stream().filter(Pago::aprobado).findFirst();
+            // Un aprobado manda sobre cualquier otro: es el unico que cierra la
+            // venta. Los demas solo sirven para saber que hay que esperar.
+            return respuesta.results().stream()
+                    .filter(pago -> pago.aprobado() || pago.enCurso())
+                    .min(Comparator.comparingInt(pago -> pago.aprobado() ? 0 : 1));
 
         } catch (RestClientException ex) {
             // No se propaga: si la pasarela no responde, lo prudente es NO tocar

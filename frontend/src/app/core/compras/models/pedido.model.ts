@@ -1,5 +1,17 @@
-/** Estados del pedido. Definidos aquí porque son del dominio de compras. */
-export type EstadoPedido = 'PENDIENTE' | 'PAGADO' | 'EN_TRANSITO' | 'ENTREGADO' | 'CANCELADO';
+/**
+ * Estados del pedido. Definidos aquí porque son del dominio de compras.
+ *
+ * `CONFIRMADO` es el pedido contra entrega: existe y va de camino, pero el
+ * dinero llega con el repartidor. No es `PAGADO` —sería mentira— ni `PENDIENTE`,
+ * que es un checkout abandonado y no se le enseña al comprador.
+ */
+export type EstadoPedido =
+  | 'PENDIENTE'
+  | 'CONFIRMADO'
+  | 'PAGADO'
+  | 'EN_TRANSITO'
+  | 'ENTREGADO'
+  | 'CANCELADO';
 
 /** Servicio `compras` (:8083). */
 export interface DetallePedido {
@@ -30,6 +42,9 @@ export interface CambioEstadoPedido {
 /** Etiquetas para mostrar; los valores crudos son los del backend. */
 export const ETIQUETA_ESTADO_PEDIDO: Record<EstadoPedido, string> = {
   PENDIENTE: 'Pendiente',
+  // Dice lo que le importa al comprador —que pagará al recibirlo— y no
+  // «Confirmado», que no le aclara si le han cobrado ya o no.
+  CONFIRMADO: 'Pago al recibir',
   PAGADO: 'Pagado',
   EN_TRANSITO: 'En camino',
   ENTREGADO: 'Entregado',
@@ -39,6 +54,7 @@ export const ETIQUETA_ESTADO_PEDIDO: Record<EstadoPedido, string> = {
 /** Clase de Bootstrap por estado, para no repetir el switch en cada vista. */
 export const CLASE_ESTADO_PEDIDO: Record<EstadoPedido, string> = {
   PENDIENTE: 'bg-secondary',
+  CONFIRMADO: 'bg-warning text-dark',
   PAGADO: 'bg-primary',
   EN_TRANSITO: 'bg-info text-dark',
   ENTREGADO: 'bg-success',
@@ -47,7 +63,9 @@ export const CLASE_ESTADO_PEDIDO: Record<EstadoPedido, string> = {
 
 /** Transiciones permitidas, iguales que las del backend. */
 const TRANSICIONES: Record<EstadoPedido, EstadoPedido[]> = {
-  PENDIENTE: ['PAGADO', 'CANCELADO'],
+  PENDIENTE: ['PAGADO', 'CONFIRMADO', 'CANCELADO'],
+  // Un contra entrega no pasa por PAGADO: se cobra al entregarlo.
+  CONFIRMADO: ['EN_TRANSITO', 'CANCELADO'],
   PAGADO: ['EN_TRANSITO', 'CANCELADO'],
   EN_TRANSITO: ['ENTREGADO', 'CANCELADO'],
   ENTREGADO: [],
@@ -63,6 +81,7 @@ export function siguienteEstado(actual: EstadoPedido): EstadoPedido | null {
   switch (actual) {
     case 'PENDIENTE':
       return 'PAGADO';
+    case 'CONFIRMADO':
     case 'PAGADO':
       return 'EN_TRANSITO';
     case 'EN_TRANSITO':
