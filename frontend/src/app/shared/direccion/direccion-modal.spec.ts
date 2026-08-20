@@ -1,7 +1,25 @@
 import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { DireccionModal } from './direccion-modal';
-import { DireccionEntrega, direccionCompleta, direccionEnUnaLinea, direccionVacia } from '../../core';
+import {
+  DireccionEntrega,
+  UbigeoService,
+  direccionCompleta,
+  direccionEnUnaLinea,
+  direccionVacia,
+} from '../../core';
+
+/**
+ * El ubigeo de verdad son 1874 distritos que vienen de la base. Aquí basta con
+ * un puñado: lo que se prueba es la cascada, no el contenido del catálogo.
+ */
+const ubigeoFalso = {
+  departamentos: () => of(['Cusco', 'Lima']),
+  provincias: (dep: string) => of(dep === 'Lima' ? ['Huaral', 'Lima'] : ['Cusco']),
+  distritos: (_dep: string, pro: string) =>
+    of(pro === 'Lima' ? ['Miraflores', 'Surco'] : ['Chinchero']),
+};
 
 function completa(): DireccionEntrega {
   return {
@@ -56,7 +74,10 @@ describe('reglas de la dirección', () => {
 
 describe('DireccionModal', () => {
   function montar(inicial: DireccionEntrega | null = null) {
-    TestBed.configureTestingModule({ imports: [DireccionModal] });
+    TestBed.configureTestingModule({
+      imports: [DireccionModal],
+      providers: [{ provide: UbigeoService, useValue: ubigeoFalso }],
+    });
     const fixture = TestBed.createComponent(DireccionModal);
     fixture.componentRef.setInput('inicial', inicial);
     fixture.detectChanges();
@@ -68,8 +89,9 @@ describe('DireccionModal', () => {
     const el = fixture.nativeElement as HTMLElement;
 
     expect((el.querySelector('#dir-calle') as HTMLInputElement).value).toBe('Av. Los Próceres');
-    expect((el.querySelector('#dir-distrito') as HTMLInputElement).value).toBe('Miraflores');
     expect((el.querySelector('#dir-cp') as HTMLInputElement).value).toBe('15074');
+    // El distrito ya no se escribe: se elige de la lista que viene de la base.
+    expect((el.querySelector('#dir-distrito') as HTMLSelectElement).value).toBe('Miraflores');
   });
 
   it('no emite una dirección incompleta', () => {
@@ -123,5 +145,80 @@ describe('DireccionModal', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
 
     expect(cerrado).toHaveBeenCalled();
+  });
+});
+
+/**
+ * La cascada. Es lo que impide un distrito que existe dentro de la provincia
+ * que no es: hay Miraflores en cinco departamentos distintos, y un pedido con
+ * el distrito bueno y la provincia mala acaba en la otra punta del país.
+ */
+describe('DireccionModal · ubigeo del Perú', () => {
+  function montar(inicial: DireccionEntrega | null = null) {
+    TestBed.configureTestingModule({
+      imports: [DireccionModal],
+      providers: [{ provide: UbigeoService, useValue: ubigeoFalso }],
+    });
+    const fixture = TestBed.createComponent(DireccionModal);
+    fixture.componentRef.setInput('inicial', inicial);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  const opciones = (el: HTMLElement, id: string) =>
+    [...el.querySelectorAll(`${id} option`)].map((o) => (o as HTMLOptionElement).value).filter(Boolean);
+
+  function elegir(fixture: ReturnType<typeof montar>, id: string, valor: string) {
+    const select = (fixture.nativeElement as HTMLElement).querySelector(id) as HTMLSelectElement;
+    select.value = valor;
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+  }
+
+  it('los departamentos salen de la base, no de una lista escrita a mano', () => {
+    const el = montar().nativeElement as HTMLElement;
+    expect(opciones(el, '#dir-departamento')).toEqual(['Cusco', 'Lima']);
+  });
+
+  it('provincia y distrito están bloqueados hasta elegir el de arriba', () => {
+    const el = montar().nativeElement as HTMLElement;
+
+    expect((el.querySelector('#dir-provincia') as HTMLSelectElement).disabled).toBe(true);
+    expect((el.querySelector('#dir-distrito') as HTMLSelectElement).disabled).toBe(true);
+  });
+
+  it('elegir departamento carga sus provincias', () => {
+    const fixture = montar();
+    elegir(fixture, '#dir-departamento', 'Lima');
+
+    expect(opciones(fixture.nativeElement, '#dir-provincia')).toEqual(['Huaral', 'Lima']);
+  });
+
+  it('cambiar de departamento borra lo que había debajo', () => {
+    // Sin esto queda «Cusco» con la provincia «Lima» todavía seleccionada: una
+    // combinación que no existe y que el usuario no ve como un error.
+    const fixture = montar();
+    elegir(fixture, '#dir-departamento', 'Lima');
+    elegir(fixture, '#dir-provincia', 'Lima');
+    elegir(fixture, '#dir-distrito', 'Miraflores');
+
+    elegir(fixture, '#dir-departamento', 'Cusco');
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect((el.querySelector('#dir-provincia') as HTMLSelectElement).value).toBe('');
+    expect((el.querySelector('#dir-distrito') as HTMLSelectElement).value).toBe('');
+  });
+
+  it('fuera de Perú se escribe a mano y se pide el país', () => {
+    const fixture = montar();
+    const el = fixture.nativeElement as HTMLElement;
+
+    (el.querySelector('#dir-fuera') as HTMLInputElement).dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    // El catálogo del INEI solo cubre Perú: fuera no hay lista que ofrecer.
+    expect(el.querySelector('#dir-departamento')).toBeNull();
+    expect(el.querySelector('#dir-departamento-libre')).not.toBeNull();
+    expect(el.querySelector('#dir-pais-codigo')).not.toBeNull();
   });
 });

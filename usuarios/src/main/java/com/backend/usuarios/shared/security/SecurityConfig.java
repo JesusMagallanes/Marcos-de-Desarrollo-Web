@@ -167,6 +167,10 @@ public class SecurityConfig {
                                 "/api/auth/refresh", "/api/auth/logout")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/proveedores").permitAll()
+                        // El ubigeo del Peru es un catalogo publico del INEI, igual
+                        // para todos. Pedir sesion para pintar una lista de 25
+                        // departamentos solo estorbaria en el registro.
+                        .requestMatchers(HttpMethod.GET, "/api/ubigeo/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         // Las métricas revelan intentos de login y sesiones: solo ADMINISTRADOR.
                         .requestMatchers("/actuator/prometheus").hasRole("ADMINISTRADOR")

@@ -118,55 +118,163 @@
       <div class="form-text">Es lo que salva la entrega cuando el número no se ve desde la calle.</div>
     </div>
 
-    <div class="row g-2 mt-1">
-      <div class="col-12 col-sm-4">
-        <label for="dir-distrito" class="form-label small fw-semibold mb-1">Distrito</label>
+    <!--
+      Dónde está. En Perú se elige de la lista del INEI que hay en la base;
+      fuera de Perú se escribe, porque ese catálogo solo cubre Perú.
+    -->
+    <div class="d-flex align-items-center gap-3 mt-3 mb-1">
+      <div class="form-check form-check-inline m-0">
         <input
-          id="dir-distrito"
-          class="form-control form-control-sm"
-          maxlength="80"
-          placeholder="Miraflores"
-          [class.is-invalid]="errorDistrito()"
-          [value]="distrito()"
-          (input)="distrito.set($any($event.target).value)"
+          id="dir-peru"
+          class="form-check-input"
+          type="radio"
+          name="dir-pais"
+          [checked]="enPeru()"
+          (change)="enPeru.set(true)"
         />
-        @if (errorDistrito()) {
-          <div class="invalid-feedback d-block">{{ errorDistrito() }}</div>
-        }
+        <label class="form-check-label small" for="dir-peru">Estoy en Perú</label>
       </div>
-
-      <div class="col-6 col-sm-4">
-        <label for="dir-provincia" class="form-label small fw-semibold mb-1">Provincia</label>
+      <div class="form-check form-check-inline m-0">
         <input
-          id="dir-provincia"
-          class="form-control form-control-sm"
-          maxlength="80"
-          placeholder="Lima"
-          [class.is-invalid]="errorProvincia()"
-          [value]="provincia()"
-          (input)="provincia.set($any($event.target).value)"
+          id="dir-fuera"
+          class="form-check-input"
+          type="radio"
+          name="dir-pais"
+          [checked]="!enPeru()"
+          (change)="enPeru.set(false)"
         />
-        @if (errorProvincia()) {
-          <div class="invalid-feedback d-block">{{ errorProvincia() }}</div>
-        }
-      </div>
-
-      <div class="col-6 col-sm-4">
-        <label for="dir-departamento" class="form-label small fw-semibold mb-1">Departamento</label>
-        <input
-          id="dir-departamento"
-          class="form-control form-control-sm"
-          maxlength="80"
-          placeholder="Lima"
-          [class.is-invalid]="errorDepartamento()"
-          [value]="departamento()"
-          (input)="departamento.set($any($event.target).value)"
-        />
-        @if (errorDepartamento()) {
-          <div class="invalid-feedback d-block">{{ errorDepartamento() }}</div>
-        }
+        <label class="form-check-label small" for="dir-fuera">Otro país</label>
       </div>
     </div>
+
+    @if (enPeru()) {
+      <!-- En cascada y en este orden: el de abajo no se puede elegir sin el de
+           arriba, que es lo que impide un distrito real en la provincia que no
+           es. Hay Miraflores en cinco departamentos distintos. -->
+      <div class="row g-2">
+        <div class="col-12 col-sm-4">
+          <label for="dir-departamento" class="form-label small fw-semibold mb-1">Departamento</label>
+          <select
+            id="dir-departamento"
+            class="form-select form-select-sm"
+            [class.is-invalid]="errorDepartamento()"
+            [value]="departamento()"
+            (change)="elegirDepartamento($any($event.target).value)"
+          >
+            <option value="">Elige…</option>
+            @for (d of departamentos(); track d) {
+              <option [value]="d" [selected]="d === departamento()">{{ d }}</option>
+            }
+          </select>
+          @if (errorDepartamento()) {
+            <div class="invalid-feedback d-block">{{ errorDepartamento() }}</div>
+          }
+        </div>
+
+        <div class="col-6 col-sm-4">
+          <label for="dir-provincia" class="form-label small fw-semibold mb-1">Provincia</label>
+          <select
+            id="dir-provincia"
+            class="form-select form-select-sm"
+            [disabled]="!departamento()"
+            [class.is-invalid]="errorProvincia()"
+            [value]="provincia()"
+            (change)="elegirProvincia($any($event.target).value)"
+          >
+            <option value="">Elige…</option>
+            @for (p of provincias(); track p) {
+              <option [value]="p" [selected]="p === provincia()">{{ p }}</option>
+            }
+          </select>
+          @if (errorProvincia()) {
+            <div class="invalid-feedback d-block">{{ errorProvincia() }}</div>
+          }
+        </div>
+
+        <div class="col-6 col-sm-4">
+          <label for="dir-distrito" class="form-label small fw-semibold mb-1">Distrito</label>
+          <select
+            id="dir-distrito"
+            class="form-select form-select-sm"
+            [disabled]="!provincia()"
+            [class.is-invalid]="errorDistrito()"
+            [value]="distrito()"
+            (change)="distrito.set($any($event.target).value)"
+          >
+            <option value="">Elige…</option>
+            @for (d of distritos(); track d) {
+              <option [value]="d" [selected]="d === distrito()">{{ d }}</option>
+            }
+          </select>
+          @if (errorDistrito()) {
+            <div class="invalid-feedback d-block">{{ errorDistrito() }}</div>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="row g-2">
+        <div class="col-12 col-sm-3">
+          <label for="dir-pais-codigo" class="form-label small fw-semibold mb-1">País</label>
+          <input
+            id="dir-pais-codigo"
+            class="form-control form-control-sm text-uppercase"
+            maxlength="2"
+            placeholder="CL"
+            [class.is-invalid]="errorPais()"
+            [value]="paisOtro()"
+            (input)="paisOtro.set($any($event.target).value)"
+          />
+          @if (errorPais()) {
+            <div class="invalid-feedback d-block">{{ errorPais() }}</div>
+          }
+        </div>
+
+        <div class="col-12 col-sm-3">
+          <label for="dir-departamento-libre" class="form-label small fw-semibold mb-1">Región</label>
+          <input
+            id="dir-departamento-libre"
+            class="form-control form-control-sm"
+            maxlength="80"
+            [class.is-invalid]="errorDepartamento()"
+            [value]="departamento()"
+            (input)="departamento.set($any($event.target).value)"
+          />
+          @if (errorDepartamento()) {
+            <div class="invalid-feedback d-block">{{ errorDepartamento() }}</div>
+          }
+        </div>
+
+        <div class="col-6 col-sm-3">
+          <label for="dir-provincia-libre" class="form-label small fw-semibold mb-1">Ciudad</label>
+          <input
+            id="dir-provincia-libre"
+            class="form-control form-control-sm"
+            maxlength="80"
+            [class.is-invalid]="errorProvincia()"
+            [value]="provincia()"
+            (input)="provincia.set($any($event.target).value)"
+          />
+          @if (errorProvincia()) {
+            <div class="invalid-feedback d-block">{{ errorProvincia() }}</div>
+          }
+        </div>
+
+        <div class="col-6 col-sm-3">
+          <label for="dir-distrito-libre" class="form-label small fw-semibold mb-1">Distrito</label>
+          <input
+            id="dir-distrito-libre"
+            class="form-control form-control-sm"
+            maxlength="80"
+            [class.is-invalid]="errorDistrito()"
+            [value]="distrito()"
+            (input)="distrito.set($any($event.target).value)"
+          />
+          @if (errorDistrito()) {
+            <div class="invalid-feedback d-block">{{ errorDistrito() }}</div>
+          }
+        </div>
+      </div>
+    }
 
     <div class="row g-2 mt-1">
       <div class="col-6 col-sm-4">

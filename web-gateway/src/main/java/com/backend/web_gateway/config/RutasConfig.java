@@ -43,6 +43,8 @@ public class RutasConfig {
                 .route(path("/api/auth/**"), http())
                 .route(path("/api/usuarios/**"), http())
                 .route(path("/api/roles/**"), http())
+                // Catalogo de departamentos, provincias y distritos del Peru.
+                .route(path("/api/ubigeo/**"), http())
                 // Solicitudes para vender en la tienda: viven en `usuarios`
                 // porque lo que conceden es un rol, no un producto.
                 .route(path("/api/colaboradores/**"), http())

@@ -11,6 +11,12 @@ export const RUTAS_USUARIOS = {
     proveedores: `${API}/auth/proveedores`,
   },
 
+  /** Catalogo publico: departamentos, provincias y distritos del Peru. */
+  ubigeo: {
+    departamentos: `${API}/ubigeo/departamentos`,
+    provincias: `${API}/ubigeo/provincias`,
+    distritos: `${API}/ubigeo/distritos`,
+  },
   usuarios: {
     base: `${API}/usuarios`,
     porId: (id: number) => `${API}/usuarios/${id}`,

@@ -10,8 +10,10 @@ import com.backend.usuarios.shared.auditoria.AuditoriaService;
 import com.backend.usuarios.shared.metricas.MetricasSeguridad;
 import com.backend.usuarios.shared.auditoria.AuditoriaService.Evento;
 import com.backend.usuarios.shared.error.ConflictoException;
+import com.backend.usuarios.shared.error.DatosInvalidosException;
 import com.backend.usuarios.shared.error.RecursoNoEncontradoException;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.CambioRol;
+import com.backend.usuarios.ubigeo.UbigeoRepository;
 import com.backend.usuarios.usuario.dto.DireccionUsuario;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.PerfilUpdate;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.UsuarioCreate;
@@ -29,6 +31,7 @@ public class UsuarioService {
     private final PasswordEncoder codificador;
     private final AuditoriaService auditoria;
     private final MetricasSeguridad metricas;
+    private final UbigeoRepository ubigeos;
 
     public List<UsuarioResponse> listar() {
         return repositorio.findAllByOrderByIdAsc().stream()
@@ -107,10 +110,35 @@ public class UsuarioService {
     @Transactional
     public UsuarioResponse guardarDireccion(Long id, DireccionUsuario direccion) {
         Usuario usuario = buscar(id);
+        exigirUbigeoReal(direccion);
         direccion.aplicarA(usuario);
 
         Usuario guardado = repositorio.save(usuario);
         return UsuarioResponse.desde(guardado, roles.permisosDe(guardado.getRol()));
+    }
+
+    /**
+     * En Perú, el distrito tiene que existir de verdad y estar donde dice.
+     *
+     * <p>El formulario ofrece tres desplegables encadenados, así que por ahí no
+     * puede salir una combinación falsa. Pero los nombres viajan por la red y
+     * nada impide mandar «Miraflores» dentro de Cusco: hay Miraflores en cinco
+     * departamentos distintos, y un pedido con el distrito correcto y la
+     * provincia equivocada acaba en la otra punta del país.
+     *
+     * <p>Fuera de Perú no se comprueba: el catálogo es del INEI y solo cubre
+     * Perú, así que allí el usuario escribe a mano y se le cree.
+     */
+    private void exigirUbigeoReal(DireccionUsuario direccion) {
+        if (!"PE".equals(direccion.pais())) {
+            return;
+        }
+
+        ubigeos.buscar(direccion.departamento(), direccion.provincia(), direccion.distrito())
+                .orElseThrow(() -> new DatosInvalidosException(
+                        "No encontramos el distrito %s en %s, %s. Elige uno de la lista."
+                                .formatted(direccion.distrito(), direccion.provincia(),
+                                        direccion.departamento())));
     }
 
     @Transactional

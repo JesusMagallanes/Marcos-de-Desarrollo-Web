@@ -1,6 +1,9 @@
-import { Component, HostListener, computed, effect, input, output, signal } from '@angular/core';
+import { Component, HostListener, computed, effect, inject, input, output, signal } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs';
 import {
   DireccionEntrega,
+  UbigeoService,
   direccionCompleta,
   direccionLugarCompleto,
   direccionVacia,
@@ -29,6 +32,8 @@ import { Coordenadas, Ubicacion } from '../ubicacion/ubicacion';
   styleUrl: './direccion-modal.css',
 })
 export class DireccionModal {
+  private ubigeo = inject(UbigeoService);
+
   /** La dirección que ya había, para editarla en vez de empezar de cero. */
   readonly inicial = input<DireccionEntrega | null>(null);
 
@@ -58,6 +63,50 @@ export class DireccionModal {
   protected codigoPostal = signal('');
   protected ubicacion = signal<Coordenadas | null>(null);
 
+  /*
+   * Perú se elige de una lista; fuera de Perú se escribe a mano.
+   *
+   * El catálogo del INEI solo cubre Perú, y es donde vende la tienda: ahí el
+   * distrito tiene que salir de la lista o no hay forma de agrupar el reparto
+   * ni de que la paquetería reconozca el nombre. Para el resto del mundo no hay
+   * catálogo que ofrecer, así que se acepta lo que escriba el usuario.
+   */
+  protected enPeru = signal(true);
+  protected paisOtro = signal('');
+
+  protected departamentos = toSignal(this.ubigeo.departamentos(), { initialValue: [] as string[] });
+
+  protected provincias = toSignal(
+    toObservable(this.departamento).pipe(switchMap((dep) => this.ubigeo.provincias(dep))),
+    { initialValue: [] as string[] },
+  );
+
+  /** Las dos juntas: los distritos dependen del par, no de un campo suelto. */
+  private zona = computed<[string, string]>(() => [this.departamento(), this.provincia()]);
+
+  protected distritos = toSignal(
+    toObservable(this.zona).pipe(switchMap(([dep, pro]) => this.ubigeo.distritos(dep, pro))),
+    { initialValue: [] as string[] },
+  );
+
+  /**
+   * Al cambiar de departamento se vacían provincia y distrito.
+   *
+   * <p>Sin esto queda «Cusco» con la provincia «Lima» todavía seleccionada: una
+   * combinación que no existe, que el backend rechaza y que el usuario no
+   * entiende porque en pantalla se ve un desplegable relleno.
+   */
+  protected elegirDepartamento(valor: string): void {
+    this.departamento.set(valor);
+    this.provincia.set('');
+    this.distrito.set('');
+  }
+
+  protected elegirProvincia(valor: string): void {
+    this.provincia.set(valor);
+    this.distrito.set('');
+  }
+
   /**
    * Solo se enseñan los errores cuando el comprador ha intentado guardar.
    * Pintarlos en rojo mientras todavía está escribiendo el primer campo es
@@ -82,6 +131,9 @@ export class DireccionModal {
     this.provincia.set(d.provincia);
     this.departamento.set(d.departamento);
     this.codigoPostal.set(d.codigoPostal);
+    const pais = (d.pais ?? 'PE').toUpperCase();
+    this.enPeru.set(pais === 'PE');
+    this.paisOtro.set(pais === 'PE' ? '' : pais);
     this.ubicacion.set(
       d.latitud != null && d.longitud != null
         ? { latitud: d.latitud, longitud: d.longitud }
@@ -100,14 +152,23 @@ export class DireccionModal {
     provincia: this.provincia(),
     departamento: this.departamento(),
     codigoPostal: this.codigoPostal(),
+    pais: this.enPeru() ? 'PE' : this.paisOtro().trim().toUpperCase(),
     latitud: this.ubicacion()?.latitud,
     longitud: this.ubicacion()?.longitud,
   }));
 
-  protected completa = computed(() =>
-    this.pedirReceptor()
+  protected completa = computed(() => {
+    const lugar = this.pedirReceptor()
       ? direccionCompleta(this.actual())
-      : direccionLugarCompleto(this.actual()),
+      : direccionLugarCompleto(this.actual());
+    // Fuera de Perú el país deja de ser un supuesto y hay que decirlo.
+    return lugar && (this.enPeru() || /^[A-Za-z]{2}$/.test(this.paisOtro().trim()));
+  });
+
+  protected errorPais = computed(() =>
+    !this.enPeru() && this.intentado() && !/^[A-Za-z]{2}$/.test(this.paisOtro().trim())
+      ? 'Son dos letras, como CL o EC'
+      : '',
   );
 
   /* ── Errores, uno por campo y solo tras intentar guardar ── */
