@@ -12,6 +12,7 @@ import com.backend.compras.carrito.Carrito;
 import com.backend.compras.carrito.CarritoItem;
 import com.backend.compras.carrito.CarritoRepository;
 import com.backend.compras.carrito.CarritoService;
+import com.backend.compras.carrito.dto.CarritoDtos.CarritoResponse;
 import com.backend.compras.envio.EnvioService;
 import com.backend.compras.metodopago.MetodoPago;
 import com.backend.compras.metodopago.MetodoPagoRepository;
@@ -140,14 +141,18 @@ public class CheckoutOrquestador {
         }
 
         /*
-         * El importe que se cobra: subtotal MÁS ENVÍO.
+         * UNA sola lectura del carrito, y de ella salen las tres cosas: las
+         * líneas del pedido, el importe que se cobra y el desglose que verá el
+         * comprador. Se construía dos veces —aquí para el total y otra vez
+         * dentro de `crearDesdeCarrito` para las líneas—, lo que además de una
+         * segunda llamada a catálogo eran dos fotos distintas de los precios.
          *
-         * Antes se cobraba el subtotal pelado mientras el carrito enseñaba el
-         * total con el envío sumado, así que el comprador veía un número y se le
-         * cobraba otro más bajo. Sale del mismo `construir` que alimenta esa
-         * pantalla justamente para que no puedan volver a discrepar.
+         * El importe es subtotal MÁS ENVÍO. Antes se cobraba el subtotal pelado
+         * mientras el carrito enseñaba el total con el envío sumado: el
+         * comprador veía un número y se le cobraba otro más bajo.
          */
-        BigDecimal total = carritoService.totalACobrar(carrito);
+        CarritoResponse resumen = carritoService.construir(carrito);
+        BigDecimal total = resumen.total();
         if (total.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ConflictoException("El importe de tu carrito no es válido");
         }
@@ -192,7 +197,7 @@ public class CheckoutOrquestador {
 
             // Paso 2 — crear el pedido en estado PENDIENTE.
             Pedido pedido = pedidoService.crearDesdeCarrito(
-                    usuarioId, metodoPagoId, saga.getReferencia(), total);
+                    usuarioId, metodoPagoId, saga.getReferencia(), resumen);
             saga.setPedidoId(pedido.getId());
             saga.avanzarA(Paso.PEDIDO_CREADO);
             sagas.save(saga);
@@ -276,10 +281,7 @@ public class CheckoutOrquestador {
         envioService.crearParaPedido(pedido, saga);
         saga.avanzarA(Paso.ENVIO_CREADO);
 
-        carritos.buscarConItems(usuarioId).ifPresent(carrito -> {
-            carrito.vaciar();
-            carritos.save(carrito);
-        });
+        carritoService.vaciar(usuarioId);
 
         saga.avanzarA(Paso.FIN);
         saga.setEstado(Estado.COMPLETADA);
@@ -380,11 +382,10 @@ public class CheckoutOrquestador {
             envioService.crearParaPedido(pedido, saga);
             saga.avanzarA(Paso.ENVIO_CREADO);
 
-            // Paso 8 — vaciar el carrito, ya convertido en pedido.
-            carritos.buscarConItems(usuarioId).ifPresent(carrito -> {
-                carrito.vaciar();
-                carritos.save(carrito);
-            });
+            // Paso 8 — vaciar el carrito, ya convertido en pedido. Por el
+            // servicio y no a mano: el vaciado de aquí era una segunda copia del
+            // mismo borrado, y arreglar uno dejaba el otro como estaba.
+            carritoService.vaciar(usuarioId);
 
             saga.avanzarA(Paso.FIN);
             saga.setEstado(Estado.COMPLETADA);

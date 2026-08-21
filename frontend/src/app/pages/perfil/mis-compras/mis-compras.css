@@ -27,23 +27,41 @@
 
 .detalle-pedido {
   border-top: 1px solid #f0f0f0;
-  padding: 0.5rem 1rem 1rem;
+  padding: 0.75rem 1rem 1rem;
   background: #fbfbfb;
 }
 
-.linea-detalle {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0;
+/* ── Tabla de productos ─────────────────────────────────────────── */
+
+.tabla-detalle {
+  font-size: 0.88rem;
+  background: transparent;
+  /* Sin esto las columnas de importes bailan de ancho entre un pedido y otro
+     al desplegarlos, y los números dejan de leerse en columna. */
+  min-width: 34rem;
+}
+
+.tabla-detalle thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #6c757d;
+  border-bottom: 1px solid #e4e4e4;
+  padding-bottom: 0.4rem;
+}
+
+.tabla-detalle tbody td {
   border-bottom: 1px solid #f0f0f0;
+  padding: 0.55rem 0.5rem;
 }
 
-.linea-detalle:last-child {
-  border-bottom: none;
+.tabla-detalle .col-imagen {
+  width: 56px;
+  padding-right: 0;
 }
 
-.linea-detalle img {
+.tabla-detalle .col-imagen img {
   width: 56px;
   height: 44px;
   object-fit: contain;
@@ -51,15 +69,65 @@
   border-radius: 4px;
 }
 
-.linea-detalle .nombre {
+.tabla-detalle .nombre {
   color: #333;
   text-decoration: none;
-  font-size: 0.88rem;
   font-weight: 600;
 }
 
-.linea-detalle .nombre:hover {
+.tabla-detalle .nombre:hover {
   color: #28aa00;
+}
+
+/* El pie son importes, no productos: se separa para que no se lea como una
+   línea más del pedido. */
+.tabla-detalle tfoot td {
+  border: none;
+  padding: 0.2rem 0.5rem;
+  color: #6c757d;
+}
+
+.tabla-detalle tfoot .fila-total td {
+  border-top: 1px solid #e4e4e4;
+  padding-top: 0.5rem;
+  color: #212529;
+  font-size: 0.95rem;
+}
+
+/* ── Entrega ────────────────────────────────────────────────────── */
+
+.bloque-entrega {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #ececec;
+}
+
+.bloque-entrega h6 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #6c757d;
+}
+
+/* Etiqueta y valor en dos columnas: leídos en pares se entienden de un vistazo
+   y no hace falta repetir «Recibe:» dentro del texto. */
+.datos-entrega {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.85rem;
+  font-size: 0.86rem;
+}
+
+.datos-entrega dt {
+  font-weight: 600;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.datos-entrega dd {
+  margin: 0;
+  color: #333;
 }
 
 .icono-vacio {
@@ -71,5 +139,16 @@
   .cabecera-pedido {
     grid-template-columns: 1fr auto;
     row-gap: 0.5rem;
+  }
+
+  /* En pantalla estrecha las etiquetas encima del valor: en dos columnas, la
+     dirección se quedaba con cuatro caracteres de ancho. */
+  .datos-entrega {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .datos-entrega dd {
+    margin-bottom: 0.5rem;
   }
 }

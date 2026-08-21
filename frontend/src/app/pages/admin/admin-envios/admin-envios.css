@@ -11,6 +11,21 @@
   padding: 1rem;
 }
 
+/* Un pedido que hay que cobrar en la puerta se distingue del resto de un
+   vistazo: quien prepara el reparto no debería tener que leer cada tarjeta
+   para saber en cuáles lleva dinero de vuelta. */
+.tarjeta-envio.por-cobrar {
+  border-color: #f0c36d;
+}
+
+.aviso-cobro {
+  background: #fff8e6;
+  border: 1px solid #f0c36d;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  color: #7a5b00;
+}
+
 .lista-articulos {
   list-style: none;
   padding: 0;

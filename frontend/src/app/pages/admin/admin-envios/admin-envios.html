@@ -30,10 +30,10 @@
 } @else if (visibles().length) {
   <div class="rejilla-envios">
     @for (p of visibles(); track p.id) {
-      <div class="tarjeta-envio">
+      <div class="tarjeta-envio" [class.por-cobrar]="cobrarAlEntregar(p)">
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
-            <div class="fw-bold">Pedido #{{ p.id }}</div>
+            <div class="fw-bold">{{ p.numero }}</div>
             <div class="small text-muted">{{ p.fecha | date: 'dd/MM/yyyy HH:mm' }}</div>
           </div>
           <div class="fw-bold text-success">{{ p.total | currency: 'PEN' : 'S/ ' }}</div>
@@ -43,14 +43,36 @@
           <i class="fa-solid fa-credit-card me-1"></i>{{ p.metodoPago }}
         </div>
 
+        <!--
+          Contra entrega: el repartidor tiene que cobrar en la puerta. Sin este
+          aviso, un pedido sin pagar sale igual que uno prepagado y el dinero se
+          queda sin recoger.
+        -->
+        @if (cobrarAlEntregar(p)) {
+          <div class="aviso-cobro small mb-2">
+            <i class="fa-solid fa-hand-holding-dollar me-1"></i>
+            <strong>Cobrar {{ p.total | currency: 'PEN' : 'S/ ' }}</strong> en efectivo al entregar
+          </div>
+        }
+
         @if (entregaDe(p.id); as e) {
           <div class="small mb-2">
-            <div><i class="fa-solid fa-location-dot me-1 text-muted"></i>{{ e.direccion }}</div>
+            @if (e.receptorNombre) {
+              <div class="fw-semibold">
+                <i class="fa-solid fa-user me-1 text-muted"></i>{{ e.receptorNombre }}
+              </div>
+            }
+            <div>
+              <i class="fa-solid fa-location-dot me-1 text-muted"></i
+              >{{ destino(e) || e.direccion }}
+            </div>
             @if (e.referencia) {
               <div class="text-muted ms-3">{{ e.referencia }}</div>
             }
             @if (e.telefonoContacto) {
-              <div class="text-muted"><i class="fa-solid fa-phone me-1"></i>{{ e.telefonoContacto }}</div>
+              <div class="text-muted">
+                <i class="fa-solid fa-phone me-1"></i>{{ e.telefonoContacto }}
+              </div>
             }
 
             <!--
@@ -82,7 +104,9 @@
             <button type="button" class="btn btn-sm btn-success flex-grow-1" (click)="avanzar(p)">
               {{ textoBoton(p.estado) }}
             </button>
-            <button type="button" class="btn btn-sm btn-outline-danger" (click)="cancelar(p)">Cancelar</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="cancelar(p)">
+              Cancelar
+            </button>
           </div>
         }
       </div>

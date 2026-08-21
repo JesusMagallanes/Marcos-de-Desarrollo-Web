@@ -19,17 +19,21 @@ import com.backend.compras.shared.error.ConflictoException;
 import com.backend.compras.shared.error.RecursoNoEncontradoException;
 import com.backend.compras.shared.security.TokenActual;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class CarritoService {
 
     private final CarritoRepository carritoRepositorio;
     private final CarritoItemRepository itemRepositorio;
     private final CatalogoClient catalogo;
     private final TarifaEnvio tarifaEnvio;
+    private final EntityManager entityManager;
 
     @Transactional
     public Carrito obtenerOCrear(Long usuarioId) {
@@ -99,6 +103,18 @@ public class CarritoService {
         return construir(carrito);
     }
 
+    /**
+     * Quita una línea del carrito.
+     *
+     * <p>El borrado es una sentencia explícita y se comprueba cuántas filas
+     * tocó. Antes se quitaba el ítem de la colección y se dejaba que el
+     * {@code orphanRemoval} de JPA hiciera el resto, que funciona hasta que no
+     * funciona: si el DELETE no alcanzaba ninguna fila, nadie se enteraba —el
+     * endpoint devolvía 200 y un carrito que ya no incluía el producto, porque
+     * la respuesta se construía desde la colección en memoria— y el producto
+     * reaparecía al recargar la página. Un borrado que no borra tiene que dar
+     * error, no un 200 optimista.
+     */
     @Transactional
     public CarritoResponse eliminar(Long usuarioId, Long itemId) {
         Carrito carrito = obtenerOCrear(usuarioId);
@@ -106,17 +122,40 @@ public class CarritoService {
         CarritoItem item = itemRepositorio.findByIdAndCarritoId(itemId, carrito.getId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("El ítem no está en tu carrito"));
 
-        carrito.quitar(item);
-        carritoRepositorio.save(carrito);
-        return construir(carrito);
+        int borradas = itemRepositorio.borrarDelCarrito(item.getId(), carrito.getId());
+        if (borradas == 0) {
+            log.error("El ítem {} del carrito {} no se pudo borrar: la sentencia no tocó ninguna fila",
+                    itemId, carrito.getId());
+            throw new ConflictoException("No se pudo quitar el producto del carrito. Vuelve a intentarlo.");
+        }
+
+        // La colección en memoria todavía tiene el ítem que se acaba de borrar
+        // en la base: si se construyera la respuesta con ella, se enseñaría un
+        // carrito distinto del que quedó guardado. Se relee.
+        return releerCarrito(usuarioId);
     }
 
     @Transactional
     public CarritoResponse vaciar(Long usuarioId) {
         Carrito carrito = obtenerOCrear(usuarioId);
+        itemRepositorio.borrarTodoElCarrito(carrito.getId());
         carrito.vaciar();
-        carritoRepositorio.save(carrito);
         return vacio();
+    }
+
+    /**
+     * Vuelve a leer el carrito de la base tras un borrado.
+     *
+     * <p>El {@code clear()} es lo que hace que sea una lectura de verdad: sin
+     * él, la consulta devolvería las entidades que JPA ya tiene en memoria,
+     * incluida la línea recién borrada, y la respuesta volvería a mentir.
+     */
+    private CarritoResponse releerCarrito(Long usuarioId) {
+        entityManager.flush();
+        entityManager.clear();
+        return carritoRepositorio.buscarConItems(usuarioId)
+                .map(this::construir)
+                .orElseGet(this::vacio);
     }
 
     /** Enriquece los items con datos de catálogo y calcula subtotal, envío y total. */
@@ -155,18 +194,6 @@ public class CarritoService {
         }
 
         return conTotales(respuesta, subtotal);
-    }
-
-    /**
-     * El importe que se le cobra al comprador por este carrito.
-     *
-     * <p>Lo usa el checkout para fijar el total de la saga. Pasa por el mismo
-     * {@code construir} que alimenta la pantalla del carrito a propósito: si el
-     * cobro se calculara aparte, volvería a poder discrepar de lo que el
-     * comprador vio antes de pulsar «pagar».
-     */
-    public BigDecimal totalACobrar(Carrito carrito) {
-        return construir(carrito).total();
     }
 
     private CarritoResponse vacio() {

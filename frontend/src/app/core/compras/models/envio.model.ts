@@ -13,6 +13,21 @@ export interface Envio {
   telefonoContacto: string | null;
 
   /*
+   * Quién recibe y dónde, en partes. Solo venía `direccion`, la línea de la
+   * etiqueta: con eso el comprador no puede comprobar el distrito, el código
+   * postal ni a nombre de quién va, que es lo que querría mirar justamente
+   * cuando manda el pedido a otra persona.
+   */
+  receptorNombre: string | null;
+  calle: string | null;
+  numero: string | null;
+  codigoPostal: string | null;
+  distrito: string | null;
+  provincia: string | null;
+  departamento: string | null;
+  pais: string | null;
+
+  /*
    * Épica 3: a qué distancia está el destino y cuánto se tarda. `null` si el
    * comprador no compartió su ubicación.
    *
@@ -40,3 +55,19 @@ export const CLASE_ESTADO_ENVIO: Record<EstadoEnvio, string> = {
   EN_TRANSITO: 'bg-info text-dark',
   ENTREGADO: 'bg-success',
 };
+
+/**
+ * La dirección completa en una línea, a partir de las partes.
+ *
+ * Se compone aquí y no se usa el campo `direccion` del backend porque aquel es
+ * la etiqueta corta —calle, distrito, provincia— y al comprador que está
+ * comprobando a dónde va su pedido le falta justo lo que no lleva: el código
+ * postal y el departamento.
+ */
+export function destinoCompleto(envio: Envio): string {
+  const calle = [envio.calle, envio.numero].filter(Boolean).join(' ');
+  const zona = [envio.distrito, envio.provincia, envio.departamento].filter(Boolean);
+  // Lima, Lima, Lima no le dice nada a nadie.
+  const zonaUnica = zona.filter((parte, i) => i === 0 || parte !== zona[i - 1]);
+  return [calle || null, ...zonaUnica, envio.codigoPostal].filter(Boolean).join(', ');
+}

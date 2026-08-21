@@ -27,6 +27,8 @@ import org.springframework.beans.factory.ObjectProvider;
 import com.backend.compras.carrito.Carrito;
 import com.backend.compras.carrito.CarritoItem;
 import com.backend.compras.carrito.CarritoRepository;
+import com.backend.compras.carrito.dto.CarritoDtos.CarritoResponse;
+import com.backend.compras.carrito.dto.CarritoDtos.ItemResponse;
 import com.backend.compras.carrito.CarritoService;
 import com.backend.compras.envio.EnvioService;
 import com.backend.compras.metodopago.MetodoPago;
@@ -126,6 +128,12 @@ class CheckoutOrquestadorTest {
         return new PreferenciaRequest(1L, entrega());
     }
 
+    private CarritoResponse resumen() {
+        return new CarritoResponse(
+                List.of(new ItemResponse(11L, 300L, "Laptop", new BigDecimal("100.00"), 1, null, 5)),
+                new BigDecimal("100.00"), new BigDecimal("15.00"), new BigDecimal("115.00"));
+    }
+
     private Carrito carritoConUnItem() {
         Carrito carrito = Carrito.builder().id(5L).usuarioId(USUARIO).build();
         carrito.agregar(CarritoItem.builder().id(11L).productoId(300L).cantidad(1).build());
@@ -158,7 +166,6 @@ class CheckoutOrquestadorTest {
         when(mercadoPago.consultarPago(pago.id())).thenReturn(pago);
         when(sagas.findByReferencia(REFERENCIA)).thenReturn(Optional.of(previa));
         when(pedidos.buscarConDetalles(90L)).thenReturn(Optional.of(pedidoPagable()));
-        when(carritos.buscarConItems(USUARIO)).thenReturn(Optional.of(new Carrito()));
 
         assertThatThrownBy(() -> orquestador.iniciar(USUARIO, peticion(), TOKEN))
                 .isInstanceOf(ConflictoException.class)
@@ -220,7 +227,8 @@ class CheckoutOrquestadorTest {
 
         Carrito carrito = carritoConUnItem();
         when(carritos.buscarConItems(USUARIO)).thenReturn(Optional.of(carrito));
-        when(carritoService.totalACobrar(carrito)).thenReturn(new BigDecimal("115.00"));
+        // Subtotal 100 + envío 15: el importe que se cobra lleva el envío.
+        when(carritoService.construir(carrito)).thenReturn(resumen());
         when(sagas.save(any())).thenAnswer(invocacion -> invocacion.getArgument(0));
 
         Pedido pedido = pedidoPagable();

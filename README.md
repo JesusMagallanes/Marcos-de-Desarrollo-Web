@@ -267,6 +267,21 @@ El importe que se cobra es **subtotal + envío**, y sale del mismo cálculo que 
 pantalla del carrito (`TarifaEnvio`). Estuvieron separados, y entonces el carrito enseñaba un
 total con envío que la pasarela no cobraba.
 
+El carrito se lee **una sola vez** por checkout y de esa lectura salen las líneas del pedido,
+el importe que se cobra y el desglose que verá el comprador. Se construía dos veces —una para
+el total y otra dentro de `crearDesdeCarrito`— lo que además de una segunda llamada a catálogo
+eran dos fotos distintas de los precios.
+
+`pedido` guarda `subtotal`, `costo_envio` y `total`, con un CHECK que exige que el primero más
+el segundo den el tercero. Mientras el envío no se cobraba, subtotal y total coincidían y nadie
+notó que faltaba el desglose; en cuanto se cobró, el detalle de una compra enseñaba líneas por
+S/ 200 y un total de S/ 215 sin explicar la diferencia. Se guarda en vez de deducirse restando
+porque restar convierte cualquier descuadre futuro en un costo de envío inventado y silencioso.
+
+**El número de pedido** que ve el comprador es `SZ-000042`, no el id de la tabla. Lo compone
+`PedidoResponse` para que el número de la pantalla, el del panel y el que se diga por teléfono
+sean el mismo; `id` sigue siendo la clave de la API.
+
 **Un pago `pending` o `in_process` no es un pago fallido.** Un efectivo nace `pending` y una
 tarjeta en revisión pasa por `in_process`: los dos pueden acabar aprobados, así que la compra
 se queda esperando en vez de compensarse. Cancelarla dejaría el cobro sin pedido al que
@@ -320,6 +335,12 @@ PENDIENTE ────┤                ├──► EN_TRANSITO ──► ENTR
 el dinero no ha entrado. Por eso sale en «Mis compras» —es un pedido de verdad— y en cambio no
 da derecho a valorar el producto hasta que se cobre. Son dos conjuntos distintos en
 `EstadoPedido`: `EN_MIS_COMPRAS` y `COMPRADOS`.
+
+**Lo que hay que enviar son `PAGADO` y `CONFIRMADO`**, y eso vive en `LISTOS_PARA_ENVIAR`. El
+panel de envíos filtraba su pestaña «Por enviar» por `PENDIENTE`, que es justo lo contrario: un
+checkout que nadie pagó. Los pedidos pagados no salían en ninguna pestaña y la lista de reparto
+se llenaba de compras sin pagar, con un botón que ofrecía marcarlas como pagadas desde el panel
+de reparto.
 
 `ENTREGADO` y `CANCELADO` son finales. Una prueba contrasta `siguienteEstado()` con
 `puedePasarA()` para que ambas definiciones no se desincronicen — así se detectó que el panel

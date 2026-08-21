@@ -6,12 +6,7 @@
  * que es un checkout abandonado y no se le enseña al comprador.
  */
 export type EstadoPedido =
-  | 'PENDIENTE'
-  | 'CONFIRMADO'
-  | 'PAGADO'
-  | 'EN_TRANSITO'
-  | 'ENTREGADO'
-  | 'CANCELADO';
+  'PENDIENTE' | 'CONFIRMADO' | 'PAGADO' | 'EN_TRANSITO' | 'ENTREGADO' | 'CANCELADO';
 
 /** Servicio `compras` (:8083). */
 export interface DetallePedido {
@@ -26,13 +21,34 @@ export interface DetallePedido {
 
 export interface Pedido {
   id: number;
+  /**
+   * El número que ve el comprador: `SZ-000042`.
+   *
+   * Se enseñaba el id de la tabla en crudo —«Pedido #7»—, que no parece un
+   * número de pedido y de paso dice cuántas compras lleva la tienda. Lo compone
+   * el backend para que el número que ve el comprador y el del panel sean el
+   * mismo; `id` sigue siendo la clave con la que se llama a la API.
+   */
+  numero: string;
   usuarioId: number;
   fecha: string;
   estado: EstadoPedido;
+  /* El desglose de lo que se cobró. Las líneas del detalle suman `subtotal`, y
+   * `total` es eso más el envío: sin los tres, la tabla del detalle no cuadra. */
+  subtotal: number;
+  costoEnvio: number;
   total: number;
   /** Nombre del método de pago, no su id. */
   metodoPago: string;
   detalles: DetallePedido[];
+}
+
+/**
+ * Un pedido contra entrega se paga al recibirlo: hasta entonces el comprador no
+ * ha pagado nada, y decírselo evita la llamada preguntando si se le cobró.
+ */
+export function pagaAlRecibir(pedido: Pedido): boolean {
+  return pedido.estado === 'CONFIRMADO';
 }
 
 export interface CambioEstadoPedido {
@@ -106,4 +122,24 @@ export function accionSiguiente(actual: EstadoPedido): string | null {
 
 export function esEstadoFinal(estado: EstadoPedido): boolean {
   return estado === 'ENTREGADO' || estado === 'CANCELADO';
+}
+
+/**
+ * Los pedidos que hay que preparar y mandar.
+ *
+ * El panel de envíos filtraba por `PENDIENTE`, y `PENDIENTE` es un checkout que
+ * se abandonó sin pagar. El resultado era el peor de los dos posibles a la vez:
+ * los pedidos PAGADOS —los que de verdad hay que enviar— no salían en ninguna
+ * pestaña, y en cambio la lista se llenaba de compras que nadie pagó, con un
+ * botón que ofrecía marcarlas como pagadas desde el panel de reparto.
+ *
+ * Son dos estados porque hay dos formas de llegar aquí: prepagado con la
+ * pasarela (`PAGADO`) y contra entrega (`CONFIRMADO`, se cobra al entregarlo).
+ * Para quien prepara el paquete son lo mismo; la diferencia es que en uno hay
+ * que cobrar en la puerta.
+ */
+export const LISTOS_PARA_ENVIAR: EstadoPedido[] = ['PAGADO', 'CONFIRMADO'];
+
+export function estaListoParaEnviar(estado: EstadoPedido): boolean {
+  return LISTOS_PARA_ENVIAR.includes(estado);
 }

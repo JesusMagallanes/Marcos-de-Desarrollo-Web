@@ -19,6 +19,25 @@ public final class EnvioDtos {
             String direccion,
             String referencia,
             String telefonoContacto,
+
+            /*
+             * Quién recibe y dónde, en partes.
+             *
+             * La respuesta solo llevaba `direccion`, la línea de una etiqueta.
+             * Con eso el comprador no puede comprobar a dónde va su pedido —ni
+             * el distrito, ni el código postal, ni a nombre de quién— que es
+             * justo lo que querría mirar cuando lo manda a otra persona, y quien
+             * reparte tampoco tenía el nombre por el que preguntar al llegar.
+             */
+            String receptorNombre,
+            String calle,
+            String numero,
+            String codigoPostal,
+            String distrito,
+            String provincia,
+            String departamento,
+            String pais,
+
             EstadoEnvio estadoEnvio,
             LocalDateTime fechaEnvioProgramado,
             LocalDateTime fechaEnvioEntregado,
@@ -46,6 +65,14 @@ public final class EnvioDtos {
                     e.getDireccion(),
                     e.getReferencia(),
                     e.getTelefonoContacto(),
+                    e.getReceptorNombre(),
+                    e.getCalle(),
+                    e.getNumero(),
+                    e.getCodigoPostal(),
+                    e.getDistrito(),
+                    e.getProvincia(),
+                    e.getDepartamento(),
+                    e.getPais(),
                     e.getEstadoEnvio(),
                     e.getFechaEnvioProgramado(),
                     e.getFechaEnvioEntregado(),

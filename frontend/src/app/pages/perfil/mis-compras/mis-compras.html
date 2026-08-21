@@ -4,7 +4,8 @@
 
     @if (recienCreado()) {
       <div class="alert alert-success py-2 small">
-        ¡Gracias por tu compra! Tu pedido #{{ recienCreado() }} fue registrado.
+        ¡Gracias por tu compra! Tu pedido <strong>{{ numeroRecienCreado() }}</strong> fue
+        registrado.
       </div>
     }
     @if (error()) {
@@ -13,38 +14,162 @@
 
     @if (cargando()) {
       <app-cargando />
-    } @else if (lista().length) {
-      @for (p of lista(); track p.id) {
-        <div class="tarjeta-pedido" [class.destacado]="p.id === recienCreado()">
-          <button type="button" class="cabecera-pedido" (click)="alternar(p.id)">
+    } @else if (compras().length) {
+      @for (c of compras(); track c.pedido.id) {
+        <div class="tarjeta-pedido" [class.destacado]="c.pedido.id === recienCreado()">
+          <button type="button" class="cabecera-pedido" (click)="alternar(c.pedido.id)">
             <div class="text-start">
-              <div class="fw-bold">Pedido #{{ p.id }}</div>
-              <div class="small text-muted">{{ p.fecha | date: 'dd/MM/yyyy HH:mm' }}</div>
+              <!-- El número, no el id de la tabla: es lo que dirá si llama. -->
+              <div class="fw-bold">{{ c.pedido.numero }}</div>
+              <div class="small text-muted">{{ c.pedido.fecha | date: 'dd/MM/yyyy HH:mm' }}</div>
             </div>
 
-            <span class="badge" [class]="claseEstado(p.estado)">{{ etiquetaEstado(p.estado) }}</span>
+            <span class="badge" [class]="claseEstado(c.pedido.estado)">
+              {{ etiquetaEstado(c.pedido.estado) }}
+            </span>
 
             <div class="text-end">
-              <div class="fw-bold text-success">{{ p.total | currency: 'PEN' : 'S/ ' }}</div>
-              <div class="small text-muted">{{ p.metodoPago }}</div>
+              <div class="fw-bold text-success">{{ c.pedido.total | currency: 'PEN' : 'S/ ' }}</div>
+              <div class="small text-muted">{{ c.pedido.metodoPago }}</div>
             </div>
 
-            <i class="fa-solid" [class.fa-chevron-down]="expandido() !== p.id" [class.fa-chevron-up]="expandido() === p.id"></i>
+            <i
+              class="fa-solid"
+              [class.fa-chevron-down]="expandido() !== c.pedido.id"
+              [class.fa-chevron-up]="expandido() === c.pedido.id"
+            ></i>
           </button>
 
-          @if (expandido() === p.id) {
+          @if (expandido() === c.pedido.id) {
             <div class="detalle-pedido">
-              @for (d of p.detalles; track d.productoId) {
-                <div class="linea-detalle">
-                  <img [src]="d.imagen || '/Img/img.png'" [alt]="d.productoNombre" />
-                  <div class="flex-grow-1 min-w-0">
-                    <a class="nombre" [routerLink]="['/producto', d.productoId]">{{ d.productoNombre }}</a>
-                    <div class="small text-muted">
-                      {{ d.cantidad }} × {{ d.precioUnitario | currency: 'PEN' : 'S/ ' }}
-                    </div>
-                  </div>
-                  <div class="fw-semibold">{{ d.total | currency: 'PEN' : 'S/ ' }}</div>
+              @if (pagaAlRecibir(c.pedido)) {
+                <div class="alert alert-warning py-2 small mb-3">
+                  <i class="fa-solid fa-hand-holding-dollar me-1"></i>
+                  Pagas <strong>{{ c.pedido.total | currency: 'PEN' : 'S/ ' }}</strong> en efectivo
+                  al recibir el pedido. Todavía no se te ha cobrado nada.
                 </div>
+              }
+
+              <!--
+                Tabla y no una lista de filas sueltas: son datos con las mismas
+                cuatro columnas en cada línea, y en una tabla se comparan de un
+                vistazo y se pueden sumar con la vista. El `table-responsive` es
+                lo que evita que en un móvil se desborde la página entera.
+              -->
+              <div class="table-responsive">
+                <table class="table table-sm tabla-detalle align-middle mb-0">
+                  <caption class="visually-hidden">
+                    Productos del pedido
+                    {{
+                      c.pedido.numero
+                    }}
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th scope="col" colspan="2">Producto</th>
+                      <th scope="col" class="text-center">Cant.</th>
+                      <th scope="col" class="text-end">P. unitario</th>
+                      <th scope="col" class="text-end">Importe</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (d of c.pedido.detalles; track d.productoId) {
+                      <tr>
+                        <td class="col-imagen">
+                          <img [src]="d.imagen || '/Img/img.png'" [alt]="d.productoNombre" />
+                        </td>
+                        <td>
+                          <a class="nombre" [routerLink]="['/producto', d.productoId]">
+                            {{ d.productoNombre }}
+                          </a>
+                        </td>
+                        <td class="text-center">{{ d.cantidad }}</td>
+                        <td class="text-end text-nowrap">
+                          {{ d.precioUnitario | currency: 'PEN' : 'S/ ' }}
+                        </td>
+                        <td class="text-end text-nowrap fw-semibold">
+                          {{ d.total | currency: 'PEN' : 'S/ ' }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                  <tfoot>
+                    <!--
+                      El desglose va en el pie de la tabla y no en un bloque
+                      aparte: las líneas suman el subtotal y el total lleva
+                      además el envío. Sin estas tres filas, la tabla enseña unos
+                      importes que no dan el total de la cabecera, y esa
+                      diferencia sin explicar parecía un error de la tienda.
+                    -->
+                    <tr>
+                      <td colspan="4" class="text-end">Subtotal</td>
+                      <td class="text-end text-nowrap">
+                        {{ c.pedido.subtotal | currency: 'PEN' : 'S/ ' }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="4" class="text-end">Envío</td>
+                      <td class="text-end text-nowrap">
+                        @if (c.pedido.costoEnvio === 0) {
+                          <span class="text-success">Gratis</span>
+                        } @else {
+                          {{ c.pedido.costoEnvio | currency: 'PEN' : 'S/ ' }}
+                        }
+                      </td>
+                    </tr>
+                    <tr class="fila-total">
+                      <td colspan="4" class="text-end fw-bold">Total</td>
+                      <td class="text-end text-nowrap fw-bold">
+                        {{ c.pedido.total | currency: 'PEN' : 'S/ ' }}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <!--
+                A dónde va. El envío se creaba con el destino elegido al pagar y
+                no se enseñaba en ninguna pantalla: el comprador sabía qué había
+                comprado pero no a dónde iba ni a nombre de quién, que es justo
+                lo que se quiere comprobar al mandar algo a otra persona.
+              -->
+              @if (c.envio; as e) {
+                <section class="bloque-entrega">
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    <h6 class="mb-0">Entrega</h6>
+                    <span class="badge" [class]="claseEstadoEnvio(e.estadoEnvio)">
+                      {{ etiquetaEstadoEnvio(e.estadoEnvio) }}
+                    </span>
+                  </div>
+
+                  <dl class="datos-entrega mb-0">
+                    <dt>Recibe</dt>
+                    <dd>
+                      {{ e.receptorNombre || '—' }}
+                      @if (e.telefonoContacto) {
+                        <span class="text-muted">· {{ e.telefonoContacto }}</span>
+                      }
+                    </dd>
+
+                    <dt>Dirección</dt>
+                    <dd>{{ destino(e) || e.direccion }}</dd>
+
+                    @if (e.referencia) {
+                      <dt>Referencia</dt>
+                      <dd>{{ e.referencia }}</dd>
+                    }
+
+                    @if (e.fechaEnvioProgramado) {
+                      <dt>Salió</dt>
+                      <dd>{{ e.fechaEnvioProgramado | date: 'dd/MM/yyyy HH:mm' }}</dd>
+                    }
+
+                    @if (e.fechaEnvioEntregado) {
+                      <dt>Entregado</dt>
+                      <dd>{{ e.fechaEnvioEntregado | date: 'dd/MM/yyyy HH:mm' }}</dd>
+                    }
+                  </dl>
+                </section>
               }
             </div>
           }

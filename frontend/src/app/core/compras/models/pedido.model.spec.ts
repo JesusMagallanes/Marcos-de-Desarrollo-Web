@@ -5,6 +5,7 @@ import {
   ETIQUETA_ESTADO_PEDIDO,
   EstadoPedido,
   esEstadoFinal,
+  estaListoParaEnviar,
   puedePasarA,
   siguienteEstado,
 } from './pedido.model';
@@ -87,6 +88,27 @@ describe('máquina de estados del pedido', () => {
         continue;
       }
       expect(puedePasarA(actual, siguiente)).toBe(true);
+    }
+  });
+
+  it('lo que hay que enviar es lo pagado y lo confirmado, nunca un abandonado', () => {
+    // El panel de envíos filtraba por PENDIENTE, que es un checkout que nadie
+    // pagó: los pedidos que sí había que preparar no salían en ninguna pestaña
+    // y la lista de reparto se llenaba de compras sin pagar.
+    expect(estaListoParaEnviar('PAGADO')).toBe(true);
+    expect(estaListoParaEnviar('CONFIRMADO')).toBe(true);
+
+    expect(estaListoParaEnviar('PENDIENTE')).toBe(false);
+    expect(estaListoParaEnviar('EN_TRANSITO')).toBe(false);
+    expect(estaListoParaEnviar('ENTREGADO')).toBe(false);
+    expect(estaListoParaEnviar('CANCELADO')).toBe(false);
+  });
+
+  it('todo lo que está listo para enviar puede pasar a EN_TRANSITO', () => {
+    // Si no, el panel pintaría un botón que el backend rechaza con un 409.
+    for (const estado of TODOS.filter(estaListoParaEnviar)) {
+      expect(puedePasarA(estado, 'EN_TRANSITO')).toBe(true);
+      expect(siguienteEstado(estado)).toBe('EN_TRANSITO');
     }
   });
 

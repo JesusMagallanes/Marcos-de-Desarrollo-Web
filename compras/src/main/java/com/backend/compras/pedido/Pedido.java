@@ -49,6 +49,18 @@ public class Pedido {
     @JoinColumn(name = "metodopago_id", nullable = false)
     private MetodoPago metodoPago;
 
+    /*
+     * De qué se compone el total. Se guardan los tres y no solo la suma: un
+     * pedido es un documento de lo que se le cobró al comprador, y deducir el
+     * envío restando convertiría cualquier descuadre en un dato inventado con
+     * pinta de bueno.
+     */
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal subtotal;
+
+    @Column(name = "costo_envio", nullable = false, precision = 12, scale = 2)
+    private BigDecimal costoEnvio;
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 

@@ -1,14 +1,11 @@
 package com.backend.compras.pedido;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.backend.compras.carrito.Carrito;
-import com.backend.compras.carrito.CarritoRepository;
-import com.backend.compras.carrito.CarritoService;
+import com.backend.compras.carrito.dto.CarritoDtos.CarritoResponse;
 import com.backend.compras.carrito.dto.CarritoDtos.ItemResponse;
 import com.backend.compras.metodopago.MetodoPago;
 import com.backend.compras.metodopago.MetodoPagoRepository;
@@ -27,8 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 public class PedidoService {
 
     private final PedidoRepository pedidoRepositorio;
-    private final CarritoRepository carritoRepositorio;
-    private final CarritoService carritoService;
     private final MetodoPagoRepository metodoPagoRepositorio;
 
     /**
@@ -67,14 +62,20 @@ public class PedidoService {
         return PedidoResponse.desde(pedido);
     }
 
-    /** Crea el pedido en estado PENDIENTE como paso 2 de la saga de compra. */
+    /**
+     * Crea el pedido en estado PENDIENTE como paso 2 de la saga de compra.
+     *
+     * <p>El resumen del carrito llega ya calculado y NO se vuelve a construir
+     * aquí. Antes se recalculaba, lo que significaba una segunda llamada a
+     * catálogo y, sobre todo, una segunda foto de los precios: si algo cambiaba
+     * entre las dos, las líneas del pedido dejaban de cuadrar con el importe que
+     * se estaba cobrando. Las dos cosas salen ahora de la misma lectura.
+     */
     @Transactional
-    public Pedido crearDesdeCarrito(Long usuarioId, Long metodoPagoId, String referencia, BigDecimal total) {
+    public Pedido crearDesdeCarrito(Long usuarioId, Long metodoPagoId, String referencia,
+            CarritoResponse resumen) {
 
-        Carrito carrito = carritoRepositorio.buscarConItems(usuarioId)
-                .orElseThrow(() -> new ConflictoException("Tu carrito está vacío"));
-
-        if (carrito.getItems().isEmpty()) {
+        if (resumen.items().isEmpty()) {
             throw new ConflictoException("Tu carrito está vacío");
         }
 
@@ -86,12 +87,14 @@ public class PedidoService {
                 .metodoPago(metodoPago)
                 .estado(EstadoPedido.PENDIENTE)
                 .referenciaSaga(referencia)
-                .total(total)
+                .subtotal(resumen.subtotal())
+                .costoEnvio(resumen.costoEnvio())
+                .total(resumen.total())
                 .build();
 
         // Los precios ya vienen resueltos por la saga; se copian a la línea de
         // pedido para que el histórico no dependa de catálogo.
-        for (ItemResponse item : carritoService.construir(carrito).items()) {
+        for (ItemResponse item : resumen.items()) {
             DetallePedido detalle = DetallePedido.builder()
                     .productoId(item.productId())
                     .productoNombre(item.nombre())
@@ -105,7 +108,7 @@ public class PedidoService {
 
         Pedido guardado = pedidoRepositorio.save(pedido);
         log.info("Pedido {} creado (PENDIENTE) para el usuario {} por {}",
-                guardado.getId(), usuarioId, total);
+                guardado.getId(), usuarioId, resumen.total());
         return guardado;
     }
 
