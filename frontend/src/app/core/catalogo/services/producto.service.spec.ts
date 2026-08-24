@@ -1,7 +1,9 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { bd } from '../../offline';
+import { esperarPeticion } from '../../shared/testing/esperar-peticion';
 import { Producto } from '../models';
 import { ProductoService } from './producto.service';
 
@@ -39,7 +41,10 @@ describe('ProductoService', () => {
   let servicio: ProductoService;
   let http: HttpTestingController;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // La caché de productos ahora vive en IndexedDB: cada prueba empieza
+    // con las tablas vacías para que las peticiones HTTP sean predecibles.
+    await Promise.all([bd.cache.clear(), bd.cola.clear()]);
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
@@ -47,17 +52,23 @@ describe('ProductoService', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  it('listar() pega a /api/productos', () => {
+  it('listar() pega a /api/productos', async () => {
     servicio.listar().subscribe();
 
-    const req = http.expectOne('/api/productos');
+    const req = await esperarPeticion(http, '/api/productos');
     expect(req.request.method).toBe('GET');
     req.flush([producto(1)]);
   });
 
-  it('cachea el catálogo completo: la segunda llamada no repite la petición', () => {
+  it('cachea el catálogo completo: la segunda llamada no repite la petición', async () => {
     servicio.listar().subscribe();
-    http.expectOne('/api/productos').flush([producto(1)]);
+    (await esperarPeticion(http, '/api/productos')).flush([producto(1)]);
+
+    // El guardado en IndexedDB es "dispara y olvida": esperamos a que aterrice
+    // para que la segunda lectura lo encuentre.
+    await vi.waitFor(async () => {
+      expect(await bd.cache.get('productos:todas')).toBeDefined();
+    });
 
     servicio.listar().subscribe();
 
@@ -73,9 +84,9 @@ describe('ProductoService', () => {
     http.expectOne('/api/productos?search=asus').flush([]);
   });
 
-  it('crear() invalida la caché para que el listado refleje el alta', () => {
+  it('crear() invalida la caché para que el listado refleje el alta', async () => {
     servicio.listar().subscribe();
-    http.expectOne('/api/productos').flush([producto(1)]);
+    (await esperarPeticion(http, '/api/productos')).flush([producto(1)]);
 
     servicio
       .crear({
@@ -94,39 +105,39 @@ describe('ProductoService', () => {
     servicio.listar().subscribe();
 
     // Tras la escritura la caché quedó descartada: vuelve a pedir.
-    http.expectOne({ url: '/api/productos', method: 'GET' }).flush([producto(1), producto(2)]);
+    (await esperarPeticion(http, '/api/productos')).flush([producto(1), producto(2)]);
   });
 
-  it('eliminar() también invalida la caché', () => {
+  it('eliminar() también invalida la caché', async () => {
     servicio.listar().subscribe();
-    http.expectOne('/api/productos').flush([producto(1)]);
+    (await esperarPeticion(http, '/api/productos')).flush([producto(1)]);
 
     servicio.eliminar(1).subscribe();
     http.expectOne({ url: '/api/productos/1', method: 'DELETE' }).flush(null);
 
     servicio.listar().subscribe();
-    http.expectOne({ url: '/api/productos', method: 'GET' }).flush([]);
+    (await esperarPeticion(http, '/api/productos')).flush([]);
   });
 
-  it('listarPorCategoria() envía la paginación', () => {
+  it('listarPorCategoria() envía la paginación', async () => {
     servicio.listarPorCategoria('monitores', 2, 24).subscribe();
 
-    const req = http.expectOne('/api/productos/categoria/monitores?page=2&size=24');
+    const req = await esperarPeticion(http, '/api/productos/categoria/monitores?page=2&size=24');
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], number: 2, size: 24, totalElements: 0, totalPages: 0 });
   });
 
-  it('recargar() fuerza una lectura fresca', () => {
+  it('recargar() fuerza una lectura fresca', async () => {
     servicio.listar().subscribe();
-    http.expectOne('/api/productos').flush([producto(1)]);
+    (await esperarPeticion(http, '/api/productos')).flush([producto(1)]);
 
     servicio.recargar().subscribe();
-    http.expectOne('/api/productos').flush([producto(1), producto(2)]);
+    (await esperarPeticion(http, '/api/productos')).flush([producto(1), producto(2)]);
   });
 
-  it('aplicarDescuento() pega a /api/productos/descuento e invalida la caché', () => {
+  it('aplicarDescuento() pega a /api/productos/descuento e invalida la caché', async () => {
     servicio.listar().subscribe();
-    http.expectOne('/api/productos').flush([producto(1)]);
+    (await esperarPeticion(http, '/api/productos')).flush([producto(1)]);
 
     servicio
       .aplicarDescuento({
@@ -142,12 +153,12 @@ describe('ProductoService', () => {
     req.flush([producto(1)]);
 
     servicio.listar().subscribe();
-    http.expectOne({ url: '/api/productos', method: 'GET' }).flush([]);
+    (await esperarPeticion(http, '/api/productos')).flush([]);
   });
 
-  it('quitarDescuento() pega a /api/productos/descuento/limpiar e invalida la caché', () => {
+  it('quitarDescuento() pega a /api/productos/descuento/limpiar e invalida la caché', async () => {
     servicio.listar().subscribe();
-    http.expectOne('/api/productos').flush([producto(1)]);
+    (await esperarPeticion(http, '/api/productos')).flush([producto(1)]);
 
     servicio.quitarDescuento({ productoIds: [1] }).subscribe();
     const req = http.expectOne({ url: '/api/productos/descuento/limpiar', method: 'POST' });
@@ -155,6 +166,6 @@ describe('ProductoService', () => {
     req.flush([producto(1)]);
 
     servicio.listar().subscribe();
-    http.expectOne({ url: '/api/productos', method: 'GET' }).flush([]);
+    (await esperarPeticion(http, '/api/productos')).flush([]);
   });
 });

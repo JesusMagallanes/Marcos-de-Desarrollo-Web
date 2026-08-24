@@ -5,11 +5,12 @@ import { filter, map } from 'rxjs';
 import { Header } from './layout/header/header';
 import { Footer } from './layout/footer/footer';
 import { Chatbot } from './layout/chatbot/chatbot';
+import { EstadoConexion } from './layout/estado-conexion/estado-conexion';
 import { LoginModal } from './shared/login-modal/login-modal';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Header, Footer, Chatbot, LoginModal],
+  imports: [RouterOutlet, Header, Footer, Chatbot, EstadoConexion, LoginModal],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

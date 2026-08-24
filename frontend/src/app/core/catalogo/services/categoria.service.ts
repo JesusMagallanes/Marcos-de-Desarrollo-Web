@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, shareReplay, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
+import { CacheLecturaService, TTL } from '../../offline';
 import { RUTAS_CATALOGO } from '../catalogo.routes';
 import { Categoria, CategoriaRequest } from '../models';
 
@@ -8,16 +9,19 @@ import { Categoria, CategoriaRequest } from '../models';
 @Injectable({ providedIn: 'root' })
 export class CategoriaService {
   private readonly http = inject(HttpClient);
+  private readonly cache = inject(CacheLecturaService);
 
-  /** `refCount: false` mantiene el valor aunque no quede ningún suscriptor: */
-  private cache$?: Observable<Categoria[]>;
-
-  /** GET /api/categorias — público, ordenadas por nombre. Cacheado. */
+  /**
+   * GET /api/categorias — público, ordenadas por nombre.
+   *
+   * <p>La lista casi nunca cambia y TODAS las pantallas la piden (menú,
+   * buscador, panel): es el caso perfecto para servir de IndexedDB y no
+   * gastar una consulta a PostgreSQL en cada visita.
+   */
   listar(): Observable<Categoria[]> {
-    this.cache$ ??= this.http
-      .get<Categoria[]>(RUTAS_CATALOGO.categorias.base)
-      .pipe(shareReplay({ bufferSize: 1, refCount: false }));
-    return this.cache$;
+    return this.cache.obtener('categorias:todas', TTL.taxonomia, () =>
+      this.http.get<Categoria[]>(RUTAS_CATALOGO.categorias.base),
+    );
   }
 
   /** Fuerza una lectura fresca, ignorando la caché. */
@@ -59,6 +63,6 @@ export class CategoriaService {
 
   /** Descarta la caché: la siguiente lectura vuelve a ir al servidor. */
   invalidar(): void {
-    this.cache$ = undefined;
+    void this.cache.invalidar('categorias');
   }
 }

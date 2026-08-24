@@ -1,0 +1,29 @@
+@if (!conectado()) {
+  <div class="aviso aviso-offline" role="status">
+    <span class="punto"></span>
+    <span class="texto">{{ mensajeOffline() }}</span>
+  </div>
+} @else if (pendientes() > 0 || rechazadas().length > 0 || sincronizando()) {
+  <div class="aviso aviso-pendiente" role="status">
+    @if (sincronizando()) {
+      <span class="texto">Sincronizando tus cambios…</span>
+    } @else if (pendientes() > 0) {
+      <span class="texto">
+        Tienes {{ pendientes() }} {{ pendientes() === 1 ? 'cambio' : 'cambios' }} pendientes de
+        confirmar.
+      </span>
+      <button type="button" class="btn btn-sm btn-light" (click)="sincronizarAhora()">
+        Sincronizar ahora
+      </button>
+    } @else {
+      <span class="texto">
+        {{ rechazadas().length }}
+        {{ rechazadas().length === 1 ? 'operación fue rechazada' : 'operaciones fueron rechazadas' }}
+        por el servidor; revisa tu sesión o vuelve a intentarlo.
+      </span>
+      <button type="button" class="btn btn-sm btn-light" (click)="sincronizarAhora()">
+        Reintentar
+      </button>
+    }
+  </div>
+}

@@ -1,9 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, shareReplay, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { PAGINACION } from '../../shared/config/constantes';
 import { acotarTamanoPagina, normalizarBusqueda } from '../../shared/config/limites';
 import { Pagina } from '../../shared/models';
+import { CacheLecturaService, TTL } from '../../offline';
 import { RUTAS_CATALOGO } from '../catalogo.routes';
 import {
   AplicarDescuentoRequest,
@@ -18,8 +19,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class ProductoService {
   private readonly http = inject(HttpClient);
-
-  private cacheTodos$?: Observable<Producto[]>;
+  private readonly cache = inject(CacheLecturaService);
 
   /** GET /api/productos — `buscar` filtra por nombre o descripción. */
   listar(buscar?: string): Observable<Producto[]> {
@@ -28,14 +28,16 @@ export class ProductoService {
     const termino = buscar ? normalizarBusqueda(buscar) : null;
 
     if (termino) {
+      // Los términos de búsqueda son infinitos: cachearlos llenaría IndexedDB
+      // de entradas de un solo uso. El catálogo COMPLETO sí se cachea, que es
+      // lo que piden la portada y la mayoría de pantallas.
       const params = new HttpParams().set('search', termino);
       return this.http.get<Producto[]>(RUTAS_CATALOGO.productos.base, { params });
     }
 
-    this.cacheTodos$ ??= this.http
-      .get<Producto[]>(RUTAS_CATALOGO.productos.base)
-      .pipe(shareReplay({ bufferSize: 1, refCount: false }));
-    return this.cacheTodos$;
+    return this.cache.obtener('productos:todas', TTL.productos, () =>
+      this.http.get<Producto[]>(RUTAS_CATALOGO.productos.base),
+    );
   }
 
   /** Fuerza una lectura fresca del catálogo completo. */
@@ -46,10 +48,12 @@ export class ProductoService {
 
   /** GET /api/productos/{id} — 404 si no existe. */
   obtener(id: number): Observable<Producto> {
-    return this.http.get<Producto>(RUTAS_CATALOGO.productos.porId(id));
+    return this.cache.obtener(`productos:id:${id}`, TTL.productos, () =>
+      this.http.get<Producto>(RUTAS_CATALOGO.productos.porId(id)),
+    );
   }
 
-  /** GET /api/productos/categoria/{slug} — paginado, sin caché. */
+  /** GET /api/productos/categoria/{slug} — paginado. */
   listarPorCategoria(
     slug: string,
     page = 0,
@@ -60,9 +64,12 @@ export class ProductoService {
       .set('page', Math.max(0, page))
       .set('size', acotarTamanoPagina(size));
 
-    return this.http.get<Pagina<Producto>>(RUTAS_CATALOGO.productos.porCategoria(slug), {
-      params,
-    });
+    return this.cache.obtener(
+      `productos:cat:${slug}:${Math.max(0, page)}:${acotarTamanoPagina(size)}`,
+      TTL.productos,
+      () =>
+        this.http.get<Pagina<Producto>>(RUTAS_CATALOGO.productos.porCategoria(slug), { params }),
+    );
   }
 
   /** POST /api/productos — ADMINISTRADOR. Devuelve 201. */
@@ -100,9 +107,9 @@ export class ProductoService {
       .pipe(tap(() => this.invalidar()));
   }
 
-  /** Descarta la caché. */
+  /** Descarta la caché de productos. */
   invalidar(): void {
-    this.cacheTodos$ = undefined;
+    void this.cache.invalidar('productos');
   }
 
   /* ── Productos de colaborador (SZ-B08) ── */

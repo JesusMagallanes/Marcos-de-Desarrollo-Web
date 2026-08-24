@@ -1,7 +1,9 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ConexionService, bd } from '../../offline';
+import { esperarPeticion } from '../../shared/testing/esperar-peticion';
 import { Valoracion } from '../models';
 import { ValoracionService } from './valoracion.service';
 
@@ -20,7 +22,8 @@ describe('ValoracionService', () => {
   let servicio: ValoracionService;
   let http: HttpTestingController;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await Promise.all([bd.cache.clear(), bd.cola.clear()]);
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
@@ -28,10 +31,10 @@ describe('ValoracionService', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  it('listar() pide las valoraciones de un producto', () => {
+  it('listar() pide las valoraciones de un producto', async () => {
     servicio.listar(1).subscribe();
 
-    const req = http.expectOne('/api/productos/1/valoraciones');
+    const req = await esperarPeticion(http, '/api/productos/1/valoraciones');
     expect(req.request.method).toBe('GET');
     req.flush([valoracion(1)]);
   });
@@ -66,10 +69,10 @@ describe('ValoracionService', () => {
     req.flush(null);
   });
 
-  it('destacadas() pide las mejores valoradas de la portada', () => {
+  it('destacadas() pide las mejores valoradas de la portada', async () => {
     servicio.destacadas().subscribe();
 
-    const req = http.expectOne('/api/valoraciones/top');
+    const req = await esperarPeticion(http, '/api/valoraciones/top');
     expect(req.request.method).toBe('GET');
     req.flush([
       {
@@ -117,5 +120,45 @@ describe('ValoracionService', () => {
 
     const req = http.expectOne({ url: '/api/valoraciones/admin/5', method: 'DELETE' });
     req.flush(null);
+  });
+
+  it('guardar() SIN conexión encola la operación y responde un eco optimista, sin tocar la red', async () => {
+    // jsdom dice estar online. Se fuerza offline ANTES de crear los servicios:
+    // ConexionService lee el estado del navegador al construirse.
+    const estadoReal = Object.getOwnPropertyDescriptor(navigator, 'onLine');
+    Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+
+    try {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [provideHttpClient(), provideHttpClientTesting()],
+      });
+      const servicioOffline = TestBed.inject(ValoracionService);
+      const httpOffline = TestBed.inject(HttpTestingController);
+
+      let eco: Valoracion | undefined;
+      servicioOffline
+        .guardar(1, { calificacion: 4, comentario: 'Muy bueno.', nombre: 'Cliente Uno' })
+        .subscribe((v) => (eco = v));
+
+      await vi.waitFor(async () => expect((await bd.cola.toArray()).length).toBe(1));
+
+      expect(eco).toBeDefined();
+      expect(eco!.id).toBeLessThan(0); // eco optimista, no una reseña real
+      expect(eco!.estado).toBe('PENDIENTE');
+
+      const fila = (await bd.cola.toArray())[0];
+      expect(fila.estado).toBe('PENDIENTE');
+      expect(fila.claveEntidad).toBe('valoracion:1');
+      httpOffline.verify(); // ni una sola petición HTTP
+    } finally {
+      if (estadoReal) {
+        Object.defineProperty(navigator, 'onLine', estadoReal);
+      } else {
+        delete (navigator as any).onLine;
+      }
+      // La siguiente prueba rearma su propio inyector en el beforeEach.
+      TestBed.resetTestingModule();
+    }
   });
 });

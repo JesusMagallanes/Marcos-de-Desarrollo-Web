@@ -3,3 +3,4 @@ export * from './shared';
 export * from './usuarios';
 export * from './catalogo';
 export * from './compras';
+export * from './offline';

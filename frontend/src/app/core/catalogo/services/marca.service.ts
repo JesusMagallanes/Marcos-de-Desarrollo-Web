@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, shareReplay, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
+import { CacheLecturaService, TTL } from '../../offline';
 import { RUTAS_CATALOGO } from '../catalogo.routes';
 import { Marca, MarcaRequest } from '../models';
 
@@ -8,20 +9,18 @@ import { Marca, MarcaRequest } from '../models';
 @Injectable({ providedIn: 'root' })
 export class MarcaService {
   private readonly http = inject(HttpClient);
+  private readonly cache = inject(CacheLecturaService);
 
-  private cache$?: Observable<Marca[]>;
-
-  /** GET /api/marcas — público. Cacheado; las escrituras lo invalidan. */
+  /** GET /api/marcas — público. Cacheado en IndexedDB; las escrituras lo invalidan. */
   listar(): Observable<Marca[]> {
-    this.cache$ ??= this.http
-      .get<Marca[]>(RUTAS_CATALOGO.marcas.base)
-      .pipe(shareReplay({ bufferSize: 1, refCount: false }));
-    return this.cache$;
+    return this.cache.obtener('marcas:todas', TTL.taxonomia, () =>
+      this.http.get<Marca[]>(RUTAS_CATALOGO.marcas.base),
+    );
   }
 
   /** Descarta la caché: la siguiente lectura vuelve a ir al servidor. */
   invalidar(): void {
-    this.cache$ = undefined;
+    void this.cache.invalidar('marcas');
   }
 
   /** GET /api/marcas/categoria/{id} — alimenta el select dependiente del admin. */

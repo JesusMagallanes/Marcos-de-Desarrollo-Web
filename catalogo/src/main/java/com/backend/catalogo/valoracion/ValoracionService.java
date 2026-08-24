@@ -98,6 +98,28 @@ public class ValoracionService {
     }
 
     /**
+     * Baja de la valoración sin exigir que exista.
+     *
+     * <p>Es la versión para la sincronización offline: la operación pudo
+     * aplicarse en un reintento anterior y el registro de operaciones ya lo
+     * habría cortado, pero también puede darse el caso legítimo de una cola
+     * con GUARDAR+ELIMINAR seguidos. Borrar lo que no está deja el estado
+     * correcto igualmente; lanzar 409 aquí convertiría un reenvío sano en un
+     * error que el cliente no sabe cómo corregir.
+     *
+     * @return true si había algo que borrar
+     */
+    @Transactional
+    public boolean eliminarSiExiste(Long productoId, Long usuarioId) {
+        return repositorio.findByProductoIdAndUsuarioId(productoId, usuarioId)
+                .map(valoracion -> {
+                    repositorio.delete(valoracion);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    /**
      * Las 6 reseñas aprobadas mejor valoradas (más estrellas), para la
      * portada. Si hay menos de 6 aprobadas, devuelve las que haya.
      */
