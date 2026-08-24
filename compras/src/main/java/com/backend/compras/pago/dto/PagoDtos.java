@@ -64,6 +64,33 @@ public final class PagoDtos {
     }
 
     /**
+     * Resultado de preguntarle a la pasarela si el pago de una compra en curso
+     * ya entró. Es lo que responde {@code /pagos/verificar}, al que el frontend
+     * llama cuando el comprador vuelve de MercadoPago sin {@code payment_id} en
+     * la URL —lo que pasa siempre que las back_urls no pudieron registrarse—.
+     *
+     * <p>{@code pedidoId} solo viene con COMPLETADA: es el pedido que hay que
+     * enseñar. Los otros dos estados no tienen nada nuevo que mostrar.
+     */
+    public record VerificarResponse(String estado, Long pedidoId) {
+
+        /** La pasarela ya cobró y la compra quedó cerrada. */
+        public static VerificarResponse completada(Long pedidoId) {
+            return new VerificarResponse("COMPLETADA", pedidoId);
+        }
+
+        /** Hay un pago vivo que aún no decide: esperar, no cobrar otra vez. */
+        public static VerificarResponse enCurso() {
+            return new VerificarResponse("EN_CURSO", null);
+        }
+
+        /** La pasarela aún no registra ningún pago de esta compra. */
+        public static VerificarResponse sinPago() {
+            return new VerificarResponse("SIN_PAGO", null);
+        }
+    }
+
+    /**
      * `paymentId` viaja a la URL de la API de MercadoPago, así que se acota a lo
      * que la pasarela emite de verdad: dígitos. Sin el patrón, un valor con
      * barras o `..` podía torcer la ruta de la llamada saliente.

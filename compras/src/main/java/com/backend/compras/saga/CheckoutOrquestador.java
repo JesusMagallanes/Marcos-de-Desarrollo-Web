@@ -22,6 +22,7 @@ import com.backend.compras.pago.MercadoPagoClient.Preferencia;
 import com.backend.compras.pago.dto.DireccionEntrega;
 import com.backend.compras.pago.dto.PagoDtos.PreferenciaRequest;
 import com.backend.compras.pago.dto.PagoDtos.PreferenciaResponse;
+import com.backend.compras.pago.dto.PagoDtos.VerificarResponse;
 import com.backend.compras.pedido.EstadoPedido;
 import com.backend.compras.pedido.Pedido;
 import com.backend.compras.pedido.PedidoRepository;
@@ -422,6 +423,52 @@ public class CheckoutOrquestador {
         PAGO_EN_CURSO,
         /** No hay ningún pago vivo: se puede tirar sin perder dinero. */
         SIN_PAGO
+    }
+
+    /**
+     * Le pregunta a la pasarela si el pago de una compra en curso ya entró.
+     *
+     * <p>Es el paso que hace falta cuando el comprador vuelve de MercadoPago a
+     * pulso —escribiendo la dirección, cerrando y reabriendo la pestaña— en vez
+     * de por la back_url: entonces no hay {@code payment_id} del que partir, y
+     * sin esta comprobación la tienda se queda esperando un aviso que solo
+     * traería el webhook o el barrendero. Con ella basta con que el comprador
+     * vuelva a la pestaña de la tienda para que la compra se cierre al momento.
+     *
+     * <p>Aquí NUNCA se compensa: «sin pago» significa casi siempre «todavía no»,
+     * y quien está a punto de pagar otra vez ya recorre el camino de
+     * {@code iniciar}, que es donde sí se decide tirar la compra anterior. Este
+     * método solo mira; el barrendero sigue siendo quien cancela lo abandonado.
+     *
+     * <p>Las sagas vivas se recorren TODAS y no solo la primera por la misma
+     * razón que en {@code iniciar}: una vieja bloqueada no debe tapar el pago
+     * de la última. En la práctica habrá una, pero si queda alguna anterior su
+     * pago —si existió— también merece cerrarse aquí y no esperar al barrendero.
+     *
+     * <p>{@code conciliar} va POR EL PROXY aunque el llamador no tenga
+     * transacción propia: su REQUIRES_NEW es lo que da a cada cierre su
+     * transacción independiente, igual que en los otros dos llamadores.
+     */
+    public VerificarResponse verificar(Long usuarioId, String token) {
+        for (SagaCheckout saga : sagas.buscarActivasDeUsuario(usuarioId)) {
+            if (saga.getEstado() != Estado.ESPERANDO_PAGO) {
+                continue;
+            }
+
+            switch (proxia.getObject().conciliar(saga, token)) {
+                case COMPLETADA -> {
+                    // El id del pedido se fijó al crearlo y no cambia: la saga
+                    // en memoria ya lo trae.
+                    return VerificarResponse.completada(saga.getPedidoId());
+                }
+                case PAGO_EN_CURSO -> {
+                    return VerificarResponse.enCurso();
+                }
+                case SIN_PAGO -> { /* la siguiente saga, si la hay */ }
+            }
+        }
+
+        return VerificarResponse.sinPago();
     }
 
     /**

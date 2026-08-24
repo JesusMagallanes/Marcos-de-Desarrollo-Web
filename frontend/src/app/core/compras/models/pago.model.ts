@@ -133,6 +133,19 @@ export interface ConfirmarPagoRequest {
   paymentId: string;
 }
 
+/**
+ * Lo que responde POST /api/pagos/verificar: la pasarela ya cobró (y con qué
+ * pedido), hay un pago que aún no decide, o todavía no hay nada.
+ *
+ * Existe para la vuelta «a pulso» de MercadoPago, cuando no hubo back_url y por
+ * tanto no llegó ningún payment_id: se pregunta en vez de adivinar.
+ */
+export interface VerificacionPago {
+  estado: 'COMPLETADA' | 'EN_CURSO' | 'SIN_PAGO';
+  /** Solo viene con COMPLETADA. */
+  pedidoId: number | null;
+}
+
 /** Estado con el que MercadoPago devuelve al comprador a /carrito. */
 export type EstadoRetornoPago = 'approved' | 'failure' | 'pending';
 

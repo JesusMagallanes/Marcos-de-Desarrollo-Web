@@ -2,7 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RUTAS_COMPRAS } from '../compras.routes';
-import { ConfirmarPagoRequest, DireccionEntrega, Pedido, PreferenciaRequest, PreferenciaResponse } from '../models';
+import {
+  ConfirmarPagoRequest,
+  DireccionEntrega,
+  Pedido,
+  PreferenciaRequest,
+  PreferenciaResponse,
+  VerificacionPago,
+} from '../models';
 
 /** Checkout — servicio `compras` (:8083). Fachada de la saga de compra. */
 @Injectable({ providedIn: 'root' })
@@ -46,5 +53,17 @@ export class PagoService {
   confirmar(paymentId: string): Observable<Pedido> {
     const cuerpo: ConfirmarPagoRequest = { paymentId };
     return this.http.post<Pedido>(RUTAS_COMPRAS.pagos.confirmar, cuerpo);
+  }
+
+  /**
+   * POST /api/pagos/verificar
+   *
+   * Para la vuelta sin `payment_id`: el comprador vuelve a la tienda por su
+   * pie —o las back_urls nunca se registraron— y en vez de adivinar se le
+   * pregunta a la pasarela si el pago ya entró. No tiene cuerpo: la compra en
+   * curso es la del usuario autenticado.
+   */
+  verificar(): Observable<VerificacionPago> {
+    return this.http.post<VerificacionPago>(RUTAS_COMPRAS.pagos.verificar, {});
   }
 }
