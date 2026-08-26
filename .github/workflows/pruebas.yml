@@ -1,6 +1,6 @@
 # Ejecuta las pruebas en cada push y en cada pull request.
 #
-# Por qué hacía falta: son 247 pruebas (160 de backend + 87 de frontend) que
+# Por qué hacía falta: son 434 pruebas (283 de backend + 151 de frontend) que
 # hasta ahora solo corrían si alguien se acordaba de lanzarlas a mano. En esta
 # misma rama se coló una migración que rompía el descuento de stock al comprar y
 # no lo vio nadie hasta que se probó por casualidad.
@@ -82,6 +82,12 @@ jobs:
       - name: Instalar
         run: pnpm install --frozen-lockfile
 
+      # Va antes que las pruebas porque falla en segundos y señala la línea
+      # exacta; esperar al final para enterarse de un import sin usar es tiempo
+      # perdido en cada vuelta.
+      - name: Lint
+        run: pnpm run lint
+
       - name: Probar
         run: pnpm test
 
@@ -136,3 +142,45 @@ jobs:
             done
           done
           exit $fallo
+
+  movil:
+    name: movil
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: movil
+
+    # La app Flutter llevaba fuera del CI desde el principio: son cien ficheros
+    # versionados y dos ficheros de prueba que no ejecutaba nadie, así que nadie
+    # sabía si seguía compilando.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Instalar dependencias
+        run: flutter pub get
+
+      # `--fatal-infos` no: el objetivo hoy es que compile y pase sus pruebas,
+      # no cerrar de golpe todos los avisos de estilo que se hayan acumulado.
+      - name: Analizar
+        run: flutter analyze --no-fatal-infos
+
+      - name: Probar
+        run: flutter test
+
+  duplicados:
+    name: duplicados
+    runs-on: ubuntu-latest
+
+    # Los cuatro servicios repiten diecisiete clases transversales porque no hay
+    # un módulo común. Esto no lo arregla; vigila que una copia no se quede
+    # atrás cuando se arregla algo en otra, que ya ha pasado dos veces.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Comprobar las copias de infraestructura
+        run: bash .github/scripts/verificar-duplicados.sh

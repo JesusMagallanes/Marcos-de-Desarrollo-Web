@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { Router, UrlTree } from '@angular/router';
+import { UrlTree } from '@angular/router';
 import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { AuthService } from '../../usuarios/services/auth.service';
 import { adminGuard } from './admin.guard';
 import { authGuard } from './auth.guard';

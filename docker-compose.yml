@@ -15,6 +15,20 @@ name: smartzone
 x-jvm-comun: &jvm-comun
   restart: unless-stopped
   networks: [smartzone]
+  # Techo de memoria por servicio.
+  #
+  # La imagen arranca con `-XX:MaxRAMPercentage=75`, y ese porcentaje se calcula
+  # sobre la memoria que VE la JVM: sin un limite declarado aqui, ve la del
+  # anfitrion entera. Con los cuatro servicios a la vez eso son cuatro procesos
+  # convencidos de poder crecer hasta el 75% de la misma maquina, y el que se
+  # queda sin memoria no es necesariamente el que la pidio.
+  #
+  # Con el limite puesto, `MaxRAMPercentage` pasa a significar lo que promete:
+  # 75% de 512 MB, unos 384 MB de heap por servicio.
+  mem_limit: 512m
+  # Suficiente para que la JVM no se ahogue en el arranque, que es cuando mas
+  # hilos crea, sin reservarle nada al sistema el resto del tiempo.
+  mem_reservation: 256m
 
 # Tiempos de la sonda de salud.
 #

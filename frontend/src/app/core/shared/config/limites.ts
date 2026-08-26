@@ -14,7 +14,7 @@ export const LIMITES = {
  * Caracteres que admite el backend en una búsqueda: letras, dígitos, espacios y unos
  * pocos signos.
  */
-export const PATRON_BUSQUEDA = /^[\p{L}\p{N} .,'\-]*$/u;
+export const PATRON_BUSQUEDA = /^[\p{L}\p{N} .,'-]*$/u;
 
 /**
  * El patrón de slug NO se define aquí: ya vive en `categoria.model.ts`, que es su
