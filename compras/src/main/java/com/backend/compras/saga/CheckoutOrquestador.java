@@ -476,9 +476,37 @@ public class CheckoutOrquestador {
 
     /* ══════════════ Compensación ══════════════ */
 
-    /** Deshace los pasos dados, en orden inverso. */
+    /**
+     * Deshace los pasos dados, en orden inverso.
+     *
+     * <p><b>La saga se vuelve a leer aquí dentro, y no se toca la instancia que
+     * llega.</b> Es lo que arregla un 409 que salía en producción:
+     *
+     * <ol>
+     *   <li>{@code iniciar} carga la saga anterior en SU transacción y nos la
+     *       pasa. Esa instancia sigue siendo suya, y la sigue vigilando.
+     *   <li>Esto corre en REQUIRES_NEW: si mutáramos ese mismo objeto y lo
+     *       guardáramos, la fila subiría de {@code version} en la base…
+     *   <li>…pero el contexto de {@code iniciar} conservaría la versión con la
+     *       que la leyó, y además vería el objeto sucio. Al confirmar su
+     *       transacción lanzaría un UPDATE con la versión vieja, que no encaja
+     *       con ninguna fila.
+     * </ol>
+     *
+     * <p>El resultado era «Otra operación modificó estos datos al mismo tiempo»
+     * en el PRIMER intento de pagar después de un checkout abandonado, sin haber
+     * ninguna otra operación: el conflicto era consigo mismo. Al segundo intento
+     * funcionaba, porque la saga anterior ya estaba compensada y este camino no
+     * se recorría.
+     *
+     * <p>Si la saga ya no estuviera en la base se usa la que llegó: es un caso
+     * que no debería darse, y perder la compensación por ello sería peor.
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void compensar(SagaCheckout saga, String token, String motivo) {
+    public void compensar(SagaCheckout deLlamante, String token, String motivo) {
+        SagaCheckout saga = sagas.findByReferencia(deLlamante.getReferencia())
+                .orElse(deLlamante);
+
         if (saga.estaTerminada()) {
             return;
         }

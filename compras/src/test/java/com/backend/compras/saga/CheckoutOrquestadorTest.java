@@ -257,6 +257,46 @@ class CheckoutOrquestadorTest {
     }
 
     @Test
+    @DisplayName("compensar relee la saga y NO toca la instancia de quien llama")
+    void compensarNoTocaLaInstanciaAjena() {
+        /*
+         * Este es el 409 que salía en producción al pulsar «Pagar» por primera
+         * vez después de un checkout abandonado, sin ninguna otra operación en
+         * curso: el conflicto era consigo mismo.
+         *
+         * `iniciar` carga la saga anterior en su transacción y se la pasa a
+         * `compensar`, que corre en REQUIRES_NEW. Si `compensar` mutara ESE
+         * objeto, la fila subiría de versión en la base mientras el contexto de
+         * `iniciar` conserva la versión con la que la leyó; al confirmar, su
+         * UPDATE no encajaría con ninguna fila.
+         */
+        SagaCheckout deLlamante = previaViva();
+        SagaCheckout enLaBase = previaViva();
+        when(sagas.findByReferencia(REFERENCIA)).thenReturn(Optional.of(enLaBase));
+
+        orquestador.compensar(deLlamante, TOKEN, "prueba");
+
+        // La que se modifica es la releída…
+        assertThat(enLaBase.getEstado()).isEqualTo(Estado.COMPENSADA);
+        // …y la de quien llamó se queda como estaba.
+        assertThat(deLlamante.getEstado()).isEqualTo(Estado.ESPERANDO_PAGO);
+        assertThat(deLlamante.getUltimoError()).isNull();
+    }
+
+    @Test
+    @DisplayName("si la saga ya no está en la base, se compensa la que llegó")
+    void compensarSinFilaEnLaBase() {
+        // Perder la compensación por no encontrar la fila sería peor que
+        // trabajar sobre la instancia que nos dieron.
+        SagaCheckout deLlamante = previaViva();
+        when(sagas.findByReferencia(REFERENCIA)).thenReturn(Optional.empty());
+
+        orquestador.compensar(deLlamante, TOKEN, "prueba");
+
+        assertThat(deLlamante.getEstado()).isEqualTo(Estado.COMPENSADA);
+    }
+
+    @Test
     @DisplayName("un pago todavía en curso NO cancela la compra")
     void pagoEnCursoNoCompensa() {
         SagaCheckout saga = previaViva();
