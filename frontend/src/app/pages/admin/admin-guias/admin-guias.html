@@ -90,15 +90,15 @@
   <div class="panel-modal shadow">
     <div class="cabecera-modal">
       <h6 class="mb-0">{{ editandoId() ? 'Editar guía' : 'Nueva guía' }}</h6>
-      <button type="button" class="btn-close" (click)="cerrar()"></button>
+      <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrar()"></button>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="guardar()" class="cuerpo-modal">
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Título</label>
+        <label for="guia-titulo" class="form-label small fw-semibold">Título</label>
         <input
           class="form-control form-control-sm"
-          formControlName="titulo"
+          id="guia-titulo" formControlName="titulo"
           [class.is-invalid]="invalido('titulo')"
           (input)="tituloCambiado($any($event.target).value)"
           placeholder="¿Cómo comprar online?"
@@ -106,12 +106,12 @@
       </div>
 
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Enlace (slug)</label>
+        <label for="guia-slug" class="form-label small fw-semibold">Enlace (slug)</label>
         <div class="input-group input-group-sm">
           <span class="input-group-text">/guias/</span>
           <input
             class="form-control"
-            formControlName="slug"
+            id="guia-slug" formControlName="slug"
             [class.is-invalid]="invalido('slug')"
             (input)="slugTocado()"
           />
@@ -120,11 +120,11 @@
       </div>
 
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Resumen</label>
+        <label for="guia-resumen" class="form-label small fw-semibold">Resumen</label>
         <textarea
           class="form-control form-control-sm"
           rows="2"
-          formControlName="resumen"
+          id="guia-resumen" formControlName="resumen"
           [class.is-invalid]="invalido('resumen')"
           placeholder="Frase corta que se ve en la tarjeta del listado."
         ></textarea>
@@ -132,21 +132,21 @@
 
       <div class="row g-2">
         <div class="col-6 mb-2">
-          <label class="form-label small fw-semibold">Icono</label>
+          <label for="guia-icono" class="form-label small fw-semibold">Icono</label>
           <input
             class="form-control form-control-sm"
-            formControlName="icono"
+            id="guia-icono" formControlName="icono"
             [class.is-invalid]="invalido('icono')"
             placeholder="cart-shopping"
           />
           <div class="form-text">Nombre de FontAwesome, sin «fa-».</div>
         </div>
         <div class="col-6 mb-2">
-          <label class="form-label small fw-semibold">Orden</label>
+          <label for="guia-posicion" class="form-label small fw-semibold">Orden</label>
           <input
             type="number"
             class="form-control form-control-sm"
-            formControlName="posicion"
+            id="guia-posicion" formControlName="posicion"
             [class.is-invalid]="invalido('posicion')"
           />
           <div class="form-text">Menor número, más arriba.</div>
@@ -162,7 +162,7 @@
 
       <hr class="my-3" />
 
-      <label class="form-label small fw-semibold d-block">Pasos</label>
+      <span class="form-label small fw-semibold d-block">Pasos</span>
       <div formArrayName="pasos">
         @for (paso of pasos.controls; track $index) {
           <div class="bloque-paso" [formGroupName]="$index">

@@ -62,41 +62,41 @@
   <div class="panel-modal shadow">
     <div class="cabecera-modal">
       <h6 class="mb-0">{{ editandoId() ? 'Editar categoría' : 'Nueva categoría' }}</h6>
-      <button type="button" class="btn-close" (click)="cerrar()"></button>
+      <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrar()"></button>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="guardar()" class="cuerpo-modal">
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Nombre</label>
+        <label for="cat-name" class="form-label small fw-semibold">Nombre</label>
         <input
           class="form-control form-control-sm"
-          formControlName="name"
+          id="cat-name" formControlName="name"
           (input)="alEscribirNombre($any($event.target).value)"
           [class.is-invalid]="invalido('name')"
         />
       </div>
 
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Slug (URL)</label>
-        <input class="form-control form-control-sm" formControlName="slug" [class.is-invalid]="invalido('slug')" />
+        <label for="cat-slug" class="form-label small fw-semibold">Slug (URL)</label>
+        <input class="form-control form-control-sm" id="cat-slug" formControlName="slug" [class.is-invalid]="invalido('slug')" />
         <div class="form-text small">Solo minúsculas, números y guiones.</div>
       </div>
 
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Descripción</label>
+        <label for="cat-description" class="form-label small fw-semibold">Descripción</label>
         <textarea
           class="form-control form-control-sm"
           rows="3"
-          formControlName="description"
+          id="cat-description" formControlName="description"
           [class.is-invalid]="invalido('description')"
         ></textarea>
       </div>
 
       <div class="mb-3">
-        <label class="form-label small fw-semibold">Ícono</label>
+        <label for="cat-icono" class="form-label small fw-semibold">Ícono</label>
         <input
           class="form-control form-control-sm"
-          formControlName="icono"
+          id="cat-icono" formControlName="icono"
           [class.is-invalid]="invalido('icono')"
           placeholder="laptop"
         />

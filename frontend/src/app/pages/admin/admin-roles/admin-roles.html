@@ -105,16 +105,16 @@
   <div class="panel-modal shadow">
     <div class="cabecera-modal">
       <h6 class="mb-0">{{ editandoNombre() ? 'Editar rol' : 'Nuevo rol' }}</h6>
-      <button type="button" class="btn-close" (click)="cerrar()"></button>
+      <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrar()"></button>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="guardar()" class="cuerpo-modal">
       <div class="row g-2">
         <div class="col-md-6 mb-2">
-          <label class="form-label small fw-semibold">Nombre</label>
+          <label for="rol-nombre" class="form-label small fw-semibold">Nombre</label>
           <input
             class="form-control form-control-sm"
-            formControlName="nombre"
+            id="rol-nombre" formControlName="nombre"
             [class.is-invalid]="invalido('nombre')"
             [readonly]="!!editandoNombre()"
             placeholder="GERENTE"
@@ -122,8 +122,8 @@
           <div class="form-text">Mayúsculas, números y guiones bajos.</div>
         </div>
         <div class="col-md-6 mb-2">
-          <label class="form-label small fw-semibold">Tipo</label>
-          <select class="form-select form-select-sm" formControlName="tipo" [disabled]="sistemaEditando()">
+          <label for="rol-tipo" class="form-label small fw-semibold">Tipo</label>
+          <select class="form-select form-select-sm" id="rol-tipo" formControlName="tipo" [disabled]="sistemaEditando()">
             <option value="TRABAJADOR">Personal</option>
             <option value="CLIENTE">Clientes</option>
           </select>
@@ -131,16 +131,16 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label small fw-semibold">Descripción</label>
+        <label for="rol-descripcion" class="form-label small fw-semibold">Descripción</label>
         <input
           class="form-control form-control-sm"
-          formControlName="descripcion"
+          id="rol-descripcion" formControlName="descripcion"
           [class.is-invalid]="invalido('descripcion')"
           placeholder="Quién lo usa y para qué"
         />
       </div>
 
-      <label class="form-label small fw-semibold d-block">Permisos</label>
+      <span class="form-label small fw-semibold d-block">Permisos</span>
       <div class="acordeon-permisos">
         @for (grupo of permisosPorModulo(); track grupo[0]) {
           <div class="bloque-permisos">

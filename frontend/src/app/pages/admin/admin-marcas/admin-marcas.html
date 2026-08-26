@@ -60,18 +60,18 @@
   <div class="panel-modal shadow">
     <div class="cabecera-modal">
       <h6 class="mb-0">{{ editandoId() ? 'Editar marca' : 'Nueva marca' }}</h6>
-      <button type="button" class="btn-close" (click)="cerrar()"></button>
+      <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrar()"></button>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="guardar()" class="cuerpo-modal">
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Nombre</label>
-        <input class="form-control form-control-sm" formControlName="name" [class.is-invalid]="invalido('name')" />
+        <label for="marca-name" class="form-label small fw-semibold">Nombre</label>
+        <input class="form-control form-control-sm" id="marca-name" formControlName="name" [class.is-invalid]="invalido('name')" />
       </div>
 
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Categoría</label>
-        <select class="form-select form-select-sm" formControlName="categoriaId" [class.is-invalid]="invalido('categoriaId')">
+        <label for="marca-categoriaId" class="form-label small fw-semibold">Categoría</label>
+        <select class="form-select form-select-sm" id="marca-categoriaId" formControlName="categoriaId" [class.is-invalid]="invalido('categoriaId')">
           <option [value]="0">Selecciona…</option>
           @for (c of categorias(); track c.id) {
             <option [value]="c.id">{{ c.name }}</option>
@@ -80,11 +80,11 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label small fw-semibold">Descripción</label>
+        <label for="marca-descripcion" class="form-label small fw-semibold">Descripción</label>
         <textarea
           class="form-control form-control-sm"
           rows="3"
-          formControlName="descripcion"
+          id="marca-descripcion" formControlName="descripcion"
           [class.is-invalid]="invalido('descripcion')"
         ></textarea>
       </div>

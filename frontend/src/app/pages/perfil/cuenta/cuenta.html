@@ -26,31 +26,31 @@
     <form [formGroup]="form" (ngSubmit)="guardar()">
       <div class="row g-3">
         <div class="col-12 col-md-6">
-          <label class="form-label small fw-semibold">Nombre</label>
-          <input class="form-control" formControlName="name" [class.is-invalid]="invalido('name')" />
+          <label for="cuenta-name" class="form-label small fw-semibold">Nombre</label>
+          <input class="form-control" id="cuenta-name" formControlName="name" [class.is-invalid]="invalido('name')" />
           <div class="invalid-feedback">Ingresa tu nombre.</div>
         </div>
 
         <div class="col-12 col-md-6">
-          <label class="form-label small fw-semibold">Apellido</label>
-          <input class="form-control" formControlName="lastname" [class.is-invalid]="invalido('lastname')" />
+          <label for="cuenta-lastname" class="form-label small fw-semibold">Apellido</label>
+          <input class="form-control" id="cuenta-lastname" formControlName="lastname" [class.is-invalid]="invalido('lastname')" />
           <div class="invalid-feedback">Ingresa tu apellido.</div>
         </div>
 
         <div class="col-12">
-          <label class="form-label small fw-semibold">Correo electrónico</label>
+          <label for="cuenta-emailAddress" class="form-label small fw-semibold">Correo electrónico</label>
           <input
             type="email"
             class="form-control"
-            formControlName="emailAddress"
+            id="cuenta-emailAddress" formControlName="emailAddress"
             [class.is-invalid]="invalido('emailAddress')"
           />
           <div class="invalid-feedback">Ingresa un correo válido.</div>
         </div>
 
         <div class="col-12 col-md-6">
-          <label class="form-label small fw-semibold">Teléfono</label>
-          <input class="form-control" formControlName="phoneNumber" [class.is-invalid]="invalido('phoneNumber')" />
+          <label for="cuenta-phoneNumber" class="form-label small fw-semibold">Teléfono</label>
+          <input class="form-control" id="cuenta-phoneNumber" formControlName="phoneNumber" [class.is-invalid]="invalido('phoneNumber')" />
           <div class="invalid-feedback">Debe tener 9 dígitos.</div>
         </div>
 

@@ -174,8 +174,9 @@
         </div>
 
         @if (metodosPago().length) {
-          <label class="form-label small fw-semibold mt-3 mb-1">Método de pago</label>
+          <label for="metodo-pago" class="form-label small fw-semibold mt-3 mb-1">Método de pago</label>
           <select
+            id="metodo-pago"
             class="form-select form-select-sm"
             [value]="metodoElegido() ?? ''"
             (change)="metodoElegido.set(+$any($event.target).value)"
