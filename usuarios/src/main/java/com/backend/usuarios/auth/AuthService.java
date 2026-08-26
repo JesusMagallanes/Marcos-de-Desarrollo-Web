@@ -1,5 +1,9 @@
 package com.backend.usuarios.auth;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -87,10 +91,26 @@ public class AuthService {
         }
 
         if (tokenService.estaRevocado(claims.getId())) {
-            // Reúso: o el token se filtró, o el cliente reintenta. En ambos
-            // casos se rechaza y se deja constancia.
+            /*
+             * Reúso: o el token se filtró, o el cliente reintenta.
+             *
+             * Rechazar SOLO este token no basta, y esa era la parte que faltaba.
+             * Si el refresh se filtró, el atacante ya lo canjeó y tiene un par
+             * nuevo sin revocar; el que llega segundo —y se lleva el 401— es el
+             * usuario legítimo, mientras la cadena robada sigue renovándose siete
+             * días. Por eso se corta la cuenta entera: todo lo emitido hasta
+             * ahora deja de valer, incluida esa cadena.
+             *
+             * Los tokens de ACCESO ya emitidos siguen vivos hasta que caducan
+             * solos —los validan los otros tres servicios sin preguntar aquí—,
+             * pero eso es como mucho una hora, frente a los siete días de
+             * renovaciones que se cierran aquí.
+             */
+            cortarSesiones(claims.getSubject());
+
             auditoria.registrarFallo(Evento.LOGIN_FALLIDO, claims.getSubject(),
-                    "reúso de refresh token revocado jti=" + claims.getId());
+                    "reúso de refresh token revocado jti=" + claims.getId()
+                            + "; se cortaron todas las sesiones de la cuenta");
             metricas.reusoRefreshDetectado();
             throw new BadCredentialsException("Token de refresco ya utilizado");
         }
@@ -98,8 +118,51 @@ public class AuthService {
         Usuario usuario = repositorio.findByEmailAddress(claims.getSubject())
                 .orElseThrow(() -> new BadCredentialsException("Cuenta no encontrada"));
 
+        if (emitidoAntesDelCorte(claims, usuario)) {
+            // La cuenta se cortó por un reúso anterior. Este token es de antes,
+            // así que ya no sirve aunque su firma y su caducidad estén bien.
+            auditoria.registrarFallo(Evento.LOGIN_FALLIDO, claims.getSubject(),
+                    "refresh anterior al corte de sesiones");
+            throw new BadCredentialsException(
+                    "Tu sesión se cerró por seguridad. Vuelve a iniciar sesión.");
+        }
+
         tokenService.revocar(claims, TokenRevocado.Motivo.ROTACION);
         return construirRespuesta(usuario);
+    }
+
+    /**
+     * Invalida todo lo emitido a esta cuenta hasta este instante.
+     *
+     * <p>No falla si la cuenta no existe: se llega aquí desde un token que ya
+     * está verificado, pero el correo podría haberse dado de baja entretanto, y
+     * lo que toca entonces es seguir adelante y rechazar el refresco igual.
+     */
+    private void cortarSesiones(String email) {
+        repositorio.findByEmailAddress(email).ifPresent(usuario -> {
+            usuario.setTokensValidosDesde(LocalDateTime.now());
+            repositorio.save(usuario);
+            log.warn("Sesiones de {} cortadas por reúso de refresh token", email);
+        });
+    }
+
+    /**
+     * ¿Se emitió este token antes del corte?
+     *
+     * <p>`iat` viaja en segundos, así que la comparación es estricta: un token
+     * emitido en el mismo segundo del corte se acepta. Eso es lo que se quiere
+     * —el usuario que vuelve a entrar justo después no puede quedarse fuera por
+     * un redondeo— y no abre nada: los tokens que se están invalidando son de
+     * antes, no de ese mismo instante.
+     */
+    private boolean emitidoAntesDelCorte(Claims claims, Usuario usuario) {
+        LocalDateTime corte = usuario.getTokensValidosDesde();
+        if (corte == null || claims.getIssuedAt() == null) {
+            return false;
+        }
+        LocalDateTime emitido = LocalDateTime.ofInstant(
+                claims.getIssuedAt().toInstant(), ZoneId.systemDefault());
+        return emitido.isBefore(corte.truncatedTo(ChronoUnit.SECONDS));
     }
 
     @Transactional

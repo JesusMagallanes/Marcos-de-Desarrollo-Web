@@ -112,6 +112,18 @@ public class Usuario {
     @Builder.Default
     private String rol = "CLIENTE";
 
+    /**
+     * Desde cuándo valen los tokens de esta cuenta. {@code null} = sin corte.
+     *
+     * <p>Es el interruptor de «cerrar todas las sesiones»: se compara contra el
+     * {@code iat} del token, así que invalida de golpe todo lo emitido antes sin
+     * necesidad de conocer los {@code jti}. Lo pone la detección de reúso de un
+     * refresh token, que es cuando hay que dar por comprometida la cadena
+     * entera y no solo el token que se reutilizó.
+     */
+    @Column(name = "tokens_validos_desde")
+    private LocalDateTime tokensValidosDesde;
+
     @Column(name = "creado_en", nullable = false, updatable = false)
     private LocalDateTime creadoEn;
 
