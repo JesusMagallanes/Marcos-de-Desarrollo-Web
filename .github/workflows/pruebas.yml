@@ -169,8 +169,13 @@ jobs:
       - name: Analizar
         run: flutter analyze --no-fatal-infos
 
+      # `--exclude-tags integracion` es lo que documenta el propio
+      # `dart_test.yaml` del proyecto: esas pruebas hablan con el backend real
+      # en localhost:8080, y aquí no hay pila levantada. Se saltan solas por
+      # dentro, pero dejarlas correr son treinta segundos de sondeo a un puerto
+      # cerrado y un "pasa" que en realidad no probó nada.
       - name: Probar
-        run: flutter test
+        run: flutter test --exclude-tags integracion
 
   duplicados:
     name: duplicados
