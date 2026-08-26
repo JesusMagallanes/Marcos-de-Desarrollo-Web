@@ -13,15 +13,29 @@ class CatalogoServicio {
   List<Producto>? _cacheProductos;
   List<Categoria>? _cacheCategorias;
 
+  /// Cuántos se piden de una vez. Es el tope que admite el backend, y la app
+  /// pinta un listado corto: no hay pantalla que necesite más.
+  static const int _porPagina = 100;
+
+  /// El backend PAGINA esta ruta, igual que `/productos/categoria/{slug}`.
+  ///
+  /// Devolvía un array con el catálogo entero y ahora devuelve una página con
+  /// `content` y los totales. Sin leer `content`, el cast a lista revienta con
+  /// «_Map is not a subtype of List» en cuanto se abre la tienda.
   Future<List<Producto>> productos({String? buscar, bool refrescar = false}) async {
     if (buscar != null && buscar.trim().isNotEmpty) {
-      final datos = await _api.get('/productos', consulta: {'search': buscar.trim()});
-      return _aProductos(datos);
+      final datos = await _api.get('/productos', consulta: {
+        'search': buscar.trim(),
+        'page': '0',
+        'size': '$_porPagina',
+      });
+      return _aProductos(_contenido(datos));
     }
 
     if (_cacheProductos != null && !refrescar) return _cacheProductos!;
-    final datos = await _api.get('/productos');
-    return _cacheProductos = _aProductos(datos);
+    final datos = await _api.get('/productos',
+        consulta: {'page': '0', 'size': '$_porPagina'});
+    return _cacheProductos = _aProductos(_contenido(datos));
   }
 
   Future<Producto> producto(int id) async {
@@ -42,8 +56,7 @@ class CatalogoServicio {
   Future<List<Producto>> porCategoria(String slug, {int pagina = 0, int tamano = 20}) async {
     final datos = await _api.get('/productos/categoria/$slug',
         consulta: {'page': '$pagina', 'size': '$tamano'});
-    final mapa = datos as Map<String, dynamic>;
-    return _aProductos(mapa['content']);
+    return _aProductos(_contenido(datos));
   }
 
   /// Lo que ya está en memoria, sin esperar.
@@ -63,4 +76,12 @@ class CatalogoServicio {
   List<Producto> _aProductos(dynamic lista) => ((lista as List?) ?? const [])
       .map((e) => Producto.desdeJson(e as Map<String, dynamic>))
       .toList();
+
+  /// Saca las filas de una respuesta paginada.
+  ///
+  /// Acepta también una lista suelta a propósito: así un backend anterior a la
+  /// paginación sigue funcionando, en vez de dejar la tienda en blanco con un
+  /// error de cast que no dice nada al usuario.
+  dynamic _contenido(dynamic datos) =>
+      datos is Map<String, dynamic> ? datos['content'] : datos;
 }
