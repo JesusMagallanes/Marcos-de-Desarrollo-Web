@@ -662,9 +662,14 @@ El orden importa: en la ida se ejecutan de arriba abajo, en la vuelta al revés.
 | # | Interceptor | Qué hace |
 |---|---|---|
 | 1 | `correlacion` | Añade `X-Correlation-Id` a todo lo que sale |
-| 2 | `error` | Convierte cualquier fallo en `ErrorApi` antes de que nadie lo vea |
-| 3 | `reintento` | Repite los GET que fallaron por algo transitorio |
-| 4 | `auth` | Adjunta el JWT; ante un 401 renueva la sesión y reintenta |
+| 2 | `cache` | Responde desde memoria lo ya pedido; una escritura invalida su recurso |
+| 3 | `error` | Convierte cualquier fallo en `ErrorApi` antes de que nadie lo vea |
+| 4 | `reintento` | Repite los GET que fallaron por algo transitorio |
+| 5 | `auth` | Adjunta el JWT; ante un 401 renueva la sesión y reintenta |
+
+`cache` va el primero de los que tocan la petición porque un acierto corta la cadena ahí mismo:
+no se reintenta, no se firma y no sale a la red. Debajo de `auth` se estaría adjuntando un
+token a una petición que no se va a hacer.
 
 `error` va antes que `reintento` y `auth` para que ambos decidan por intención
 (`transitorio`, `noAutenticado`) en vez de por código HTTP.
@@ -717,11 +722,139 @@ servicio.listar().subscribe({
 });
 ```
 
-### Caché de catálogo
+### Caché de peticiones
 
-Productos, categorías y marcas se cachean con `shareReplay`, y toda escritura invalida. El
-listado de categorías lo piden a la vez la cabecera, la portada, la página de categoría y tres
-pantallas de admin: sin caché eran nueve peticiones idénticas por navegación.
+El listado de categorías lo piden a la vez la cabecera, la portada, la página de categoría y
+tres pantallas de admin: sin caché eran nueve peticiones idénticas por navegación.
+
+Lo hacía `shareReplay` guardado en un campo, **copiado en cuatro servicios** —productos,
+categorías, marcas y ubigeo, este último con tres cachés dentro— y con tres límites: solo
+cubría la lista completa de cada recurso (el listado por categoría, la pantalla más visitada de
+la tienda, no estaba cacheado en ninguna parte), no caducaba nunca —una vez leída, la lista se
+quedaba fija hasta recargar la página entera— y había que acordarse de llamar a `invalidar()`
+en cada escritura nueva.
+
+Ahora es un interceptor con la política en una tabla (`politica-cache.ts`):
+
+| Recurso | Plazo | Por qué |
+|---|---|---|
+| `/ubigeo/**` | 24 h | Lo cambia una migración |
+| `/categorias`, `/marcas`, `/metodos-pago` | 10 min | Los toca un administrador de vez en cuando |
+| `/guias`, `/valoraciones/top` | 5 min | Contenido editorial |
+| `/productos`, `/productos/{id}`, `/productos/categoria/{slug}` | 1 min | Aquí viven precio, stock y descuentos |
+
+Tres reglas lo sostienen:
+
+1. **Es una lista blanca.** Lo que no está en la tabla no se cachea. Al revés —cachear por
+   defecto con una lista de excepciones— el día que alguien añade un endpoint este se cachea sin
+   que nadie lo haya decidido, y si devuelve el carrito o un pedido el fallo es serio y mudo.
+2. **Solo entra lo que es igual para todo el mundo**, porque la clave es la URL y no mira quién
+   pregunta. Por eso `/productos/mios` y `/productos/moderacion` quedan fuera aunque sean de la
+   misma familia: son las dos rutas que enseñan cosas distintas según el usuario. Como red
+   adicional, la caché se vacía entera al entrar y al salir de la cuenta.
+3. **Toda escritura invalida su recurso entero.** Un `POST /api/productos/descuento` tira la
+   lista y cada ficha, que es justo donde se vería el precio viejo. Esto es lo que hace que la
+   caché no dependa de que nadie se acuerde de invalidarla.
+
+Un error nunca se guarda: si se guardara, un fallo de red de un segundo dejaría la pantalla rota
+durante todo el plazo. Y `SIN_CACHE` en el contexto de la petición fuerza una lectura fresca sin
+desactivar el guardado, que es lo que necesita un botón de «recargar».
+
+### La vitrina, por páginas
+
+`GET /api/productos` devolvía una lista con **todo el catálogo aprobado**: sin tope, sin páginas
+y en el endpoint más visitado de la tienda. Y no era solo el endpoint — tres pantallas se lo
+descargaban entero para enseñar unas decenas de productos:
+
+| Quién | Para qué se traía el catálogo | Ahora |
+|---|---|---|
+| Portada | 10 destacados, los que estuvieran en oferta y 12 por categoría | `GET /productos/portada`, las tres listas acotadas en un viaje |
+| **Header** | Alimentar un desplegable de 6 sugerencias | Búsqueda en servidor con `debounceTime`, sin descarga inicial |
+| Chatbot | Quedarse con 5 ofertas | `ofertas(5)`, una consulta con la vigencia en el `WHERE` |
+| Panel de productos | Una tabla con filtro en memoria | 25 filas por página, búsqueda en servidor |
+
+El header era el peor de los cuatro: está en **todas** las páginas, así que el catálogo entero
+viajaba en cada visita.
+
+El panel de descuentos también, y era el más enredado: clasifica por estado del descuento,
+cuenta por sección y permite «seleccionar todo lo visible». Sus **cuatro filtros** —texto,
+categoría, marca y estado— y los **conteos de las pestañas** viven ahora en
+`GET /productos/descuentos`, que devuelve la página y los conteos juntos: separarlos sería un
+segundo viaje para pintar la misma pantalla, y un momento en que las pestañas dicen un número y
+la lista enseña otro.
+
+Los conteos se calculan sobre TODO el catálogo, no sobre lo filtrado. Es deliberado y es lo que
+hacía la versión anterior: una pestaña sirve para saber cuánto hay de cada cosa, y un número que
+baila al escribir en el buscador deja de servir para eso.
+
+Esas consultas llevan filtros opcionales (`:param IS NULL OR …`), comparan un parámetro contra
+literales para elegir rama y agregan con `CASE WHEN`. Todo eso es una cadena de texto hasta que
+Hibernate la traduce: **compila igual esté bien o mal**. Por eso van cubiertas por un `*IT` con
+Postgres real, que en CI sí se ejecuta.
+
+### Caché de los estáticos
+
+Lo que decide **no es la extensión sino si el nombre cambia cuando cambia el contenido**, que es
+la única condición que hace segura una caché eterna. Angular firma lo que compila
+(`main-XW7WSHRM.js`) y copia `public/` tal cual.
+
+| Qué | `Cache-Control` |
+|---|---|
+| Con hash en el nombre | `max-age=31536000, immutable` |
+| `/Img/**`, `favicon.ico` | `max-age=3600, must-revalidate` |
+| `index.html` y rutas del router | `no-cache` |
+
+Estaban mal en los dos sitios, y de formas distintas:
+
+- **En nginx, las imágenes de `/Img/` se marcaban `immutable` un año.** El bloque casaba por
+  extensión, y esas imágenes no llevan hash. `immutable` significa literalmente «no vuelvas a
+  preguntar», así que reemplazar un logo no lo veía nadie nunca. Comprobado sirviendo el build
+  real con la configuración anterior y con la nueva: con la vieja, el navegador no vuelve a
+  pedirla; con la nueva, revalida cada hora y una imagen reemplazada llega en el acto.
+
+- **En el gateway no se cacheaba NADA**, ni siquiera los bundles con hash. Spring Security pone
+  `no-cache, no-store` en todas las respuestas por defecto, y la línea que supuestamente daba
+  caché larga —`spring.web.resources.cache.cachecontrol.max-age`— no llegaba a aplicarse: Boot
+  solo la usa en sus propios manejadores de recursos, no en el que registra `SpaConfig`. El
+  comentario decía «cache larga para los assets con hash; el index.html no se cachea» y no era
+  ninguna de las dos cosas. Resultado: cada visita se volvía a descargar el bundle entero.
+
+  Ese es el motivo de que la política la ponga un filtro, que se ejecuta antes: Spring Security
+  respeta un `Cache-Control` que ya venga puesto, y así los bundles con hash sí se cachean sin
+  tocar lo que hace con la API.
+
+La regla vive en `PoliticaCache.java` con sus pruebas, y está repetida en `frontend/nginx.conf`
+porque el bundle se sirve por los dos sitios según cómo se despliegue: arreglarlo en uno solo
+dejaba el fallo vivo en el otro. Las dos mitades están verificadas con peticiones reales —nginx
+sirviendo el build de producción, y el gateway con el bundle copiado como indica el apartado de
+despliegue— no solo con pruebas unitarias.
+
+**Imágenes que no cargan.** Las de los productos son URLs de otros sitios, y las plantillas
+tenían `src="imagen || '/Img/img.png'"`, que solo cubre el caso de que no haya URL. Si la hay y
+falla —el que la alojaba la borró o bloqueó el enlace desde fuera— ese operador no llega a
+evaluarse y el navegador pinta el icono de imagen rota. La directiva `ImagenCaida` escucha el
+`error` del elemento y pone el marcador, una sola vez por imagen para no entrar en bucle si el
+propio marcador faltara.
+
+### Accesibilidad
+
+El lint entró con 66 errores y sale con cero. Los dos bloques grandes eran:
+
+- **46 etiquetas de formulario sin asociar.** La mayoría se apuntaron a su control con
+  `for`/`id`. Media docena resultaron ser otra cosa: encabezaban un *grupo* —los pasos de una
+  guía, las URLs de imagen de un producto, los permisos de un rol, el mapa— y una etiqueta
+  apunta a **un** control. Un lector de pantalla las anunciaba como etiqueta y dejaba al
+  usuario esperando un campo que no existe, así que dejaron de ser `<label>`.
+- **7 botones sin nombre accesible**: el `btn-close` de Bootstrap, cuya «X» es una imagen de
+  fondo. Llevan `aria-label`.
+
+Las dos reglas están ahora en **error**, no en aviso: lo que se quiere no es haberlas cerrado,
+es que no vuelvan. Siguen en aviso `click-events-have-key-events` e `interactive-supports-focus`,
+que son el trabajo pendiente de teclado.
+
+Un detalle que el lint casi hace peor: marcaba los `x != null` de las plantillas. Son correctos
+—es el idioma para «ni null ni undefined»— y cambiarlos a `!==` habría roto el mapa del carrito,
+donde `latitud` puede ser `undefined`. La excepción se configuró en la regla, no en el código.
 
 ### Límites replicados del backend
 
@@ -866,24 +999,36 @@ Densidad actual: 6-10 % de líneas de comentario, frente al 11-21 % anterior.
 
 ### Pruebas
 
-**186 unitarias de backend** + **92 de frontend** + **6 de integración**:
+**283 unitarias de backend** + **151 de frontend** + las de integración:
 
 ```bash
 # Backend
-cd compras  && ./mvnw test      # 48 — saga, cortacircuitos, webhook, conciliación, distancia
-cd usuarios && ./mvnw test      # 77 — rate limit, métricas, OAuth, formatos de archivo, identidad
-cd catalogo && ./mvnw test      # 53 — límites de entrada, payloads de inyección, moderación
-cd web-gateway && ./mvnw test   #  8 — limitador bajo concurrencia
+cd compras  && ./mvnw test      # 75 — saga, carrito, cortacircuitos, webhook, conciliación
+cd usuarios && ./mvnw test      # 102 — JWT, refresco de sesión, rate limit, OAuth, identidad
+cd catalogo && ./mvnw test      # 78 — reservas de stock, portada y paginación, moderación
+cd web-gateway && ./mvnw test   # 28 — limitador bajo concurrencia, política de caché
 cd compras  && ./mvnw verify    # añade las *IT con Testcontainers
 
 # Frontend
-cd frontend && pnpm test         # 92 — estado, interceptores, guards, services, modelos
+cd frontend && pnpm lint         # ESLint + reglas de accesibilidad de Angular (0 errores)
+cd frontend && pnpm test         # 151 — estado, interceptores, caché, guards, services, modelos
 ```
 
+Tres zonas que no tenían ninguna prueba y ahora sí, porque son las que más caro salen si se
+rompen sin que nadie lo note:
+
+| Qué | Por qué importaba |
+|---|---|
+| `JwtService` y el refresco de sesión | Emisión, rotación, reúso de refresh y corte de sesiones. Los otros tres servicios confían en esto sin preguntar |
+| `InventarioService` | Apartar, confirmar y devolver stock. Confirmar una reserva caducada descuadra el inventario en silencio |
+| `CarritoService` | Incluido el caso de que el borrado no borre, que es como falló |
+
 **Todo esto corre solo en cada push**, en `.github/workflows/pruebas.yml`: los cuatro servicios
-en paralelo, el frontend, y un trabajo que aplica **las 28 migraciones desde cero** contra un
-Postgres real. Ese último existe por un motivo concreto: en esta misma rama se coló una migración
-que rompía el descuento de stock al comprar y no la vio nadie hasta que se probó por casualidad.
+en paralelo, el frontend (lint, pruebas y compilación), la app móvil, un trabajo que aplica
+**todas las migraciones desde cero** contra un Postgres real, y un guardián de las copias de
+infraestructura. Los dos últimos existen por un motivo concreto cada uno: en esta misma rama se
+coló una migración que rompía el descuento de stock al comprar, y dos veces se ha arreglado algo
+en una copia de una clase transversal dejando las otras como estaban.
 
 `mvn test` corre solo las unitarias; `mvn verify` añade las de integración, que levantan un
 PostgreSQL real con Testcontainers para verificar migraciones y consultas JPA. **Si no hay
