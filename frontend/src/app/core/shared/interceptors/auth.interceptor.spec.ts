@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { authInterceptor } from './auth.interceptor';
 import { errorInterceptor } from './error.interceptor';
-import { AuthService } from '../../usuarios/services/auth.service';
 
 /**
  * Lo que se prueba aquí es el sintoma que veia el usuario: una linea suelta que
@@ -37,7 +36,6 @@ function instalarAlmacenamiento(): void {
 describe('authInterceptor', () => {
   let http: HttpClient;
   let control: HttpTestingController;
-  let auth: AuthService;
   let navegar: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -54,7 +52,6 @@ describe('authInterceptor', () => {
 
     http = TestBed.inject(HttpClient);
     control = TestBed.inject(HttpTestingController);
-    auth = TestBed.inject(AuthService);
   });
 
   it('adjunta el token a la peticion', () => {

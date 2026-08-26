@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, map, tap } from 'rxjs';
 import { RUTAS_USUARIOS } from '../usuarios.routes';
 import { ALMACENAMIENTO } from '../../shared/config/constantes';
+import { CacheHttp } from '../../shared/cache/cache-http';
 import {
   AuthResponse,
   DireccionUsuario,
@@ -20,6 +21,7 @@ import {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly cache = inject(CacheHttp);
 
   private readonly usuarioSig = signal<Usuario | null>(this.leerUsuarioGuardado());
 
@@ -161,6 +163,7 @@ export class AuthService {
     localStorage.removeItem(ALMACENAMIENTO.refresh);
     localStorage.removeItem(ALMACENAMIENTO.usuario);
     this.usuarioSig.set(null);
+    this.cache.limpiar();
   }
 
   /* ── modal de acceso ── */
@@ -214,6 +217,16 @@ export class AuthService {
   }
 
   private guardarSesion(res: AuthResponse): void {
+    /*
+     * Cambia quien mira: se tira lo que hubiera en cache.
+     *
+     * Las respuestas guardadas son todas publicas —la lista blanca de POLITICAS
+     * no admite otra cosa— asi que hoy no hace falta. Se hace igualmente porque
+     * "hoy no hace falta" es lo que deja de ser cierto el dia que alguien anade
+     * una politica nueva sin pararse a pensar si depende del usuario, y ese
+     * fallo no daria ningun error: solo datos de otro en pantalla.
+     */
+    this.cache.limpiar();
     localStorage.setItem(ALMACENAMIENTO.token, res.accessToken);
     if (res.refreshToken) {
       localStorage.setItem(ALMACENAMIENTO.refresh, res.refreshToken);

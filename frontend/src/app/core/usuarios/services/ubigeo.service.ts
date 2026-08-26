@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, shareReplay } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { RUTAS_USUARIOS } from '../usuarios.routes';
 
 /**
@@ -16,49 +16,36 @@ export class UbigeoService {
   private readonly http = inject(HttpClient);
 
   /*
-   * Las listas no cambian nunca durante una sesión —las cambia una migración—
-   * así que se guardan. Sin esto, abrir el modal tres veces son tres peticiones
-   * idénticas, y el desplegable de provincias se repinta en cada tecla.
+   * Estas listas no cambian durante una sesión: las cambia una migración. Sin
+   * caché, abrir el modal de dirección tres veces son tres peticiones idénticas,
+   * y el desplegable de provincias se repide cada vez que se toca el de arriba.
+   *
+   * La caché la pone ahora `cacheInterceptor`, con un plazo de 24 horas. Aquí
+   * había tres cachés escritas a mano —un campo y dos `Map`— que hacían lo
+   * mismo pero obligaban a este servicio a llevar la cuenta de qué combinación
+   * de departamento y provincia ya se había preguntado. Como el interceptor
+   * guarda por URL completa, esa contabilidad sale sola.
    */
-  private departamentosCache?: Observable<string[]>;
-  private provinciasCache = new Map<string, Observable<string[]>>();
-  private distritosCache = new Map<string, Observable<string[]>>();
 
   departamentos(): Observable<string[]> {
-    this.departamentosCache ??= this.http
-      .get<string[]>(RUTAS_USUARIOS.ubigeo.departamentos)
-      .pipe(shareReplay({ bufferSize: 1, refCount: false }));
-    return this.departamentosCache;
+    return this.http.get<string[]>(RUTAS_USUARIOS.ubigeo.departamentos);
   }
 
   provincias(departamento: string): Observable<string[]> {
+    // Sin departamento no hay nada que preguntar: `of([])` ahorra una petición
+    // que el backend contestaría con una lista vacía.
     if (!departamento) return of([]);
 
-    let peticion = this.provinciasCache.get(departamento);
-    if (!peticion) {
-      peticion = this.http
-        .get<string[]>(RUTAS_USUARIOS.ubigeo.provincias, {
-          params: new HttpParams().set('departamento', departamento),
-        })
-        .pipe(shareReplay({ bufferSize: 1, refCount: false }));
-      this.provinciasCache.set(departamento, peticion);
-    }
-    return peticion;
+    return this.http.get<string[]>(RUTAS_USUARIOS.ubigeo.provincias, {
+      params: new HttpParams().set('departamento', departamento),
+    });
   }
 
   distritos(departamento: string, provincia: string): Observable<string[]> {
     if (!departamento || !provincia) return of([]);
 
-    const clave = `${departamento}|${provincia}`;
-    let peticion = this.distritosCache.get(clave);
-    if (!peticion) {
-      peticion = this.http
-        .get<string[]>(RUTAS_USUARIOS.ubigeo.distritos, {
-          params: new HttpParams().set('departamento', departamento).set('provincia', provincia),
-        })
-        .pipe(shareReplay({ bufferSize: 1, refCount: false }));
-      this.distritosCache.set(clave, peticion);
-    }
-    return peticion;
+    return this.http.get<string[]>(RUTAS_USUARIOS.ubigeo.distritos, {
+      params: new HttpParams().set('departamento', departamento).set('provincia', provincia),
+    });
   }
 }
