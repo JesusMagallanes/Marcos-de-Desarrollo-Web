@@ -30,10 +30,9 @@ const ruta = (patron: string) =>
  * <h4>Solo entra lo que es igual para todo el mundo</h4>
  *
  * <p>La caché se guarda por URL, sin mirar quién pregunta, así que solo puede
- * contener respuestas que no dependan del usuario. Por eso están el catálogo y
- * el ubigeo, y no están el carrito, los pedidos, los envíos, los pagos, el
- * perfil, ni `/productos/mios` y `/productos/moderacion`, que enseñan cosas
- * distintas según quién mire.
+ * contener respuestas que no dependan del usuario. Por eso está el ubigeo, y no
+ * están el carrito, los pedidos, los envíos, los pagos ni el perfil, que
+ * enseñan cosas distintas según quién mire.
  *
  * <p>Como red de seguridad adicional, la caché se vacía entera al entrar y al
  * salir de la cuenta (ver `AuthService`).
@@ -41,19 +40,22 @@ const ruta = (patron: string) =>
  * <h4>Los plazos</h4>
  *
  * <p>Cada uno sale de cuánto tarda en cambiar el dato de verdad, no de cuánto
- * nos gustaría ahorrar. El ubigeo lo cambia una migración; las categorías y
- * marcas, un administrador de vez en cuando; los productos se mueven con cada
- * descuento y cada compra, y por eso duran un minuto. Además, cualquier
+ * nos gustaría ahorrar. El ubigeo lo cambia una migración; los métodos de pago
+ * y las guías, alguien del panel muy de vez en cuando. Además, cualquier
  * escritura sobre un recurso tira su caché al instante, así que estos plazos
  * solo aplican a los cambios que vienen de FUERA de esta pestaña.
+
+ * <h4>Esta no es la única caché</h4>
+ *
+ * <p>El catálogo lo cachea `CacheLecturaService` en IndexedDB, que sobrevive a
+ * recargar y sirve sin conexión. Esta vive en memoria y muere con la pestaña:
+ * cubre lo que aquella no toca.
  */
 export const POLITICAS: readonly PoliticaCache[] = [
   // Lo cambia una migración. No cambia mientras la pestaña esté abierta.
   { nombre: 'ubigeo', patron: ruta('/ubigeo/.*'), ttlMs: 24 * HORA },
 
   // Las toca un administrador muy de vez en cuando.
-  { nombre: 'categorias', patron: ruta('/categorias(/slug/[^/]+)?'), ttlMs: 10 * MINUTO },
-  { nombre: 'marcas', patron: ruta('/marcas(/categoria/\\d+)?'), ttlMs: 10 * MINUTO },
   { nombre: 'metodos-pago', patron: ruta('/metodos-pago'), ttlMs: 10 * MINUTO },
 
   /*
@@ -64,24 +66,19 @@ export const POLITICAS: readonly PoliticaCache[] = [
    * público, igual que habría pasado con `/productos/mios`.
    */
   { nombre: 'guias', patron: ruta('/guias(/(?!admin)[^/]+)?'), ttlMs: 5 * MINUTO },
-  { nombre: 'valoraciones-top', patron: ruta('/valoraciones/top'), ttlMs: 5 * MINUTO },
 
   /*
-   * Productos: la lista, el detalle y el listado por categoría.
+   * EL CATÁLOGO NO ESTÁ AQUÍ, Y ES A PROPÓSITO.
    *
-   * Un minuto y no más porque aquí viven el precio, el stock y los descuentos.
-   * El plazo no es un riesgo de cobro —el importe se recalcula en el servidor al
-   * pagar, leyendo catálogo— sino de que la ficha enseñe un stock que ya no
-   * está; y para eso un minuto es de sobra.
+   * Productos, categorías, marcas y valoraciones los cachea
+   * `CacheLecturaService` en IndexedDB, que sobrevive a recargar la página y
+   * sirve sin conexión: esta caché, que vive en memoria y muere con la pestaña,
+   * no aporta nada encima de aquella. Y dos capas sobre el mismo dato son dos
+   * caducidades distintas y dos sitios que invalidar, que es como se acaba
+   * enseñando un precio viejo sin saber cuál de las dos lo guardó.
    *
-   * `/productos/mios` y `/productos/moderacion` quedan FUERA a propósito: son
-   * las dos rutas de esta familia que enseñan cosas distintas según quién
-   * pregunte. De ahí el `\\d+` y el `categoria/` en vez de un comodín.
+   * Aquí queda lo que la capa de IndexedDB no cubre.
    */
-  { nombre: 'productos', patron: ruta('/productos'), ttlMs: MINUTO },
-  { nombre: 'portada', patron: ruta('/productos/portada'), ttlMs: MINUTO },
-  { nombre: 'producto', patron: ruta('/productos/\\d+'), ttlMs: MINUTO },
-  { nombre: 'productos-categoria', patron: ruta('/productos/categoria/[^/]+'), ttlMs: MINUTO },
 ];
 
 /**

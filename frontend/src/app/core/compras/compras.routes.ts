@@ -29,5 +29,6 @@ export const RUTAS_COMPRAS = {
   pagos: {
     preferencia: `${API}/pagos/preferencia`,
     confirmar: `${API}/pagos/confirmar`,
+    verificar: `${API}/pagos/verificar`,
   },
 } as const;

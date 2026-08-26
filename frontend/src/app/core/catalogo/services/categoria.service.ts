@@ -1,7 +1,7 @@
-import { HttpClient, HttpContext } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { SIN_CACHE } from '../../shared/interceptors';
+import { Observable, tap } from 'rxjs';
+import { CacheLecturaService, TTL } from '../../offline';
 import { RUTAS_CATALOGO } from '../catalogo.routes';
 import { Categoria, CategoriaRequest } from '../models';
 
@@ -9,27 +9,25 @@ import { Categoria, CategoriaRequest } from '../models';
 @Injectable({ providedIn: 'root' })
 export class CategoriaService {
   private readonly http = inject(HttpClient);
+  private readonly cache = inject(CacheLecturaService);
 
-  /*
-   * La caché la pone `cacheInterceptor`, con su plazo, y cualquier escritura de
-   * las de abajo la invalida sola.
+  /**
+   * GET /api/categorias — público, ordenadas por nombre.
    *
-   * Aquí había un `shareReplay` guardado en un campo —el mismo que estaba
-   * copiado en otros tres servicios— con dos problemas: no caducaba nunca, así
-   * que una vez leída la lista se quedaba fija hasta recargar la página entera,
-   * y había que acordarse de llamar a `invalidar()` en cada escritura nueva.
+   * <p>La lista casi nunca cambia y TODAS las pantallas la piden (menú,
+   * buscador, panel): es el caso perfecto para servir de IndexedDB y no
+   * gastar una consulta a PostgreSQL en cada visita.
    */
-
-  /** GET /api/categorias — público, ordenadas por nombre. Cacheado. */
   listar(): Observable<Categoria[]> {
-    return this.http.get<Categoria[]>(RUTAS_CATALOGO.categorias.base);
+    return this.cache.obtener('categorias:todas', TTL.taxonomia, () =>
+      this.http.get<Categoria[]>(RUTAS_CATALOGO.categorias.base),
+    );
   }
 
   /** Fuerza una lectura fresca, ignorando la caché. */
   recargar(): Observable<Categoria[]> {
-    return this.http.get<Categoria[]>(RUTAS_CATALOGO.categorias.base, {
-      context: new HttpContext().set(SIN_CACHE, true),
-    });
+    this.invalidar();
+    return this.listar();
   }
 
   /** GET /api/categorias/{id} — público. */
@@ -44,16 +42,27 @@ export class CategoriaService {
 
   /** POST /api/categorias — ADMINISTRADOR. 409 si el nombre o el slug se repiten. */
   crear(dto: CategoriaRequest): Observable<Categoria> {
-    return this.http.post<Categoria>(RUTAS_CATALOGO.categorias.base, dto);
+    return this.http
+      .post<Categoria>(RUTAS_CATALOGO.categorias.base, dto)
+      .pipe(tap(() => this.invalidar()));
   }
 
   /** PUT /api/categorias/{id} — ADMINISTRADOR. */
   actualizar(id: number, dto: CategoriaRequest): Observable<Categoria> {
-    return this.http.put<Categoria>(RUTAS_CATALOGO.categorias.porId(id), dto);
+    return this.http
+      .put<Categoria>(RUTAS_CATALOGO.categorias.porId(id), dto)
+      .pipe(tap(() => this.invalidar()));
   }
 
   /** DELETE /api/categorias/{id} — ADMINISTRADOR. 409 si tiene productos. */
   eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(RUTAS_CATALOGO.categorias.porId(id));
+    return this.http
+      .delete<void>(RUTAS_CATALOGO.categorias.porId(id))
+      .pipe(tap(() => this.invalidar()));
+  }
+
+  /** Descarta la caché: la siguiente lectura vuelve a ir al servidor. */
+  invalidar(): void {
+    void this.cache.invalidar('categorias');
   }
 }

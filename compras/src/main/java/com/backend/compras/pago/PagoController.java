@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.backend.compras.pago.dto.PagoDtos.ConfirmarRequest;
 import com.backend.compras.pago.dto.PagoDtos.PreferenciaRequest;
 import com.backend.compras.pago.dto.PagoDtos.PreferenciaResponse;
+import com.backend.compras.pago.dto.PagoDtos.VerificarResponse;
 import com.backend.compras.pedido.dto.PedidoDtos.PedidoResponse;
 import com.backend.compras.saga.CheckoutOrquestador;
 import com.backend.compras.shared.error.DemasiadasPeticionesException;
@@ -68,6 +69,21 @@ public class PagoController {
     public PedidoResponse confirmar(UsuarioAutenticado usuario,
             @Valid @RequestBody ConfirmarRequest peticion) {
         return orquestador.confirmar(usuario.id(), peticion.paymentId(), TokenActual.valor());
+    }
+
+    /**
+     * Fase 2 alternativa: el comprador volvió de la pasarela sin
+     * {@code payment_id} —vuelta a pulso, o back_urls que MercadoPago no pudo
+     * registrar— y se le pregunta a la pasarela si ya cobró.
+     *
+     * <p>Idempotente y seguro de repetir: solo mira, nunca compensa, y si el
+     * pago entró cierra la compra por el mismo camino que {@code /confirmar}.
+     * Sin límite de peticiones a propósito, por la misma razón que su hermano:
+     * quien ya pagó no debe chocar con un 429 al volver a la tienda.
+     */
+    @PostMapping("/verificar")
+    public VerificarResponse verificar(UsuarioAutenticado usuario) {
+        return orquestador.verificar(usuario.id(), TokenActual.valor());
     }
 
     /** Notificación servidor-a-servidor de MercadoPago. */

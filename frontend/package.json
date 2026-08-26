@@ -18,8 +18,10 @@
     "@angular/forms": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
+    "@angular/service-worker": "^21.2.21",
     "@fortawesome/fontawesome-free": "^7.3.1",
     "bootstrap": "^5.3.8",
+    "dexie": "^4.4.5",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -30,6 +32,7 @@
     "@eslint/js": "^10.0.1",
     "angular-eslint": "^22.1.0",
     "eslint": "^10.9.1",
+    "fake-indexeddb": "^6.2.5",
     "jsdom": "^28.0.0",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",

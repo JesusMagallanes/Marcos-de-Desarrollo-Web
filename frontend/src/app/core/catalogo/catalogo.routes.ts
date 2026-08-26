@@ -57,4 +57,9 @@ export const RUTAS_CATALOGO = {
   chatbot: {
     mensaje: `${API}/chatbot/mensaje`,
   },
+
+  /** Confirmación de operaciones escritas offline (idempotente por operacionId). */
+  sync: {
+    valoraciones: `${API}/sync/valoraciones`,
+  },
 } as const;

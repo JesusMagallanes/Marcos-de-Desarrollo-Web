@@ -1,7 +1,7 @@
-import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { SIN_CACHE } from '../../shared/interceptors';
+import { Observable, tap } from 'rxjs';
+import { CacheLecturaService, TTL } from '../../offline';
 import { PAGINACION } from '../../shared/config/constantes';
 import { acotarTamanoPagina, normalizarBusqueda } from '../../shared/config/limites';
 import { Pagina } from '../../shared/models';
@@ -22,15 +22,20 @@ import {
 @Injectable({ providedIn: 'root' })
 export class ProductoService {
   private readonly http = inject(HttpClient);
+  private readonly cache = inject(CacheLecturaService);
 
   /*
-   * Aquí había una caché a mano —`cacheTodos$` con `shareReplay`— igual que en
-   * otros tres servicios, y con dos límites: solo cubría la lista completa (la
-   * búsqueda y el listado por categoría iban al servidor siempre) y no caducaba
-   * nunca, así que una vez leída se quedaba fija hasta recargar la página.
+   * El catálogo lo cachea `CacheLecturaService`, en IndexedDB.
    *
-   * Ahora la pone `cacheInterceptor` para todas las lecturas del catálogo, con
-   * su plazo, y cualquier escritura de las de abajo la invalida sola.
+   * Aquí hubo primero un `shareReplay` a mano y después el `cacheInterceptor`,
+   * que guarda en memoria. Los dos se quedan cortos frente a este: IndexedDB
+   * sobrevive a recargar la página y, sobre todo, sirve SIN CONEXIÓN, que es de
+   * lo que va el modo offline. Cachear en las dos capas no aportaría nada y
+   * daría dos caducidades distintas para el mismo dato, así que el catálogo
+   * queda fuera de la lista blanca del interceptor.
+   *
+   * Lo que sigue siendo del interceptor es lo que esta capa no cubre: ubigeo,
+   * métodos de pago y guías.
    */
 
   /**
@@ -45,9 +50,21 @@ export class ProductoService {
     page = 0,
     size: number = PAGINACION.productosPorPagina,
   ): Observable<Pagina<Producto>> {
-    return this.http.get<Pagina<Producto>>(RUTAS_CATALOGO.productos.base, {
-      params: this.parametros(buscar, page, size),
-    });
+    const params = this.parametros(buscar, page, size);
+    const pedir = () =>
+      this.http.get<Pagina<Producto>>(RUTAS_CATALOGO.productos.base, { params });
+
+    // Una búsqueda no se cachea: los términos son infinitos y llenarían
+    // IndexedDB de entradas de un solo uso. Las páginas sí, que son las que se
+    // repiten al ir y volver.
+    if (buscar) {
+      return pedir();
+    }
+    return this.cache.obtener(
+      `productos:pagina:${Math.max(0, page)}:${acotarTamanoPagina(size)}`,
+      TTL.productos,
+      pedir,
+    );
   }
 
   /**
@@ -61,10 +78,8 @@ export class ProductoService {
     page = 0,
     size: number = PAGINACION.productosPorPagina,
   ): Observable<Pagina<Producto>> {
-    return this.http.get<Pagina<Producto>>(RUTAS_CATALOGO.productos.base, {
-      params: this.parametros(buscar, page, size),
-      context: new HttpContext().set(SIN_CACHE, true),
-    });
+    this.invalidar();
+    return this.listar(buscar, page, size);
   }
 
   /**
@@ -74,7 +89,11 @@ export class ProductoService {
    * productos. Esto las trae ya acotadas y agrupadas.
    */
   portada(): Observable<Portada> {
-    return this.http.get<Portada>(RUTAS_CATALOGO.productos.portada);
+    // La primera pantalla que se abre y la que más se repite: es la que más
+    // gana con estar disponible sin conexión.
+    return this.cache.obtener('productos:portada', TTL.productos, () =>
+      this.http.get<Portada>(RUTAS_CATALOGO.productos.portada),
+    );
   }
 
   /**
@@ -100,10 +119,9 @@ export class ProductoService {
     const termino = filtros.texto ? normalizarBusqueda(filtros.texto) : null;
     if (termino) params = params.set('search', termino);
 
-    return this.http.get<PaginaDescuentos>(RUTAS_CATALOGO.productos.paraDescuentos, {
-      params,
-      context: new HttpContext().set(SIN_CACHE, true),
-    });
+    // Sin caché a propósito: es una pantalla de edición, y quien acaba de
+    // aplicar un descuento tiene que ver el resultado.
+    return this.http.get<PaginaDescuentos>(RUTAS_CATALOGO.productos.paraDescuentos, { params });
   }
 
   private parametros(buscar: string | null | undefined, page: number, size: number): HttpParams {
@@ -120,7 +138,9 @@ export class ProductoService {
 
   /** GET /api/productos/{id} — 404 si no existe. */
   obtener(id: number): Observable<Producto> {
-    return this.http.get<Producto>(RUTAS_CATALOGO.productos.porId(id));
+    return this.cache.obtener(`productos:id:${id}`, TTL.productos, () =>
+      this.http.get<Producto>(RUTAS_CATALOGO.productos.porId(id)),
+    );
   }
 
   /** GET /api/productos/categoria/{slug} — paginado. Cacheado por página. */
@@ -134,34 +154,58 @@ export class ProductoService {
       .set('page', Math.max(0, page))
       .set('size', acotarTamanoPagina(size));
 
-    return this.http.get<Pagina<Producto>>(RUTAS_CATALOGO.productos.porCategoria(slug), {
-      params,
-    });
+    return this.cache.obtener(
+      `productos:cat:${slug}:${Math.max(0, page)}:${acotarTamanoPagina(size)}`,
+      TTL.productos,
+      () => this.http.get<Pagina<Producto>>(RUTAS_CATALOGO.productos.porCategoria(slug), { params }),
+    );
   }
 
   /** POST /api/productos — ADMINISTRADOR. Devuelve 201. */
   crear(dto: ProductoRequest): Observable<Producto> {
-    return this.http.post<Producto>(RUTAS_CATALOGO.productos.base, dto);
+    return this.http
+      .post<Producto>(RUTAS_CATALOGO.productos.base, dto)
+      .pipe(tap(() => this.invalidar()));
   }
 
   /** PUT /api/productos/{id} — ADMINISTRADOR. */
   actualizar(id: number, dto: ProductoRequest): Observable<Producto> {
-    return this.http.put<Producto>(RUTAS_CATALOGO.productos.porId(id), dto);
+    return this.http
+      .put<Producto>(RUTAS_CATALOGO.productos.porId(id), dto)
+      .pipe(tap(() => this.invalidar()));
   }
 
   /** DELETE /api/productos/{id} — ADMINISTRADOR. Devuelve 204. */
   eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(RUTAS_CATALOGO.productos.porId(id));
+    return this.http
+      .delete<void>(RUTAS_CATALOGO.productos.porId(id))
+      .pipe(tap(() => this.invalidar()));
   }
 
   /** POST /api/productos/descuento — aplica un descuento a un lote. ADMINISTRADOR. */
   aplicarDescuento(dto: AplicarDescuentoRequest): Observable<Producto[]> {
-    return this.http.post<Producto[]>(RUTAS_CATALOGO.productos.descuento, dto);
+    return this.http
+      .post<Producto[]>(RUTAS_CATALOGO.productos.descuento, dto)
+      .pipe(tap(() => this.invalidar()));
   }
 
   /** POST /api/productos/descuento/limpiar — quita el descuento de un lote. ADMINISTRADOR. */
   quitarDescuento(dto: QuitarDescuentoRequest): Observable<Producto[]> {
-    return this.http.post<Producto[]>(RUTAS_CATALOGO.productos.descuentoLimpiar, dto);
+    return this.http
+      .post<Producto[]>(RUTAS_CATALOGO.productos.descuentoLimpiar, dto)
+      .pipe(tap(() => this.invalidar()));
+  }
+
+  /**
+   * Descarta la caché del catálogo: la siguiente lectura vuelve al servidor.
+   *
+   * <p>El prefijo se lleva por delante paginas, fichas, listados por categoría
+   * y la portada de un golpe. Es lo que se quiere: un descuento cambia el
+   * precio en todas ellas, y dejar una sola sin invalidar es justo la que
+   * alguien acabaria mirando.
+   */
+  invalidar(): void {
+    void this.cache.invalidar('productos');
   }
 
   /* ── Productos de colaborador (SZ-B08) ── */
