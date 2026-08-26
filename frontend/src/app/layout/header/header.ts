@@ -1,7 +1,9 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
+import { debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
 import {
   AuthService,
   CarritoItem,
@@ -34,19 +36,39 @@ export class Header implements OnInit {
   protected readonly iconoCategoria = iconoCategoria;
   protected readonly umbralEnvioGratis = ENVIO.umbralGratis;
 
-  /** Catálogo completo en memoria para la búsqueda incremental, como hacía el header viejo. */
-  private todos = signal<Producto[]>([]);
+  /** Cuántas sugerencias caben en el desplegable. */
+  private static readonly MAX_SUGERENCIAS = 6;
 
-  protected resultados = computed(() => {
-    const q = this.consulta().trim().toLowerCase();
-    if (q.length < 2) return [];
-    return this.todos()
-      .filter(
-        (p) =>
-          p.name?.toLowerCase().includes(q) || p.marcaName?.toLowerCase().includes(q),
-      )
-      .slice(0, 6);
-  });
+  /**
+   * Búsqueda incremental, resuelta en el servidor.
+   *
+   * <p>Antes el header se traía el CATÁLOGO COMPLETO a memoria y filtraba aquí
+   * —«como hacía el header viejo», decía el comentario— y el header está en
+   * todas las páginas: era una descarga del catálogo entero en cada visita, para
+   * alimentar un desplegable de seis líneas.
+   *
+   * <p>`debounceTime` es lo que hace que esto no sea una petición por tecla:
+   * espera a que el usuario pare de escribir. `distinctUntilChanged` evita
+   * repetir la consulta cuando el texto vuelve a ser el mismo (borrar y
+   * reescribir la última letra), y por debajo el interceptor de caché atiende
+   * de memoria las búsquedas que ya se hicieron.
+   */
+  protected resultados = toSignal(
+    toObservable(this.consulta).pipe(
+      debounceTime(250),
+      distinctUntilChanged(),
+      switchMap((texto) => {
+        const q = texto.trim();
+        if (q.length < 2) {
+          return of([] as Producto[]);
+        }
+        return this.productoService
+          .listar(q, 0, Header.MAX_SUGERENCIAS)
+          .pipe(switchMap((pagina) => of(pagina.content)));
+      }),
+    ),
+    { initialValue: [] as Producto[] },
+  );
 
   protected sugerencias = computed(() => {
     const vistos = new Set<string>();
@@ -54,17 +76,13 @@ export class Header implements OnInit {
       vistos.add(p.name);
       if (p.marcaName) vistos.add(p.marcaName);
     }
-    return [...vistos].slice(0, 6);
+    return [...vistos].slice(0, Header.MAX_SUGERENCIAS);
   });
 
   ngOnInit(): void {
     this.categoriaService.listar().subscribe({
       next: (cats) => this.categorias.set(cats),
       error: () => this.categorias.set([]),
-    });
-    this.productoService.listar().subscribe({
-      next: (prods) => this.todos.set(prods),
-      error: () => this.todos.set([]),
     });
     this.carrito.refrescar();
   }

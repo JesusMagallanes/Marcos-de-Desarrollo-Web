@@ -14,9 +14,14 @@ export class Buscar {
   private ruta = inject(ActivatedRoute);
   private productoService = inject(ProductoService);
 
+  /** Cuántos resultados se enseñan de una vez. */
+  private static readonly POR_PAGINA = 24;
+
   protected consulta = signal('');
   protected cargando = signal(true);
   protected resultados = signal<Producto[]>([]);
+  /** Cuántos hay en total; puede ser más de los que se enseñan. */
+  protected totalEncontrados = signal(0);
 
   constructor() {
     this.ruta.queryParamMap.subscribe((q) => {
@@ -28,13 +33,15 @@ export class Buscar {
 
   private buscar(termino: string): void {
     this.cargando.set(true);
-    this.productoService.listar(termino).subscribe({
-      next: (p) => {
-        this.resultados.set(p);
+    this.productoService.listar(termino, 0, Buscar.POR_PAGINA).subscribe({
+      next: (pagina) => {
+        this.resultados.set(pagina.content);
+        this.totalEncontrados.set(pagina.totalElements);
         this.cargando.set(false);
       },
       error: () => {
         this.resultados.set([]);
+        this.totalEncontrados.set(0);
         this.cargando.set(false);
       },
     });

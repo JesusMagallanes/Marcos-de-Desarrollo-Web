@@ -4,6 +4,8 @@ import { API } from '../shared/config/api.base';
 export const RUTAS_CATALOGO = {
   productos: {
     base: `${API}/productos`,
+    /** Las tres listas de la portada en una respuesta, ya acotadas. */
+    portada: `${API}/productos/portada`,
     porId: (id: number) => `${API}/productos/${id}`,
     porCategoria: (slug: string) => `${API}/productos/categoria/${slug}`,
     // Productos de colaborador y su cola de revisión (SZ-B08).
@@ -13,6 +15,8 @@ export const RUTAS_CATALOGO = {
     aprobarProducto: (id: number) => `${API}/productos/moderacion/${id}/aprobar`,
     rechazarProducto: (id: number) => `${API}/productos/moderacion/${id}/rechazar`,
 
+    /** Listado del panel de descuentos: filtros y conteos en el servidor. */
+    paraDescuentos: `${API}/productos/descuentos`,
     descuento: `${API}/productos/descuento`,
     descuentoLimpiar: `${API}/productos/descuento/limpiar`,
     valoraciones: (productoId: number) => `${API}/productos/${productoId}/valoraciones`,

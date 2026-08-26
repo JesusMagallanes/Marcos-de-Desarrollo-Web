@@ -8,12 +8,18 @@ import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.catalogo.categoria.CategoriaService;
 import com.backend.catalogo.marca.MarcaService;
 import com.backend.catalogo.producto.dto.ProductoDtos.AplicarDescuentoRequest;
+import com.backend.catalogo.producto.ProductoRepository.ConteoDescuentos;
+import com.backend.catalogo.producto.dto.ProductoDtos.BloqueCategoria;
+import com.backend.catalogo.producto.dto.ProductoDtos.ConteosDescuento;
+import com.backend.catalogo.producto.dto.ProductoDtos.PaginaDescuentos;
+import com.backend.catalogo.producto.dto.ProductoDtos.PortadaResponse;
 import com.backend.catalogo.producto.dto.ProductoDtos.LineaPrecio;
 import com.backend.catalogo.producto.dto.ProductoDtos.PaginaResponse;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoRequest;
@@ -39,12 +45,69 @@ public class ProductoService {
     private final ValoracionService valoracionService;
     private final MetricasSeguridad metricas;
 
-    public List<ProductoResponse> listar(String busqueda) {
-        List<Producto> productos = (busqueda == null || busqueda.isBlank())
-                ? repositorio.listarConRelaciones()
-                : repositorio.buscarPorTexto(busqueda.trim());
+    /** Cuántas ofertas caben en el carrusel de la portada. */
+    private static final int MAX_OFERTAS_PORTADA = 24;
 
-        return aRespuestas(productos);
+    /** Cuántos productos se enseñan por categoría en la portada. */
+    private static final int PRODUCTOS_POR_BLOQUE = 12;
+
+    /** Cuántos van en «Productos Top». */
+    private static final int DESTACADOS_PORTADA = 10;
+
+    /**
+     * La vitrina, por páginas.
+     *
+     * <p>Devolvía una lista con TODO el catálogo aprobado. Era la respuesta más
+     * pesada del endpoint más visitado y crecía con la tienda aunque la pantalla
+     * que la consumía enseñara siempre lo mismo.
+     */
+    public PaginaResponse<ProductoResponse> listar(String busqueda, int page, int size) {
+        Pageable pagina = PageRequest.of(page, size);
+
+        Page<Producto> productos = (busqueda == null || busqueda.isBlank())
+                ? repositorio.listarConRelaciones(pagina)
+                : repositorio.buscarPorTexto(busqueda.trim(), pagina);
+
+        return aPagina(productos);
+    }
+
+    /**
+     * Los que tienen descuento vigente ahora mismo, como mucho {@code limite}.
+     *
+     * <p>El filtro es una consulta y no un `filter` sobre el catálogo completo:
+     * tanto la portada como el chatbot se traían todos los productos para
+     * quedarse con un puñado que estuviera en oferta.
+     */
+    public List<ProductoResponse> ofertas(int limite) {
+        return aRespuestas(repositorio.listarEnOferta(Instant.now(), PageRequest.of(0, limite)));
+    }
+
+    /**
+     * Lo que enseña la portada, resuelto en el servidor y acotado.
+     *
+     * <p>Las tres listas se calculaban en el navegador a partir del catálogo
+     * completo: los diez primeros, los que tuvieran descuento vigente y doce por
+     * categoría. Ninguna necesitaba el catálogo entero, y el catálogo entero es
+     * justo lo que se descargaba.
+     */
+    public PortadaResponse portada() {
+        Instant ahora = Instant.now();
+
+        List<Producto> destacados = repositorio
+                .listarConRelaciones(PageRequest.of(0, DESTACADOS_PORTADA)).getContent();
+
+        List<ProductoResponse> ofertas = ofertas(MAX_OFERTAS_PORTADA);
+
+        // Un bloque por categoría, con sus primeros productos. Las categorías
+        // son pocas y fijas, así que esto es un número conocido de consultas
+        // acotadas, no una por producto.
+        List<BloqueCategoria> bloques = categoriaService.listar().stream()
+                .map(categoria -> new BloqueCategoria(categoria, aRespuestas(repositorio
+                        .listarDeCategoria(categoria.id(), PageRequest.of(0, PRODUCTOS_POR_BLOQUE)))))
+                .filter(bloque -> !bloque.productos().isEmpty())
+                .toList();
+
+        return new PortadaResponse(aRespuestas(destacados), ofertas, bloques);
     }
 
     public ProductoResponse obtener(Long id) {
@@ -59,8 +122,39 @@ public class ProductoService {
         // Valida que la categoría exista para poder responder 404 en vez de una página vacía.
         categoriaService.obtenerPorSlug(slug);
 
-        Page<Producto> pagina = repositorio.listarPorCategoriaSlug(slug, PageRequest.of(page, size));
+        return aPagina(repositorio.listarPorCategoriaSlug(slug, PageRequest.of(page, size)));
+    }
 
+    /**
+     * El listado del panel de descuentos: página y conteos, en un viaje.
+     *
+     * <p>El panel se traía el catálogo completo y hacía aquí los cuatro filtros
+     * y los cuatro conteos. Con unos miles de productos eran varios megas por
+     * abrir la pantalla, y una tabla que el navegador tenía que pintar entera.
+     */
+    public PaginaDescuentos paraDescuentos(String estado, Long categoriaId, Long marcaId,
+            String texto, int page, int size) {
+
+        Instant ahora = Instant.now();
+        String busqueda = (texto == null || texto.isBlank()) ? null : texto.trim();
+
+        Page<Producto> pagina = repositorio.listarParaDescuentos(
+                estado, categoriaId, marcaId, busqueda, ahora, PageRequest.of(page, size));
+
+        ConteoDescuentos conteo = repositorio.contarPorEstadoDeDescuento(ahora);
+
+        return new PaginaDescuentos(
+                aRespuestas(pagina.getContent()),
+                pagina.getNumber(),
+                pagina.getSize(),
+                pagina.getTotalElements(),
+                pagina.getTotalPages(),
+                new ConteosDescuento(conteo.getTodos(), conteo.getActivos(),
+                        conteo.getProgramados(), conteo.getInactivos()));
+    }
+
+    /** Traduce una página de JPA a la forma que espera el frontend. */
+    private PaginaResponse<ProductoResponse> aPagina(Page<Producto> pagina) {
         return new PaginaResponse<>(
                 aRespuestas(pagina.getContent()),
                 pagina.getNumber(),

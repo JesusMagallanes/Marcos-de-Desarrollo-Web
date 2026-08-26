@@ -8,17 +8,18 @@
 <div class="tarjeta-tabla p-3 mb-3">
   <div class="row g-2 align-items-end">
     <div class="col-12 col-md-5">
-      <label class="form-label small fw-semibold mb-1">Buscar</label>
+      <label for="desc-buscar" class="form-label small fw-semibold mb-1">Buscar</label>
       <input
+        id="desc-buscar"
         class="form-control form-control-sm"
         placeholder="Nombre, categoría o marca…"
         [value]="filtroTexto()"
-        (input)="filtroTexto.set($any($event.target).value)"
+        (input)="buscarEnServidor($any($event.target).value)"
       />
     </div>
     <div class="col-6 col-md-2">
-      <label class="form-label small fw-semibold mb-1">Categoría</label>
-      <select class="form-select form-select-sm" [value]="filtroCategoria()" (change)="filtroCategoria.set(+$any($event.target).value)">
+      <label for="desc-categoria" class="form-label small fw-semibold mb-1">Categoría</label>
+      <select id="desc-categoria" class="form-select form-select-sm" [value]="filtroCategoria()" (change)="cambiarCategoria(+$any($event.target).value)">
         <option [value]="0">Todas</option>
         @for (c of categorias(); track c.id) {
           <option [value]="c.id">{{ c.name }}</option>
@@ -26,8 +27,8 @@
       </select>
     </div>
     <div class="col-6 col-md-2">
-      <label class="form-label small fw-semibold mb-1">Marca</label>
-      <select class="form-select form-select-sm" [value]="filtroMarca()" (change)="filtroMarca.set(+$any($event.target).value)">
+      <label for="desc-marca" class="form-label small fw-semibold mb-1">Marca</label>
+      <select id="desc-marca" class="form-select form-select-sm" [value]="filtroMarca()" (change)="cambiarMarca(+$any($event.target).value)">
         <option [value]="0">Todas</option>
         @for (m of marcas(); track m.id) {
           <option [value]="m.id">{{ m.name }}</option>
@@ -52,6 +53,7 @@
   <div class="alert alert-danger py-2 small">{{ estado.mensajeError() }}</div>
 }
 
+
 @if (estado.cargando()) {
   <app-cargando />
 } @else {
@@ -61,7 +63,7 @@
         type="button"
         class="nav-link"
         [class.active]="seccion() === 'todos'"
-        (click)="seccion.set('todos')"
+        (click)="cambiarSeccion('todos')"
       >
         Todos <span class="badge text-bg-secondary ms-1">{{ conteos().todos }}</span>
       </button>
@@ -71,7 +73,7 @@
         type="button"
         class="nav-link"
         [class.active]="seccion() === 'programado'"
-        (click)="seccion.set('programado')"
+        (click)="cambiarSeccion('programado')"
       >
         Programado <span class="badge text-bg-secondary ms-1">{{ conteos().programado }}</span>
       </button>
@@ -81,7 +83,7 @@
         type="button"
         class="nav-link"
         [class.active]="seccion() === 'activo'"
-        (click)="seccion.set('activo')"
+        (click)="cambiarSeccion('activo')"
       >
         Activo <span class="badge text-bg-success ms-1">{{ conteos().activo }}</span>
       </button>
@@ -91,7 +93,7 @@
         type="button"
         class="nav-link"
         [class.active]="seccion() === 'inactivo'"
-        (click)="seccion.set('inactivo')"
+        (click)="cambiarSeccion('inactivo')"
       >
         Inactivo <span class="badge text-bg-secondary ms-1">{{ conteos().inactivo }}</span>
       </button>
@@ -177,45 +179,80 @@
     </table>
   </div>
 
+  <!--
+    Paginación. La lista, los cuatro filtros y los conteos de las pestañas los
+    resuelve el servidor: antes se descargaba el catálogo completo y se hacía
+    todo en memoria.
+
+    Ojo con el aviso de la selección: se aplican descuentos EN LOTE, así que
+    conviene que quede claro que cambiar de página empieza una selección nueva.
+  -->
+  @if (totalPaginas() > 1) {
+    <nav class="d-flex justify-content-between align-items-center mt-3" aria-label="Páginas">
+      <span class="small text-muted">
+        {{ totalFiltrado() }} productos · página {{ pagina() + 1 }} de {{ totalPaginas() }}
+        <span class="fst-italic">· al cambiar de página se limpia la selección</span>
+      </span>
+      <div class="btn-group">
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary"
+          [disabled]="!hayAnterior()"
+          (click)="irA(pagina() - 1)"
+        >
+          <i class="fa-solid fa-chevron-left me-1"></i>Anterior
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary"
+          [disabled]="!haySiguiente()"
+          (click)="irA(pagina() + 1)"
+        >
+          Siguiente<i class="fa-solid fa-chevron-right ms-1"></i>
+        </button>
+      </div>
+    </nav>
+  }
+
   <div class="tarjeta-tabla p-3 mt-3">
     <h6 class="mb-3 fw-semibold">Aplicar descuento a {{ seleccionTotal() }} producto(s)</h6>
 
     <form [formGroup]="form" (ngSubmit)="aplicar()">
       <div class="row g-2">
         <div class="col-12 col-md-2">
-          <label class="form-label small fw-semibold">Tipo</label>
-          <select class="form-select form-select-sm" formControlName="tipo">
+          <label for="desc-tipo" class="form-label small fw-semibold">Tipo</label>
+          <select class="form-select form-select-sm" id="desc-tipo" formControlName="tipo">
             <option value="PORCENTAJE">Porcentaje (%)</option>
             <option value="MONTO">Monto (S/)</option>
           </select>
         </div>
         <div class="col-6 col-md-2">
-          <label class="form-label small fw-semibold">Valor</label>
+          <label for="desc-valor" class="form-label small fw-semibold">Valor</label>
           <input
             type="number"
             step="0.01"
             min="0.01"
             class="form-control form-control-sm"
-            formControlName="valor"
+            id="desc-valor" formControlName="valor"
             [class.is-invalid]="invalido('valor')"
             placeholder="Ej. 15"
           />
         </div>
         <div class="col-6 col-md-3">
-          <label class="form-label small fw-semibold">Inicio</label>
+          <label for="desc-inicio" class="form-label small fw-semibold">Inicio</label>
           <input
             type="datetime-local"
             class="form-control form-control-sm"
-            formControlName="inicio"
+            id="desc-inicio" formControlName="inicio"
             [class.is-invalid]="invalido('inicio')"
           />
         </div>
         <div class="col-6 col-md-3">
-          <label class="form-label small fw-semibold">Fin</label>
+          <label for="desc-fin" class="form-label small fw-semibold">Fin</label>
           <input
             type="datetime-local"
             class="form-control form-control-sm"
-            formControlName="fin"
+            id="desc-fin" formControlName="fin"
             [class.is-invalid]="invalido('fin')"
           />
         </div>

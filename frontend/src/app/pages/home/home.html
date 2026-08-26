@@ -151,7 +151,7 @@
 
       <!-- Scroll horizontal móvil -->
       <div class="d-xl-none d-flex overflow-auto py-3">
-        @for (p of productos(); track p.id) {
+        @for (p of destacados(); track p.id) {
           <div class="flex-shrink-0 me-3 product-card-item">
             <app-producto-card [producto]="p" [variante]="'carrusel'" />
           </div>

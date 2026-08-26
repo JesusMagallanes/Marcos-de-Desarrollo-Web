@@ -5,7 +5,9 @@ import { forkJoin } from 'rxjs';
 import {
   Categoria,
   CategoriaService,
+  ConteosDescuento,
   ErrorApi,
+  EstadoDescuento,
   EstadoPeticion,
   Marca,
   MarcaService,
@@ -13,20 +15,15 @@ import {
   ProductoService,
 } from '../../../core';
 
-type Seccion = 'todos' | 'programado' | 'activo' | 'inactivo';
-
-/**
- * Estado de un descuento:
- * - `programado`: hay descuento configurado pero aún no empieza.
- * - `activo`: el descuento está vigente ahora mismo.
- * - `inactivo`: sin descuento o ya vencido.
+/*
+ * La clasificación por estado del descuento vive ahora en el servidor.
+ *
+ * Estaba aquí, y para aplicarla hacía falta tener el catálogo COMPLETO en
+ * memoria: la pantalla se descargaba cada producto de la tienda para filtrar
+ * por cuatro criterios y contar cuántos había de cada tipo. Con unos miles de
+ * productos son varios megas por abrir el panel.
  */
-function estadoDe(p: Producto): Seccion {
-  if (p.precioOferta == null) return 'inactivo';
-  if (p.enOferta) return 'activo';
-  if (p.ofertaInicio && new Date(p.ofertaInicio).getTime() > Date.now()) return 'programado';
-  return 'inactivo';
-}
+type Seccion = EstadoDescuento;
 
 /**
  * Convierte un ISO del backend (instantáneo, p. ej. `2026-08-11T15:00:00Z`)
@@ -79,37 +76,35 @@ export class AdminDescuentos implements OnInit, OnDestroy {
     fin: ['', Validators.required],
   });
 
-  protected visibles = computed(() => {
-    const seccion = this.seccion();
-    const texto = this.filtroTexto().trim().toLowerCase();
-    const categoria = this.filtroCategoria();
-    const marca = this.filtroMarca();
+  /*
+   * Lo que se enseña es lo que devolvió el servidor: los cuatro filtros van en
+   * la consulta. Antes esto era un `filter` sobre el catálogo completo.
+   */
+  protected visibles = this.productos.asReadonly();
 
-    return this.productos().filter((p) => {
-      if (seccion !== 'todos' && estadoDe(p) !== seccion) return false;
-      if (categoria && p.categoriaId !== categoria) return false;
-      if (marca && p.marcaId !== marca) return false;
-      if (
-        texto &&
-        !p.name.toLowerCase().includes(texto) &&
-        !p.categoriaName?.toLowerCase().includes(texto) &&
-        !p.marcaName?.toLowerCase().includes(texto)
-      ) {
-        return false;
-      }
-      return true;
-    });
+  /**
+   * Cuántos hay en cada sección, sobre TODO el catálogo.
+   *
+   * <p>Los cuenta el servidor y llegan con la página. Deliberadamente NO
+   * respetan los filtros de la pantalla: una pestaña sirve para saber cuánto
+   * hay de cada cosa, y un número que baila al escribir en el buscador deja de
+   * servir para eso. Es el mismo criterio que cuando se calculaban aquí.
+   */
+  protected conteos = signal<ConteosDescuento>({
+    todos: 0,
+    activo: 0,
+    programado: 0,
+    inactivo: 0,
   });
 
-  /** Cuántos productos hay en cada sección (sobre todo el catálogo). */
-  protected conteos = computed(() => {
-    const conteo: Record<Seccion, number> = { todos: 0, programado: 0, activo: 0, inactivo: 0 };
-    for (const p of this.productos()) {
-      conteo[estadoDe(p)]++;
-      conteo.todos++;
-    }
-    return conteo;
-  });
+  /* ── Paginación ── */
+
+  protected pagina = signal(0);
+  protected totalPaginas = signal(0);
+  protected totalFiltrado = signal(0);
+
+  protected hayAnterior = computed(() => this.pagina() > 0);
+  protected haySiguiente = computed(() => this.pagina() + 1 < this.totalPaginas());
 
   protected seleccionadasVisibles = computed(() =>
     this.visibles().filter((p) => this.seleccionadas().has(p.id)),
@@ -151,17 +146,76 @@ export class AdminDescuentos implements OnInit, OnDestroy {
     this.estado.destruir();
   }
 
+  /** Filas por página en la tabla del panel. */
+  private static readonly POR_PAGINA = 25;
+
+  /* ── Filtros: cada cambio vuelve a la primera página y consulta ── */
+
+  protected cambiarSeccion(seccion: Seccion): void {
+    this.seccion.set(seccion);
+    this.volverAPrimeraPagina();
+  }
+
+  protected buscarEnServidor(texto: string): void {
+    this.filtroTexto.set(texto);
+    this.volverAPrimeraPagina();
+  }
+
+  protected cambiarCategoria(id: number): void {
+    this.filtroCategoria.set(id);
+    this.volverAPrimeraPagina();
+  }
+
+  protected cambiarMarca(id: number): void {
+    this.filtroMarca.set(id);
+    this.volverAPrimeraPagina();
+  }
+
+  protected irA(pagina: number): void {
+    if (pagina < 0 || pagina >= this.totalPaginas()) return;
+    this.pagina.set(pagina);
+    this.cargar();
+  }
+
+  /*
+   * Cambiar un filtro vuelve a la página 0 a propósito: quedarse en la 4 tras
+   * acotar la búsqueda deja al administrador mirando una tabla vacía sin saber
+   * por qué.
+   */
+  private volverAPrimeraPagina(): void {
+    this.pagina.set(0);
+    this.cargar();
+  }
+
   private cargar(): void {
     this.estado.iniciar();
     forkJoin({
-      productos: this.productoService.recargar(),
+      productos: this.productoService.paraDescuentos(
+        {
+          estado: this.seccion(),
+          categoriaId: this.filtroCategoria() || null,
+          marcaId: this.filtroMarca() || null,
+          texto: this.filtroTexto().trim() || null,
+        },
+        this.pagina(),
+        AdminDescuentos.POR_PAGINA,
+      ),
       categorias: this.categoriaService.listar(),
       marcas: this.marcaService.listar(),
     }).subscribe({
       next: ({ productos, categorias, marcas }) => {
-        this.productos.set(productos);
+        this.productos.set(productos.content);
+        this.conteos.set(productos.conteos);
+        this.totalPaginas.set(productos.totalPages);
+        this.totalFiltrado.set(productos.totalElements);
         this.categorias.set(categorias);
         this.marcas.set(marcas);
+        /*
+         * La selección se limpia al recargar, y eso importa: se aplican
+         * descuentos en lote, así que arrastrar de una página a otra ids que ya
+         * no están a la vista significaría tocar productos que el administrador
+         * no está viendo.
+         */
         this.seleccionadas.set(new Set());
         this.estado.exito();
       },

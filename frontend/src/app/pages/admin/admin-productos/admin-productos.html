@@ -5,7 +5,7 @@
       class="form-control form-control-sm campo-filtro"
       placeholder="Buscar…"
       [value]="filtro()"
-      (input)="filtro.set($any($event.target).value)"
+      (input)="filtrar($any($event.target).value)"
     />
     <button type="button" class="btn btn-sm btn-success" (click)="nuevo()">
       <i class="fa-solid fa-plus me-1"></i>Nuevo
@@ -69,6 +69,37 @@
       </tbody>
     </table>
   </div>
+
+  <!--
+    Paginación. La tabla trae 25 filas por página y el buscador consulta al
+    servidor: antes se cargaba el catálogo entero y se filtraba en memoria, que
+    con unos miles de productos son varios megas por abrir el panel.
+  -->
+  @if (totalPaginas() > 1) {
+    <nav class="d-flex justify-content-between align-items-center mt-3" aria-label="Páginas">
+      <span class="small text-muted">
+        {{ totalProductos() }} productos · página {{ pagina() + 1 }} de {{ totalPaginas() }}
+      </span>
+      <div class="btn-group">
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary"
+          [disabled]="!hayAnterior()"
+          (click)="irA(pagina() - 1)"
+        >
+          <i class="fa-solid fa-chevron-left me-1"></i>Anterior
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary"
+          [disabled]="!haySiguiente()"
+          (click)="irA(pagina() + 1)"
+        >
+          Siguiente<i class="fa-solid fa-chevron-right ms-1"></i>
+        </button>
+      </div>
+    </nav>
+  }
 }
 
 @if (formAbierto()) {
@@ -76,31 +107,31 @@
   <div class="panel-modal shadow">
     <div class="cabecera-modal">
       <h6 class="mb-0">{{ editandoId() ? 'Editar producto' : 'Nuevo producto' }}</h6>
-      <button type="button" class="btn-close" (click)="cerrar()"></button>
+      <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrar()"></button>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="guardar()" class="cuerpo-modal">
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Nombre</label>
-        <input class="form-control form-control-sm" formControlName="name" [class.is-invalid]="invalido('name')" />
+        <label for="prod-name" class="form-label small fw-semibold">Nombre</label>
+        <input class="form-control form-control-sm" id="prod-name" formControlName="name" [class.is-invalid]="invalido('name')" />
       </div>
 
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Descripción</label>
+        <label for="prod-description" class="form-label small fw-semibold">Descripción</label>
         <textarea
           class="form-control form-control-sm"
           rows="3"
-          formControlName="description"
+          id="prod-description" formControlName="description"
           [class.is-invalid]="invalido('description')"
         ></textarea>
       </div>
 
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Especificaciones</label>
+        <label for="prod-specifications" class="form-label small fw-semibold">Especificaciones</label>
         <textarea
           class="form-control form-control-sm"
           rows="5"
-          formControlName="specifications"
+          id="prod-specifications" formControlName="specifications"
           [class.is-invalid]="invalido('specifications')"
           placeholder="· **Característica**: Valor"
         ></textarea>
@@ -111,28 +142,28 @@
 
       <div class="row g-2">
         <div class="col-6 mb-2">
-          <label class="form-label small fw-semibold">Precio (S/)</label>
+          <label for="prod-precio" class="form-label small fw-semibold">Precio (S/)</label>
           <input
             type="number"
             step="0.01"
             class="form-control form-control-sm"
-            formControlName="precio"
+            id="prod-precio" formControlName="precio"
             [class.is-invalid]="invalido('precio')"
           />
         </div>
         <div class="col-6 mb-2">
-          <label class="form-label small fw-semibold">Stock</label>
+          <label for="prod-stock" class="form-label small fw-semibold">Stock</label>
           <input
             type="number"
             class="form-control form-control-sm"
-            formControlName="stock"
+            id="prod-stock" formControlName="stock"
             [class.is-invalid]="invalido('stock')"
           />
         </div>
       </div>
 
       <div class="mb-2">
-        <label class="form-label small fw-semibold">Imágenes (URLs)</label>
+        <span class="form-label small fw-semibold">Imágenes (URLs)</span>
         <div formArrayName="imagenes">
           @for (imagen of imagenesControles; track $index) {
             <div class="input-group input-group-sm mb-1">
@@ -161,8 +192,8 @@
 
       <div class="row g-2">
         <div class="col-6 mb-3">
-          <label class="form-label small fw-semibold">Categoría</label>
-          <select class="form-select form-select-sm" formControlName="categoriaId" [class.is-invalid]="invalido('categoriaId')">
+          <label for="prod-categoriaId" class="form-label small fw-semibold">Categoría</label>
+          <select class="form-select form-select-sm" id="prod-categoriaId" formControlName="categoriaId" [class.is-invalid]="invalido('categoriaId')">
             <option [value]="0">Selecciona…</option>
             @for (c of categorias(); track c.id) {
               <option [value]="c.id">{{ c.name }}</option>
@@ -170,8 +201,8 @@
           </select>
         </div>
         <div class="col-6 mb-3">
-          <label class="form-label small fw-semibold">Marca</label>
-          <select class="form-select form-select-sm" formControlName="marcaId" [class.is-invalid]="invalido('marcaId')">
+          <label for="prod-marcaId" class="form-label small fw-semibold">Marca</label>
+          <select class="form-select form-select-sm" id="prod-marcaId" formControlName="marcaId" [class.is-invalid]="invalido('marcaId')">
             <option [value]="0">Selecciona…</option>
             @for (m of marcasDisponibles(); track m.id) {
               <option [value]="m.id">{{ m.name }}</option>

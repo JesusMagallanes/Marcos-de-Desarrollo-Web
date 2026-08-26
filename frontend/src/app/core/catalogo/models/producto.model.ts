@@ -1,3 +1,5 @@
+import { Categoria } from './categoria.model';
+
 /** Servicio `catalogo` (:8081). */
 /** Si un producto se puede enseñar en la tienda. */
 export type EstadoModeracion = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
@@ -83,4 +85,23 @@ export function porcentajeDescuento(
 ): number {
   if (!p.enOferta || !p.precio) return 0;
   return Math.max(0, Math.round(((p.precio - p.precioActual) / p.precio) * 100));
+}
+
+/**
+ * Lo que la portada necesita, tal y como lo devuelve el servidor.
+ *
+ * Antes la portada se descargaba el catálogo COMPLETO y componía estas tres
+ * listas en el navegador: los diez primeros, los que tuvieran descuento vigente
+ * y doce por categoría. Ninguna necesitaba el catálogo entero, y el catálogo
+ * entero es lo que se traía en cada visita.
+ */
+export interface Portada {
+  destacados: Producto[];
+  ofertas: Producto[];
+  porCategoria: BloqueCategoria[];
+}
+
+export interface BloqueCategoria {
+  categoria: Categoria;
+  productos: Producto[];
 }

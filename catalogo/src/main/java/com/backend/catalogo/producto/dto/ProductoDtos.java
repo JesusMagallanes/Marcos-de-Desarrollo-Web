@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.backend.catalogo.producto.EstadoModeracion;
+import com.backend.catalogo.categoria.dto.CategoriaDtos.CategoriaResponse;
 import com.backend.catalogo.producto.Producto;
 import com.backend.catalogo.producto.ProductoImagen;
 import com.backend.catalogo.shared.validacion.Limites;
@@ -146,6 +147,57 @@ public final class ProductoDtos {
             int size,
             long totalElements,
             int totalPages) {
+    }
+
+    /**
+     * Todo lo que la portada necesita, en una respuesta y acotado.
+     *
+     * <p>La portada pedía el catálogo COMPLETO y luego, en el navegador, se
+     * quedaba con diez destacados, filtraba los que estaban en oferta y agrupaba
+     * el resto por categoría de doce en doce. Es decir: se descargaba cada
+     * producto de la tienda para enseñar unas decenas, y crecía con el catálogo
+     * aunque la pantalla no cambiara.
+     *
+     * <p>Es un DTO pegado a una pantalla, y eso es deliberado: las tres listas
+     * salen de tres consultas acotadas y de un solo viaje. La alternativa
+     * —tres endpoints genéricos más uno por categoría— son diez peticiones para
+     * pintar lo mismo.
+     */
+    public record PortadaResponse(
+            List<ProductoResponse> destacados,
+            List<ProductoResponse> ofertas,
+            List<BloqueCategoria> porCategoria) {
+    }
+
+    /**
+     * El panel de descuentos: una página de productos y los conteos de las
+     * pestañas.
+     *
+     * <p>Los conteos van con la página y no en otra llamada porque se pintan a
+     * la vez: separarlos sería un segundo viaje para dibujar la misma pantalla,
+     * y un momento en que las pestañas dicen un número y la lista enseña otro.
+     *
+     * <p>Cuentan sobre TODO el catálogo, no sobre lo filtrado: es lo que hacía
+     * la versión que calculaba esto en el navegador, y es lo que se quiere de
+     * una pestaña —cuánto hay de cada cosa— frente a un número que baila al
+     * escribir en el buscador.
+     */
+    public record PaginaDescuentos(
+            List<ProductoResponse> content,
+            int number,
+            int size,
+            long totalElements,
+            int totalPages,
+            ConteosDescuento conteos) {
+    }
+
+    public record ConteosDescuento(long todos, long activo, long programado, long inactivo) {
+    }
+
+    /** Una fila de la portada: la categoría y sus primeros productos. */
+    public record BloqueCategoria(
+            CategoriaResponse categoria,
+            List<ProductoResponse> productos) {
     }
 
     /**

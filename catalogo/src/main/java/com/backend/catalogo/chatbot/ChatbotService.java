@@ -74,10 +74,9 @@ public class ChatbotService {
      * demás se descartan antes de mostrarlos).
      */
     private RespuestaChat ofertas() {
-        List<ProductoResponse> productos = productoService.listar(null).stream()
-                .filter(ProductoResponse::enOferta)
-                .limit(5)
-                .toList();
+        // La vigencia la resuelve la consulta. Antes se traía el catálogo
+        // entero para filtrarlo aquí y quedarse con cinco.
+        List<ProductoResponse> productos = productoService.ofertas(5);
 
         if (productos.isEmpty()) {
             return new RespuestaChat(
@@ -112,7 +111,7 @@ public class ChatbotService {
     }
 
     private RespuestaChat buscar(String consulta) {
-        List<ProductoResponse> resultados = productoService.listar(consulta).stream().limit(5).toList();
+        List<ProductoResponse> resultados = productoService.listar(consulta, 0, 5).content();
 
         if (resultados.isEmpty()) {
             return new RespuestaChat(

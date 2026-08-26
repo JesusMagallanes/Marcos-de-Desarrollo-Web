@@ -1,3 +1,4 @@
+import { ImagenCaida } from '../../../shared/imagen/imagen-caida';
 import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -18,7 +19,7 @@ import {
 
 @Component({
   selector: 'app-admin-productos',
-  imports: [ReactiveFormsModule, CurrencyPipe, Cargando],
+  imports: [ReactiveFormsModule, CurrencyPipe, Cargando, ImagenCaida],
   templateUrl: './admin-productos.html',
   styleUrl: '../admin-tabla.css',
 })
@@ -32,6 +33,9 @@ export class AdminProductos implements OnInit, OnDestroy {
   protected estado = new EstadoPeticion();
   protected guardando = signal(false);
 
+  /** Filas por página en la tabla del panel. */
+  private static readonly POR_PAGINA = 25;
+
   protected productos = signal<Producto[]>([]);
   protected categorias = signal<Categoria[]>([]);
   protected marcas = signal<Marca[]>([]);
@@ -41,16 +45,22 @@ export class AdminProductos implements OnInit, OnDestroy {
   protected formAbierto = signal(false);
   protected confirmandoId = signal<number | null>(null);
 
-  protected visibles = computed(() => {
-    const q = this.filtro().trim().toLowerCase();
-    if (!q) return this.productos();
-    return this.productos().filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.categoriaName?.toLowerCase().includes(q) ||
-        p.marcaName?.toLowerCase().includes(q),
-    );
-  });
+  /*
+   * La tabla se pagina en el servidor, y el filtro también busca allí.
+   *
+   * Antes se cargaba el catálogo COMPLETO y se filtraba en memoria. Con una
+   * tienda pequeña funciona; con unos miles de productos son varios megas por
+   * abrir el panel, y una tabla de mil filas que el navegador tiene que pintar
+   * entera.
+   */
+  protected pagina = signal(0);
+  protected totalPaginas = signal(0);
+  protected totalProductos = signal(0);
+
+  protected visibles = this.productos.asReadonly();
+
+  protected hayAnterior = computed(() => this.pagina() > 0);
+  protected haySiguiente = computed(() => this.pagina() + 1 < this.totalPaginas());
 
   protected form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(150)]],
@@ -98,15 +108,34 @@ export class AdminProductos implements OnInit, OnDestroy {
     this.estado.destruir();
   }
 
+  /** Cambia el término de búsqueda y vuelve a la primera página. */
+  protected filtrar(texto: string): void {
+    this.filtro.set(texto);
+    this.pagina.set(0);
+    this.cargar();
+  }
+
+  protected irA(pagina: number): void {
+    if (pagina < 0 || pagina >= this.totalPaginas()) return;
+    this.pagina.set(pagina);
+    this.cargar();
+  }
+
   private cargar(): void {
     this.estado.iniciar();
     forkJoin({
-      productos: this.productoService.listar(),
+      productos: this.productoService.listar(
+        this.filtro().trim() || null,
+        this.pagina(),
+        AdminProductos.POR_PAGINA,
+      ),
       categorias: this.categoriaService.listar(),
       marcas: this.marcaService.listar(),
     }).subscribe({
       next: ({ productos, categorias, marcas }) => {
-        this.productos.set(productos);
+        this.productos.set(productos.content);
+        this.totalPaginas.set(productos.totalPages);
+        this.totalProductos.set(productos.totalElements);
         this.categorias.set(categorias);
         this.marcas.set(marcas);
         this.estado.exito();
