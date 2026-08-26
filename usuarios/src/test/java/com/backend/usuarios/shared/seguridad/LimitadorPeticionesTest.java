@@ -67,6 +67,57 @@ class LimitadorPeticionesTest {
     }
 
     @Test
+    @DisplayName("no crece sin freno: pasado el tope de claves, deja de guardar nuevas")
+    void topeDeClaves() {
+        LimitadorPeticiones limitador = new LimitadorPeticiones();
+        Duration ventana = Duration.ofMinutes(5);
+
+        /*
+         * El escenario real: alguien machaca el login con un correo distinto
+         * cada vez. Cada intento es una clave nueva, y las claves las elige él.
+         *
+         * La purga descarta lo que lleve media hora y corre cada cinco minutos,
+         * así que no frena esto: entre pasada y pasada el mapa crecía sin
+         * límite, en el servicio que emite los tokens.
+         */
+        for (int i = 0; i < 50_000; i++) {
+            limitador.permitir("ip|correo-" + i, 5, ventana);
+        }
+
+        assertThat(limitador.clavesActivas()).isEqualTo(50_000);
+
+        // La 50.001 ya no se guarda.
+        limitador.permitir("ip|correo-nuevo", 5, ventana);
+        assertThat(limitador.clavesActivas()).isEqualTo(50_000);
+    }
+
+    @Test
+    @DisplayName("saturado, deja pasar lo nuevo pero sigue frenando lo que ya contaba")
+    void saturadoNoSeConvierteEnLaCaida() {
+        LimitadorPeticiones limitador = new LimitadorPeticiones();
+        Duration ventana = Duration.ofMinutes(5);
+
+        // Una clave que ya estaba, agotada antes de llenar el mapa.
+        assertThat(limitador.permitir("ip|atacante", 1, ventana)).isTrue();
+        assertThat(limitador.permitir("ip|atacante", 1, ventana)).isFalse();
+
+        for (int i = 0; i < 50_000; i++) {
+            limitador.permitir("ip|correo-" + i, 5, ventana);
+        }
+
+        /*
+         * Con el mapa lleno, una clave nueva pasa. Es deliberado y en esta
+         * dirección: si el limitador empezara a rechazar peticiones legítimas
+         * por estar lleno, sería él la caída que trataba de evitar.
+         */
+        assertThat(limitador.permitir("ip|alguien-que-llega-ahora", 1, ventana)).isTrue();
+
+        // Pero quien ya estaba contado sigue bloqueado: la saturación no es una
+        // puerta para saltarse el cupo.
+        assertThat(limitador.permitir("ip|atacante", 1, ventana)).isFalse();
+    }
+
+    @Test
     @DisplayName("informa cuántos segundos faltan para reintentar")
     void tiempoDeEspera() {
         LimitadorPeticiones limitador = new LimitadorPeticiones();
