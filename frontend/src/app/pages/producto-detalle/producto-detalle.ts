@@ -1,3 +1,4 @@
+import { ImagenCaida } from '../../shared/imagen/imagen-caida';
 import { Cargando } from '../../shared/cargando/cargando';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -53,7 +54,7 @@ const ESTRELLAS = [1, 2, 3, 4, 5] as const;
 
 @Component({
   selector: 'app-producto-detalle',
-  imports: [RouterLink, DatePipe, Cargando],
+  imports: [RouterLink, DatePipe, Cargando, ImagenCaida],
   templateUrl: './producto-detalle.html',
   styleUrl: './producto-detalle.css',
 })

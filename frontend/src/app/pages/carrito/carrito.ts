@@ -1,3 +1,4 @@
+import { ImagenCaida } from '../../shared/imagen/imagen-caida';
 import { Cargando } from '../../shared/cargando/cargando';
 import { ElegirDireccion } from '../../shared/direccion/elegir-direccion';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
@@ -17,7 +18,7 @@ import {
 
 @Component({
   selector: 'app-carrito',
-  imports: [RouterLink, CurrencyPipe, Cargando, ElegirDireccion],
+  imports: [RouterLink, CurrencyPipe, Cargando, ElegirDireccion, ImagenCaida],
   templateUrl: './carrito.html',
   styleUrl: './carrito.css',
 })

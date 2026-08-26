@@ -1,3 +1,4 @@
+import { ImagenCaida } from '../../../shared/imagen/imagen-caida';
 import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -29,7 +30,7 @@ interface CompraConEnvio {
 
 @Component({
   selector: 'app-mis-compras',
-  imports: [CurrencyPipe, DatePipe, RouterLink, Cargando],
+  imports: [CurrencyPipe, DatePipe, RouterLink, Cargando, ImagenCaida],
   templateUrl: './mis-compras.html',
   styleUrl: './mis-compras.css',
 })

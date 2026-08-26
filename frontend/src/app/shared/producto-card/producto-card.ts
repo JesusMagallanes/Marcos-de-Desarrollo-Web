@@ -1,10 +1,11 @@
+import { ImagenCaida } from '../imagen/imagen-caida';
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { etiquetaDescuento, imagenDe, porcentajeDescuento, Producto } from '../../core';
 
 @Component({
   selector: 'app-producto-card',
-  imports: [RouterLink],
+  imports: [RouterLink, ImagenCaida],
   templateUrl: './producto-card.html',
   styleUrl: './producto-card.css',
 })
