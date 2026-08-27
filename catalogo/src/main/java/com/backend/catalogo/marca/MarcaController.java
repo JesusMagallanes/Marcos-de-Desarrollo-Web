@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,10 +19,12 @@ import com.backend.catalogo.marca.dto.MarcaDtos.MarcaRequest;
 import com.backend.catalogo.marca.dto.MarcaDtos.MarcaResponse;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/marcas")
+@Validated
 @RequiredArgsConstructor
 public class MarcaController {
 
@@ -33,7 +36,7 @@ public class MarcaController {
     }
 
     @GetMapping("/categoria/{categoriaId}")
-    public List<MarcaResponse> porCategoria(@PathVariable Long categoriaId) {
+    public List<MarcaResponse> porCategoria(@PathVariable @Positive Long categoriaId) {
         return servicio.listarPorCategoria(categoriaId);
     }
 
@@ -45,13 +48,13 @@ public class MarcaController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISO_MARCAS_GESTIONAR')")
-    public MarcaResponse actualizar(@PathVariable Long id, @Valid @RequestBody MarcaRequest dto) {
+    public MarcaResponse actualizar(@PathVariable @Positive Long id, @Valid @RequestBody MarcaRequest dto) {
         return servicio.actualizar(id, dto);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISO_MARCAS_GESTIONAR')")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@PathVariable @Positive Long id) {
         servicio.eliminar(id);
         return ResponseEntity.noContent().build();
     }

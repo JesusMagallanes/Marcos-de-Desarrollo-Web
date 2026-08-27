@@ -20,9 +20,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.usuarios.auth.token.TokenRevocado;
 import com.backend.usuarios.auth.token.TokenService;
@@ -51,6 +54,8 @@ class RefrescoDeSesionTest {
     private static final String SECRETO = "secreto-de-pruebas-suficientemente-largo-para-hs256";
     private static final String EMAIL = "ana@ejemplo.com";
 
+    @Mock
+    private ObjectProvider<AuthService> proxia;
     @Mock
     private AuthenticationManager gestorAutenticacion;
     @Mock
@@ -81,8 +86,13 @@ class RefrescoDeSesionTest {
                 SECRETO, "smartzone-usuarios", "smartzone-api",
                 3_600_000L, 7_200_000L, 1_800_000L, 604_800_000L), roles);
 
-        authService = new AuthService(gestorAutenticacion, repositorio, roles, codificador,
+        authService = new AuthService(proxia, gestorAutenticacion, repositorio, roles, codificador,
                 jwtService, tokenService, auditoria, metricas, limitador);
+
+        // El "proxy" de estas pruebas es el propio servicio: aquí no hay Spring
+        // ni transacciones, y lo que se comprueba es el flujo. Que la anotación
+        // esté puesta lo vigila `cortarSesionesCorreEnSuPropiaTransaccion`.
+        lenient().when(proxia.getObject()).thenAnswer(invocacion -> authService);
     }
 
     private Usuario ana() {
@@ -152,6 +162,35 @@ class RefrescoDeSesionTest {
 
         verify(metricas).reusoRefreshDetectado();
         verify(auditoria).registrarFallo(any(), anyString(), anyString());
+
+        // Y por el proxy, que es lo que hace que el corte sobreviva al rollback.
+        verify(proxia).getObject();
+    }
+
+    @Test
+    @DisplayName("el corte corre en su PROPIA transacción, o el rollback se lo lleva")
+    void cortarSesionesCorreEnSuPropiaTransaccion() throws Exception {
+        /*
+         * Esta comprobación es estructural a propósito.
+         *
+         * El fallo que cubre no se ve con mocks: `refrescar` es @Transactional y
+         * termina lanzando BadCredentialsException, que es de runtime y por
+         * tanto deshace la transacción. El `save` del corte se iba con ella y la
+         * cuenta NO quedaba cerrada, aunque aquí arriba el mock del repositorio
+         * sí registre la llamada. Reproducirlo de verdad exige un contexto de
+         * Spring con base de datos; vigilar la anotación cuesta cuatro líneas y
+         * salta en el momento en que alguien la quite.
+         */
+        Transactional anotacion = AuthService.class
+                .getMethod("cortarSesiones", String.class)
+                .getAnnotation(Transactional.class);
+
+        assertThat(anotacion)
+                .as("cortarSesiones necesita @Transactional propio")
+                .isNotNull();
+        assertThat(anotacion.propagation())
+                .as("sin REQUIRES_NEW el corte se deshace con la excepción que lo sigue")
+                .isEqualTo(Propagation.REQUIRES_NEW);
     }
 
     @Test

@@ -34,6 +34,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             LEFT JOIN FETCH p.marca
             WHERE c.slug = :slug
               AND p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
+            ORDER BY p.id
             """,
             countQuery = """
                     SELECT COUNT(p) FROM Producto p
@@ -49,12 +50,19 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      * era la respuesta más pesada del endpoint más visitado: la portada se
      * descargaba cada producto de la tienda para enseñar diez, y el panel de
      * administración lo mismo para pintar una tabla.
+     *
+     * <p><b>El {@code ORDER BY} es lo que hace que paginar signifique algo.</b>
+     * Sin él Postgres no promete ningún orden entre dos consultas, así que la
+     * página 2 podía repetir productos de la página 1 y saltarse otros que no
+     * aparecían en ninguna. No se nota con pocos productos y empieza a doler
+     * justo cuando la tienda crece.
      */
     @Query(value = """
             SELECT p FROM Producto p
             LEFT JOIN FETCH p.categoria
             LEFT JOIN FETCH p.marca
             WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
+            ORDER BY p.id
             """,
             countQuery = """
                     SELECT COUNT(p) FROM Producto p
@@ -69,6 +77,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
               AND (LOWER(p.name) LIKE LOWER(CONCAT('%', :texto, '%'))
                    OR LOWER(p.description) LIKE LOWER(CONCAT('%', :texto, '%')))
+            ORDER BY p.id
             """,
             countQuery = """
                     SELECT COUNT(p) FROM Producto p
@@ -140,6 +149,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
                        AND p.ofertaInicio IS NOT NULL AND p.ofertaInicio > :ahora)
                    OR (:estado = 'inactivo' AND (p.precioOferta IS NULL
                        OR (p.ofertaFin IS NOT NULL AND p.ofertaFin < :ahora))))
+            ORDER BY p.id
             """,
             countQuery = """
                     SELECT COUNT(p) FROM Producto p
@@ -205,6 +215,22 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     }
 
     List<Producto> findByIdIn(List<Long> ids);
+
+    /**
+     * Carga productos con galería completa para una página ya resuelta.
+     *
+     * <p>La query paginada no puede hacer JOIN FETCH de `imagenes` porque
+     * multiplica las filas y rompe LIMIT/OFFSET. En su lugar se pagina con
+     * IDs y se cargan las entidades completas aquí.
+     */
+    @Query("""
+            SELECT p FROM Producto p
+            LEFT JOIN FETCH p.categoria
+            LEFT JOIN FETCH p.marca
+            LEFT JOIN FETCH p.imagenes
+            WHERE p.id IN :ids
+            """)
+    List<Producto> buscarConImagenes(@Param("ids") List<Long> ids);
 
     /** Bloqueo pesimista para el descuento de stock desde el servicio de compras. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)

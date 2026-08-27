@@ -197,11 +197,20 @@ public class ChatbotService {
         return null;
     }
 
-    /** Singular aproximado: "monitores" → "monitor", "laptops" → "laptop". */
+    /**
+     * Singular aproximado para coincidencia de categorías.
+     *
+     * <p>No pretende ser un singularizador de español completo: solo cubre los
+     * patrones más comunes en nombres de productos tecnológicos. Si no reconoce
+     * la forma, devuelve la palabra original para no romper la búsqueda.
+     */
     private String singular(String palabra) {
+        // "celulares" → "celular", "procesadores" → "procesador"
+        // "ratones" → "ratone" (no perfecto, pero la categoría se busca igual)
         if (palabra.endsWith("es") && palabra.length() > 4) {
             return palabra.substring(0, palabra.length() - 2);
         }
+        // "laptops" → "laptop", "mouses" → "mouse", "memorias" → "memoria"
         if (palabra.endsWith("s") && palabra.length() > 3) {
             return palabra.substring(0, palabra.length() - 1);
         }

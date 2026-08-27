@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.catalogo.valoracion.dto.ValoracionDtos.ValoracionRequest;
 import com.backend.catalogo.valoracion.dto.ValoracionDtos.ValoracionResponse;
+import com.backend.catalogo.shared.seguridad.JwtUtils;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -46,7 +47,7 @@ public class ValoracionController {
     @GetMapping("/mia")
     public ValoracionResponse mia(@PathVariable @Positive Long productoId,
             @AuthenticationPrincipal Jwt jwt) {
-        return servicio.obtenerMia(productoId, uidDe(jwt));
+        return servicio.obtenerMia(productoId, JwtUtils.uidDe(jwt));
     }
 
     /** Crea la valoración, o actualiza la existente del mismo cliente. */
@@ -57,7 +58,7 @@ public class ValoracionController {
             @AuthenticationPrincipal Jwt jwt) {
         // El token del propio usuario viaja a `compras`: la pregunta es
         // "compre yo esto", y la responde mirando SUS pedidos.
-        return servicio.guardar(productoId, uidDe(jwt), dto,
+        return servicio.guardar(productoId, JwtUtils.uidDe(jwt), dto,
                 jwt == null ? null : jwt.getTokenValue());
     }
 
@@ -65,11 +66,6 @@ public class ValoracionController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable @Positive Long productoId,
             @AuthenticationPrincipal Jwt jwt) {
-        servicio.eliminar(productoId, uidDe(jwt));
-    }
-
-    private Long uidDe(Jwt jwt) {
-        Object uid = jwt == null ? null : jwt.getClaim("uid");
-        return uid == null ? null : ((Number) uid).longValue();
+        servicio.eliminar(productoId, JwtUtils.uidDe(jwt));
     }
 }

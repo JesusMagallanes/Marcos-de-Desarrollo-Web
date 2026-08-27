@@ -1,6 +1,7 @@
 package com.backend.catalogo.inventario;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -41,7 +42,7 @@ public class InventarioService {
             return;
         }
 
-        LocalDateTime caducidad = LocalDateTime.now().plusMinutes(minutosReserva);
+        Instant caducidad = Instant.now().plus(minutosReserva, ChronoUnit.MINUTES);
 
         for (AjusteStock linea : lineas) {
             // Bloqueo pesimista: dos compras simultáneas de la última unidad se
@@ -120,7 +121,7 @@ public class InventarioService {
     @Scheduled(fixedDelay = 60_000)
     @Transactional
     public void expirarReservas() {
-        List<ReservaStock> caducadas = reservas.buscarCaducadas(LocalDateTime.now());
+        List<ReservaStock> caducadas = reservas.buscarCaducadas(Instant.now());
         if (caducadas.isEmpty()) {
             return;
         }

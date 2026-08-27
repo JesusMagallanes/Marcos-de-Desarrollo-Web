@@ -33,6 +33,19 @@ public class RutasConfig {
                 .route(path("/api/guias/**"), http())
                 .route(path("/api/chatbot/**"), http())
                 .route(path("/api/valoraciones/**"), http())
+                /*
+                 * La cola de sincronización sin conexión.
+                 *
+                 * Estaba SIN enrutar: el navegador guarda las valoraciones
+                 * escritas sin red y al recuperarla las manda a
+                 * `/api/sync/valoraciones`, que sin esta línea no llegaba a
+                 * catálogo. No daba error de red —el gateway devolvía el
+                 * index.html de la SPA para cualquier ruta desconocida—, así
+                 * que la cola creía haber fallado y lo guardado no se
+                 * publicaba nunca. El proxy de desarrollo apunta también aquí,
+                 * de modo que tampoco funcionaba con `ng serve`.
+                 */
+                .route(path("/api/sync/**"), http())
                 .before(uri(catalogoUrl))
                 .build();
     }

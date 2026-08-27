@@ -4,11 +4,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.usuarios.auth.dto.AuthDtos.AuthResponse;
@@ -21,6 +23,7 @@ import com.backend.usuarios.shared.metricas.MetricasSeguridad;
 import com.backend.usuarios.shared.auditoria.AuditoriaService.Evento;
 import com.backend.usuarios.shared.error.ConflictoException;
 import com.backend.usuarios.shared.seguridad.LimitadorPeticiones;
+import com.backend.usuarios.shared.validacion.Saneador;
 import com.backend.usuarios.usuario.RolService;
 import com.backend.usuarios.usuario.Usuario;
 import com.backend.usuarios.usuario.UsuarioRepository;
@@ -35,6 +38,20 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthService {
+
+    /*
+     * Este mismo servicio, pero visto a traves del proxy de Spring.
+     *
+     * `cortarSesiones` escribe y justo despues se lanza la excepcion que
+     * rechaza el refresco. Llamandolo directo, la escritura ocurria DENTRO de
+     * la transaccion de `refrescar` y el rollback de esa excepcion se la
+     * llevaba por delante: el corte no llegaba nunca a la base. Con el proxy si
+     * se aplica su REQUIRES_NEW y el corte se confirma por su cuenta.
+     *
+     * Es un ObjectProvider y no una inyeccion normal porque una dependencia a
+     * si mismo por constructor seria un ciclo.
+     */
+    private final ObjectProvider<AuthService> proxia;
 
     private final AuthenticationManager gestorAutenticacion;
     private final UsuarioRepository repositorio;
@@ -106,7 +123,7 @@ public class AuthService {
              * pero eso es como mucho una hora, frente a los siete días de
              * renovaciones que se cierran aquí.
              */
-            cortarSesiones(claims.getSubject());
+            proxia.getObject().cortarSesiones(claims.getSubject());
 
             auditoria.registrarFallo(Evento.LOGIN_FALLIDO, claims.getSubject(),
                     "reúso de refresh token revocado jti=" + claims.getId()
@@ -137,8 +154,21 @@ public class AuthService {
      * <p>No falla si la cuenta no existe: se llega aquí desde un token que ya
      * está verificado, pero el correo podría haberse dado de baja entretanto, y
      * lo que toca entonces es seguir adelante y rechazar el refresco igual.
+     *
+     * <p><b>REQUIRES_NEW no es decorativo, y por eso esto es público.</b> Quien
+     * llama lanza un {@code BadCredentialsException} justo después, y una
+     * excepción de runtime deshace la transacción de {@code refrescar}. Sin
+     * transacción propia, este {@code save} se iba con ella: la mitigación
+     * entera —cerrar la cuenta ante un reúso de refresh— no llegaba nunca a la
+     * base de datos, y la cadena robada seguía renovándose siete días. Lo tapaba
+     * que la prueba usa un repositorio simulado y sin transacción, donde el
+     * {@code save} sí se ve.
+     *
+     * <p>Se invoca por {@code proxia} y no directamente: una llamada interna se
+     * salta el proxy de Spring, y con él la anotación.
      */
-    private void cortarSesiones(String email) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void cortarSesiones(String email) {
         repositorio.findByEmailAddress(email).ifPresent(usuario -> {
             usuario.setTokensValidosDesde(LocalDateTime.now());
             repositorio.save(usuario);
@@ -213,6 +243,6 @@ public class AuthService {
     }
 
     private static String normalizar(String email) {
-        return email == null ? null : email.trim().toLowerCase();
+        return Saneador.normalizarEmail(email);
     }
 }

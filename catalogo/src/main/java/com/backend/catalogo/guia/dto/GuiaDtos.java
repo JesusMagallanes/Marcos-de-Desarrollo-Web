@@ -33,7 +33,7 @@ public final class GuiaDtos {
 
         public static GuiaResumen desde(Guia g) {
             return new GuiaResumen(g.getId(), g.getSlug(), g.getTitulo(), g.getResumen(),
-                    g.getIcono(), g.getPosicion(), g.getPublicada(), g.getPasos().size());
+                    g.getIcono(), g.getPosicion(), g.getPublicada(), g.getTotalPasos());
         }
     }
 

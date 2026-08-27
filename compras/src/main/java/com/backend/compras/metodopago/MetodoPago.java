@@ -2,6 +2,8 @@ package com.backend.compras.metodopago;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,6 +23,12 @@ import lombok.Setter;
 @Builder
 public class MetodoPago {
 
+    public enum TipoPasarela {
+        MERCADOPAGO,
+        EFECTIVO,
+        OTRO
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,7 +39,12 @@ public class MetodoPago {
     @Column(nullable = false, length = 200)
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    @Builder.Default
+    private TipoPasarela tipo = TipoPasarela.OTRO;
+
     public boolean esMercadoPago() {
-        return name != null && name.toLowerCase().replace(" ", "").contains("mercadopago");
+        return tipo == TipoPasarela.MERCADOPAGO;
     }
 }

@@ -8,7 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,7 +68,7 @@ class InventarioServiceTest {
         return Producto.builder().id(id).name("Monitor LG").stock(stock).build();
     }
 
-    private ReservaStock reserva(ReservaStock.Estado estado, LocalDateTime expira) {
+    private ReservaStock reserva(ReservaStock.Estado estado, Instant expira) {
         return ReservaStock.builder()
                 .id(1L).referencia(REFERENCIA).productoId(7L).cantidad(3)
                 .estado(estado).expiraEn(expira)
@@ -95,7 +96,7 @@ class InventarioServiceTest {
         ArgumentCaptor<ReservaStock> guardada = ArgumentCaptor.forClass(ReservaStock.class);
         verify(reservas).save(guardada.capture());
         assertThat(guardada.getValue().getEstado()).isEqualTo(ReservaStock.Estado.ACTIVA);
-        assertThat(guardada.getValue().getExpiraEn()).isAfter(LocalDateTime.now());
+        assertThat(guardada.getValue().getExpiraEn()).isAfter(Instant.now());
     }
 
     @Test
@@ -145,7 +146,7 @@ class InventarioServiceTest {
     @Test
     @DisplayName("confirmar deja la reserva definitiva y NO vuelve a tocar el stock")
     void confirmar() {
-        ReservaStock activa = reserva(ReservaStock.Estado.ACTIVA, LocalDateTime.now().plusMinutes(10));
+        ReservaStock activa = reserva(ReservaStock.Estado.ACTIVA, Instant.now().plus(10, ChronoUnit.MINUTES));
         when(reservas.findByReferencia(REFERENCIA)).thenReturn(List.of(activa));
 
         servicio.confirmar(REFERENCIA);
@@ -167,7 +168,7 @@ class InventarioServiceTest {
          * compensa el pedido y queda un caso para mirar a mano, que es mucho
          * mejor que un descuadre silencioso de inventario.
          */
-        ReservaStock expirada = reserva(ReservaStock.Estado.EXPIRADA, LocalDateTime.now().minusMinutes(1));
+        ReservaStock expirada = reserva(ReservaStock.Estado.EXPIRADA, Instant.now().minus(1, ChronoUnit.MINUTES));
         when(reservas.findByReferencia(REFERENCIA)).thenReturn(List.of(expirada));
 
         assertThatThrownBy(() -> servicio.confirmar(REFERENCIA))
@@ -180,7 +181,7 @@ class InventarioServiceTest {
     void confirmarDosVeces() {
         // El webhook de la pasarela reintenta, y el comprador puede volver a la
         // tienda a la vez que llega ese aviso.
-        ReservaStock yaConfirmada = reserva(ReservaStock.Estado.CONFIRMADA, LocalDateTime.now().plusMinutes(10));
+        ReservaStock yaConfirmada = reserva(ReservaStock.Estado.CONFIRMADA, Instant.now().plus(10, ChronoUnit.MINUTES));
         when(reservas.findByReferencia(REFERENCIA)).thenReturn(List.of(yaConfirmada));
 
         servicio.confirmar(REFERENCIA);
@@ -203,7 +204,7 @@ class InventarioServiceTest {
     @Test
     @DisplayName("liberar devuelve al almacén exactamente lo apartado")
     void liberar() {
-        ReservaStock activa = reserva(ReservaStock.Estado.ACTIVA, LocalDateTime.now().plusMinutes(10));
+        ReservaStock activa = reserva(ReservaStock.Estado.ACTIVA, Instant.now().plus(10, ChronoUnit.MINUTES));
         Producto monitor = producto(7L, 7);
         when(reservas.findByReferencia(REFERENCIA)).thenReturn(List.of(activa));
         when(productos.buscarParaActualizarStock(7L)).thenReturn(Optional.of(monitor));
@@ -221,7 +222,7 @@ class InventarioServiceTest {
          * La compensación puede llegar tarde, con la venta ya cerrada. Devolver
          * el stock entonces regalaría unidades que salieron por la puerta.
          */
-        ReservaStock confirmada = reserva(ReservaStock.Estado.CONFIRMADA, LocalDateTime.now().plusMinutes(10));
+        ReservaStock confirmada = reserva(ReservaStock.Estado.CONFIRMADA, Instant.now().plus(10, ChronoUnit.MINUTES));
         when(reservas.findByReferencia(REFERENCIA)).thenReturn(List.of(confirmada));
 
         servicio.liberar(REFERENCIA);
@@ -233,7 +234,7 @@ class InventarioServiceTest {
     @Test
     @DisplayName("liberar dos veces devuelve el stock una sola vez")
     void liberarEsIdempotente() {
-        ReservaStock yaLiberada = reserva(ReservaStock.Estado.LIBERADA, LocalDateTime.now().plusMinutes(10));
+        ReservaStock yaLiberada = reserva(ReservaStock.Estado.LIBERADA, Instant.now().plus(10, ChronoUnit.MINUTES));
         when(reservas.findByReferencia(REFERENCIA)).thenReturn(List.of(yaLiberada));
 
         servicio.liberar(REFERENCIA);
@@ -256,7 +257,7 @@ class InventarioServiceTest {
     @Test
     @DisplayName("el barrido devuelve el stock de lo que caducó y lo marca EXPIRADA")
     void expirarReservas() {
-        ReservaStock vencida = reserva(ReservaStock.Estado.ACTIVA, LocalDateTime.now().minusMinutes(5));
+        ReservaStock vencida = reserva(ReservaStock.Estado.ACTIVA, Instant.now().minus(5, ChronoUnit.MINUTES));
         Producto monitor = producto(7L, 7);
         when(reservas.buscarCaducadas(any())).thenReturn(List.of(vencida));
         when(productos.buscarParaActualizarStock(7L)).thenReturn(Optional.of(monitor));
@@ -274,7 +275,7 @@ class InventarioServiceTest {
          * Sin esto la reserva se quedaría ACTIVA para siempre y el barrido la
          * recogería en cada pasada, cada minuto, hasta el fin de los tiempos.
          */
-        ReservaStock vencida = reserva(ReservaStock.Estado.ACTIVA, LocalDateTime.now().minusMinutes(5));
+        ReservaStock vencida = reserva(ReservaStock.Estado.ACTIVA, Instant.now().minus(5, ChronoUnit.MINUTES));
         when(reservas.buscarCaducadas(any())).thenReturn(List.of(vencida));
         when(productos.buscarParaActualizarStock(7L)).thenReturn(Optional.empty());
 

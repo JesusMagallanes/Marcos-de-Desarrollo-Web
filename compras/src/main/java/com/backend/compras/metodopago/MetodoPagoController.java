@@ -75,6 +75,7 @@ class MetodoPagoService {
         MetodoPago metodo = MetodoPago.builder()
                 .name(dto.name())
                 .description(dto.description())
+                .tipo(dto.tipo())
                 .build();
         return MetodoPagoResponse.desde(repositorio.save(metodo));
     }
@@ -90,6 +91,7 @@ class MetodoPagoService {
 
         metodo.setName(dto.name());
         metodo.setDescription(dto.description());
+        metodo.setTipo(dto.tipo());
         return MetodoPagoResponse.desde(repositorio.save(metodo));
     }
 

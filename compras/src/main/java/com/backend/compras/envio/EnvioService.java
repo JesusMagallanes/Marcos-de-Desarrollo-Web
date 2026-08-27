@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.backend.compras.envio.dto.EnvioDtos.EnvioResponse;
 import com.backend.compras.pedido.Pedido;
 import com.backend.compras.saga.SagaCheckout;
+import com.backend.compras.shared.error.ConflictoException;
 import com.backend.compras.shared.error.RecursoNoEncontradoException;
 
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,10 @@ public class EnvioService {
      * Desde dónde salen los repartos. Se configura porque una tienda se muda y
      * dejarlo escrito en el código obligaría a recompilar; el valor por defecto
      * es el centro de Lima, que sirve para desarrollo.
+     *
+     * <p>Las dos son NEGATIVAS: Lima está en el hemisferio sur y al oeste de
+     * Greenwich. El `-` va pegado al número y no es la sintaxis `${VAR:-x}` de
+     * bash; el separador de Spring es el `:` que lo precede.
      */
     @Value("${compras.tienda.latitud:-12.046374}")
     private BigDecimal tiendaLat;
@@ -94,6 +99,12 @@ public class EnvioService {
     public EnvioResponse cambiarEstado(Long id, EstadoEnvio nuevoEstado) {
         Envio envio = repositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Envío " + id + " no encontrado"));
+
+        if (!envio.getEstadoEnvio().puedePasarA(nuevoEstado)) {
+            throw new ConflictoException(
+                    "No se puede cambiar el envío de %s a %s".formatted(
+                            envio.getEstadoEnvio(), nuevoEstado));
+        }
 
         switch (nuevoEstado) {
             case EN_TRANSITO -> envio.marcarEnTransito();

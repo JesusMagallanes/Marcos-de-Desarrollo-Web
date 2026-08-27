@@ -5,6 +5,8 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -122,7 +124,29 @@ public class ProductoService {
         // Valida que la categoría exista para poder responder 404 en vez de una página vacía.
         categoriaService.obtenerPorSlug(slug);
 
-        return aPagina(repositorio.listarPorCategoriaSlug(slug, PageRequest.of(page, size)));
+        // Paso 1: paginar por IDs (sin JOIN FETCH de imágenes, que rompe LIMIT/OFFSET).
+        Page<Producto> pagina = repositorio.listarPorCategoriaSlug(slug, PageRequest.of(page, size));
+
+        // Paso 2: cargar las entidades completas con galería de imágenes.
+        List<Long> ids = pagina.getContent().stream().map(Producto::getId).toList();
+        List<Producto> conImagenes = ids.isEmpty()
+                ? List.of()
+                : repositorio.buscarConImagenes(ids);
+
+        // Mantener el orden de la paginación (los IDs vienen ordenados por la query).
+        Map<Long, Producto> porId = conImagenes.stream()
+                .collect(Collectors.toMap(Producto::getId, p -> p));
+        List<Producto> ordenados = ids.stream()
+                .map(porId::get)
+                .filter(Objects::nonNull)
+                .toList();
+
+        return new PaginaResponse<>(
+                aRespuestas(ordenados),
+                pagina.getNumber(),
+                pagina.getSize(),
+                pagina.getTotalElements(),
+                pagina.getTotalPages());
     }
 
     /**
@@ -202,8 +226,12 @@ public class ProductoService {
             throw new ConflictoException("Tipo de descuento no válido");
         }
 
-        List<Producto> productos = repositorio.findAllById(dto.productoIds());
-        if (productos.size() != dto.productoIds().size()) {
+        // Deduplicar IDs: findAllById ya lo hace internamente, pero el check
+        // de tamaño fallaría si la lista original tiene duplicados.
+        List<Long> idsUnicos = dto.productoIds().stream().distinct().toList();
+
+        List<Producto> productos = repositorio.findAllById(idsUnicos);
+        if (productos.size() != idsUnicos.size()) {
             throw new RecursoNoEncontradoException("Algunos productos no existen");
         }
 

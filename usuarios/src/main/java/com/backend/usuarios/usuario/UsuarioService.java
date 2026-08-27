@@ -12,6 +12,7 @@ import com.backend.usuarios.shared.auditoria.AuditoriaService.Evento;
 import com.backend.usuarios.shared.error.ConflictoException;
 import com.backend.usuarios.shared.error.DatosInvalidosException;
 import com.backend.usuarios.shared.error.RecursoNoEncontradoException;
+import com.backend.usuarios.shared.validacion.Saneador;
 import com.backend.usuarios.usuario.dto.UsuarioDtos.CambioRol;
 import com.backend.usuarios.ubigeo.UbigeoRepository;
 import com.backend.usuarios.usuario.dto.DireccionUsuario;
@@ -176,6 +177,6 @@ public class UsuarioService {
     }
 
     static String normalizar(String email) {
-        return email == null ? null : email.trim().toLowerCase();
+        return Saneador.normalizarEmail(email);
     }
 }

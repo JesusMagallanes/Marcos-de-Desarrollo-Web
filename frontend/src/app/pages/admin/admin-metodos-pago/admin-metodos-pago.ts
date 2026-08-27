@@ -1,7 +1,7 @@
 import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ErrorApi, EstadoPeticion, MetodoPago, MetodoPagoService } from '../../../core';
+import { ErrorApi, EstadoPeticion, MetodoPago, MetodoPagoService, TipoPasarela } from '../../../core';
 
 @Component({
   selector: 'app-admin-metodos-pago',
@@ -22,9 +22,21 @@ export class AdminMetodosPago implements OnInit, OnDestroy {
   protected formAbierto = signal(false);
   protected confirmandoId = signal<number | null>(null);
 
+  /**
+   * El tipo decide si el checkout cobra por pasarela o contra entrega, así que
+   * se elige a mano. Sin este campo, todo método creado aquí nacía como OTRO y
+   * el backend lo cerraba como pago en efectivo, aunque se llamara «MercadoPago».
+   */
+  protected readonly tipos: { valor: TipoPasarela; etiqueta: string }[] = [
+    { valor: 'MERCADOPAGO', etiqueta: 'MercadoPago (pasarela online)' },
+    { valor: 'EFECTIVO', etiqueta: 'Efectivo (se cobra al entregar)' },
+    { valor: 'OTRO', etiqueta: 'Otro (se cobra al entregar)' },
+  ];
+
   protected form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(50)]],
     description: ['', [Validators.required, Validators.maxLength(200)]],
+    tipo: ['EFECTIVO' as TipoPasarela, [Validators.required]],
   });
 
   ngOnInit(): void {
@@ -48,14 +60,14 @@ export class AdminMetodosPago implements OnInit, OnDestroy {
 
   protected nuevo(): void {
     this.editandoId.set(null);
-    this.form.reset({ name: '', description: '' });
+    this.form.reset({ name: '', description: '', tipo: 'EFECTIVO' });
     this.estado.limpiarError();
     this.formAbierto.set(true);
   }
 
   protected editar(m: MetodoPago): void {
     this.editandoId.set(m.id);
-    this.form.setValue({ name: m.name, description: m.description });
+    this.form.setValue({ name: m.name, description: m.description, tipo: m.tipo });
     this.estado.limpiarError();
     this.formAbierto.set(true);
   }

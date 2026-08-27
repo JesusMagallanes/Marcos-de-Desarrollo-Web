@@ -69,8 +69,7 @@ public class TokenServicio {
     /**
      * Un token nuevo para la llamada que viene.
      *
-     * @return el token, o {@code null} si no se pudo firmar; quien llame decide
-     *         qué hacer, igual que hacía con el {@code null} de antes
+     * @throws IllegalStateException si no se pudo firmar el token
      */
     public String emitir() {
         Instant ahora = Instant.now();
@@ -95,10 +94,8 @@ public class TokenServicio {
             return jwt.serialize();
 
         } catch (Exception ex) {
-            // No se propaga: quien llama ya sabe convivir con un token nulo, y
-            // tumbar el barrendero por esto dejaría stock bloqueado.
             log.error("No se pudo emitir el token de servicio: {}", ex.getMessage());
-            return null;
+            throw new IllegalStateException("Fallo al firmar el token de servicio", ex);
         }
     }
 }

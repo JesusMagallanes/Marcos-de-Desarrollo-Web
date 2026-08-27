@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoResponse;
 import com.backend.catalogo.producto.dto.ProductoDtos.RechazoProductoRequest;
+import com.backend.catalogo.shared.seguridad.JwtUtils;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -49,7 +50,7 @@ public class ProductoModeracionController {
     @PostMapping("/{id}/aprobar")
     public ProductoResponse aprobar(@PathVariable @Positive Long id,
             @AuthenticationPrincipal Jwt jwt) {
-        return servicio.aprobarModeracion(id, uidDe(jwt));
+        return servicio.aprobarModeracion(id, JwtUtils.uidDe(jwt));
     }
 
     /** El motivo es obligatorio: se le enseña al colaborador para que corrija. */
@@ -57,11 +58,6 @@ public class ProductoModeracionController {
     public ProductoResponse rechazar(@PathVariable @Positive Long id,
             @Valid @RequestBody RechazoProductoRequest dto,
             @AuthenticationPrincipal Jwt jwt) {
-        return servicio.rechazarModeracion(id, uidDe(jwt), dto.motivo());
-    }
-
-    private Long uidDe(Jwt jwt) {
-        Object uid = jwt == null ? null : jwt.getClaim("uid");
-        return uid == null ? null : ((Number) uid).longValue();
+        return servicio.rechazarModeracion(id, JwtUtils.uidDe(jwt), dto.motivo());
     }
 }

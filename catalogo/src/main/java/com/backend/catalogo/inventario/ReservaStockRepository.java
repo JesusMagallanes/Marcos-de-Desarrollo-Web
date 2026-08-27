@@ -1,6 +1,6 @@
 package com.backend.catalogo.inventario;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,5 +18,5 @@ public interface ReservaStockRepository extends JpaRepository<ReservaStock, Long
             WHERE r.estado = com.backend.catalogo.inventario.ReservaStock$Estado.ACTIVA
               AND r.expiraEn < :limite
             """)
-    List<ReservaStock> buscarCaducadas(@Param("limite") LocalDateTime limite);
+    List<ReservaStock> buscarCaducadas(@Param("limite") Instant limite);
 }

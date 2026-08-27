@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Formula;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -77,4 +78,8 @@ public class Guia {
     @BatchSize(size = 50)
     @Builder.Default
     private List<GuiaPaso> pasos = new ArrayList<>();
+
+    /** Conteo de pasos calculado en SQL, evita cargar la colección solo para contar. */
+    @Formula("(SELECT COUNT(*) FROM catalogo.guia_paso gp WHERE gp.guia_id = id)")
+    private int totalPasos;
 }

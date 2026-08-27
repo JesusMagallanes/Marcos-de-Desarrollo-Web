@@ -241,4 +241,32 @@ class CarritoServiceTest {
                 .isInstanceOf(ConflictoException.class)
                 .hasMessageContaining("Solo quedan 2");
     }
+
+    /* ══════════════ Ver (read-only) ══════════════ */
+
+    @Test
+    @DisplayName("ver() no crea un carrito si no existe: devuelve vacío")
+    void verNoCreaCarrito() {
+        when(carritos.buscarConItems(USUARIO)).thenReturn(Optional.empty());
+
+        CarritoResponse respuesta = servicio.ver(USUARIO);
+
+        assertThat(respuesta.items()).isEmpty();
+        assertThat(respuesta.subtotal()).isEqualByComparingTo("0");
+        verify(carritos, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("ver() devuelve el carrito existente con sus items")
+    void verCarritoExistente() {
+        Carrito carrito = carritoCon(item(11L, 300L, 2));
+        when(carritos.buscarConItems(USUARIO)).thenReturn(Optional.of(carrito));
+        when(catalogo.precios(any(), anyList())).thenReturn(
+                List.of(new LineaPrecio(300L, "Monitor LG", null, new BigDecimal("100.00"), 10)));
+
+        CarritoResponse respuesta = servicio.ver(USUARIO);
+
+        assertThat(respuesta.items()).hasSize(1);
+        assertThat(respuesta.subtotal()).isEqualByComparingTo("200.00");
+    }
 }

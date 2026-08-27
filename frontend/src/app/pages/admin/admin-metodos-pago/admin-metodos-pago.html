@@ -21,6 +21,7 @@
         <tr>
           <th>Nombre</th>
           <th>Descripción</th>
+          <th style="width: 130px">Cobro</th>
           <th class="text-end" style="width: 120px">Acciones</th>
         </tr>
       </thead>
@@ -29,6 +30,11 @@
           <tr>
             <td class="fw-semibold">{{ m.name }}</td>
             <td class="small text-muted">{{ m.description }}</td>
+            <td>
+              <span class="badge" [class]="m.tipo === 'MERCADOPAGO' ? 'bg-primary' : 'bg-secondary'">
+                {{ m.tipo === 'MERCADOPAGO' ? 'Pasarela' : 'Contra entrega' }}
+              </span>
+            </td>
             <td class="text-end">
               @if (confirmandoId() === m.id) {
                 <button type="button" class="btn btn-sm btn-danger me-1" (click)="eliminar(m.id)">Sí</button>
@@ -45,7 +51,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="3" class="text-center text-muted py-4">No hay métodos de pago.</td>
+            <td colspan="4" class="text-center text-muted py-4">No hay métodos de pago.</td>
           </tr>
         }
       </tbody>
@@ -67,7 +73,7 @@
         <input class="form-control form-control-sm" id="mpago-name" formControlName="name" [class.is-invalid]="invalido('name')" />
       </div>
 
-      <div class="mb-3">
+      <div class="mb-2">
         <label for="mpago-description" class="form-label small fw-semibold">Descripción</label>
         <textarea
           class="form-control form-control-sm"
@@ -75,6 +81,23 @@
           id="mpago-description" formControlName="description"
           [class.is-invalid]="invalido('description')"
         ></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label for="mpago-tipo" class="form-label small fw-semibold">Cómo se cobra</label>
+        <select
+          class="form-select form-select-sm"
+          id="mpago-tipo" formControlName="tipo"
+          [class.is-invalid]="invalido('tipo')"
+        >
+          @for (t of tipos; track t.valor) {
+            <option [value]="t.valor">{{ t.etiqueta }}</option>
+          }
+        </select>
+        <div class="form-text small">
+          Solo «MercadoPago» envía al comprador a la pasarela. El resto cierra el pedido para
+          cobrarlo al entregarlo.
+        </div>
       </div>
 
       <div class="d-flex justify-content-end gap-2">

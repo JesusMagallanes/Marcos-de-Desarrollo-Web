@@ -42,9 +42,10 @@ public class CarritoService {
                         Carrito.builder().usuarioId(usuarioId).build()));
     }
 
-    @Transactional
     public CarritoResponse ver(Long usuarioId) {
-        return construir(obtenerOCrear(usuarioId));
+        return carritoRepositorio.buscarConItems(usuarioId)
+                .map(this::construir)
+                .orElseGet(this::vacio);
     }
 
     @Transactional

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoRequest;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoResponse;
+import com.backend.catalogo.shared.seguridad.JwtUtils;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -48,7 +49,7 @@ public class ProductoColaboradorController {
     /** Todo lo suyo, aprobado o no: necesita ver los rechazados para corregir. */
     @GetMapping
     public List<ProductoResponse> mios(@AuthenticationPrincipal Jwt jwt) {
-        return servicio.mios(uidDe(jwt));
+        return servicio.mios(JwtUtils.uidDe(jwt));
     }
 
     /** Se crea PENDIENTE. La respuesta ya lo dice, para no prometer visibilidad. */
@@ -56,7 +57,7 @@ public class ProductoColaboradorController {
     @ResponseStatus(HttpStatus.CREATED)
     public ProductoResponse crear(@Valid @RequestBody ProductoRequest dto,
             @AuthenticationPrincipal Jwt jwt) {
-        return servicio.crearComoColaborador(uidDe(jwt), dto);
+        return servicio.crearComoColaborador(JwtUtils.uidDe(jwt), dto);
     }
 
     /** Editar devuelve el producto a la cola: lo aprobado no se puede cambiar a espaldas. */
@@ -64,17 +65,12 @@ public class ProductoColaboradorController {
     public ProductoResponse actualizar(@PathVariable @Positive Long id,
             @Valid @RequestBody ProductoRequest dto,
             @AuthenticationPrincipal Jwt jwt) {
-        return servicio.actualizarComoColaborador(id, uidDe(jwt), dto);
+        return servicio.actualizarComoColaborador(id, JwtUtils.uidDe(jwt), dto);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable @Positive Long id, @AuthenticationPrincipal Jwt jwt) {
-        servicio.eliminarComoColaborador(id, uidDe(jwt));
-    }
-
-    private Long uidDe(Jwt jwt) {
-        Object uid = jwt == null ? null : jwt.getClaim("uid");
-        return uid == null ? null : ((Number) uid).longValue();
+        servicio.eliminarComoColaborador(id, JwtUtils.uidDe(jwt));
     }
 }

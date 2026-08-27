@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.catalogo.sincronizacion.dto.SincronizacionDtos.PeticionSyncValoracion;
 import com.backend.catalogo.sincronizacion.dto.SincronizacionDtos.RespuestaSyncValoracion;
+import com.backend.catalogo.shared.seguridad.JwtUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -39,12 +40,7 @@ public class SincronizacionController {
     public RespuestaSyncValoracion valoraciones(
             @Valid @RequestBody PeticionSyncValoracion peticion,
             @AuthenticationPrincipal Jwt jwt) {
-        return servicio.aplicarValoracion(uidDe(jwt), peticion,
+        return servicio.aplicarValoracion(JwtUtils.uidDe(jwt), peticion,
                 jwt == null ? null : jwt.getTokenValue());
-    }
-
-    private Long uidDe(Jwt jwt) {
-        Object uid = jwt == null ? null : jwt.getClaim("uid");
-        return uid == null ? null : ((Number) uid).longValue();
     }
 }

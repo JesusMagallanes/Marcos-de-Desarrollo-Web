@@ -49,8 +49,12 @@ public class RespuestasSeguridad implements AuthenticationEntryPoint, AccessDeni
         respuesta.setStatus(estado.value());
         respuesta.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         respuesta.setCharacterEncoding("UTF-8");
-        respuesta.getWriter().write("""
-                {"type":"about:blank","title":"%s","status":%d,"detail":"%s"}"""
-                .formatted(titulo, estado.value(), detalle));
+        respuesta.getWriter().write(
+                "{\"type\":\"about:blank\",\"title\":\"%s\",\"status\":%d,\"detail\":\"%s\"}"
+                        .formatted(escaparJson(titulo), estado.value(), escaparJson(detalle)));
+    }
+
+    private static String escaparJson(String valor) {
+        return valor.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

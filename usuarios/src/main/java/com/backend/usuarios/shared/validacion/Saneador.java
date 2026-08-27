@@ -121,4 +121,9 @@ public final class Saneador {
         String sinSaltosRaros = normalizado.replace("\r\n", "\n").replace('\r', '\n');
         return PELIGROSOS.matcher(sinSaltosRaros).replaceAll("");
     }
+
+    /** Normaliza un email: trim + lowercase. Null-safe. */
+    public static String normalizarEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
+    }
 }

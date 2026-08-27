@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.compras.carrito.dto.CarritoDtos.CarritoResponse;
 import com.backend.compras.carrito.dto.CarritoDtos.ItemResponse;
+import com.backend.compras.envio.EnvioRepository;
 import com.backend.compras.metodopago.MetodoPago;
 import com.backend.compras.metodopago.MetodoPagoRepository;
 import com.backend.compras.pedido.dto.PedidoDtos.PedidoResponse;
@@ -25,6 +26,7 @@ public class PedidoService {
 
     private final PedidoRepository pedidoRepositorio;
     private final MetodoPagoRepository metodoPagoRepositorio;
+    private final EnvioRepository envioRepositorio;
 
     /**
      * «Mis compras»: lo que este usuario compró, no todo lo que empezó.
@@ -124,10 +126,17 @@ public class PedidoService {
 
     @Transactional
     public void eliminar(Long id) {
-        if (!pedidoRepositorio.existsById(id)) {
-            throw new RecursoNoEncontradoException("Pedido " + id + " no encontrado");
+        Pedido pedido = pedidoRepositorio.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Pedido " + id + " no encontrado"));
+
+        // No permitir borrar si tiene envío asociado: ON DELETE CASCADE lo
+        // borraría silenciosamente y se perdería el seguimiento del reparto.
+        if (envioRepositorio.findByPedidoId(id).isPresent()) {
+            throw new ConflictoException(
+                    "No se puede eliminar el pedido porque tiene un envío asociado");
         }
-        pedidoRepositorio.deleteById(id);
+
+        pedidoRepositorio.delete(pedido);
     }
 
     /** ¿Este usuario compró este producto? Ver PedidoRepository.comproElProducto. */

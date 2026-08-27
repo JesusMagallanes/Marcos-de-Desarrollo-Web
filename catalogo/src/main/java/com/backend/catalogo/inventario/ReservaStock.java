@@ -1,6 +1,6 @@
 package com.backend.catalogo.inventario;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -57,15 +57,15 @@ public class ReservaStock {
     private Estado estado = Estado.ACTIVA;
 
     @Column(name = "expira_en", nullable = false)
-    private LocalDateTime expiraEn;
+    private Instant expiraEn;
 
     @Column(name = "creado_en", nullable = false, updatable = false)
-    private LocalDateTime creadoEn;
+    private Instant creadoEn;
 
     @PrePersist
     void alCrear() {
         if (creadoEn == null) {
-            creadoEn = LocalDateTime.now();
+            creadoEn = Instant.now();
         }
     }
 
