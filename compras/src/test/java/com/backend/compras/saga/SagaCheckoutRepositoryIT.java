@@ -3,6 +3,7 @@ package com.backend.compras.saga;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.backend.compras.PruebaIntegracion;
 import com.backend.compras.saga.SagaCheckout.Estado;
@@ -32,9 +34,27 @@ class SagaCheckoutRepositoryIT extends PruebaIntegracion {
     @Autowired
     private SagaCheckoutRepository repositorio;
 
+    @Autowired
+    private JdbcTemplate jdbc;
+
     @BeforeEach
     void limpiar() {
         repositorio.deleteAll();
+    }
+
+    /**
+     * Retrasa la fecha de actualización de una saga SIN pasar por JPA.
+     *
+     * <p>Hacerlo con {@code setActualizadoEn(...)} y guardar no servía de nada:
+     * la entidad tiene un {@code @PreUpdate} que vuelve a poner la hora actual
+     * justo antes del UPDATE, así que la saga nunca envejecía y
+     * {@code buscarAbandonadas} no encontraba ninguna. Un UPDATE directo se
+     * salta los callbacks de ciclo de vida, que es justo lo que hace falta para
+     * simular el paso del tiempo.
+     */
+    private void envejecer(String referencia, LocalDateTime cuando) {
+        jdbc.update("UPDATE compras.saga_checkout SET actualizado_en = ? WHERE referencia = ?",
+                Timestamp.valueOf(cuando), referencia);
     }
 
     private SagaCheckout saga(String referencia, Long usuarioId, Estado estado, Paso paso) {
@@ -88,15 +108,11 @@ class SagaCheckoutRepositoryIT extends PruebaIntegracion {
     @Test
     @DisplayName("buscarAbandonadas encuentra las que llevan demasiado esperando el pago")
     void abandonadas() {
-        SagaCheckout vieja = saga("sz-1-1-vieja", 1L, Estado.ESPERANDO_PAGO, Paso.PEDIDO_CREADO);
+        saga("sz-1-1-vieja", 1L, Estado.ESPERANDO_PAGO, Paso.PEDIDO_CREADO);
         saga("sz-1-1-nueva", 2L, Estado.ESPERANDO_PAGO, Paso.PEDIDO_CREADO);
         saga("sz-1-1-hecha", 3L, Estado.COMPLETADA, Paso.FIN);
 
-        // Se envejece a mano: @PreUpdate pondría la fecha actual.
-        repositorio.findById(vieja.getId()).ifPresent(s -> {
-            s.setActualizadoEn(LocalDateTime.now().minusHours(2));
-            repositorio.saveAndFlush(s);
-        });
+        envejecer("sz-1-1-vieja", LocalDateTime.now().minusHours(2));
 
         List<SagaCheckout> abandonadas =
                 repositorio.buscarAbandonadas(LocalDateTime.now().minusMinutes(25));

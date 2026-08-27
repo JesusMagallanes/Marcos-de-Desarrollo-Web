@@ -9,6 +9,8 @@ import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.backend.compras.PruebaIntegracion;
+import com.backend.compras.envio.EnvioRepository;
+import com.backend.compras.pedido.PedidoRepository;
 
 /**
  * Integración contra PostgreSQL real: verifica que la columna `tipo` de
@@ -22,8 +24,24 @@ class MetodoPagoRepositoryIT extends PruebaIntegracion {
     @Autowired
     private MetodoPagoRepository repositorio;
 
+    @Autowired
+    private EnvioRepository envios;
+
+    @Autowired
+    private PedidoRepository pedidos;
+
+    /**
+     * Antes de vaciar los métodos de pago hay que vaciar lo que los referencia.
+     *
+     * <p>La base es la misma para todas las clases de integración, así que aquí
+     * pueden quedar pedidos creados por otra —{@code EnvioRepositoryIT} deja
+     * varios—, y {@code pedido.metodopago_id} tiene clave foránea. Sin esto, el
+     * borrado chocaba con {@code fk_pedido_metodopago}.
+     */
     @BeforeEach
     void limpiar() {
+        envios.deleteAll();
+        pedidos.deleteAll();
         repositorio.deleteAll();
     }
 

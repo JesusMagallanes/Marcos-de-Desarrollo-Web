@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.backend.catalogo.PruebaIntegracion;
 import com.backend.catalogo.categoria.Categoria;
 import com.backend.catalogo.categoria.CategoriaRepository;
+import com.backend.catalogo.marca.MarcaRepository;
 
 /**
  * Integración contra PostgreSQL real: verifica que buscarConImagenes()
@@ -34,10 +35,22 @@ class ProductoRepositoryIT extends PruebaIntegracion {
     @Autowired
     private ProductoImagenRepository imagenRepositorio;
 
+    @Autowired
+    private MarcaRepository marcaRepositorio;
+
+    /**
+     * Se borra en orden de dependencia, y las marcas NO sobran.
+     *
+     * <p>La base es la misma para todas las clases de integración, así que aquí
+     * pueden quedar marcas creadas por otra —{@code DescuentosRepositoryIT} deja
+     * una—, y {@code marca} apunta a {@code categoria}. Sin borrarlas antes, el
+     * borrado de categorías chocaba con {@code fk_marca_categoria}.
+     */
     @BeforeEach
     void limpiar() {
         imagenRepositorio.deleteAll();
         productoRepositorio.deleteAll();
+        marcaRepositorio.deleteAll();
         categoriaRepositorio.deleteAll();
     }
 
@@ -69,9 +82,19 @@ class ProductoRepositoryIT extends PruebaIntegracion {
         assertThat(resultado).hasSize(1);
         Producto recuperado = resultado.get(0);
         assertThat(recuperado.getImagenes()).hasSize(2);
+
+        // El @OrderBy("posicion ASC") de la entidad: la principal va primero.
         assertThat(recuperado.getImagenes().get(0).getUrl()).isEqualTo("https://img.example/1.jpg");
         assertThat(recuperado.getImagenes().get(1).getUrl()).isEqualTo("https://img.example/2.jpg");
-        assertThat(recuperado.getImageUrl()).isEqualTo("https://img.example/1.jpg");
+
+        /*
+         * Aquí NO se comprueba `imageUrl`, y es a propósito.
+         *
+         * Es una columna propia, no un derivado de la galería: la mantiene al día
+         * el servicio al crear o editar el producto. Esta prueba guarda por el
+         * repositorio, saltándose esa lógica, así que la columna está vacía. Dar
+         * por hecho que la galería la rellenaba era la suposición equivocada.
+         */
     }
 
     @Test
@@ -106,9 +129,19 @@ class ProductoRepositoryIT extends PruebaIntegracion {
     void soloAprobados() {
         Categoria cat = crearCategoria("Test", "test");
         crearProducto(cat, "Aprobado");
+
+        /*
+         * El pendiente lleva `propietarioId`, y no es un detalle: lo exige la
+         * restricción `ck_producto_tienda_aprobada` de la V15. Lo de la tienda
+         * —sin dueño— no pasa por moderación y por eso solo puede estar
+         * APROBADO; únicamente lo de un colaborador puede quedar pendiente.
+         * Sin el dueño, el INSERT se rechaza antes de llegar a la consulta.
+         */
         Producto pendiente = Producto.builder()
                 .name("Pendiente").description("Desc").precio(new BigDecimal("50.00"))
-                .stock(5).categoria(cat).estadoModeracion(EstadoModeracion.PENDIENTE).build();
+                .stock(5).categoria(cat)
+                .propietarioId(99L)
+                .estadoModeracion(EstadoModeracion.PENDIENTE).build();
         productoRepositorio.save(pendiente);
 
         var pagina = productoRepositorio.listarPorCategoriaSlug(

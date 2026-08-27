@@ -11,6 +11,8 @@ import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.backend.compras.PruebaIntegracion;
+import com.backend.compras.metodopago.MetodoPago;
+import com.backend.compras.metodopago.MetodoPagoRepository;
 import com.backend.compras.pedido.EstadoPedido;
 import com.backend.compras.pedido.Pedido;
 import com.backend.compras.pedido.PedidoRepository;
@@ -31,15 +33,33 @@ class EnvioRepositoryIT extends PruebaIntegracion {
     @Autowired
     private PedidoRepository pedidoRepositorio;
 
+    @Autowired
+    private MetodoPagoRepository metodoPagoRepositorio;
+
+    /**
+     * Todo pedido necesita un método de pago: la columna es NOT NULL y hay clave
+     * foránea. Se crea uno propio en vez de tirar del que siembra la V1 porque
+     * las pruebas comparten base de datos y otra clase podría haberlo borrado.
+     */
+    private MetodoPago metodoPago;
+
     @BeforeEach
     void limpiar() {
         envioRepositorio.deleteAll();
         pedidoRepositorio.deleteAll();
+
+        metodoPago = metodoPagoRepositorio.findAll().stream().findFirst()
+                .orElseGet(() -> metodoPagoRepositorio.save(MetodoPago.builder()
+                        .name("Prueba envíos")
+                        .description("Método de prueba")
+                        .tipo(MetodoPago.TipoPasarela.EFECTIVO)
+                        .build()));
     }
 
     private Pedido crearPedido() {
         return pedidoRepositorio.save(Pedido.builder()
                 .usuarioId(1L)
+                .metodoPago(metodoPago)
                 .estado(EstadoPedido.PAGADO)
                 .subtotal(new BigDecimal("100.00"))
                 .costoEnvio(new BigDecimal("15.00"))
@@ -106,7 +126,7 @@ class EnvioRepositoryIT extends PruebaIntegracion {
     void filtrarPorEstado() {
         Pedido p1 = crearPedido();
         Pedido p2 = Pedido.builder()
-                .usuarioId(2L).estado(EstadoPedido.PAGADO)
+                .usuarioId(2L).metodoPago(metodoPago).estado(EstadoPedido.PAGADO)
                 .subtotal(new BigDecimal("50.00")).costoEnvio(new BigDecimal("15.00"))
                 .total(new BigDecimal("65.00")).build();
         p2 = pedidoRepositorio.save(p2);

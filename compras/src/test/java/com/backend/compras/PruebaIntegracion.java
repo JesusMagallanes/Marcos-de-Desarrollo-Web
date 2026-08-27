@@ -5,8 +5,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Base de las pruebas de integración: levanta un PostgreSQL real en contenedor.
@@ -53,22 +51,30 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         "DB_PASSWORD=prueba",
         "JWT_SECRET=secreto-de-pruebas-suficientemente-largo-para-hs256",
 })
-@Testcontainers
 @Tag("integracion")
 public abstract class PruebaIntegracion {
 
     /**
-     * Lo gestiona la extensión de Testcontainers, que lo arranca en un callback
-     * posterior a la evaluación de @EnabledIf. Es estático para compartirlo
-     * entre todas las clases que hereden de aquí y arrancarlo una sola vez.
+     * UN contenedor para toda la ejecución, y que no lo pare nadie.
+     *
+     * <p>Antes lo gestionaba la extensión de Testcontainers con {@code @Container},
+     * y eso lo paraba al terminar CADA clase de prueba y lo volvía a arrancar en
+     * la siguiente, con un puerto nuevo. Spring, en cambio, cachea el contexto y
+     * lo reutiliza entre clases con la misma configuración: el pool de conexiones
+     * seguía apuntando al puerto del contenedor anterior, ya muerto, y la segunda
+     * clase en adelante fallaba con «Connection to localhost:32769 refused»
+     * mientras el log decía que el contenedor estaba arriba en otro puerto.
+     *
+     * <p>Se arranca a mano en {@link #propiedades} —{@code start()} es idempotente—
+     * y no aquí en un bloque estático, para que siga ocurriendo DESPUÉS de que
+     * {@code @EnabledIf} haya decidido si hay Docker. Lo para el reaper de
+     * Testcontainers al terminar la JVM.
      */
-    @Container
     @SuppressWarnings("resource")
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine")
             .withDatabaseName("smartzone_test")
             .withUsername("prueba")
-            .withPassword("prueba")
-            .withReuse(true);
+            .withPassword("prueba");
 
     /**
      * Sustituye las variables que normalmente vienen del `.env`.
@@ -76,6 +82,10 @@ public abstract class PruebaIntegracion {
      */
     @DynamicPropertySource
     static void propiedades(DynamicPropertyRegistry registro) {
+        // Idempotente: solo arranca la primera vez. Aquí y no en un bloque
+        // estático para que ocurra después de comprobar que hay Docker.
+        POSTGRES.start();
+
         registro.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         registro.add("spring.datasource.username", POSTGRES::getUsername);
         registro.add("spring.datasource.password", POSTGRES::getPassword);
