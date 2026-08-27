@@ -9,11 +9,3 @@ ALTER TABLE metodopago ADD COLUMN tipo VARCHAR(30) NOT NULL DEFAULT 'OTRO';
 UPDATE metodopago
    SET tipo = 'MERCADOPAGO'
  WHERE LOWER(REPLACE(name, ' ', '')) LIKE '%mercadopago%';
-
--- Y el que se cobra al recibir, EFECTIVO. Dejarlo en OTRO funcionaba de
--- casualidad —lo único que se pregunta hoy es si NO es MercadoPago—, pero
--- OTRO significa "no sé qué es esto" y aquí sí se sabe.
-UPDATE metodopago
-   SET tipo = 'EFECTIVO'
- WHERE tipo = 'OTRO'
-   AND LOWER(name) LIKE '%contra entrega%';

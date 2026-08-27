@@ -76,6 +76,23 @@ Los dos primeros los **introdujo** esa misma pasada.
 | E | Consultas paginadas de producto sin `ORDER BY`: Postgres no promete orden entre consultas, asi que la pagina 2 podia repetir productos de la 1 y saltarse otros | catalogo | **FIX** - `ORDER BY p.id` en las cuatro |
 | F | `Cortacircuitos`: si la peticion de prueba moria con un `Error` (no `RuntimeException`), `pruebasEnCurso` se quedaba en 1 y el circuito rechazaba todo para siempre | compras | **FIX** |
 
+### CRITICOS - tercera revision (CI en rojo)
+
+Salieron cuando CI ejecuto `verify` por primera vez de verdad. **Ninguno lo
+introdujo el commit anterior**: llevaban ahi y estaban tapados.
+
+| # | Bug | Servicio | Estado |
+|---|-----|----------|--------|
+| G | `ValidacionArranque` se registra por `spring.factories`, asi que corre tambien en los tests, y exige las variables CRUDAS `DB_URL`, `DB_USER`, `DB_PASSWORD` y `JWT_SECRET`. Las pruebas solo inyectan `spring.datasource.*`. En un portatil pasaba porque el `.env` del repo las trae; en CI no hay `.env`, asi que **las 29 pruebas de integracion fallaban de golpe** con «Failed to load ApplicationContext», sin decir por que | catalogo + compras | **FIX** - las cuatro se declaran en `@SpringBootTest(properties=...)` de `PruebaIntegracion` |
+| H | `spring.flyway.user` sale de `${DB_MIGRACION_USER:${DB_USER}}`, de modo que en un portatil con `.env` Flyway intentaba migrar el **contenedor de pruebas con las credenciales de la base REAL de Neon**: «password authentication failed for user "neondb_owner"» | catalogo + compras | **FIX** - `@DynamicPropertySource` fija `spring.flyway.user/password` al contenedor |
+| I | `listarParaDescuentos` con el filtro de texto vacio revienta contra Postgres: `LOWER(CONCAT('%', :texto, '%'))` con `:texto` nulo y sin tipo se resuelve como `lower(bytea)`. Y el panel llama con `null` cuando no se busca nada, o sea **el panel de descuentos daba 500 al abrirlo** | catalogo | **FIX** - `CAST(:texto AS String)` |
+| J | `Sesion.registrar()` hacia `return entrar(...)` sin `await` dentro de un `try`: el `catch` quedaba fuera de alcance y un `ErrorApi` al entrar tras registrarse se propagaba como excepcion en vez de volver como valor, que es lo que espera quien llama | movil | **FIX** - `return await` |
+
+Ademas, la V11 se habia editado despues de existir. Editar una migracion que
+pudo aplicarse ya le cambia el checksum y Flyway responde «Validate failed:
+Migrations have failed validation» — se reprodujo en local. El cambio se movio a
+una **V12** nueva y la V11 quedo como estaba.
+
 ### Entorno, no codigo
 
 - **Las pruebas de integracion NO se ejecutan en esta maquina.** Docker Desktop 29.5

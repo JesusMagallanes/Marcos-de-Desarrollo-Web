@@ -100,7 +100,12 @@ class Sesion extends ChangeNotifier {
       });
       // El registro no devuelve sesión: se entra a continuación con los mismos
       // datos, que es lo que hace la web.
-      return entrar(email, password);
+      //
+      // El `await` es necesario, no decorativo: sin él se devuelve el Future y
+      // el `catch` de abajo queda fuera de su alcance, así que un ErrorApi al
+      // entrar se propagaba como excepción en vez de volver como valor. Quien
+      // llama espera un ErrorApi de retorno y no lo captura.
+      return await entrar(email, password);
     } on ErrorApi catch (e) {
       return e;
     }

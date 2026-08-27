@@ -140,7 +140,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
               AND (:categoriaId IS NULL OR p.categoria.id = :categoriaId)
               AND (:marcaId IS NULL OR p.marca.id = :marcaId)
-              AND (:texto IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :texto, '%')))
+              AND (:texto IS NULL
+                   OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:texto AS String), '%')))
               AND (:estado = 'todos'
                    OR (:estado = 'activo' AND p.precioOferta IS NOT NULL
                        AND (p.ofertaInicio IS NULL OR p.ofertaInicio <= :ahora)
@@ -156,7 +157,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
                     WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
                       AND (:categoriaId IS NULL OR p.categoria.id = :categoriaId)
                       AND (:marcaId IS NULL OR p.marca.id = :marcaId)
-                      AND (:texto IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :texto, '%')))
+                      AND (:texto IS NULL
+                   OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:texto AS String), '%')))
                       AND (:estado = 'todos'
                            OR (:estado = 'activo' AND p.precioOferta IS NOT NULL
                                AND (p.ofertaInicio IS NULL OR p.ofertaInicio <= :ahora)
