@@ -95,7 +95,7 @@ public class ChatBotController {
             .limit(5)
             .collect(Collectors.toList());
         
-        StringBuilder mensaje = new StringBuilder("🔥 <b>Ofertas Destacadas:</b><br><br>");
+        StringBuilder mensaje = new StringBuilder(" <b>Ofertas Destacadas:</b><br><br>");
         
         if (ofertas.isEmpty()) {
             mensaje.append("No hay ofertas disponibles en este momento.");
@@ -107,13 +107,13 @@ public class ChatBotController {
                     producto.getPrecio()
                 ));
                 if (producto.getStock() > 0) {
-                    mensaje.append("✅ Stock disponible<br>");
+                    mensaje.append(" Stock disponible<br>");
                 } else {
-                    mensaje.append("❌ Sin stock<br>");
+                    mensaje.append("Sin stock<br>");
                 }
                 mensaje.append("<br>");
             }
-            mensaje.append("👉 Haz clic en un producto para ver más detalles.");
+            mensaje.append(" Haz clic en un producto para ver más detalles.");
         }
         
         response.put("respuesta", mensaje.toString());
@@ -124,12 +124,12 @@ public class ChatBotController {
 
     private Map<String, Object> obtenerInfoEnvio() {
         Map<String, Object> response = new HashMap<>();
-        String mensaje = "🚚 <b>Información de Envíos:</b><br><br>" +
-                        "📦 Envíos gratis en compras mayores a <b>S/ 200</b><br>" +
-                        "⏱️ Tiempo de entrega: <b>1-3 días hábiles</b><br>" +
-                        "🌍 Cobertura: Lima Metropolitana y provincias<br>" +
-                        "📍 Puedes rastrear tu pedido en tiempo real<br><br>" +
-                        "💡 <i>Tip: Agrega más productos para calificar a envío gratis</i>";
+        String mensaje = " <b>Información de Envíos:</b><br><br>" +
+                        " Envíos gratis en compras mayores a <b>S/ 200</b><br>" +
+                        " Tiempo de entrega: <b>1-3 días hábiles</b><br>" +
+                        " Cobertura: Lima Metropolitana y provincias<br>" +
+                        " Puedes rastrear tu pedido en tiempo real<br><br>" +
+                        " <i>Tip: Agrega más productos para calificar a envío gratis</i>";
         
         response.put("respuesta", mensaje);
         response.put("tipo", "envio");
@@ -138,13 +138,13 @@ public class ChatBotController {
 
     private Map<String, Object> obtenerInfoPago() {
         Map<String, Object> response = new HashMap<>();
-        String mensaje = "💳 <b>Métodos de Pago Aceptados:</b><br><br>" +
-                        "💳 Tarjetas de crédito/débito (Visa, Mastercard, Amex)<br>" +
-                        "📱 Yape y Plin<br>" +
-                        "🏦 Transferencias bancarias<br>" +
-                        "💰 Pago contra entrega (Lima Metropolitana)<br>" +
-                        "🔒 Todos los pagos son 100% seguros<br><br>" +
-                        "🎁 <b>Hasta 12 cuotas sin intereses</b> con tarjetas participantes";
+        String mensaje = " <b>Métodos de Pago Aceptados:</b><br><br>" +
+                        " Tarjetas de crédito/débito (Visa, Mastercard, Amex)<br>" +
+                        " Yape y Plin<br>" +
+                        " Transferencias bancarias<br>" +
+                        " Pago contra entrega (Lima Metropolitana)<br>" +
+                        " Todos los pagos son 100% seguros<br><br>" +
+                        " <b>Hasta 12 cuotas sin intereses</b> con tarjetas participantes";
         
         response.put("respuesta", mensaje);
         response.put("tipo", "pago");
@@ -153,12 +153,12 @@ public class ChatBotController {
 
     private Map<String, Object> obtenerInfoContacto() {
         Map<String, Object> response = new HashMap<>();
-        String mensaje = "📞 <b>Contáctanos:</b><br><br>" +
-                        "📱 <b>Teléfono:</b> <a href='tel:+51987654321'>+51 987 654 321</a><br>" +
-                        "💬 <b>WhatsApp:</b> <a href='https://wa.me/51987654321' target='_blank'>Chatear ahora</a><br>" +
-                        "📧 <b>Email:</b> <a href='mailto:soporte@smartzone.com'>soporte@smartzone.com</a><br>" +
-                        "🌐 <b>Web:</b> <a href='https://smartzone.com' target='_blank'>smartzone.com</a><br><br>" +
-                        "⏰ <b>Horario de atención:</b><br>" +
+        String mensaje = " <b>Contáctanos:</b><br><br>" +
+                        " <b>Teléfono:</b> <a href='tel:+51987654321'>+51 987 654 321</a><br>" +
+                        " <b>WhatsApp:</b> <a href='https://wa.me/51987654321' target='_blank'>Chatear ahora</a><br>" +
+                        " <b>Email:</b> <a href='mailto:soporte@smartzone.com'>soporte@smartzone.com</a><br>" +
+                        " <b>Web:</b> <a href='https://smartzone.com' target='_blank'>smartzone.com</a><br><br>" +
+                        " <b>Horario de atención:</b><br>" +
                         "Lunes a Viernes: 9:00 AM - 6:00 PM<br>" +
                         "Sábados: 9:00 AM - 1:00 PM";
         
@@ -211,7 +211,7 @@ public class ChatBotController {
             .collect(Collectors.toList());
         
         StringBuilder mensajeBuilder = new StringBuilder();
-        mensajeBuilder.append(String.format("💻 <b>Top %s:</b><br><br>", categoria.getName()));
+        mensajeBuilder.append(String.format(" <b>Top %s:</b><br><br>", categoria.getName()));
         
         if (productos.isEmpty()) {
             mensajeBuilder.append("No hay productos disponibles en esta categoría en este momento.");
@@ -232,15 +232,15 @@ public class ChatBotController {
                 mensajeBuilder.append(String.format("💲 Precio: <b>S/ %.2f</b><br>", producto.getPrecio()));
                 
                 if (producto.getStock() > 0) {
-                    mensajeBuilder.append("✅ Stock disponible<br>");
+                    mensajeBuilder.append(" Stock disponible<br>");
                 } else {
-                    mensajeBuilder.append("❌ Sin stock<br>");
+                    mensajeBuilder.append(" Sin stock<br>");
                 }
                 
                 mensajeBuilder.append("<br>");
             }
             mensajeBuilder.append(String.format(
-                "👉 <a href='/productos/categoria/%s'>Ver todos los %s</a>",
+                " <a href='/productos/categoria/%s'>Ver todos los %s</a>",
                 categoria.getSlug(),
                 categoria.getName()
             ));
@@ -270,11 +270,11 @@ public class ChatBotController {
         StringBuilder mensaje = new StringBuilder();
         
         if (resultados.isEmpty()) {
-            mensaje.append("🤔 No encontré productos que coincidan con tu búsqueda.<br><br>");
+            mensaje.append(" No encontré productos que coincidan con tu búsqueda.<br><br>");
             mensaje.append("Intenta con: <b>laptops</b>, <b>monitores</b>, <b>celulares</b>, ");
             mensaje.append("<b>consolas</b>, <b>ofertas</b>, <b>envíos</b>, <b>pagos</b> o <b>contacto</b>.");
         } else {
-            mensaje.append(String.format("🔍 <b>Encontré %d producto(s):</b><br><br>", resultados.size()));
+            mensaje.append(String.format(" <b>Encontré %d producto(s):</b><br><br>", resultados.size()));
             
             for (ProductosResponseDTO producto : resultados) {
                 mensaje.append(String.format(
@@ -284,15 +284,15 @@ public class ChatBotController {
                 ));
                 
                 if (producto.getStock() > 0) {
-                    mensaje.append("✅ Stock disponible<br>");
+                    mensaje.append(" Stock disponible<br>");
                 } else {
-                    mensaje.append("❌ Sin stock<br>");
+                    mensaje.append(" Sin stock<br>");
                 }
                 
                 mensaje.append("<br>");
             }
             
-            mensaje.append("👉 Haz clic en un producto para ver más detalles.");
+            mensaje.append(" Haz clic en un producto para ver más detalles.");
         }
         
         response.put("respuesta", mensaje.toString());
