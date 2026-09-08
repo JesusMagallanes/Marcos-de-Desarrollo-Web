@@ -5,6 +5,8 @@ import { Observable, map, tap } from 'rxjs';
 import { RUTAS_USUARIOS } from '../usuarios.routes';
 import { ALMACENAMIENTO } from '../../shared/config/constantes';
 import { CacheHttp } from '../../shared/cache/cache-http';
+// Sentido unico: descubrimiento no conoce a usuarios, asi que no hay ciclo.
+import { DescubrimientoService } from '../../descubrimiento';
 import {
   AuthResponse,
   DireccionUsuario,
@@ -22,6 +24,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly cache = inject(CacheHttp);
+  private readonly descubrimiento = inject(DescubrimientoService);
 
   private readonly usuarioSig = signal<Usuario | null>(this.leerUsuarioGuardado());
 
@@ -164,6 +167,19 @@ export class AuthService {
     localStorage.removeItem(ALMACENAMIENTO.usuario);
     this.usuarioSig.set(null);
     this.cache.limpiar();
+
+    /*
+     * El sujeto de descubrimiento tambien se suelta.
+     *
+     * Tras iniciar sesion, el identificador guardado ES el de la cuenta. Si se
+     * quedara al cerrar sesion, el siguiente visitante de este mismo navegador
+     * —un ordenador compartido, un locutorio— seguiria alimentando el perfil de
+     * quien se fue, y veria SUS recomendaciones.
+     *
+     * Al soltarlo se estrena identidad anonima en la siguiente peticion. No se
+     * pierde nada: lo aprendido quedo en la cuenta y vuelve al iniciar sesion.
+     */
+    this.descubrimiento.olvidarSujetoLocal();
   }
 
   /* ── modal de acceso ── */

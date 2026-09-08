@@ -1,3 +1,14 @@
+/** Una característica del producto, con su unidad separada del valor. */
+export interface AtributoValor {
+  /** Clave natural estable: `pulgadas`, `ram_gb`. Es lo que hace comparables dos productos. */
+  codigo: string;
+  nombre: string;
+  valor: string;
+  unidad: string | null;
+  /** Copia numérica cuando el atributo lo es; permite ordenar y filtrar por rango. */
+  valorNumero: number | null;
+}
+
 import { Categoria } from './categoria.model';
 
 /** Servicio `catalogo` (:8081). */
@@ -15,6 +26,14 @@ export interface Producto {
   description: string;
   /** Lista de especificaciones en Markdown, separada del párrafo de descripción. */
   specifications: string | null;
+  /**
+   * Las características, ya estructuradas (V19 del backend).
+   *
+   * <p>`specifications` sigue llegando con el mismo texto de siempre, pero es
+   * un DERIVADO de esto. Lo nuevo debería leer de aquí: es lo único que permite
+   * filtrar y comparar sin parsear Markdown.
+   */
+  atributos?: AtributoValor[];
   /** Precio de lista (el "antes"); nunca cambia al aplicar un descuento. */
   precio: number;
   /** Precio con descuento ya calculado; null si el producto no está en oferta. */

@@ -1,0 +1,128 @@
+/*
+ * Un carrusel de recomendaciones.
+ *
+ * Se desplaza con scroll nativo y ajuste por celda en vez de con botones y
+ * transformaciones: en movil el gesto es el que el usuario ya espera, no hay
+ * listeners de arrastre que mantener, y el teclado lo recorre solo.
+ */
+.carrusel-desc {
+  margin: 2rem 0;
+}
+
+.carrusel-desc__cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.carrusel-desc__titulo {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.carrusel-desc__motivo {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.carrusel-desc__pista {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(160px, 1fr);
+  gap: 0.85rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  /* Deja respirar la sombra de las tarjetas, que si no se recorta al borde. */
+  padding: 0.25rem 0.25rem 0.75rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+/* Cuantas caben a la vez, por tamano de pantalla. */
+@media (min-width: 576px) {
+  .carrusel-desc__pista {
+    grid-auto-columns: minmax(190px, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .carrusel-desc__pista {
+    grid-auto-columns: minmax(0, calc((100% - 4 * 0.85rem) / 5));
+  }
+}
+
+.carrusel-desc__celda {
+  position: relative;
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+/* El menu de descarte: discreto hasta que se busca. */
+.carrusel-desc__descartar {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  z-index: 2;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 85%);
+  color: #495057;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  cursor: pointer;
+}
+
+.carrusel-desc__celda:hover .carrusel-desc__descartar,
+.carrusel-desc__descartar:focus-visible {
+  opacity: 1;
+}
+
+/*
+ * En tactil no hay hover, asi que ahi el boton se ve siempre. Sin esto la
+ * accion de descartar seria inalcanzable en movil, que es donde mas se navega.
+ */
+@media (hover: none) {
+  .carrusel-desc__descartar {
+    opacity: 1;
+  }
+}
+
+.carrusel-desc__menu {
+  position: absolute;
+  top: 2.2rem;
+  right: 0.4rem;
+  z-index: 3;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.4rem;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 12%);
+  overflow: hidden;
+}
+
+.carrusel-desc__menu button {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.9rem;
+  border: none;
+  background: none;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  text-align: left;
+  cursor: pointer;
+}
+
+.carrusel-desc__menu button:hover {
+  background: #f1f3f5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carrusel-desc__descartar {
+    transition: none;
+  }
+}

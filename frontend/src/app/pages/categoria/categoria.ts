@@ -11,6 +11,7 @@ import {
   Producto,
   ProductoService,
   iconoCategoria,
+  DescubrimientoService,
 } from '../../core';
 import { ProductoCard } from '../../shared/producto-card/producto-card';
 
@@ -28,6 +29,7 @@ export class Categoria {
   private categoriaService = inject(CategoriaService);
   private marcaService = inject(MarcaService);
   private productoService = inject(ProductoService);
+  private descubrimiento = inject(DescubrimientoService);
 
   private slug = toSignal(this.ruta.paramMap.pipe(map((p) => p.get('slug') ?? '')), {
     initialValue: '',
@@ -49,10 +51,69 @@ export class Categoria {
   protected precioMax = signal<number | null>(null);
   protected orden = signal<Orden>('relevancia');
 
+  /**
+   * Filtros por caracteristica, construidos con lo que YA llego.
+   *
+   * <p>Los atributos viajan en cada producto (`producto_atributo` normalizado),
+   * asi que las facetas salen de ahi sin ninguna peticion extra y sin ninguna
+   * taxonomia paralela en el navegador: si manana se anade un atributo nuevo en
+   * el panel, aparece aqui solo.
+   *
+   * <p>Solo se ofrecen las que discriminan de verdad: una caracteristica con un
+   * unico valor en toda la categoria no filtra nada y solo ocupa sitio.
+   */
+  protected facetas = computed(() => {
+    const porCodigo = new Map<string, { nombre: string; valores: Set<string> }>();
+    for (const p of this.productos()) {
+      for (const a of p.atributos ?? []) {
+        const entrada = porCodigo.get(a.codigo) ?? { nombre: a.nombre, valores: new Set<string>() };
+        entrada.valores.add(a.valor);
+        porCodigo.set(a.codigo, entrada);
+      }
+    }
+    return [...porCodigo.entries()]
+      .filter(([, v]) => v.valores.size > 1)
+      .map(([codigo, v]) => ({ codigo, nombre: v.nombre, valores: [...v.valores].sort() }));
+  });
+
+  /** Qué valor está activo por cada característica. */
+  protected atributosSeleccionados = signal<Map<string, string>>(new Map());
+
+  /**
+   * Aplica o quita un filtro por característica.
+   *
+   * <p>Solo se registra ATTRIBUTE_FILTER al APLICAR, no al quitar: elegir «27
+   * pulgadas» dice lo que le interesa; deseleccionarlo dice que dejo de
+   * filtrar, no que le disguste.
+   */
+  protected alternarAtributo(codigo: string, valor: string): void {
+    const actual = new Map(this.atributosSeleccionados());
+    if (actual.get(codigo) === valor) {
+      actual.delete(codigo);
+    } else {
+      actual.set(codigo, valor);
+      this.descubrimiento.filtroAplicado(codigo, valor, this.categoria()?.id);
+    }
+    this.atributosSeleccionados.set(actual);
+  }
+
+  protected atributoActivo(codigo: string, valor: string): boolean {
+    return this.atributosSeleccionados().get(codigo) === valor;
+  }
+
   protected visibles = computed(() => {
     let lista = [...this.productos()];
     const marcas = this.marcasSeleccionadas();
     if (marcas.size > 0) lista = lista.filter((p) => p.marcaId !== null && marcas.has(p.marcaId));
+
+    const atributos = this.atributosSeleccionados();
+    if (atributos.size > 0) {
+      lista = lista.filter((p) =>
+        [...atributos.entries()].every(([codigo, valor]) =>
+          (p.atributos ?? []).some((a) => a.codigo === codigo && a.valor === valor),
+        ),
+      );
+    }
 
     const min = this.precioMin();
     if (min !== null) lista = lista.filter((p) => p.precio >= min);
@@ -116,6 +177,9 @@ export class Categoria {
           // Sin marcas el filtro se oculta; no es motivo para romper la página.
           error: () => this.marcas.set([]),
         });
+        // CATEGORY_VIEW con el id ya resuelto: la URL trae el slug, y el
+        // backend razona por id para poder propagar por el arbol.
+        this.descubrimiento.vistaDeCategoria(cat.id);
         this.cargarPagina();
       },
       error: () => {

@@ -44,6 +44,32 @@
     <!-- FIN DE SECCIÓN DE CARRUSEL -->
 
     <!-- INICIO DE SECCIÓN OFERTAS -->
+    <!--
+      DESCUBRIMIENTO
+      ==============
+      Va aqui, sobre las secciones de catalogo, porque es lo personalizado y lo
+      que da sentido a la plataforma como sitio de exploracion. Si no hay nada
+      que enseñar —visitante nuevo, o Descubrimiento caido— no se pinta NADA y
+      debajo sigue el Home de siempre.
+    -->
+    <div class="container">
+      @if (descubriendo()) {
+        <!-- Esqueleto: sin el, la pagina da un salto cuando llegan los carruseles. -->
+        <div class="descubrimiento-esqueleto" aria-hidden="true">
+          <div class="descubrimiento-esqueleto__titulo"></div>
+          <div class="descubrimiento-esqueleto__fila">
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+              <div class="descubrimiento-esqueleto__tarjeta"></div>
+            }
+          </div>
+        </div>
+      } @else {
+        @for (c of carruseles(); track c.modulo) {
+          <app-carrusel-descubrimiento [carrusel]="c" />
+        }
+      }
+    </div>
+
     @if (enOferta().length > 0) {
       <section class="mas-vendidos py-4">
         <div class="container-fluid">

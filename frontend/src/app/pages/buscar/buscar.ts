@@ -1,7 +1,7 @@
 import { Cargando } from '../../shared/cargando/cargando';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Producto, ProductoService } from '../../core';
+import { DescubrimientoService, Producto, ProductoService } from '../../core';
 import { ProductoCard } from '../../shared/producto-card/producto-card';
 
 @Component({
@@ -13,6 +13,7 @@ import { ProductoCard } from '../../shared/producto-card/producto-card';
 export class Buscar {
   private ruta = inject(ActivatedRoute);
   private productoService = inject(ProductoService);
+  private descubrimiento = inject(DescubrimientoService);
 
   /** Cuántos resultados se enseñan de una vez. */
   private static readonly POR_PAGINA = 24;
@@ -32,6 +33,16 @@ export class Buscar {
   }
 
   private buscar(termino: string): void {
+    /*
+     * SEARCH se registra cuando la busqueda YA SE EJECUTO, no al teclear.
+     *
+     * Este componente reacciona al parametro `q` de la URL, que solo cambia al
+     * enviar el formulario, asi que aqui no llegan las pulsaciones sueltas
+     * («m», «mo», «mon»...). El servicio ademas descarta el termino repetido,
+     * de modo que recargar o volver atras no cuenta como una busqueda mas.
+     */
+    this.descubrimiento.busqueda(termino);
+
     this.cargando.set(true);
     this.productoService.listar(termino, 0, Buscar.POR_PAGINA).subscribe({
       next: (pagina) => {

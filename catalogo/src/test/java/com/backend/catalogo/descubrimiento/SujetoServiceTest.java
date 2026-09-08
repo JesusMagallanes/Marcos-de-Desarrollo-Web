@@ -122,8 +122,30 @@ class SujetoServiceTest {
     }
 
     @Test
-    @DisplayName("volver con un id ya fusionado lleva al sujeto superviviente")
+    @DisplayName("volver con un id ya fusionado lleva al superviviente SI hay sesión")
     void siguelaCadenaDeFusiones() {
+        UUID anonimo = UUID.randomUUID();
+        Sujeto cuenta = sujeto(UUID.randomUUID(), ANA);
+        Sujeto fusionado = sujeto(anonimo, null);
+        fusionado.setFusionadoEn(cuenta.getId());
+
+        when(repositorio.buscarVivoDeUsuario(ANA)).thenReturn(Optional.of(cuenta));
+        when(repositorio.findById(anonimo)).thenReturn(Optional.of(fusionado));
+        when(repositorio.findById(cuenta.getId())).thenReturn(Optional.of(cuenta));
+
+        Sujeto resuelto = servicio.resolver(ANA, anonimo, null);
+
+        assertThat(resuelto.getId()).isEqualTo(cuenta.getId());
+    }
+
+    @Test
+    @DisplayName("SIN sesión, un id ya fusionado en una cuenta NO devuelve esa cuenta")
+    void unIdFusionadoNoAbreLaCuentaSinSesion() {
+        /*
+         * El mismo identificador viejo, pero sin iniciar sesión. Devolver la
+         * cuenta seria entregar el perfil de otro a quien solo conserva una
+         * cookie: exactamente el caso del equipo compartido.
+         */
         UUID anonimo = UUID.randomUUID();
         Sujeto cuenta = sujeto(UUID.randomUUID(), ANA);
         Sujeto fusionado = sujeto(anonimo, null);
@@ -132,10 +154,10 @@ class SujetoServiceTest {
         when(repositorio.findById(anonimo)).thenReturn(Optional.of(fusionado));
         when(repositorio.findById(cuenta.getId())).thenReturn(Optional.of(cuenta));
 
-        // Sin sesión iniciada y con el id viejo: aun así llega a su perfil.
         Sujeto resuelto = servicio.resolver(null, anonimo, null);
 
-        assertThat(resuelto.getId()).isEqualTo(cuenta.getId());
+        assertThat(resuelto.getId()).isNotEqualTo(cuenta.getId());
+        assertThat(resuelto.getUsuarioId()).isNull();
     }
 
     @Test
@@ -146,6 +168,28 @@ class SujetoServiceTest {
         assertThat(resuelto.getId()).isNotNull();
         assertThat(resuelto.getUsuarioId()).isNull();
         assertThat(resuelto.getUbigeo()).isEqualTo("110101");
+    }
+
+    @Test
+    @DisplayName("sin sesión, un identificador de CUENTA no se entrega: se estrena anónimo")
+    void elSujetoDeUnaCuentaNoSeEntregaSinJwt() {
+        /*
+         * Pasa de forma natural al cerrar sesión: el navegador conserva el
+         * ultimo identificador, que ya era el de la cuenta. Sin este corte, el
+         * siguiente visitante del mismo equipo —uno compartido, un locutorio—
+         * seguiria escribiendo en el perfil de quien se fue y veria SUS
+         * recomendaciones.
+         *
+         * Tambien cierra el caso de alguien que copia un identificador ajeno y
+         * lo manda sin autenticarse.
+         */
+        UUID deUnaCuenta = UUID.randomUUID();
+        when(repositorio.findById(deUnaCuenta)).thenReturn(Optional.of(sujeto(deUnaCuenta, ANA)));
+
+        Sujeto resuelto = servicio.resolver(null, deUnaCuenta, null);
+
+        assertThat(resuelto.getId()).isNotEqualTo(deUnaCuenta);
+        assertThat(resuelto.getUsuarioId()).isNull();
     }
 
     @Test

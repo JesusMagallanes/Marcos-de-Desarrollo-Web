@@ -68,6 +68,44 @@
             </div>
           </div>
 
+          <!--
+            FILTROS POR CARACTERÍSTICA
+            ==========================
+            Se construyen con los atributos que ya viajan en cada producto
+            (`producto_atributo`), sin ninguna petición extra ni taxonomía
+            paralela en el navegador: si mañana el panel añade una
+            característica nueva, aparece aquí sola.
+
+            Aplicar uno es la señal MÁS específica que se puede capturar sin
+            preguntar —dice el atributo y el valor exactos—, y por eso se
+            registra como ATTRIBUTE_FILTER.
+          -->
+          @for (f of facetas(); track f.codigo) {
+            <div class="mb-4">
+              <button class="filtro-btn" type="button" data-bs-toggle="collapse"
+                [attr.data-bs-target]="'#collapseAtr' + f.codigo">
+                {{ f.nombre }}
+                <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+              </button>
+              <div class="collapse show" [id]="'collapseAtr' + f.codigo">
+                <div class="filtro-content">
+                  @for (v of f.valores; track v) {
+                    <div class="form-check mb-2">
+                      <input class="form-check-input filter-checkbox" type="checkbox"
+                        [id]="'atr-' + f.codigo + '-' + v"
+                        [checked]="atributoActivo(f.codigo, v)"
+                        (change)="alternarAtributo(f.codigo, v)" />
+                      <label class="form-check-label" [for]="'atr-' + f.codigo + '-' + v"
+                        style="color: #5a5a5a; font-size: 0.95rem;">
+                        {{ v }}
+                      </label>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
           <!-- FILTRO DE DISPONIBILIDAD -->
           <div class="mb-4">
             <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStock">

@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 import { RUTAS_USUARIOS } from '../usuarios.routes';
 
 /**
@@ -39,6 +39,33 @@ export class UbigeoService {
     return this.http.get<string[]>(RUTAS_USUARIOS.ubigeo.provincias, {
       params: new HttpParams().set('departamento', departamento),
     });
+  }
+
+  /**
+   * El codigo INEI de un distrito.
+   *
+   * <p>Los tres desplegables devuelven NOMBRES, que es lo que necesita el
+   * formulario. El descubrimiento razona por codigo: su degradacion geografica
+   * —distrito, provincia, departamento, nacional— es recortar los seis digitos,
+   * y con nombres sueltos no se puede hacer.
+   *
+   * <p>Devuelve `null` si la combinacion no existe o si falla: sin ubigeo las
+   * tendencias caen a nacional, que es un resultado valido, no un error.
+   */
+  codigo(departamento: string, provincia: string, distrito: string): Observable<string | null> {
+    if (!departamento || !provincia || !distrito) return of(null);
+
+    return this.http
+      .get<{ codigo: string }>(RUTAS_USUARIOS.ubigeo.codigo, {
+        params: new HttpParams()
+          .set('departamento', departamento)
+          .set('provincia', provincia)
+          .set('distrito', distrito),
+      })
+      .pipe(
+        map((r) => r.codigo),
+        catchError(() => of(null)),
+      );
   }
 
   distritos(departamento: string, provincia: string): Observable<string[]> {

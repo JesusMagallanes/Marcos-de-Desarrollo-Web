@@ -186,6 +186,23 @@ describe('política de caché', () => {
     expect(politicaPara('/api/marcas')).toBeUndefined();
   });
 
+  it('el DESCUBRIMIENTO no se cachea NUNCA: es de una persona, no del catálogo', () => {
+    /*
+     * Esta caché guarda por URL y NO mira quién pregunta. Meter aquí el
+     * descubrimiento serviría el Home de un sujeto a otro distinto: sus
+     * recomendaciones, sus intereses, lo que estuvo mirando.
+     *
+     * La lista blanca ya lo deja fuera por omisión; esta prueba existe para que
+     * añadirlo sea un fallo rojo y no un descuido que nadie revisa.
+     */
+    expect(politicaPara('/api/descubrimiento/home')).toBeUndefined();
+    expect(politicaPara('/api/descubrimiento/home?ubigeo=110101')).toBeUndefined();
+    expect(politicaPara('/api/descubrimiento/segun-intereses')).toBeUndefined();
+    expect(politicaPara('/api/descubrimiento/tendencias')).toBeUndefined();
+    expect(politicaPara('/api/descubrimiento/mis-intereses')).toBeUndefined();
+    expect(politicaPara('/api/descubrimiento/similares/9')).toBeUndefined();
+  });
+
   it('el recurso de una url es su primer segmento: es lo que invalida una escritura', () => {
     expect(recursoDe('/api/guias/como-elegir-monitor')).toBe('/api/guias');
     expect(recursoDe('/api/ubigeo/provincias?departamento=Lima')).toBe('/api/ubigeo');

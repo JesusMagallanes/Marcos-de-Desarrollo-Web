@@ -1,0 +1,49 @@
+@if (visibles().length > 0) {
+  <section class="carrusel-desc" [attr.data-origen]="carrusel().origen">
+    <header class="carrusel-desc__cabecera">
+      <div>
+        <h2 class="carrusel-desc__titulo">{{ carrusel().titulo }}</h2>
+        <!--
+          El motivo se enseña tal como lo redacta el backend («Porque te
+          interesa monitores»). Nunca el score ni el nombre de la faceta: eso
+          es diagnostico interno y leerlo daria la sensacion de estar vigilado.
+        -->
+        @if (carrusel().motivo) {
+          <p class="carrusel-desc__motivo">{{ carrusel().motivo }}</p>
+        }
+      </div>
+    </header>
+
+    <div class="carrusel-desc__pista" role="list">
+      @for (p of visibles(); track p.id; let i = $index) {
+        <div
+          class="carrusel-desc__celda"
+          role="listitem"
+          [appImpresion]="carrusel().modulo"
+          [impresionItemId]="p.id"
+          [impresionPosicion]="i"
+        >
+          <button
+            type="button"
+            class="carrusel-desc__descartar"
+            [attr.aria-label]="'Opciones para ' + p.name"
+            [attr.aria-expanded]="menuAbierto() === p.id"
+            (click)="alternarMenu(p.id)"
+          >
+            <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+          </button>
+
+          @if (menuAbierto() === p.id) {
+            <div class="carrusel-desc__menu">
+              <button type="button" (click)="noMeInteresa(p)">No me interesa</button>
+            </div>
+          }
+
+          <div (click)="alAbrir(p)">
+            <app-producto-card [producto]="p" variante="carrusel" />
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+}

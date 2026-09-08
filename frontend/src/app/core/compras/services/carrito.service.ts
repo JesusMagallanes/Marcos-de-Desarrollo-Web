@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
+import { DescubrimientoService } from '../../descubrimiento';
 import { RUTAS_COMPRAS } from '../compras.routes';
 import { ENVIO } from '../../shared/config/constantes';
 import { AgregarItemRequest, CambiarCantidadRequest, Carrito, CarritoItem } from '../models';
@@ -11,6 +12,7 @@ import { AuthService } from '../../usuarios/services/auth.service';
 @Injectable({ providedIn: 'root' })
 export class CarritoService {
   private readonly http = inject(HttpClient);
+  private readonly descubrimiento = inject(DescubrimientoService);
   private readonly auth = inject(AuthService);
 
   private readonly itemsSig = signal<CarritoItem[]>([]);
@@ -67,9 +69,20 @@ export class CarritoService {
    */
   agregar(productoId: number, cantidad = 1): Observable<Carrito> {
     const cuerpo: AgregarItemRequest = { productoId, cantidad };
-    return this.http
-      .post<Carrito>(RUTAS_COMPRAS.carrito.items, cuerpo)
-      .pipe(tap((c) => this.aplicar(c)));
+    return this.http.post<Carrito>(RUTAS_COMPRAS.carrito.items, cuerpo).pipe(
+      tap((c) => this.aplicar(c)),
+      /*
+       * Anadir al carrito es una senal muy predictiva, asi que se registra.
+       *
+       * Va DESPUES de que el backend acepte —dentro del `tap` de exito— y no al
+       * pulsar el boton: si el producto se quedo sin stock y la peticion falla,
+       * no hubo interes que registrar, hubo un intento fallido.
+       *
+       * El servicio de descubrimiento traga sus propios errores, asi que esto
+       * no puede tumbar la operacion de carrito.
+       */
+      tap(() => this.descubrimiento.agregadoAlCarrito(productoId)),
+    );
   }
 
   /** PUT /api/carrito/items/{itemId} — 409 si supera el stock disponible. */

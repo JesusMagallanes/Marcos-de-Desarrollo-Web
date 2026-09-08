@@ -334,5 +334,21 @@
       }
     </div>
     <!-- FIN VALORACIONES -->
+
+    <!--
+      RELACIONADOS
+      ============
+      Van por CONTENIDO —caracteristicas y categoria compartidas—, no por
+      comportamiento, asi que funcionan el primer dia y con productos recien
+      publicados: es el arranque en frio de un producto nuevo.
+
+      Si no llegan o fallan, el componente no pinta nada y la ficha queda como
+      estaba. El usuario no se entera de que existe un recomendador.
+    -->
+    @if (relacionados(); as rel) {
+      <div class="container mb-5">
+        <app-carrusel-descubrimiento [carrusel]="rel" />
+      </div>
+    }
   }
 </div>

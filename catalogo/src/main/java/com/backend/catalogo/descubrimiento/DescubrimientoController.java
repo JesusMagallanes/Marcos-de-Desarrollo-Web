@@ -80,9 +80,21 @@ public class DescubrimientoController {
     public IngestaResponse eventos(
             @Valid @RequestBody LoteEventosRequest lote,
             @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
+            /*
+             * Alternativa a la cabecera, solo para `navigator.sendBeacon`.
+             *
+             * Al ocultarse la pestaña el navegador ya no permite una peticion
+             * normal —se cancelaria y se perderian los eventos de la ultima
+             * pantalla, que suele ser la mas interesante—, y sendBeacon no
+             * admite cabeceras. Vale exactamente lo mismo que `X-Sujeto`: sigue
+             * mandando el JWT si lo hay, asi que no abre ninguna via de
+             * suplantacion que la cabecera no abriera ya.
+             */
+            @RequestParam(value = "sujeto", required = false) UUID sujetoEnQuery,
             @AuthenticationPrincipal Jwt jwt) {
 
-        UUID sujeto = resolver(jwt, sujetoDelCliente, lote.ubigeo());
+        UUID sujeto = resolver(jwt,
+                sujetoDelCliente != null ? sujetoDelCliente : sujetoEnQuery, lote.ubigeo());
         return new IngestaResponse(sujeto, ingesta.registrar(sujeto, lote));
     }
 

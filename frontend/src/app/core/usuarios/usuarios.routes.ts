@@ -16,6 +16,8 @@ export const RUTAS_USUARIOS = {
     departamentos: `${API}/ubigeo/departamentos`,
     provincias: `${API}/ubigeo/provincias`,
     distritos: `${API}/ubigeo/distritos`,
+    /** El codigo INEI de un distrito; lo necesita el descubrimiento. */
+    codigo: `${API}/ubigeo/codigo`,
   },
   usuarios: {
     base: `${API}/usuarios`,

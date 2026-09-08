@@ -1,11 +1,14 @@
 import { ImagenCaida } from '../../shared/imagen/imagen-caida';
 import { Cargando } from '../../shared/cargando/cargando';
-import { Component, computed, inject, signal } from '@angular/core';
+import { CarruselDescubrimiento } from '../../shared/descubrimiento';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { forkJoin, of } from 'rxjs';
 import {
   AuthService,
+  Carrusel,
+  DescubrimientoService,
   CarritoService,
   ErrorApi,
   nombreCompleto,
@@ -54,21 +57,29 @@ const ESTRELLAS = [1, 2, 3, 4, 5] as const;
 
 @Component({
   selector: 'app-producto-detalle',
-  imports: [RouterLink, DatePipe, Cargando, ImagenCaida],
+  imports: [RouterLink, DatePipe, Cargando, ImagenCaida, CarruselDescubrimiento],
   templateUrl: './producto-detalle.html',
   styleUrl: './producto-detalle.css',
 })
-export class ProductoDetalle {
+export class ProductoDetalle implements OnDestroy {
   private ruta = inject(ActivatedRoute);
   private router = inject(Router);
   private productoService = inject(ProductoService);
   private valoracionService = inject(ValoracionService);
   private carrito = inject(CarritoService);
   private auth = inject(AuthService);
+  private descubrimiento = inject(DescubrimientoService);
 
   protected cargando = signal(true);
   protected noEncontrado = signal(false);
   protected producto = signal<Producto | null>(null);
+
+  /** Relacionados por contenido; null mientras no lleguen o si fallaron. */
+  protected relacionados = signal<Carrusel | null>(null);
+
+  /** Cuando se abrio la ficha actual, para medir la permanencia al salir. */
+  private entradaEnFicha = 0;
+  private fichaAbierta: { id: number; categoriaId?: number } | null = null;
   protected cantidad = signal(1);
   protected aviso = signal('');
   protected imagenActiva = signal(0);
@@ -168,7 +179,36 @@ export class ProductoDetalle {
     });
   }
 
+  /**
+   * Al salir de la ficha se manda el tiempo que estuvo abierta.
+   *
+   * <p>UNA sola vez, aqui. Un latido cada segundo daria el mismo dato con cien
+   * veces mas peticiones, y el techo lo aplican tanto el servicio como el
+   * backend: una pestana olvidada no es interes.
+   */
+  ngOnDestroy(): void {
+    this.registrarSalida();
+  }
+
+  private registrarSalida(): void {
+    const ficha = this.fichaAbierta;
+    if (!ficha || this.entradaEnFicha === 0) {
+      return;
+    }
+    this.descubrimiento.salidaDeProducto(
+      ficha.id,
+      ficha.categoriaId,
+      Date.now() - this.entradaEnFicha,
+    );
+    this.fichaAbierta = null;
+    this.entradaEnFicha = 0;
+  }
+
   private cargar(id: number): void {
+    // Navegar de un producto a otro no desmonta el componente: la salida de la
+    // ficha anterior se registra aqui o se perderia.
+    this.registrarSalida();
+
     this.cargando.set(true);
     this.noEncontrado.set(false);
     this.cantidad.set(1);
@@ -183,6 +223,18 @@ export class ProductoDetalle {
         this.cargando.set(false);
         window.scrollTo({ top: 0 });
         this.cargarValoraciones(id);
+
+        /*
+         * ITEM_VIEW se registra AQUI y no cuando una tarjeta aparece en un
+         * carrusel: abrir la ficha es una decision del usuario, que una tarjeta
+         * se pinte no lo es. El servicio ignora la repeticion, asi que volver
+         * atras y entrar de nuevo no cuenta como un interes nuevo.
+         */
+        this.descubrimiento.vistaDeProducto(p.id, p.categoriaId ?? undefined);
+        this.entradaEnFicha = Date.now();
+        this.fichaAbierta = { id: p.id, categoriaId: p.categoriaId ?? undefined };
+
+        this.descubrimiento.similares(p.id, 12).subscribe((c) => this.relacionados.set(c));
       },
       error: () => {
         this.noEncontrado.set(true);

@@ -74,17 +74,44 @@ public class SujetoService {
         if (sujetoDelCliente == null) {
             return repositorio.save(nuevo(null));
         }
-        return repositorio.findById(sujetoDelCliente)
+
+        Sujeto encontrado = repositorio.findById(sujetoDelCliente)
                 .map(this::resolverFusion)
-                // Un id que no existe se acepta como semilla: viene de una
-                // cookie legítima que no llegó a persistirse, y rechazarlo
-                // obligaría al cliente a cambiar de identificador y perder su
-                // propio rastro.
-                .orElseGet(() -> repositorio.save(Sujeto.builder()
-                        .id(sujetoDelCliente)
-                        .creadoEn(Instant.now())
-                        .vistoEn(Instant.now())
-                        .build()));
+                .orElse(null);
+
+        if (encontrado == null) {
+            /*
+             * Un identificador que no esta en la base se acepta tal cual.
+             *
+             * Viene de una cookie legitima que no llego a persistirse, y
+             * rechazarlo obligaria al cliente a cambiar de identificador y a
+             * perder su propio rastro. Un UUID v4 no se adivina.
+             */
+            return repositorio.save(Sujeto.builder()
+                    .id(sujetoDelCliente)
+                    .creadoEn(Instant.now())
+                    .vistoEn(Instant.now())
+                    .build());
+        }
+
+        if (encontrado.getUsuarioId() != null) {
+            /*
+             * Resuelve a un sujeto CON cuenta, pero aqui no hay sesion iniciada:
+             * se estrena uno anonimo NUEVO, con identificador propio.
+             *
+             * Pasa al cerrar sesion —el navegador conserva el ultimo
+             * identificador, que ya era el de la cuenta— y en un equipo
+             * compartido. Sin este corte, el siguiente visitante seguiria
+             * alimentando el perfil de quien se fue y veria SUS
+             * recomendaciones. Tambien cierra el caso de quien copia un
+             * identificador ajeno y lo manda sin autenticarse.
+             *
+             * El identificador NO se reutiliza: chocaria con la fila existente.
+             */
+            return repositorio.save(nuevo(null));
+        }
+
+        return encontrado;
     }
 
     /** Sigue la cadena de fusiones hasta el sujeto que sobrevivió. */

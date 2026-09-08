@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.backend.usuarios.shared.error.RecursoNoEncontradoException;
 import com.backend.usuarios.shared.validacion.Saneador;
 
 import jakarta.validation.constraints.NotBlank;
@@ -50,5 +51,37 @@ public class UbigeoController {
             @RequestParam @NotBlank @Size(max = 80) String departamento,
             @RequestParam @NotBlank @Size(max = 80) String provincia) {
         return repositorio.distritosDe(Saneador.texto(departamento), Saneador.texto(provincia));
+    }
+
+    /**
+     * El codigo INEI de un distrito.
+     *
+     * <p>Los tres desplegables devuelven NOMBRES, que es lo que necesita el
+     * formulario de direccion. Pero el descubrimiento razona por codigo: la
+     * degradacion geografica —distrito, provincia, departamento, nacional— es
+     * recortar los seis digitos, y con nombres sueltos no se puede hacer.
+     *
+     * <p>Devuelve 404 si la combinacion no existe. Que los tres nombres viajen
+     * por la red no garantiza que formen un distrito real: nada impide pedir
+     * «Miraflores» dentro de un departamento donde no esta.
+     */
+    @GetMapping("/codigo")
+    public UbigeoCodigo codigo(
+            @RequestParam @NotBlank @Size(max = 80) String departamento,
+            @RequestParam @NotBlank @Size(max = 80) String provincia,
+            @RequestParam @NotBlank @Size(max = 80) String distrito) {
+
+        return repositorio.buscar(Saneador.texto(departamento), Saneador.texto(provincia),
+                        Saneador.texto(distrito))
+                .map(u -> new UbigeoCodigo(u.getCodigo(), u.getDepartamento(), u.getProvincia(),
+                        u.getDistrito()))
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe el distrito %s / %s / %s".formatted(
+                                departamento, provincia, distrito)));
+    }
+
+    /** El codigo y los nombres ya normalizados como estan en la tabla. */
+    public record UbigeoCodigo(String codigo, String departamento, String provincia,
+            String distrito) {
     }
 }
