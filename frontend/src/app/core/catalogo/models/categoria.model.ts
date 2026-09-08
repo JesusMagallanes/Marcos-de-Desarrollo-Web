@@ -7,6 +7,13 @@ export interface Categoria {
   description: string;
   /** Nombre de ícono de FontAwesome, sin el prefijo (p. ej. "laptop"). */
   icono: string | null;
+  /**
+   * Categoría que la contiene; null si es raíz del árbol.
+   *
+   * La taxonomía era plana y pasó a ser jerárquica en la migración V18:
+   * «Tecnología › Computación › Laptops». Ver `docs/modelo-datos.md`.
+   */
+  padreId?: number | null;
 }
 
 export interface CategoriaRequest {
@@ -14,6 +21,8 @@ export interface CategoriaRequest {
   slug: string;
   description: string;
   icono: string | null;
+  /** Dónde colgarla. Omitirlo o mandar null la deja como raíz. */
+  padreId?: number | null;
 }
 
 /** Ícono de respaldo cuando la categoría no trae uno. */

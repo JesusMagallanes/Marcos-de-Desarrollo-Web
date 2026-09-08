@@ -11,6 +11,9 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 
     boolean existsByName(String name);
 
+    /** Cuantas cuelgan de esta. Cero es condicion para poder borrarla. */
+    long countByPadreId(Long padreId);
+
     boolean existsBySlug(String slug);
 
     List<Categoria> findAllByOrderByNameAsc();

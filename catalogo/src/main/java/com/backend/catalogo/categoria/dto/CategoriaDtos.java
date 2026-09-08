@@ -5,6 +5,7 @@ import com.backend.catalogo.shared.validacion.Saneador;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public final class CategoriaDtos {
@@ -17,10 +18,13 @@ public final class CategoriaDtos {
             String name,
             String slug,
             String description,
-            String icono) {
+            String icono,
+            /** Categoría que la contiene; null si es raíz del árbol. */
+            Long padreId) {
 
         public static CategoriaResponse desde(Categoria c) {
-            return new CategoriaResponse(c.getId(), c.getName(), c.getSlug(), c.getDescription(), c.getIcono());
+            return new CategoriaResponse(c.getId(), c.getName(), c.getSlug(), c.getDescription(),
+                    c.getIcono(), c.getPadre() == null ? null : c.getPadre().getId());
         }
     }
 
@@ -39,7 +43,9 @@ public final class CategoriaDtos {
             @Pattern(regexp = "^[a-z0-9-]+$", message = "El slug solo admite minúsculas, números y guiones") String slug,
             @NotBlank @Size(max = 500) String description,
             @Size(max = 60)
-            @Pattern(regexp = "^[a-z0-9-]*$", message = "El icono solo admite minúsculas, números y guiones") String icono) {
+            @Pattern(regexp = "^[a-z0-9-]*$", message = "El icono solo admite minúsculas, números y guiones") String icono,
+            /** Dónde colgarla. Null la deja como raíz, que es lo que eran todas. */
+            @Positive Long padreId) {
 
         /**
          * A03: el saneado ocurre AQUÍ, en el constructor compacto, y no en el

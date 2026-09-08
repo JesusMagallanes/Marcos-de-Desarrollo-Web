@@ -29,7 +29,7 @@
         @for (m of marcas(); track m.id) {
           <tr>
             <td class="fw-semibold">{{ m.name }}</td>
-            <td class="small text-muted">{{ nombreCategoria(m.categoriaId) }}</td>
+            <td class="small text-muted">{{ nombresCategorias(m) }}</td>
             <td class="small text-muted text-truncate" style="max-width: 320px">{{ m.descripcion }}</td>
             <td class="text-end">
               @if (confirmandoId() === m.id) {
@@ -70,13 +70,22 @@
       </div>
 
       <div class="mb-2">
-        <label for="marca-categoriaId" class="form-label small fw-semibold">Categoría</label>
-        <select class="form-select form-select-sm" id="marca-categoriaId" formControlName="categoriaId" [class.is-invalid]="invalido('categoriaId')">
-          <option [value]="0">Selecciona…</option>
+        <span class="form-label small fw-semibold d-block">Categorías</span>
+        <div class="border rounded p-2" style="max-height: 190px; overflow-y: auto">
           @for (c of categorias(); track c.id) {
-            <option [value]="c.id">{{ c.name }}</option>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [id]="'marca-cat-' + c.id"
+                [checked]="estaMarcada(c.id)"
+                (change)="alternarCategoria(c.id, $any($event.target).checked)"
+              />
+              <label class="form-check-label small" [for]="'marca-cat-' + c.id">{{ c.name }}</label>
+            </div>
           }
-        </select>
+        </div>
+        <div class="form-text small">Una marca puede vender en varias categorías.</div>
       </div>
 
       <div class="mb-3">

@@ -7,6 +7,7 @@ import java.util.Locale;
 
 import com.backend.catalogo.producto.EstadoModeracion;
 import com.backend.catalogo.categoria.dto.CategoriaDtos.CategoriaResponse;
+import com.backend.catalogo.atributo.ProductoAtributo;
 import com.backend.catalogo.producto.Producto;
 import com.backend.catalogo.producto.ProductoImagen;
 import com.backend.catalogo.shared.validacion.Limites;
@@ -38,6 +39,24 @@ public final class ProductoDtos {
      * vigente, si no el de lista) y `enOferta` indica si el descuento está
      * activo, para que la tienda no tenga que replicar la lógica de fechas.
      */
+    /** Una característica del producto, con su unidad separada del valor. */
+    public record AtributoValor(
+            String codigo,
+            String nombre,
+            String valor,
+            String unidad,
+            BigDecimal valorNumero) {
+
+        public static AtributoValor desde(ProductoAtributo pa) {
+            return new AtributoValor(
+                    pa.getAtributo().getCodigo(),
+                    pa.getAtributo().getNombre(),
+                    pa.getValor(),
+                    pa.getAtributo().getUnidad(),
+                    pa.getValorNumero());
+        }
+    }
+
     public record ProductoResponse(
             Long id,
             String name,
@@ -67,7 +86,16 @@ public final class ProductoDtos {
             // solo se le devuelve lo publicado.
             Long propietarioId,
             EstadoModeracion estadoModeracion,
-            String motivoRechazo) {
+            String motivoRechazo,
+            /**
+             * Las características, ya estructuradas.
+             *
+             * <p>`specifications` sigue viajando con el mismo texto de siempre
+             * para no romper las pantallas actuales, pero es un DERIVADO de
+             * esta lista. Lo nuevo que se escriba debería leer de aquí: es lo
+             * único que permite filtrar y comparar.
+             */
+            List<AtributoValor> atributos) {
 
         public static ProductoResponse desde(Producto p) {
             return desde(p, Instant.now(), null, null);
@@ -104,7 +132,8 @@ public final class ProductoDtos {
                     p.getMarca() != null ? p.getMarca().getName() : null,
                     p.getPropietarioId(),
                     p.getEstadoModeracion(),
-                    p.getMotivoRechazo());
+                    p.getMotivoRechazo(),
+                    p.getAtributos().stream().map(AtributoValor::desde).toList());
         }
     }
 

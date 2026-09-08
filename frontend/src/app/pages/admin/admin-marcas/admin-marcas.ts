@@ -34,7 +34,10 @@ export class AdminMarcas implements OnInit, OnDestroy {
   protected form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
     descripcion: ['', [Validators.required]],
-    categoriaId: [0, [Validators.required, Validators.min(1)]],
+    // Varias: una marca vende en mas de una categoria desde la migracion V18.
+    // `Validators.required` no sirve sobre un array —[] pasa la validacion—, asi
+    // que el minimo de uno se comprueba en `guardar()`.
+    categoriaIds: [[] as number[]],
   });
 
   ngOnInit(): void {
@@ -63,19 +66,38 @@ export class AdminMarcas implements OnInit, OnDestroy {
     });
   }
 
-  protected nombreCategoria(id: number): string {
-    return this.categorias().find((c) => c.id === id)?.name ?? '—';
+  /** Los nombres de las categorias de una marca, para la tabla. */
+  protected nombresCategorias(m: Marca): string {
+    const porId = new Map(this.categorias().map((c) => [c.id, c.name]));
+    const nombres = (m.categoriaIds ?? []).map((id) => porId.get(id)).filter((n): n is string => !!n);
+    return nombres.length ? nombres.join(', ') : '—';
+  }
+
+  /** Marca/desmarca una categoria en el formulario. */
+  protected alternarCategoria(id: number, marcado: boolean): void {
+    const actuales = this.form.controls.categoriaIds.value;
+    this.form.controls.categoriaIds.setValue(
+      marcado ? [...actuales, id] : actuales.filter((x) => x !== id),
+    );
+  }
+
+  protected estaMarcada(id: number): boolean {
+    return this.form.controls.categoriaIds.value.includes(id);
   }
 
   protected nuevo(): void {
     this.editandoId.set(null);
-    this.form.reset({ name: '', descripcion: '', categoriaId: 0 });
+    this.form.reset({ name: '', descripcion: '', categoriaIds: [] });
     this.formAbierto.set(true);
   }
 
   protected editar(m: Marca): void {
     this.editandoId.set(m.id);
-    this.form.setValue({ name: m.name, descripcion: m.descripcion, categoriaId: m.categoriaId });
+    this.form.setValue({
+      name: m.name,
+      descripcion: m.descripcion,
+      categoriaIds: [...(m.categoriaIds ?? [])],
+    });
     this.formAbierto.set(true);
   }
 
@@ -85,6 +107,10 @@ export class AdminMarcas implements OnInit, OnDestroy {
   }
 
   protected guardar(): void {
+    if (this.form.controls.categoriaIds.value.length === 0) {
+      this.estado.fallo({ mensaje: 'Elige al menos una categoria.' } as ErrorApi);
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

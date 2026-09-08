@@ -45,6 +45,8 @@ class DescuentosRepositoryIT extends PruebaIntegracion {
     private CategoriaRepository categorias;
     @Autowired
     private MarcaRepository marcas;
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     private Instant ahora;
     private Long categoriaId;
@@ -59,6 +61,11 @@ class DescuentosRepositoryIT extends PruebaIntegracion {
         ContextoRls.comoSistema(() -> {
             productos.deleteAll();
             marcas.deleteAll();
+            // El arbol se aplana antes de borrar: `deleteAll()` va fila a fila en
+            // un orden cualquiera, y quitar una madre antes que sus hijas choca
+            // con `fk_categoria_padre`. Soltar el vinculo primero deja el
+            // borrado sin orden que respetar.
+            jdbc.update("UPDATE catalogo.categoria SET categoria_padre_id = NULL");
             categorias.deleteAll();
 
             Categoria categoria = categorias.save(Categoria.builder()
@@ -66,7 +73,9 @@ class DescuentosRepositoryIT extends PruebaIntegracion {
             categoriaId = categoria.getId();
 
             Marca marca = marcas.save(Marca.builder()
-                    .name("LG").descripcion("d").categoria(categoria).build());
+                    .name("LG").descripcion("d")
+                    // La marca ya vive en N categorias (V18): se da de alta en la suya.
+                    .categorias(new java.util.LinkedHashSet<>(java.util.List.of(categoria))).build());
             marcaId = marca.getId();
 
             // Activo: vigencia abierta por los dos lados.

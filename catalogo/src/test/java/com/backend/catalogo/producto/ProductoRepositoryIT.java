@@ -38,6 +38,9 @@ class ProductoRepositoryIT extends PruebaIntegracion {
     @Autowired
     private MarcaRepository marcaRepositorio;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     /**
      * Se borra en orden de dependencia, y las marcas NO sobran.
      *
@@ -51,6 +54,11 @@ class ProductoRepositoryIT extends PruebaIntegracion {
         imagenRepositorio.deleteAll();
         productoRepositorio.deleteAll();
         marcaRepositorio.deleteAll();
+        // El arbol se aplana antes de borrar: `deleteAll()` va fila a fila en
+        // un orden cualquiera, y quitar una madre antes que sus hijas choca
+        // con `fk_categoria_padre`. Soltar el vinculo primero deja el
+        // borrado sin orden que respetar.
+        jdbc.update("UPDATE catalogo.categoria SET categoria_padre_id = NULL");
         categoriaRepositorio.deleteAll();
     }
 

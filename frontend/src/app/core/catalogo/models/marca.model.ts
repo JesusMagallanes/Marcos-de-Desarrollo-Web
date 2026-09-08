@@ -1,14 +1,26 @@
-/** Servicio `catalogo` (:8081). Una marca pertenece a una categoría. */
+/**
+ * Servicio `catalogo` (:8081). Una marca vende en VARIAS categorías.
+ *
+ * Era una sola, y eso obligaba a dar de alta «LG», «LG (TV)» y «LG (Línea
+ * blanca)» como marcas distintas. Ver `docs/modelo-datos.md` y la migración V18.
+ */
 export interface Marca {
   id: number;
   name: string;
   descripcion: string;
-  /** Id plano; el objeto Categoria no viaja anidado. */
-  categoriaId: number;
+  /**
+   * La primera de `categoriaIds`.
+   * @deprecated Se mantiene mientras el panel siga enviando una sola. Usa `categoriaIds`.
+   */
+  categoriaId: number | null;
+  /** Todas las categorías en las que vende. */
+  categoriaIds: number[];
 }
 
 export interface MarcaRequest {
   name: string;
   descripcion: string;
-  categoriaId: number;
+  /** El backend acepta esta o `categoriaIds`; con una sola basta enviar esta. */
+  categoriaId?: number;
+  categoriaIds?: number[];
 }

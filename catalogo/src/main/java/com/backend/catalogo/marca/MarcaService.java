@@ -1,6 +1,8 @@
 package com.backend.catalogo.marca;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,11 +25,11 @@ public class MarcaService {
     private final CategoriaService categoriaService;
 
     public List<MarcaResponse> listar() {
-        return repositorio.findAllByOrderByNameAsc().stream().map(MarcaResponse::desde).toList();
+        return repositorio.listarConCategorias().stream().map(MarcaResponse::desde).toList();
     }
 
     public List<MarcaResponse> listarPorCategoria(Long categoriaId) {
-        return repositorio.findByCategoriaIdOrderByNameAsc(categoriaId).stream()
+        return repositorio.listarPorCategoria(categoriaId).stream()
                 .map(MarcaResponse::desde)
                 .toList();
     }
@@ -42,12 +44,10 @@ public class MarcaService {
         if (repositorio.existsByName(dto.name())) {
             throw new ConflictoException("Ya existe una marca con ese nombre");
         }
-        Categoria categoria = categoriaService.buscar(dto.categoriaId());
-
         Marca marca = Marca.builder()
                 .name(dto.name())
                 .descripcion(dto.descripcion())
-                .categoria(categoria)
+                .categorias(resolverCategorias(dto))
                 .build();
 
         return MarcaResponse.desde(repositorio.save(marca));
@@ -63,9 +63,31 @@ public class MarcaService {
 
         marca.setName(dto.name());
         marca.setDescripcion(dto.descripcion());
-        marca.setCategoria(categoriaService.buscar(dto.categoriaId()));
+
+        // Se reemplaza el contenido en vez del Set entero: Hibernate necesita
+        // seguir gestionando la misma coleccion para calcular el delta de la
+        // tabla intermedia.
+        marca.getCategorias().clear();
+        marca.getCategorias().addAll(resolverCategorias(dto));
 
         return MarcaResponse.desde(repositorio.save(marca));
+    }
+
+    /**
+     * Traduce los ids de la peticion a categorias existentes.
+     *
+     * <p>Exige al menos una: una marca que no vende en ninguna categoria no
+     * aparece en ningun listado, y crearla asi es casi siempre un formulario a
+     * medio enviar, no una intencion.
+     */
+    private LinkedHashSet<Categoria> resolverCategorias(MarcaRequest dto) {
+        List<Long> ids = dto.categoriasPedidas();
+        if (ids.isEmpty()) {
+            throw new ConflictoException("La marca necesita al menos una categoria");
+        }
+        return ids.stream()
+                .map(categoriaService::buscar)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Transactional

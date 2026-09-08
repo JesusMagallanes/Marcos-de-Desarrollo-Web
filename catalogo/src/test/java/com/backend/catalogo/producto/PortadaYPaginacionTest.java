@@ -128,7 +128,7 @@ class PortadaYPaginacionTest {
         when(repositorio.listarEnOferta(any(Instant.class), any(Pageable.class)))
                 .thenReturn(List.of(producto(2, "Teclado")));
         when(categoriaService.listar()).thenReturn(
-                List.of(new CategoriaResponse(7L, "Monitores", "monitores", "d", null)));
+                List.of(new CategoriaResponse(7L, "Monitores", "monitores", "d", null, null)));
         when(repositorio.listarDeCategoria(eq(7L), any(Pageable.class)))
                 .thenReturn(List.of(producto(1, "Monitor")));
 
@@ -156,7 +156,7 @@ class PortadaYPaginacionTest {
         when(repositorio.listarConRelaciones(any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
         when(repositorio.listarEnOferta(any(Instant.class), any(Pageable.class))).thenReturn(List.of());
         when(categoriaService.listar()).thenReturn(
-                List.of(new CategoriaResponse(9L, "Sin nada", "sin-nada", "d", null)));
+                List.of(new CategoriaResponse(9L, "Sin nada", "sin-nada", "d", null, null)));
         when(repositorio.listarDeCategoria(eq(9L), any(Pageable.class))).thenReturn(List.of());
 
         assertThat(servicio.portada().porCategoria()).isEmpty();

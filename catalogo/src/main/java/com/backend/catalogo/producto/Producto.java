@@ -8,6 +8,8 @@ import java.util.List;
 import com.backend.catalogo.categoria.Categoria;
 import com.backend.catalogo.marca.Marca;
 
+import com.backend.catalogo.atributo.ProductoAtributo;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
@@ -102,6 +104,22 @@ public class Producto {
     // en null: crear un producto reventaba con NPE al aplicar las imágenes.
     @Builder.Default
     private List<ProductoImagen> imagenes = new ArrayList<>();
+
+    /**
+     * Las características, ya como filas y no como un bloque de texto.
+     *
+     * <p>Sustituye a {@code specifications}, que era una lista en Markdown
+     * dentro de una columna: una violación de 1FN que impedía filtrar, comparar
+     * y unificar el vocabulario. Ver la migración V19.
+     *
+     * <p>{@code specifications} sigue existiendo y se compone A PARTIR de esto
+     * para no romper el frontend ni la app móvil; se retira en la etapa 3.
+     */
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("posicion ASC")
+    @BatchSize(size = 100)
+    @Builder.Default
+    private List<ProductoAtributo> atributos = new ArrayList<>();
 
     /* ── Dueño y moderación (SZ-B08) ── */
 
