@@ -46,6 +46,8 @@ public class RutasConfig {
                  * de modo que tampoco funcionaba con `ng serve`.
                  */
                 .route(path("/api/sync/**"), http())
+                // Descubrimiento: eventos, recomendaciones y tendencias.
+                .route(path("/api/descubrimiento/**"), http())
                 .before(uri(catalogoUrl))
                 .build();
     }

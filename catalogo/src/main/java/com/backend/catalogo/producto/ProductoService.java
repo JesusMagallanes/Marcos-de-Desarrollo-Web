@@ -177,6 +177,27 @@ public class ProductoService {
                         conteo.getProgramados(), conteo.getInactivos()));
     }
 
+    /**
+     * Los productos indicados, EN EL ORDEN PEDIDO.
+     *
+     * <p>Lo usa el descubrimiento: el recomendador decide un orden por score y
+     * necesita hidratarlo sin perderlo. `buscarConImagenes` devuelve lo que hay,
+     * en el orden que quiera la base, así que se reordena aquí.
+     *
+     * <p>Reutiliza `aRespuestas`, de modo que estos productos llegan con la
+     * misma forma —valoraciones, oferta vigente, galería— que los del catálogo.
+     * Duplicar el mapeo habría hecho que las tarjetas del Home se comportaran
+     * distinto que las del listado.
+     */
+    public List<ProductoResponse> porIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, Producto> porId = repositorio.buscarConImagenes(ids).stream()
+                .collect(Collectors.toMap(Producto::getId, p -> p));
+        return aRespuestas(ids.stream().map(porId::get).filter(Objects::nonNull).toList());
+    }
+
     /** Traduce una página de JPA a la forma que espera el frontend. */
     private PaginaResponse<ProductoResponse> aPagina(Page<Producto> pagina) {
         return new PaginaResponse<>(

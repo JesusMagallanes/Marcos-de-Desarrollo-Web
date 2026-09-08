@@ -128,6 +128,18 @@ public class SecurityConfig {
                                 "/api/valoraciones/top")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/chatbot/**").permitAll()
+                        /*
+                         * Descubrimiento: publico A PROPOSITO, lecturas y escrituras.
+                         *
+                         * El caso de uso es literalmente el visitante que entra «solo a
+                         * mirar» sin cuenta, y exigir sesion para registrar sus eventos
+                         * dejaria al sistema sin la senal que vino a capturar.
+                         *
+                         * Que sea publico NO significa que cualquiera vea lo de otro: el
+                         * sujeto lo resuelve el servidor y, cuando hay JWT, la cabecera
+                         * `X-Sujeto` se ignora. Ver DescubrimientoController.resolver.
+                         */
+                        .requestMatchers("/api/descubrimiento/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         // Las métricas revelan volumen y errores: solo ADMINISTRADOR.
                         .requestMatchers("/actuator/prometheus").hasRole("ADMINISTRADOR")

@@ -74,6 +74,8 @@ class RutasConfigTest {
             "/api/chatbot/mensaje",
             "/api/valoraciones/admin",
             "/api/sync/valoraciones",
+            "/api/descubrimiento/home",
+            "/api/descubrimiento/eventos",
             "/api/auth/login",
             "/api/usuarios/1",
             "/api/roles",
