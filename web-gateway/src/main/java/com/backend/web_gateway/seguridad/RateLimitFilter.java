@@ -77,7 +77,25 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private Cupo cupoDe(HttpServletRequest peticion) {
         String ruta = peticion.getRequestURI();
 
-        if (ruta.startsWith("/api/auth/") || ruta.startsWith("/oauth2/")) {
+        /*
+         * El cupo de autenticacion existe para frenar la adivinacion de
+         * credenciales, y adivinar es SIEMPRE una peticion que cambia estado.
+         * Metiendo aqui todo lo que cuelga de /api/auth/ tambien entraban las
+         * dos lecturas publicas —/proveedores y /yo—, y /yo la pide el arranque
+         * de la aplicacion en cada carga de pagina: navegar gastaba intentos de
+         * login. Con 20 cada 15 minutos por IP, un locutorio o una oficina tras
+         * una sola salida a internet se quedaba sin poder entrar despues de un
+         * rato de navegar, sin que nadie hubiera fallado una contrasena.
+         *
+         * Aflojar esto no deja el login a la intemperie: `usuarios` mantiene su
+         * propio cupo, y ese si es el estrecho de verdad (10 accesos cada 15
+         * minutos, 5 registros por hora). Las lecturas siguen acotadas por
+         * LECTURA.
+         */
+        if (ruta.startsWith("/oauth2/")) {
+            return AUTENTICACION;
+        }
+        if (ruta.startsWith("/api/auth/") && !"GET".equals(peticion.getMethod())) {
             return AUTENTICACION;
         }
         if (ruta.equals("/api/pagos/webhook")) {

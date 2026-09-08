@@ -110,9 +110,12 @@ public class DescubrimientoController {
     public IngestaResponse impresiones(
             @Valid @RequestBody LoteImpresionesRequest lote,
             @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
+            /* Igual que en /eventos: sendBeacon no puede mandar cabeceras. */
+            @RequestParam(value = "sujeto", required = false) UUID sujetoEnQuery,
             @AuthenticationPrincipal Jwt jwt) {
 
-        UUID sujeto = resolver(jwt, sujetoDelCliente, null);
+        UUID sujeto = resolver(jwt,
+                sujetoDelCliente != null ? sujetoDelCliente : sujetoEnQuery, null);
         return new IngestaResponse(sujeto,
                 ingesta.registrarImpresiones(sujeto, lote.impresiones()));
     }

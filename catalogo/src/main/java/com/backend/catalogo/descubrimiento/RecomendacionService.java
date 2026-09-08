@@ -86,7 +86,7 @@ public class RecomendacionService {
             agregar(salida, explorar(sujeto, porCarrusel, yaUsados), yaUsados);
         }
 
-        agregar(salida, populares(porCarrusel, yaUsados), yaUsados);
+        agregar(salida, populares(sujeto, porCarrusel, yaUsados), yaUsados);
         return salida;
     }
 
@@ -144,10 +144,24 @@ public class RecomendacionService {
                 "Algo distinto de lo que sueles mirar", diversificar(crudos, limite));
     }
 
-    /** ARRANQUE EN FRÍO · sin perfil no hay nada personal que ofrecer. */
-    public Carrusel populares(int limite, Set<Long> yaUsados) {
-        List<Long> excluidos = new ArrayList<>(yaUsados);
-        excluidos.add(NINGUNO);
+    /**
+     * ARRANQUE EN FRÍO · sin perfil no hay nada personal que ofrecer.
+     *
+     * <p>Nace para quien no tiene rastro, pero se anade al Home SIEMPRE, tambien
+     * al de quien si lo tiene: es el relleno que evita una pantalla a medias. Por
+     * eso necesita el sujeto. Sin el se saltaba los filtros duros, y lo que se
+     * colaba era justo lo peor que puede colarse: un producto que la persona
+     * acababa de marcar como «no me interesa» reaparecia en la siguiente carga.
+     * Descartar algo y verlo volver es peor que no poder descartarlo.
+     */
+    public Carrusel populares(UUID sujeto, int limite, Set<Long> yaUsados) {
+        List<Long> excluidos;
+        if (sujeto == null) {
+            excluidos = new ArrayList<>(yaUsados);
+            excluidos.add(NINGUNO);
+        } else {
+            excluidos = excluidos(sujeto, yaUsados);
+        }
         List<Candidato> crudos = candidatos.populares(null, excluidos,
                 limite * FACTOR_SOBREMUESTREO);
         return armar(ModuloDescubrimiento.POPULARES, null,

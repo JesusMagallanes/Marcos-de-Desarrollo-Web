@@ -63,6 +63,20 @@ export class DescubrimientoService {
   private ubigeoActual: string | null = null;
 
   private buzon: EventoRequest[] = [];
+
+  /*
+   * Las impresiones van en su propio buzon pero comparten el temporizador.
+   *
+   * Son la señal mas voluminosa del sistema —un Home con tres carruseles son
+   * treinta y seis— y salian de una en una, que es justo lo que el encabezado
+   * de esta clase dice que no se hace. Ademas del trafico, cada POST gastaba
+   * cupo de escritura en la pasarela, el mismo que usan el carrito y el pedido:
+   * quien se limitaba a desplazar la pagina podia acabar sin poder comprar.
+   *
+   * Buzon aparte porque el endpoint es otro; temporizador compartido porque el
+   * ritmo es el mismo y dos relojes solo servirian para duplicar despertares.
+   */
+  private buzonImpresiones: ImpresionRequest[] = [];
   private temporizador: ReturnType<typeof setTimeout> | null = null;
 
   /*
@@ -215,7 +229,12 @@ export class DescubrimientoService {
       return;
     }
     this.impresionesEmitidas.add(clave);
-    this.enviarImpresiones([{ itemTipo, itemId: productoId, modulo, posicion }]);
+    this.buzonImpresiones.push({ itemTipo, itemId: productoId, modulo, posicion });
+    if (this.buzonImpresiones.length >= TOPE_BUZON) {
+      this.vaciarBuzon();
+      return;
+    }
+    this.armarTemporizador();
   }
 
   /* ══════════════ Lectura ══════════════ */
@@ -267,6 +286,7 @@ export class DescubrimientoService {
    * heredaría la memoria de vistas e impresiones del anterior.
    */
   olvidarSujetoLocal(): void {
+    // Se vacia ANTES de soltar la identidad: lo pendiente es del que se va.
     this.vaciarBuzon();
     this.sujetoSig.set(null);
     this.vistasEmitidas.clear();
@@ -288,6 +308,11 @@ export class DescubrimientoService {
       this.vaciarBuzon();
       return;
     }
+    this.armarTemporizador();
+  }
+
+  /** Un solo reloj para los dos buzones. Si ya corre, se deja correr. */
+  private armarTemporizador(): void {
     if (this.temporizador === null) {
       this.temporizador = setTimeout(() => this.vaciarBuzon(), INTERVALO_ENVIO_MS);
     }
@@ -306,6 +331,16 @@ export class DescubrimientoService {
       clearTimeout(this.temporizador);
       this.temporizador = null;
     }
+    if (this.buzon.length === 0 && this.buzonImpresiones.length === 0) {
+      return;
+    }
+
+    const impresiones = this.buzonImpresiones;
+    this.buzonImpresiones = [];
+    if (impresiones.length > 0) {
+      this.enviarImpresiones(impresiones, alCerrar);
+    }
+
     if (this.buzon.length === 0) {
       return;
     }
@@ -342,7 +377,17 @@ export class DescubrimientoService {
       );
   }
 
-  private enviarImpresiones(impresiones: ImpresionRequest[]): void {
+  private enviarImpresiones(impresiones: ImpresionRequest[], alCerrar = false): void {
+    if (alCerrar && navigator.sendBeacon) {
+      const url = this.sujetoSig()
+        ? `${RUTAS_DESCUBRIMIENTO.impresiones}?sujeto=${this.sujetoSig()}`
+        : RUTAS_DESCUBRIMIENTO.impresiones;
+      navigator.sendBeacon(
+        url,
+        new Blob([JSON.stringify({ impresiones })], { type: 'application/json' }),
+      );
+      return;
+    }
     this.http
       .post<IngestaResponse>(
         RUTAS_DESCUBRIMIENTO.impresiones,

@@ -130,20 +130,44 @@ describe('DescubrimientoService', () => {
     servicio.impresion('SEGUN_TUS_INTERESES', 9, 0);
     servicio.impresion('SEGUN_TUS_INTERESES', 9, 0);
     servicio.impresion('SEGUN_TUS_INTERESES', 9, 3);
+    vaciar();
 
-    http.expectOne(IMPRESIONES).flush({ sujetoId: SUJETO, registrados: 1 });
+    const req = http.expectOne(IMPRESIONES);
+    expect(req.request.body.impresiones).toHaveLength(1);
+    req.flush({ sujetoId: SUJETO, registrados: 1 });
     http.verify();
   });
 
   it('el mismo producto en OTRO módulo sí es otra impresión', () => {
     // Son medidas distintas: cada carrusel se evalúa por separado.
     servicio.impresion('SEGUN_TUS_INTERESES', 9);
-    http.expectOne(IMPRESIONES).flush({ sujetoId: SUJETO, registrados: 1 });
-
     servicio.impresion('TENDENCIAS', 9);
-    const segunda = http.expectOne(IMPRESIONES);
-    expect(segunda.request.body.impresiones[0].modulo).toBe('TENDENCIAS');
-    segunda.flush({ sujetoId: SUJETO, registrados: 1 });
+    vaciar();
+
+    const req = http.expectOne(IMPRESIONES);
+    expect(req.request.body.impresiones.map((i: { modulo: string }) => i.modulo)).toEqual([
+      'SEGUN_TUS_INTERESES',
+      'TENDENCIAS',
+    ]);
+    req.flush({ sujetoId: SUJETO, registrados: 2 });
+  });
+
+  it('las impresiones viajan en UN lote, no una petición por tarjeta', () => {
+    /*
+     * Es la señal mas voluminosa que existe: un Home con tres carruseles pinta
+     * treinta y seis. Saliendo de una en una eran treinta y seis POST, que
+     * ademas gastan el mismo cupo de escritura de la pasarela que el carrito y
+     * el pedido: quien solo desplazaba la pagina podia acabar sin poder comprar.
+     */
+    for (let i = 0; i < 12; i++) {
+      servicio.impresion('POPULARES', i, i);
+    }
+    vaciar();
+
+    const req = http.expectOne(IMPRESIONES);
+    expect(req.request.body.impresiones).toHaveLength(12);
+    req.flush({ sujetoId: SUJETO, registrados: 12 });
+    http.verify();
   });
 
   /* ══════════════ Lotes, no una petición por evento ══════════════ */
