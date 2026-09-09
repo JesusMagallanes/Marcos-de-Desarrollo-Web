@@ -159,6 +159,12 @@ services:
       RESERVA_MINUTOS: ${RESERVA_MINUTOS:-20}
       # Para comprobar que quien valora un producto lo compro.
       COMPRAS_URL: http://compras:8083
+      # Cada cuanto se reconstruyen las relaciones colaborativas. Se pasa por
+      # aqui para poder acelerarlo en un entorno de prueba sin recompilar: el
+      # valor por defecto —una hora— es el que tiene sentido en produccion,
+      # porque el gusto colectivo no cambia por minutos.
+      DESCUBRIMIENTO_COLABORATIVO_INTERVALO_MS: ${DESCUBRIMIENTO_COLABORATIVO_INTERVALO_MS:-3600000}
+      DESCUBRIMIENTO_COLABORATIVO_RETRASO_INICIAL_MS: ${DESCUBRIMIENTO_COLABORATIVO_RETRASO_INICIAL_MS:-180000}
     depends_on:
       verificador: {condition: service_completed_successfully}
       postgres: {condition: service_healthy, required: false}

@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import com.backend.catalogo.descubrimiento.Origen;
 import com.backend.catalogo.descubrimiento.TipoEvento;
 
 import lombok.Getter;
@@ -82,6 +83,130 @@ public class PesosDescubrimiento {
 
     /** Máximo de ítems de la misma marca dentro de un carrusel. */
     private int maximoPorMarca = 2;
+
+    /* ══════════════ Fase 2 · señales colaborativas ══════════════ */
+
+    /**
+     * Ventana de conducta que alimenta el cálculo colaborativo, en días.
+     *
+     * <p>No es el histórico entero a propósito. Lo que la gente compraba junto
+     * hace dos años describe un catálogo que ya no existe, y arrastrarlo
+     * convierte al recomendador en un archivo. Treinta días es corto para que
+     * refleje la temporada y largo para que un producto de rotación lenta
+     * acumule evidencia.
+     */
+    private int colaborativoVentanaDias = 30;
+
+    /**
+     * Sujetos distintos que tienen que sostener una relación entre productos.
+     *
+     * <p>Con uno solo, cualquier casualidad se convierte en recomendación: dos
+     * pestañas abiertas por la misma persona bastarían para emparejar un
+     * teclado con una silla. Tres es el mínimo que ya no es anécdota.
+     */
+    private int colaborativoMinSoporte = 3;
+
+    /**
+     * Ítems como máximo que aporta un sujeto al cálculo de co-interacción.
+     *
+     * <p>Acota el autojoin, que es cuadrático en los ítems de CADA sujeto. Sin
+     * tope, una sola sesión anómala —un rastreador, alguien comparando medio
+     * catálogo— multiplica el coste del proceso por lotes.
+     */
+    private int colaborativoTopeItemsPorSujeto = 200;
+
+    /** Facetas que dos sujetos tienen que compartir para considerarlos parecidos. */
+    private int similitudMinCompartidas = 3;
+
+    /**
+     * A partir de cuántos sujetos una faceta deja de servir para emparejar.
+     *
+     * <p>Una faceta que tiene casi todo el mundo no distingue a nadie —saber
+     * que a dos personas les interesa la tecnología en una tienda de tecnología
+     * no dice nada— y además es la que haría explotar el cruce. Descartarla
+     * gana rendimiento y precisión a la vez.
+     */
+    private int similitudTopeSujetosPorFaceta = 500;
+
+    /** Por debajo de este parecido, un vecino no aporta nada que fiarse. */
+    private double similitudMinima = 0.15;
+
+    /** Vecinos que se consultan como mucho al generar candidatos. */
+    private int similitudVecinosConsultados = 25;
+
+    /**
+     * Vecinos distintos que tienen que haber tocado un producto para ofrecerlo.
+     *
+     * <p>Es el piso de privacidad del módulo de perfiles parecidos, y no es lo
+     * mismo que el mínimo de 50 sujetos de las tendencias geográficas: allí se
+     * protege un dato de zona, aquí se evita que el carrusel de una persona sea
+     * el historial de otra. Con uno solo bastaría para que «otras personas
+     * descubrieron» significara «una persona concreta miró».
+     *
+     * <p>Con la tienda recién abierta esto devuelve vacío casi siempre, y está
+     * bien que así sea: el Home cae a los otros módulos y nadie queda expuesto
+     * por haber sido de los primeros en llegar.
+     */
+    private int similitudMinAportantes = 3;
+
+    /**
+     * Peso de cada origen al combinar candidatos de distintos generadores.
+     *
+     * <p>Son la única calibración del ranker híbrido y viven aquí y en ningún
+     * otro sitio: repartir números por varias clases es como se pierde la
+     * capacidad de ajustar el sistema. Lo que importa es la PROPORCIÓN, porque
+     * el score de cada generador se normaliza antes de aplicarlos.
+     *
+     * <p>El orden de partida dice qué se cree más: lo que esta persona ya ha
+     * demostrado que le interesa, después lo que hace gente con su mismo gusto,
+     * después el parecido de contenido, y al final lo que solo es popular.
+     */
+    private Map<Origen, Double> pesoOrigen = pesosDeOrigenPorDefecto();
+
+    /**
+     * Cuánto se castiga a un producto por ser popular, entre 0 y 1.
+     *
+     * <p>Con 0 no se castiga nada y el catálogo se convierte en un embudo: lo
+     * que ya se ve, se recomienda; al recomendarse, se ve más. Con 1 se anula
+     * la popularidad, que tampoco es cierto —algo puede ser popular porque es
+     * bueno—. El factor aplicado es {@code 1 / (1 + k·ln(1+impresiones))}.
+     */
+    private double penalizacionPopularidad = 0.35;
+
+    /** Tope de carruseles colaborativos en el Home. */
+    private int maximoModulosColaborativos = 1;
+
+    private static Map<Origen, Double> pesosDeOrigenPorDefecto() {
+        Map<Origen, Double> p = new EnumMap<>(Origen.class);
+        p.put(Origen.PERSONAL, 1.0);
+        p.put(Origen.COHORTE, 0.8);
+        p.put(Origen.GEO, 0.5);
+        p.put(Origen.TENDENCIA, 0.4);
+        p.put(Origen.EXPLORACION, 0.3);
+        return p;
+    }
+
+    public double pesoDe(Origen origen) {
+        return pesoOrigen.getOrDefault(origen, 0.0);
+    }
+
+    /**
+     * El factor por popularidad, ya acotado entre 0 y 1.
+     *
+     * <p>Logarítmico porque la diferencia entre 10 y 100 impresiones importa, y
+     * la que hay entre 10.000 y 100.000 ya no.
+     */
+    public double factorPopularidad(long impresiones) {
+        if (impresiones <= 0) {
+            return 1.0;
+        }
+        return 1.0 / (1.0 + penalizacionPopularidad * Math.log1p(impresiones));
+    }
+
+    /** La ventana colaborativa como duración, que es como la usa el proceso. */
+    public Duration ventanaColaborativa() {
+        return Duration.ofDays(colaborativoVentanaDias);
+    }
 
     /**
      * El factor por permanencia, ya acotado.

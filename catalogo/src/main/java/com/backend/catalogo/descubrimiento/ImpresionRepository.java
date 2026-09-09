@@ -50,4 +50,28 @@ public interface ImpresionRepository extends JpaRepository<Impresion, Long> {
     @Modifying
     @Query("DELETE FROM Impresion i WHERE i.mostradoEn < :limite")
     int purgarAnterioresA(@Param("limite") Instant limite);
+
+    /**
+     * Cuántas veces se ha enseñado cada uno de estos ítems, a quien sea.
+     *
+     * <p>Es la medida de popularidad EXPUESTA, que no es la misma que la de
+     * popularidad real y es justamente la que hay que castigar: un producto se
+     * ve mucho porque el sistema lo enseña mucho, y si eso lo hace subir en el
+     * ranking, el sistema se está retroalimentando a sí mismo. Ver
+     * {@code PesosDescubrimiento.factorPopularidad}.
+     *
+     * <p>Sobre la lista de candidatos ya recortada, no sobre el catálogo: son
+     * unas decenas de identificadores y un recorrido de índice.
+     *
+     * @return filas {@code [itemId, veces]}
+     */
+    @Query(value = """
+            SELECT i.item_id, COUNT(*)
+              FROM catalogo.impresion i
+             WHERE i.item_tipo = 'PRODUCTO'
+               AND i.item_id IN (:items)
+               AND i.mostrado_en >= :desde
+             GROUP BY i.item_id
+            """, nativeQuery = true)
+    List<Object[]> contarPorItem(@Param("items") List<Long> items, @Param("desde") Instant desde);
 }

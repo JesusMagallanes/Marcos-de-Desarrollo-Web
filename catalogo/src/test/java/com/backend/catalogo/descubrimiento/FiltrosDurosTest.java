@@ -25,6 +25,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
+
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import com.backend.catalogo.producto.ProductoService;
 
 /**
@@ -63,8 +65,11 @@ class FiltrosDurosTest {
     private ArgumentCaptor<List<Long>> excluidos;
 
     private RecomendacionService servicio() {
+        PesosDescubrimiento pesos = new PesosDescubrimiento();
         return new RecomendacionService(candidatos, descartes, impresiones, eventos,
-                perfiles, tendencias, productos, new PesosDescubrimiento());
+                perfiles, tendencias, productos,
+                new RankerHibrido(impresiones, pesos),
+                new MetricasDescubrimiento(new SimpleMeterRegistry()), pesos);
     }
 
     @Test

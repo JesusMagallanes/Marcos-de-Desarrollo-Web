@@ -1,5 +1,6 @@
 package com.backend.catalogo.descubrimiento;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -202,4 +203,156 @@ public interface CandidatoRepository extends Repository<Producto, Long> {
             """, nativeQuery = true)
     List<Candidato> paraExplorar(@Param("sujeto") UUID sujeto,
             @Param("excluidos") List<Long> excluidos, @Param("limite") int limite);
+
+    /**
+     * COLABORATIVO · ítem a ítem, por co-interacción.
+     *
+     * <p>Parte de lo último que esta persona tocó y salta a lo que la gente que
+     * tocó eso mismo tocó también. Es la única vía por la que el sistema puede
+     * proponer un brazo articulado a quien mira monitores: no comparten
+     * categoría, ni marca, ni un solo atributo. Solo comparten público.
+     *
+     * <p>Acotada por los dos extremos: unas pocas semillas —lo más reciente, que
+     * es lo que describe el interés de ahora— y, por cada una, un recorrido del
+     * índice de {@code item_relacion}. No hay recorrido de catálogo ni
+     * comparación contra otros sujetos: eso ya lo pagó el proceso por lotes.
+     *
+     * <p>Se excluye lo que la propia persona ya tocó. Recomendarle lo que acaba
+     * de ver es el error más visible que puede cometer un recomendador.
+     */
+    @Query(value = """
+            WITH semilla AS (
+                SELECT e.item_id, MAX(e.ocurrido_en) AS ultimo
+                  FROM catalogo.evento_interaccion e
+                 WHERE e.sujeto_id = :sujeto
+                   AND e.item_tipo = 'PRODUCTO'
+                   AND e.item_id IS NOT NULL
+                   AND e.tipo IN ('ITEM_VIEW', 'ITEM_VIEW_DEEP', 'ADD_TO_CART',
+                                  'FAVORITE', 'PURCHASE')
+                 GROUP BY e.item_id
+                 ORDER BY MAX(e.ocurrido_en) DESC
+                 LIMIT :semillas
+            )
+            SELECT p.id           AS "itemId",
+                   p.categoria_id AS "categoriaId",
+                   p.marca_id     AS "marcaId",
+                   CAST(SUM(r.score) AS double precision) AS "score"
+              FROM semilla s
+              JOIN catalogo.item_relacion r
+                ON r.item_tipo = 'PRODUCTO' AND r.item_a = s.item_id
+              JOIN catalogo.producto p ON p.id = r.item_b
+             WHERE p.estado_moderacion = 'APROBADO'
+               AND p.stock > 0
+               AND p.id NOT IN (:excluidos)
+               AND NOT EXISTS (SELECT 1 FROM semilla ya WHERE ya.item_id = p.id)
+             GROUP BY p.id, p.categoria_id, p.marca_id
+             ORDER BY 4 DESC
+             LIMIT :limite
+            """, nativeQuery = true)
+    List<Candidato> porCoVisita(@Param("sujeto") UUID sujeto,
+            @Param("semillas") int semillas,
+            @Param("excluidos") List<Long> excluidos,
+            @Param("limite") int limite);
+
+    /**
+     * COLABORATIVO · lo que se mira junto con UN producto concreto.
+     *
+     * <p>La misma tabla que {@link #porCoVisita}, pero con una sola semilla: la
+     * ficha que se está viendo. No necesita sujeto, y eso la hace valiosa
+     * justo donde el perfil todavía no existe —el visitante que llega desde una
+     * búsqueda externa y aterriza en un producto—, que es cuando la fase 1 no
+     * tiene absolutamente nada que decir.
+     */
+    @Query(value = """
+            SELECT p.id           AS "itemId",
+                   p.categoria_id AS "categoriaId",
+                   p.marca_id     AS "marcaId",
+                   CAST(r.score AS double precision) AS "score"
+              FROM catalogo.item_relacion r
+              JOIN catalogo.producto p ON p.id = r.item_b
+             WHERE r.item_tipo = 'PRODUCTO'
+               AND r.item_a = :itemId
+               AND p.estado_moderacion = 'APROBADO'
+               AND p.stock > 0
+               AND p.id NOT IN (:excluidos)
+             ORDER BY r.score DESC
+             LIMIT :limite
+            """, nativeQuery = true)
+    List<Candidato> porCoVisitaDeItem(@Param("itemId") Long itemId,
+            @Param("excluidos") List<Long> excluidos,
+            @Param("limite") int limite);
+
+    /**
+     * COLABORATIVO · por sujetos de perfil parecido.
+     *
+     * <p>Lo que descubrió gente cuyo gusto se parece al de esta persona y que
+     * ella todavía no ha visto. Es la señal que rompe la burbuja de la fase 1:
+     * el perfil propio solo puede devolver más de lo mismo, porque está hecho
+     * exactamente de lo mismo.
+     *
+     * <p><b>Cada vecino cuenta una vez por producto.</b> El {@code DISTINCT}
+     * del interior es lo que impide que un vecino especialmente insistente
+     * decida él solo la recomendación: aporta su parecido, no su número de
+     * clics. El score suma los parecidos de quienes coincidieron, de modo que
+     * un producto que gustó a cinco vecinos flojos puede ganar a uno que gustó a
+     * un vecino muy parecido, que es lo correcto.
+     *
+     * <p>Nada de esto sale del backend. Ver {@code SujetoSimilitud}.
+     */
+    @Query(value = """
+            WITH vecino AS (
+                SELECT s.sujeto_b, s.score
+                  FROM catalogo.sujeto_similitud s
+                 WHERE s.sujeto_a = :sujeto
+                   AND s.score >= :minSimilitud
+                 ORDER BY s.score DESC
+                 LIMIT :vecinos
+            ),
+            ajeno AS (
+                SELECT DISTINCT e.sujeto_id, e.item_id
+                  FROM catalogo.evento_interaccion e
+                 WHERE e.item_tipo = 'PRODUCTO'
+                   AND e.item_id IS NOT NULL
+                   AND e.ocurrido_en >= :desde
+                   AND e.tipo IN ('ITEM_VIEW_DEEP', 'ADD_TO_CART', 'FAVORITE', 'PURCHASE')
+            ),
+            propio AS (
+                SELECT DISTINCT e.item_id
+                  FROM catalogo.evento_interaccion e
+                 WHERE e.sujeto_id = :sujeto AND e.item_id IS NOT NULL
+            )
+            SELECT p.id           AS "itemId",
+                   p.categoria_id AS "categoriaId",
+                   p.marca_id     AS "marcaId",
+                   CAST(SUM(v.score) AS double precision) AS "score"
+              FROM vecino v
+              JOIN ajeno a ON a.sujeto_id = v.sujeto_b
+              JOIN catalogo.producto p ON p.id = a.item_id
+             WHERE p.estado_moderacion = 'APROBADO'
+               AND p.stock > 0
+               AND p.id NOT IN (:excluidos)
+               AND NOT EXISTS (SELECT 1 FROM propio yo WHERE yo.item_id = p.id)
+             GROUP BY p.id, p.categoria_id, p.marca_id
+            /*
+             * El piso de privacidad de este generador.
+             *
+             * Sin el, un unico vecino podria aportar el carrusel entero, y eso
+             * no es una recomendacion agregada: es ensenarle a alguien lo que
+             * ha estado mirando otra persona. Que hagan falta varios vecinos
+             * distintos para que un producto salga es lo que convierte el dato
+             * individual en un patron. Con pocos usuarios esto devuelve vacio, y
+             * devolver vacio es la respuesta correcta: el Home cae a los otros
+             * modulos y nadie queda expuesto por ser de los primeros.
+             */
+            HAVING COUNT(DISTINCT v.sujeto_b) >= :minAportantes
+             ORDER BY 4 DESC
+             LIMIT :limite
+            """, nativeQuery = true)
+    List<Candidato> porSujetosSimilares(@Param("sujeto") UUID sujeto,
+            @Param("minSimilitud") double minSimilitud,
+            @Param("vecinos") int vecinos,
+            @Param("desde") Instant desde,
+            @Param("minAportantes") int minAportantes,
+            @Param("excluidos") List<Long> excluidos,
+            @Param("limite") int limite);
 }
