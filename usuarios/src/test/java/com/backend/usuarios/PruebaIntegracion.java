@@ -1,4 +1,4 @@
-package com.backend.compras;
+package com.backend.usuarios;
 
 import org.junit.jupiter.api.Tag;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,10 +9,12 @@ import org.testcontainers.containers.PostgreSQLContainer;
 /**
  * Base de las pruebas de integración: levanta un PostgreSQL real en contenedor.
  *
- * Verifica lo que las unitarias no alcanzan: que las migraciones de Flyway se
- * apliquen, que el esquema case con las entidades y que las consultas JPA
- * funcionen de verdad. Ese fue justamente el hueco que dejó pasar la columna
- * `version` que faltaba en `saga_checkout`.
+ * Verifica lo que las unitarias no alcanzan. En `usuarios` eso es la cadena
+ * entera de arranque: las nueve migraciones de Flyway se aplican sobre un
+ * Postgres de verdad y, acto seguido, Hibernate compara el esquema resultante
+ * contra las entidades porque `ddl-auto` está en `validate`. Una columna
+ * renombrada en una migración y no en la entidad —o al revés— compila, pasa
+ * todas las unitarias y revienta al desplegar. Aquí revienta antes.
  *
  * Si no hay Docker, las pruebas se SALTAN en vez de fallar: en un equipo no
  * todos lo tienen instalado y un build roto por eso solo enseña a ignorarlo.
@@ -21,7 +23,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  *   mvn verify   → añade las de integración (*IT)
  *
  * OJO: cada clase concreta debe repetir la anotación
- * {@code @EnabledIf("com.backend.compras.Docker#disponible")}. JUnit 5 no
+ * {@code @EnabledIf("com.backend.usuarios.Docker#disponible")}. JUnit 5 no
  * hereda las condiciones declaradas en una superclase, así que ponerla solo
  * aquí no evitaría que el contenedor intentara arrancar.
  *
@@ -44,10 +46,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * que no se puede cancelar desde fuera —ponerlo a vacío aquí no sirve de nada,
  * está comprobado—. El fichero entra en el contexto de prueba con la cadena de
  * la base real y los secretos de las pasarelas. Lo único que tiene precedencia
- * sobre él es declarar los valores aquí. Por eso se declaran también las
- * credenciales de MercadoPago: son las únicas de salida que lee este
- * servicio, y sin vaciarlas una prueba podía llamar a la pasarela REAL con
- * el token de producción, que es algo que no se deshace.
+ * sobre él es declarar los valores aquí.
  *
  * <p>Van aquí y no en el flujo de trabajo para que la prueba se baste sola:
  * corre igual en CI, en un portátil sin {@code .env} y en uno que lo tenga.
@@ -57,11 +56,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
         "DB_USER=prueba",
         "DB_PASSWORD=prueba",
         "JWT_SECRET=secreto-de-pruebas-suficientemente-largo-para-hs256",
-        // Vacias a proposito: el cliente de MercadoPago no llega a construirse
-        // con credenciales de verdad.
-        "MP_ACCESS_TOKEN=",
-        "MP_WEBHOOK_SECRET=",
-        "MP_NOTIFICACION_URL=",
 })
 @Tag("integracion")
 public abstract class PruebaIntegracion {
@@ -117,9 +111,5 @@ public abstract class PruebaIntegracion {
         // El secreto debe superar los 32 bytes o el arranque se detiene.
         registro.add("seguridad.jwt.secreto",
                 () -> "secreto-de-pruebas-suficientemente-largo-para-hs256");
-
-        // MercadoPago no se contacta en las pruebas.
-        registro.add("mercadopago.access-token", () -> "");
-        registro.add("mercadopago.webhook-secret", () -> "secreto-webhook-de-pruebas");
     }
 }

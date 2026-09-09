@@ -28,23 +28,27 @@ import org.testcontainers.containers.PostgreSQLContainer;
  *
  * <h4>Por qué el {@code properties} de abajo declara variables que no se usan</h4>
  *
- * <p>Son las cuatro que exige {@code ValidacionArranque}. La conexión de verdad
- * la fija {@code @DynamicPropertySource} con los datos del contenedor, pero
- * estas tienen que EXISTIR igualmente: esa validación se engancha a
- * {@code ApplicationEnvironmentPrepared}, antes de que haya contexto, y busca
+ * <p>Por dos razones distintas.
+ *
+ * <p>La primera: son las que exige {@code ValidacionArranque}. La conexión de
+ * verdad la fija {@code @DynamicPropertySource} con los datos del contenedor,
+ * pero estas tienen que EXISTIR igualmente, porque esa validación se engancha a
+ * {@code ApplicationEnvironmentPrepared} —antes de que haya contexto— y busca
  * {@code DB_URL}, {@code DB_USER}, {@code DB_PASSWORD} y {@code JWT_SECRET} por
  * su nombre de variable de entorno. Si falta una, corta el arranque y todas las
- * pruebas de integración fallan con «Failed to load ApplicationContext», que no
- * dice nada del motivo real.
+ * pruebas fallan con «Failed to load ApplicationContext», que no dice nada del
+ * motivo real. En un portátil no se notaba, porque el {@code .env} del
+ * repositorio las trae; en CI no hay {@code .env} y fallaban todas de golpe.
  *
- * <p>En un portátil no se notaba, porque el {@code .env} del repositorio las
- * trae y {@code spring.config.import} lo carga. En CI no hay {@code .env} ni
- * variables de entorno, así que fallaban todas de golpe. Salió a la luz al
- * arreglar el permiso de ejecución de {@code mvnw}, que era lo que impedía que
- * CI llegara siquiera a {@code verify}.
+ * <p>La segunda: neutralizan ese mismo {@code .env}. {@code application.properties}
+ * lo importa para el desarrollo diario, y el import va DENTRO del documento, así
+ * que no se puede cancelar desde fuera —ponerlo a vacío aquí no sirve de nada,
+ * está comprobado—. El fichero entra en el contexto de prueba con la cadena de
+ * la base real y los secretos de las pasarelas. Lo único que tiene precedencia
+ * sobre él es declarar los valores aquí.
  *
- * <p>Van aquí y no en el workflow para que la prueba se baste sola: corre igual
- * en CI, en un portátil sin {@code .env} y en uno que lo tenga.
+ * <p>Van aquí y no en el flujo de trabajo para que la prueba se baste sola:
+ * corre igual en CI, en un portátil sin {@code .env} y en uno que lo tenga.
  */
 @SpringBootTest(properties = {
         "DB_URL=jdbc:postgresql://localhost:5432/no-se-usa",
