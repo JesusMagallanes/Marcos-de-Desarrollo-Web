@@ -46,8 +46,47 @@ jobs:
       - name: Compilar y probar
         working-directory: ${{ matrix.servicio }}
         # `verify` y no `test` para que corran también las *IT con Testcontainers
-        # donde las haya. Las que necesitan Docker se saltan solas si no lo hay.
+        # donde las haya.
+        #
+        # En el runner hay Docker y no hace falta configurar nada: Testcontainers
+        # encuentra el daemon por el socket de siempre. Y como GitHub pone `CI`,
+        # el guardián de `Docker#disponible` ya no permite el salto silencioso:
+        # si el daemon no responde, esto se cae en vez de ponerse verde.
         run: ./mvnw -B --no-transfer-progress verify
+
+      # El paso de arriba no distingue "las IT pasaron" de "no habia ninguna que
+      # ejecutar". Son cosas muy distintas y la segunda se disfraza de verde: si
+      # un dia dejan de compilar, cambian de nombre o alguien borra la ultima,
+      # `verify` sigue diciendo BUILD SUCCESS. Esto lo cuenta y lo enseña.
+      # El paso de arriba no distingue "las IT pasaron" de "no habia ninguna que
+      # ejecutar". Son cosas muy distintas y la segunda se disfraza de verde: si
+      # un dia dejan de compilar, cambian de nombre o alguien borra la ultima,
+      # `verify` sigue diciendo BUILD SUCCESS. Esto lo cuenta y lo ensena.
+      - name: Comprobar que las de integracion se ejecutaron de verdad
+        working-directory: ${{ matrix.servicio }}
+        run: |
+          informes=target/failsafe-reports
+          if [ ! -d "$informes" ]; then
+            echo "- ${{ matrix.servicio }} no tiene pruebas de integracion."
+            exit 0
+          fi
+          leer() {
+            cat $informes/TEST-*.xml 2>/dev/null |
+              grep -o "$1=\"[0-9]*\"" |
+              grep -o '[0-9][0-9]*' |
+              awk '{ suma += $1 } END { print suma + 0 }'
+          }
+          total=$(leer tests)
+          saltadas=$(leer skipped)
+          echo "- integracion: $total ejecutadas, $saltadas saltadas"
+          if [ "$total" -eq 0 ]; then
+            echo "Hay informes pero ninguna prueba dentro. Algo dejo de ejecutarse."
+            exit 1
+          fi
+          if [ "$saltadas" -gt 0 ]; then
+            echo "En CI ninguna prueba de integracion puede saltarse."
+            exit 1
+          fi
 
       - name: Guardar los informes si algo falla
         if: failure()
@@ -87,6 +126,11 @@ jobs:
       # perdido en cada vuelta.
       - name: Lint
         run: pnpm run lint
+
+      # El compilador de Angular no mira los .spec: un error de tipos en una
+      # prueba solo aparecia al ejecutarla. Esto revisa los dos proyectos.
+      - name: Comprobar tipos
+        run: pnpm run typecheck
 
       - name: Probar
         run: pnpm test

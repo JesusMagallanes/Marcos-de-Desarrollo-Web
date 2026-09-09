@@ -17,6 +17,27 @@
 	<properties>
 		<java.version>21</java.version>
 		<testcontainers.version>1.21.3</testcontainers.version>
+		<!--
+		     Version de la API de Docker con la que hablan las pruebas.
+
+		     Docker Engine 29 retiro el soporte de las APIs anteriores a la 1.40.
+		     Testcontainers 1.21.3 lleva DENTRO su propia copia sombreada de
+		     docker-java-core (org.testcontainers.shaded...), y esa copia pide
+		     /v1.32/info, que el motor contesta con un 400. Testcontainers lo lee
+		     como "aqui no hay Docker" y TODAS las pruebas de integracion se
+		     saltaban solas, en verde, sin probar nada.
+
+		     No se arregla subiendo docker-java: al ir sombreado, la dependencia
+		     externa no lo sustituye (comprobado con la 3.7.1). Testcontainers
+		     1.21.4 trae la misma copia. La 2.x si lo corrige, pero reorganizo los
+		     modulos y es otro cambio.
+
+		     1.41 y no una mas alta a proposito: la copia sombreada solo conoce
+		     hasta la 1.44, y el motor exige 1.40 como minimo. La 1.41 cae dentro
+		     de esa ventana y ademas sigue valiendo en motores tan antiguos como
+		     Docker 20.10, que es lo que puede haber en cualquier maquina o runner.
+		-->
+		<docker.api.version>1.41</docker.api.version>
 		<jjwt.version>0.12.6</jjwt.version>
 	</properties>
 
@@ -160,9 +181,27 @@
 			       mvn test    -> Surefire, solo *Test (rapidas, sin Docker)
 			       mvn verify  -> Failsafe, ademas *IT (integracion con Testcontainers)
 			     Asi el ciclo corto no depende de tener Docker levantado. -->
+			<!-- La version de la API va al JVM de las pruebas, no al del build:
+			     la copia sombreada de docker-java la lee de las propiedades del
+			     sistema al cargarse. Hace falta en los dos plugins porque el
+			     sondeo de Docker tambien se evalua en las unitarias. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<api.version>${docker.api.version}</api.version>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<api.version>${docker.api.version}</api.version>
+					</systemPropertyVariables>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>

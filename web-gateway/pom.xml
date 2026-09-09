@@ -87,6 +87,28 @@
 
 	<build>
 		<plugins>
+			<!-- Separacion de pruebas, igual que en los otros tres servicios:
+			       mvn test    -> Surefire, solo *Test
+			       mvn verify  -> Failsafe, ademas *IT
+
+			     Faltaba, asi que una clase *IT aqui no se habria ejecutado nunca:
+			     se compilaba y nadie la llamaba. La pasarela no lleva base de
+			     datos, de modo que sus pruebas de integracion no necesitan
+			     Testcontainers; levantan la aplicacion entera en un puerto y le
+			     hablan por HTTP, que es la unica forma de comprobar que la cadena
+			     de filtros esta montada en el orden que se cree. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
