@@ -176,6 +176,63 @@ public class PesosDescubrimiento {
     /** Tope de carruseles colaborativos en el Home. */
     private int maximoModulosColaborativos = 1;
 
+    /* ══════════════ Fase 3 · medición ══════════════ */
+
+    /**
+     * Etiqueta de la configuración de ranking en curso.
+     *
+     * <p>Es la mitad legible de la versión; la otra mitad se calcula. Ver
+     * {@link #rankerVersion()}.
+     */
+    private String rankerEtiqueta = "v3.0";
+
+    /**
+     * Días que se conserva el DETALLE de lo servido y lo visto.
+     *
+     * <p>Crece con el tráfico —decenas de filas por visita— y solo hace falta
+     * mientras se pueda querer reevaluar. El agregado diario, que es lo que
+     * permite comparar con el año pasado, no se purga nunca.
+     */
+    private int retencionDias = 90;
+
+    /**
+     * La versión que se graba con cada recomendación servida.
+     *
+     * <p>Etiqueta MÁS huella de los pesos efectivos, por ejemplo
+     * {@code v3.0-4f2a1c}. La huella no es un adorno: una etiqueta a mano se
+     * olvida de subir, y entonces dos configuraciones distintas quedan
+     * registradas con el mismo nombre. Eso es peor que no versionar, porque la
+     * comparación posterior parece válida y no lo es. Cambiando cualquier peso
+     * cambia la huella, se acuerde alguien o no.
+     *
+     * <p>Entran solo los números que afectan al ORDEN: los pesos por origen y
+     * el castigo por popularidad. La vida media o el techo de permanencia
+     * cambian el perfil, no la forma de combinarlo, y meterlos aquí haría que la
+     * versión bailara por motivos que no explican una diferencia de ranking.
+     */
+    public String rankerVersion() {
+        StringBuilder huella = new StringBuilder();
+        for (Origen origen : Origen.values()) {
+            huella.append(origen.name()).append('=').append(pesoDe(origen)).append(';');
+        }
+        huella.append("pop=").append(penalizacionPopularidad);
+
+        // SHA-256 recortado: no es criptografía, es un identificador estable.
+        // Basta con que dos configuraciones distintas no coincidan.
+        try {
+            byte[] resumen = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(huella.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (int i = 0; i < 3; i++) {
+                hex.append(String.format("%02x", resumen[i]));
+            }
+            return rankerEtiqueta + "-" + hex;
+        } catch (java.security.NoSuchAlgorithmException imposible) {
+            // SHA-256 lo exige la especificación de Java desde siempre.
+            throw new IllegalStateException(imposible);
+        }
+    }
+
     private static Map<Origen, Double> pesosDeOrigenPorDefecto() {
         Map<Origen, Double> p = new EnumMap<>(Origen.class);
         p.put(Origen.PERSONAL, 1.0);

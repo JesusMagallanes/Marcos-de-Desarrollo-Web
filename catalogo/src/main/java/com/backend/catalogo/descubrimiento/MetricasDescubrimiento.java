@@ -42,10 +42,18 @@ public class MetricasDescubrimiento {
     /** Homes servidos, separando los que no tenían nada personal que dar. */
     public static final String HOME = "smartzone_descubrimiento_home_total";
 
+    /** Recomendaciones anotadas para poder evaluarlas después, por razón. */
+    public static final String SERVIDAS = "smartzone_descubrimiento_servidas_total";
+
+    /** Filas del agregado diario que dejó la última pasada de medición. */
+    public static final String METRICAS_AGREGADAS =
+            "smartzone_descubrimiento_metricas_agregadas";
+
     private final MeterRegistry registro;
 
     private final AtomicLong relacionesItem = new AtomicLong();
     private final AtomicLong relacionesSujeto = new AtomicLong();
+    private final AtomicLong metricasAgregadas = new AtomicLong();
 
     public MetricasDescubrimiento(MeterRegistry registro) {
         this.registro = registro;
@@ -56,6 +64,34 @@ public class MetricasDescubrimiento {
         Gauge.builder(RELACIONES_SUJETO, relacionesSujeto, AtomicLong::get)
                 .description("Aristas de parecido entre perfiles vivas")
                 .register(registro);
+        Gauge.builder(METRICAS_AGREGADAS, metricasAgregadas, AtomicLong::get)
+                .description("Filas del agregado diario de la ultima medicion")
+                .register(registro);
+    }
+
+    /**
+     * Lo que anotó una pasada del registro, por razón.
+     *
+     * <p>Contra los clics que reciba después, es lo que dice qué generador
+     * merece más peso. Etiquetado solo por la razón —un enum de siete valores—:
+     * etiquetar por producto filtraría conducta y además reventaría la
+     * cardinalidad de Prometheus, que es como se tumba un sistema de
+     * monitorización sin querer.
+     */
+    public void recomendacionesServidas(RazonRecomendacion razon, int cuantas) {
+        if (cuantas <= 0) {
+            return;
+        }
+        Counter.builder(SERVIDAS)
+                .description("Recomendaciones anotadas para evaluacion posterior")
+                .tags(Tags.of("razon", razon.name()))
+                .register(registro)
+                .increment(cuantas);
+    }
+
+    /** Lo que dejó la última pasada de la medición. Un cero sostenido es una avería. */
+    public void medicionTerminada(long filasAgregadas) {
+        metricasAgregadas.set(filasAgregadas);
     }
 
     /** Lo que dejó la última pasada del proceso por lotes. */

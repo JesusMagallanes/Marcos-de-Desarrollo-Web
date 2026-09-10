@@ -61,6 +61,14 @@ class FiltrosDurosTest {
     @Mock
     private ProductoService productos;
 
+    /*
+     * Doble y no instancia real: anotar lo servido escribe en la base y estas
+     * son pruebas unitarias. Que el registro NO estorbe al ranking es parte de
+     * lo que se comprueba aqui sin decirlo.
+     */
+    @Mock
+    private RegistroRecomendacionService registro;
+
     @Captor
     private ArgumentCaptor<List<Long>> excluidos;
 
@@ -69,7 +77,7 @@ class FiltrosDurosTest {
         return new RecomendacionService(candidatos, descartes, impresiones, eventos,
                 perfiles, tendencias, productos,
                 new RankerHibrido(impresiones, pesos),
-                new MetricasDescubrimiento(new SimpleMeterRegistry()), pesos);
+                new MetricasDescubrimiento(new SimpleMeterRegistry()), registro, pesos);
     }
 
     @Test

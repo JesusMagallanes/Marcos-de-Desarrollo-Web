@@ -62,6 +62,7 @@ public class RecomendacionService {
     private final ProductoService productos;
     private final RankerHibrido ranker;
     private final MetricasDescubrimiento metricas;
+    private final RegistroRecomendacionService registro;
     private final PesosDescubrimiento pesos;
 
     /**
@@ -137,8 +138,10 @@ public class RecomendacionService {
                 ? "Por lo que has estado explorando"
                 : "Porque te interesa " + top.get(0).getId().getFaceta();
 
-        return armar(ModuloDescubrimiento.SEGUN_TUS_INTERESES, null, motivo,
-                diversificar(crudos, limite));
+        List<Long> elegidos = diversificar(crudos, limite);
+        anotar(sujeto, ModuloDescubrimiento.SEGUN_TUS_INTERESES, elegidos, crudos, true);
+
+        return armar(ModuloDescubrimiento.SEGUN_TUS_INTERESES, null, motivo, elegidos);
     }
 
     /**
@@ -217,10 +220,53 @@ public class RecomendacionService {
                     RazonRecomendacion.SIMILAR_SUBJECT));
         }
 
-        List<Candidato> ordenados = new ArrayList<>(ranker.combinar(mezcla));
+        List<CandidatoConRazon> combinados = ranker.combinar(mezcla);
+        List<Long> elegidos = diversificar(new ArrayList<>(combinados), limite);
+
+        /*
+         * Este modulo es el unico que mezcla dos razones en un carrusel, asi que
+         * es el unico donde anotar «la razon del modulo» seria mentira. Se pasa
+         * la de cada item, que es justo el dato que permitira saber cual de los
+         * dos generadores acierta.
+         */
+        registro.anotar(sujeto, ModuloDescubrimiento.OTROS_DESCUBRIERON, elegidos,
+                razonesDe(combinados), scoresDe(combinados), true);
+
         return armar(ModuloDescubrimiento.OTROS_DESCUBRIERON, null,
-                "Descubierto por gente con intereses parecidos a los tuyos",
-                diversificar(ordenados, limite));
+                "Descubierto por gente con intereses parecidos a los tuyos", elegidos);
+    }
+
+    /** {@code itemId -> razon}, para anotar lo servido sin perder de dónde vino. */
+    private Map<Long, RazonRecomendacion> razonesDe(List<CandidatoConRazon> candidatos) {
+        Map<Long, RazonRecomendacion> razones = new HashMap<>();
+        candidatos.forEach(c -> razones.put(c.itemId(), c.razon()));
+        return razones;
+    }
+
+    /** {@code itemId -> score final}, el que produjo el orden. */
+    private Map<Long, Double> scoresDe(List<CandidatoConRazon> candidatos) {
+        Map<Long, Double> scores = new HashMap<>();
+        candidatos.forEach(c -> scores.put(c.itemId(), c.score()));
+        return scores;
+    }
+
+    /**
+     * Anota un carrusel cuyo módulo determina la razón, que son casi todos.
+     *
+     * <p>El score se aporta cuando el generador produjo uno comparable. Los que
+     * no —la tendencia de zona llega ya ordenada por el proceso por lotes— no
+     * lo inventan: un cero es honesto y un número improvisado acabaría
+     * comparándose con los de verdad.
+     */
+    private void anotar(UUID sujeto, ModuloDescubrimiento modulo, List<Long> ids,
+            List<Candidato> crudos, boolean conPerfil) {
+        Map<Long, Double> scores = new HashMap<>();
+        for (Candidato c : crudos) {
+            if (c.getScore() != null) {
+                scores.put(c.getItemId(), c.getScore());
+            }
+        }
+        registro.anotar(sujeto, modulo, ids, Map.of(), scores, conPerfil);
     }
 
     /** LO MÁS VISTO EN TU ZONA · con degradación geográfica si falta gente. */
@@ -237,20 +283,32 @@ public class RecomendacionService {
             case DISTRITO, PROVINCIA, DEPARTAMENTO -> "tu zona";
             case NACIONAL -> "el Perú";
         };
+        List<Long> elegidos = ids.subList(0, Math.min(limite, ids.size()));
+        /*
+         * Sin score: este modulo no ordena, lee un orden que ya calculo el
+         * proceso de tendencias. Anotar un numero improvisado seria peor que no
+         * anotar ninguno, porque acabaria comparandose con los de verdad.
+         */
+        anotar(sujeto, ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA, elegidos,
+                List.of(), sujeto != null);
+
         return new Carrusel(
                 ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA.name(),
                 ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA.titulo(detalle),
                 ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA.origen(),
                 "Se está viendo mucho cerca de ti",
-                productos.porIds(ids.subList(0, Math.min(limite, ids.size()))));
+                productos.porIds(elegidos));
     }
 
     /** NUEVAS OPORTUNIDADES · categorías hermanas que todavía no ha pisado. */
     public Carrusel explorar(UUID sujeto, int limite, Set<Long> yaUsados) {
         List<Candidato> crudos = candidatos.paraExplorar(sujeto, excluidos(sujeto, yaUsados),
                 limite * FACTOR_SOBREMUESTREO);
+        List<Long> elegidos = diversificar(crudos, limite);
+        anotar(sujeto, ModuloDescubrimiento.DESCUBRE_ALGO_NUEVO, elegidos, crudos, true);
+
         return armar(ModuloDescubrimiento.DESCUBRE_ALGO_NUEVO, null,
-                "Algo distinto de lo que sueles mirar", diversificar(crudos, limite));
+                "Algo distinto de lo que sueles mirar", elegidos);
     }
 
     /**
@@ -273,8 +331,13 @@ public class RecomendacionService {
         }
         List<Candidato> crudos = candidatos.populares(null, excluidos,
                 limite * FACTOR_SOBREMUESTREO);
+        List<Long> elegidos = diversificar(crudos, limite);
+        // `conPerfil` dice si habia algo personal de donde tirar. Es lo que separa
+        // el arranque en frio, cuyo rendimiento no es comparable con el resto.
+        anotar(sujeto, ModuloDescubrimiento.POPULARES, elegidos, crudos, sujeto != null);
+
         return armar(ModuloDescubrimiento.POPULARES, null,
-                "Bien valorado y con la ficha completa", diversificar(crudos, limite));
+                "Bien valorado y con la ficha completa", elegidos);
     }
 
     /* ══════════════ Etapa D · diversificación ══════════════ */

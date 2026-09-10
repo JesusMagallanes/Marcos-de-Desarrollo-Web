@@ -9,13 +9,18 @@ package com.backend.catalogo.descubrimiento;
  */
 public enum ModuloDescubrimiento {
 
-    SEGUN_TUS_INTERESES("Según tus intereses", Origen.PERSONAL),
-    PORQUE_VISTE("Porque viste %s", Origen.PERSONAL),
-    RELACIONADOS("Productos relacionados", Origen.PERSONAL),
-    LO_MAS_VISTO_EN_TU_ZONA("Lo más visto en %s", Origen.GEO),
-    TENDENCIAS("Está llamando la atención", Origen.TENDENCIA),
-    POPULARES("Lo más popular en SmartZone", Origen.TENDENCIA),
-    DESCUBRE_ALGO_NUEVO("Nuevas oportunidades para explorar", Origen.EXPLORACION),
+    SEGUN_TUS_INTERESES("Según tus intereses", Origen.PERSONAL,
+            RazonRecomendacion.PERSONAL_INTEREST),
+    PORQUE_VISTE("Porque viste %s", Origen.PERSONAL, RazonRecomendacion.PERSONAL_INTEREST),
+    RELACIONADOS("Productos relacionados", Origen.PERSONAL,
+            RazonRecomendacion.CONTENT_SIMILAR),
+    LO_MAS_VISTO_EN_TU_ZONA("Lo más visto en %s", Origen.GEO,
+            RazonRecomendacion.LOCAL_TREND),
+    TENDENCIAS("Está llamando la atención", Origen.TENDENCIA,
+            RazonRecomendacion.LOCAL_TREND),
+    POPULARES("Lo más popular en SmartZone", Origen.TENDENCIA, RazonRecomendacion.POPULAR),
+    DESCUBRE_ALGO_NUEVO("Nuevas oportunidades para explorar", Origen.EXPLORACION,
+            RazonRecomendacion.EXPLORATION),
 
     /*
      * Los dos modulos colaborativos de la fase 2.
@@ -27,15 +32,32 @@ public enum ModuloDescubrimiento {
      * una tienda parezca que vigila. Lo que se ensena es el resultado; de donde
      * salio se queda dentro, en `RazonRecomendacion`.
      */
-    SUELEN_IR_JUNTOS("Suele mirarse junto con esto", Origen.COHORTE),
-    OTROS_DESCUBRIERON("Otras personas descubrieron", Origen.COHORTE);
+    SUELEN_IR_JUNTOS("Suele mirarse junto con esto", Origen.COHORTE,
+            RazonRecomendacion.CO_VIEWED),
+    OTROS_DESCUBRIERON("Otras personas descubrieron", Origen.COHORTE,
+            RazonRecomendacion.CO_VIEWED);
 
     private final String plantilla;
     private final Origen origen;
 
-    ModuloDescubrimiento(String plantilla, Origen origen) {
+    /**
+     * La razón que se anota cuando el módulo no dice otra cosa.
+     *
+     * <p>Casi todos los módulos tienen una sola fuente y entonces coinciden. El
+     * colaborativo no: mezcla co-visita y perfiles parecidos en un mismo
+     * carrusel, y ahí la razón se anota por ítem. Este valor es el respaldo, y
+     * saber que puede quedarse corto es parte de leer bien los datos.
+     */
+    private final RazonRecomendacion razonPorDefecto;
+
+    ModuloDescubrimiento(String plantilla, Origen origen, RazonRecomendacion razonPorDefecto) {
+        this.razonPorDefecto = razonPorDefecto;
         this.plantilla = plantilla;
         this.origen = origen;
+    }
+
+    public RazonRecomendacion razonPorDefecto() {
+        return razonPorDefecto;
     }
 
     public Origen origen() {
