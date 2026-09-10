@@ -52,11 +52,20 @@ class DiversidadTest {
     @Mock
     private RegistroRecomendacionService registro;
 
+    /*
+     * Doble tambien: estas pruebas comprueban la diversidad y los filtros duros,
+     * que son etapas ANTERIORES y POSTERIORES al ranking. Meter el ranker
+     * adaptativo de verdad las haria depender de su calibracion, y entonces
+     * cambiar un peso rompería pruebas que no hablan de pesos.
+     */
+    @Mock
+    private com.backend.catalogo.descubrimiento.adaptativo.RankerAdaptativo adaptativo;
+
     private RecomendacionService servicio() {
         PesosDescubrimiento pesos = new PesosDescubrimiento();
         return new RecomendacionService(candidatos, descartes, impresiones, eventos,
                 perfiles, tendencias, productos,
-                new RankerHibrido(impresiones, pesos),
+                new RankerHibrido(impresiones, pesos), adaptativo,
                 new MetricasDescubrimiento(new SimpleMeterRegistry()), registro, pesos);
     }
 

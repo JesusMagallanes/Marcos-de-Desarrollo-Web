@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.backend.catalogo.PruebaIntegracion;
+import com.backend.catalogo.descubrimiento.adaptativo.PesosAdaptativos;
 import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
 
 /**
@@ -57,6 +58,9 @@ class MedicionIT extends PruebaIntegracion {
 
     @Autowired
     private PesosDescubrimiento pesos;
+
+    @Autowired
+    private PesosAdaptativos adaptativos;
 
     @Autowired
     private JdbcTemplate jdbc;
@@ -102,7 +106,7 @@ class MedicionIT extends PruebaIntegracion {
                 .as("la razón por ítem, que es lo que el módulo no puede dar")
                 .isEqualTo(RazonRecomendacion.CO_VIEWED);
         assertThat(primera.getScore().doubleValue()).isEqualTo(0.9);
-        assertThat(primera.getRankerVersion()).isEqualTo(pesos.rankerVersion());
+        assertThat(primera.getRankerVersion()).isEqualTo(versionEsperada());
 
         assertThat(filas.get(1).getRazon())
                 .as("el mismo carrusel puede llevar dos razones distintas")
@@ -135,6 +139,9 @@ class MedicionIT extends PruebaIntegracion {
          * quedan registradas con el mismo nombre: la comparación posterior
          * parece válida y no lo es.
          */
+        // Se mira `PesosDescubrimiento` y no la version que se graba: lo que
+        // esta a prueba aqui es SU huella, la de la fase 3. Que ademas ahora
+        // grabe la del adaptativo es otra propiedad, y tiene su propia prueba.
         String antes = pesos.rankerVersion();
         double original = pesos.getPenalizacionPopularidad();
         try {
@@ -167,6 +174,20 @@ class MedicionIT extends PruebaIntegracion {
                 Map.of(), Map.of(), false);
 
         assertThat(servidas.findAll()).as("no se escribió nada, y no se rompió nada").isEmpty();
+    }
+
+
+    /**
+     * La versión que DEBE quedar grabada: la de la fórmula que ordenó de verdad.
+     *
+     * <p>No se fija a mano. Si se escribiera «v3.0», la prueba pasaría a estar
+     * mintiendo en cuanto se encendiera el ranker adaptativo — que es
+     * exactamente lo que pasó — y peor aún: dejaría de comprobar la propiedad
+     * que importa, que es que la versión grabada y la fórmula usada no puedan
+     * separarse.
+     */
+    private String versionEsperada() {
+        return adaptativos.isActivo() ? adaptativos.version() : pesos.rankerVersion();
     }
 
     /* ══════════════ Agregación ══════════════ */

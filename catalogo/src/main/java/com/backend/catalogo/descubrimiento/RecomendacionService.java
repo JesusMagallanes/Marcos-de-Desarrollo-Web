@@ -15,6 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.backend.catalogo.descubrimiento.adaptativo.ContextoRanking;
+import com.backend.catalogo.descubrimiento.adaptativo.RankerAdaptativo;
 import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.Carrusel;
 import com.backend.catalogo.producto.ProductoService;
@@ -61,6 +63,7 @@ public class RecomendacionService {
     private final TendenciaService tendencias;
     private final ProductoService productos;
     private final RankerHibrido ranker;
+    private final RankerAdaptativo adaptativo;
     private final MetricasDescubrimiento metricas;
     private final RegistroRecomendacionService registro;
     private final PesosDescubrimiento pesos;
@@ -194,7 +197,9 @@ public class RecomendacionService {
         Set<Long> fuera = new HashSet<>(excluidos);
         mezcla.removeIf(c -> fuera.contains(c.itemId()));
 
-        List<CandidatoConRazon> combinados = ranker.combinar(mezcla);
+        boolean conPerfil = sujeto != null && perfiles.tienePerfil(sujeto);
+        List<CandidatoConRazon> combinados = adaptativo.ordenar(mezcla,
+                ContextoRanking.ficha(conPerfil), sujeto, evidenciaDe(sujeto));
         List<Long> elegidos = diversificar(new ArrayList<>(combinados), limite);
 
         /*
@@ -204,8 +209,7 @@ public class RecomendacionService {
          * justo lo que la medicion existe para responder.
          */
         registro.anotar(sujeto, ModuloDescubrimiento.RELACIONADOS, elegidos,
-                razonesDe(combinados), scoresDe(combinados),
-                sujeto != null && perfiles.tienePerfil(sujeto));
+                razonesDe(combinados), scoresDe(combinados), conPerfil);
 
         return armar(ModuloDescubrimiento.RELACIONADOS, null,
                 "Relacionado con el que estás viendo", elegidos);
@@ -255,7 +259,8 @@ public class RecomendacionService {
                     RazonRecomendacion.SIMILAR_SUBJECT));
         }
 
-        List<CandidatoConRazon> combinados = ranker.combinar(mezcla);
+        List<CandidatoConRazon> combinados = adaptativo.ordenar(mezcla,
+                ContextoRanking.home(true), sujeto, evidenciaDe(sujeto));
         List<Long> elegidos = diversificar(new ArrayList<>(combinados), limite);
 
         /*
@@ -269,6 +274,22 @@ public class RecomendacionService {
 
         return armar(ModuloDescubrimiento.OTROS_DESCUBRIERON, null,
                 "Descubierto por gente con intereses parecidos a los tuyos", elegidos);
+    }
+
+    /**
+     * Cuánta evidencia sostiene el perfil de este sujeto.
+     *
+     * <p>Decide cuánto se explora: a quien el sistema no conoce, explorar es lo
+     * único que puede hacer; a quien conoce bien, explorar cuesta y se hace con
+     * medida. Se usa el número de eventos de su faceta más fuerte, que es la
+     * cifra que ya tenía la fase 1 y no obliga a preguntar nada nuevo.
+     */
+    private int evidenciaDe(UUID sujeto) {
+        if (sujeto == null) {
+            return 0;
+        }
+        List<PerfilFaceta> top = perfiles.top(sujeto, TipoFaceta.CATEGORIA, 1);
+        return top.isEmpty() ? 0 : top.get(0).getEventos();
     }
 
     /** {@code itemId -> razon}, para anotar lo servido sin perder de dónde vino. */
@@ -325,7 +346,7 @@ public class RecomendacionService {
          * anotar ninguno, porque acabaria comparandose con los de verdad.
          */
         anotar(sujeto, ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA, elegidos,
-                List.of(), sujeto != null);
+                List.of(), sujeto != null && perfiles.tienePerfil(sujeto));
 
         return new Carrusel(
                 ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA.name(),
@@ -367,9 +388,19 @@ public class RecomendacionService {
         List<Candidato> crudos = candidatos.populares(null, excluidos,
                 limite * FACTOR_SOBREMUESTREO);
         List<Long> elegidos = diversificar(crudos, limite);
-        // `conPerfil` dice si habia algo personal de donde tirar. Es lo que separa
-        // el arranque en frio, cuyo rendimiento no es comparable con el resto.
-        anotar(sujeto, ModuloDescubrimiento.POPULARES, elegidos, crudos, sujeto != null);
+        /*
+         * `conPerfil` es «habia algo personal de donde tirar», NO «habia sujeto».
+         *
+         * Estaba mal: se anotaba `sujeto != null`, con lo que un visitante recien
+         * llegado —que tiene identificador desde su primera peticion pero no
+         * tiene perfil— quedaba registrado como si el sistema lo conociera. Eso
+         * vaciaba de sentido la segmentacion de arranque en frio, que es
+         * justamente la que dice si el recomendador sirve a quien llega o solo a
+         * quien ya lo usaba. Lo delato el recorrido en navegador: el sujeto
+         * estrenado tras cerrar sesion salia con perfil.
+         */
+        anotar(sujeto, ModuloDescubrimiento.POPULARES, elegidos, crudos,
+                sujeto != null && perfiles.tienePerfil(sujeto));
 
         return armar(ModuloDescubrimiento.POPULARES, null,
                 "Bien valorado y con la ficha completa", elegidos);

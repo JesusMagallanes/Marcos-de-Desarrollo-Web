@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.backend.catalogo.PruebaIntegracion;
+import com.backend.catalogo.descubrimiento.adaptativo.PesosAdaptativos;
 import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.Carrusel;
 
@@ -56,6 +57,9 @@ class FichaMedidaIT extends PruebaIntegracion {
 
     @Autowired
     private PesosDescubrimiento pesos;
+
+    @Autowired
+    private PesosAdaptativos adaptativos;
 
     @Autowired
     private JdbcTemplate jdbc;
@@ -99,7 +103,7 @@ class FichaMedidaIT extends PruebaIntegracion {
                 .as("el módulo real que ya existía, no un nombre nuevo")
                 .isEqualTo(ModuloDescubrimiento.RELACIONADOS.name());
         assertThat(primera.getPosicion()).isZero();
-        assertThat(primera.getRankerVersion()).isEqualTo(pesos.rankerVersion());
+        assertThat(primera.getRankerVersion()).isEqualTo(versionEsperada());
         assertThat(primera.getRazon()).isNotNull();
         assertThat(primera.getScore()).isNotNull();
     }
@@ -152,6 +156,20 @@ class FichaMedidaIT extends PruebaIntegracion {
                 .satisfies(r -> assertThat(r.getRazon())
                         .as("llegó por conducta, no por ficha: tiene que constar")
                         .isEqualTo(RazonRecomendacion.CO_VIEWED));
+    }
+
+
+    /**
+     * La versión que DEBE quedar grabada: la de la fórmula que ordenó de verdad.
+     *
+     * <p>No se fija a mano. Si se escribiera «v3.0», la prueba pasaría a estar
+     * mintiendo en cuanto se encendiera el ranker adaptativo — que es
+     * exactamente lo que pasó — y peor aún: dejaría de comprobar la propiedad
+     * que importa, que es que la versión grabada y la fórmula usada no puedan
+     * separarse.
+     */
+    private String versionEsperada() {
+        return adaptativos.isActivo() ? adaptativos.version() : pesos.rankerVersion();
     }
 
     /* ══════════════ Identidad ══════════════ */
@@ -207,6 +225,32 @@ class FichaMedidaIT extends PruebaIntegracion {
                 .isEmpty();
         assertThat(servidas.deSujetoDesde(sujeto, Instant.now().minus(1, ChronoUnit.HOURS)))
                 .isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("tener identificador no es tener perfil")
+    void elArranqueEnFrioNoSeConfundeConTenerSujeto() {
+        /*
+         * Lo delató el recorrido en navegador: el sujeto estrenado tras cerrar
+         * sesión salía anotado como si el sistema lo conociera. Se estaba
+         * guardando «hay sujeto» donde tenía que ir «hay perfil», y con eso la
+         * segmentación de arranque en frío —la que dice si el recomendador sirve
+         * a quien llega o solo a quien ya lo usaba— quedaba vacía de sentido.
+         *
+         * Un sujeto recién creado tiene identificador desde su primera petición
+         * y no tiene ni un evento.
+         */
+        Long visto = crearProducto("El que se mira");
+        crearProducto("Hermano");
+        UUID reciennacido = crearSujeto();
+
+        recomendador.similares(visto, reciennacido, 12);
+
+        assertThat(servidas.findAll())
+                .isNotEmpty()
+                .allSatisfy(r -> assertThat(r.isConPerfil())
+                        .as("sin un solo evento detrás, no hay perfil que valga")
+                        .isFalse());
     }
 
     /* ══════════════ Las reglas que no se pueden saltar ══════════════ */

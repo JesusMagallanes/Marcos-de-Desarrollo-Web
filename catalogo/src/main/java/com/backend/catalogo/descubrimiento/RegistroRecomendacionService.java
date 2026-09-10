@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.backend.catalogo.descubrimiento.adaptativo.PesosAdaptativos;
 import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
 
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,7 @@ public class RegistroRecomendacionService {
     private final RecomendacionServidaRepository servidas;
     private final MetricasDescubrimiento metricas;
     private final PesosDescubrimiento pesos;
+    private final PesosAdaptativos adaptativos;
 
     /** Uno mismo, pero pasando por el proxy. Ver el encabezado. */
     private final ObjectProvider<RegistroRecomendacionService> self;
@@ -111,7 +113,16 @@ public class RegistroRecomendacionService {
             Map<Long, Double> scorePorItem,
             boolean conPerfil) {
 
-        String version = pesos.rankerVersion();
+        /*
+         * La version que se graba tiene que ser la de la formula que DE VERDAD
+         * ordeno. Con el adaptativo encendido ordena el, y grabar la etiqueta de
+         * la fase 3 haria que meses de datos quedaran atribuidos a una
+         * configuracion que no los produjo: exactamente el fallo que el
+         * versionado existe para evitar.
+         */
+        String version = adaptativos.isActivo()
+                ? adaptativos.version()
+                : pesos.rankerVersion();
         Instant ahora = Instant.now();
         List<RecomendacionServida> filas = new ArrayList<>(itemsEnOrden.size());
 
