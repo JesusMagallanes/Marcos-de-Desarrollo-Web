@@ -11,29 +11,37 @@ public enum ModuloDescubrimiento {
 
     SEGUN_TUS_INTERESES("Según tus intereses", Origen.PERSONAL,
             RazonRecomendacion.PERSONAL_INTEREST),
-    PORQUE_VISTE("Porque viste %s", Origen.PERSONAL, RazonRecomendacion.PERSONAL_INTEREST),
     RELACIONADOS("Productos relacionados", Origen.PERSONAL,
             RazonRecomendacion.CONTENT_SIMILAR),
     LO_MAS_VISTO_EN_TU_ZONA("Lo más visto en %s", Origen.GEO,
-            RazonRecomendacion.LOCAL_TREND),
-    TENDENCIAS("Está llamando la atención", Origen.TENDENCIA,
             RazonRecomendacion.LOCAL_TREND),
     POPULARES("Lo más popular en SmartZone", Origen.TENDENCIA, RazonRecomendacion.POPULAR),
     DESCUBRE_ALGO_NUEVO("Nuevas oportunidades para explorar", Origen.EXPLORACION,
             RazonRecomendacion.EXPLORATION),
 
     /*
-     * Los dos modulos colaborativos de la fase 2.
+     * El modulo colaborativo de la fase 2.
      *
-     * Los titulos son deliberadamente sobrios. «Usuarios como tu compraron» es
-     * la formula habitual y es mala por dos motivos: promete una precision que
-     * la evidencia no sostiene, y le dice a alguien que el sistema lo ha
-     * agrupado con otras personas, que es exactamente la sensacion que hace que
-     * una tienda parezca que vigila. Lo que se ensena es el resultado; de donde
+     * El titulo es deliberadamente sobrio. «Usuarios como tu compraron» es la
+     * formula habitual y es mala por dos motivos: promete una precision que la
+     * evidencia no sostiene, y le dice a alguien que el sistema lo ha agrupado
+     * con otras personas, que es exactamente la sensacion que hace que una
+     * tienda parezca que vigila. Lo que se ensena es el resultado; de donde
      * salio se queda dentro, en `RazonRecomendacion`.
+     *
+     * Aqui habia tres modulos que no producia nadie, y solo se sabia de uno.
+     * SUELEN_IR_JUNTOS se penso para la co-visita en la ficha de producto, pero
+     * la co-visita acabo mezclandose dentro de RELACIONADOS, que es donde tiene
+     * sentido: quien mira una impresora no quiere otra impresora, quiere el
+     * toner. PORQUE_VISTE no se llego a implementar nunca. Y TENDENCIAS quedo
+     * desplazado por LO_MAS_VISTO_EN_TU_ZONA, que es lo que sirve el endpoint
+     * /tendencias pese al nombre.
+     *
+     * Los tres se eliminaron. Un modulo que nadie produce ensucia la medicion
+     * con una categoria que siempre vale cero, y quien lea el panel tiene que
+     * averiguar si es que no funciona o es que no existe. Los encontro la
+     * prueba estructural de `ModuloDescubrimientoTest`, que existe para eso.
      */
-    SUELEN_IR_JUNTOS("Suele mirarse junto con esto", Origen.COHORTE,
-            RazonRecomendacion.CO_VIEWED),
     OTROS_DESCUBRIERON("Otras personas descubrieron", Origen.COHORTE,
             RazonRecomendacion.CO_VIEWED);
 

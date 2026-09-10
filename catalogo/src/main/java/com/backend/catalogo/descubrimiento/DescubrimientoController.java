@@ -149,15 +149,36 @@ public class DescubrimientoController {
     /**
      * Relacionados con un producto.
      *
-     * <p>No necesita sujeto: se resuelve por contenido, así que funciona igual
-     * para un visitante que llega desde un buscador y no ha hecho nada todavía.
+     * <p>Funciona SIN sujeto: el parecido por contenido se resuelve con la ficha
+     * del producto, así que un visitante que llega desde un buscador y no ha
+     * hecho nada todavía ve un carrusel útil igualmente.
+     *
+     * <p>Pero si el sujeto viene, se usa, y eso cambia dos cosas importantes.
+     * La primera es que los filtros duros se aplican: hasta ahora esta pantalla
+     * los ignoraba, de modo que un producto marcado como «no me interesa»
+     * reaparecía en la ficha de cualquier otro. La segunda es que lo servido
+     * queda anotado, y sin eso esta superficie —que es de las más visitadas—
+     * quedaba fuera de toda la medición.
+     *
+     * <p>El sujeto NO se crea aquí. Si el visitante no trae ninguno y no hay
+     * JWT, se sigue adelante con {@code null} en vez de acuñar una identidad:
+     * un rastreador recorriendo el catálogo llenaría la tabla de sujetos que no
+     * son nadie, y una recomendación no es motivo para empezar a seguir a
+     * alguien que no ha interactuado.
      */
     @GetMapping("/similares/{itemId}")
     public Carrusel similares(
             @PathVariable @Positive Long itemId,
+            @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
+            @AuthenticationPrincipal Jwt jwt,
             @RequestParam(defaultValue = "12") @Min(1) @Max(MAXIMO_POR_CARRUSEL) int limite) {
+
+        UUID sujeto = (jwt != null || sujetoDelCliente != null)
+                ? resolver(jwt, sujetoDelCliente, null)
+                : null;
+
         return vacioSiFalta(ModuloDescubrimiento.RELACIONADOS,
-                recomendador.similares(itemId, limite));
+                recomendador.similares(itemId, sujeto, limite));
     }
 
     @GetMapping("/tendencias")

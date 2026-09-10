@@ -245,7 +245,7 @@ class RecomendacionColaborativaIT extends PruebaIntegracion {
         crearProducto("Hermano de categoria");
         crearProducto("Otro hermano");
 
-        Carrusel carrusel = recomendador.similares(visto, 12);
+        Carrusel carrusel = recomendador.similares(visto, null, 12);
 
         assertThat(itemsDe(carrusel))
                 .as("sin ninguna co-visita registrada, el contenido sigue respondiendo")

@@ -172,6 +172,27 @@ eso es peor que no medir.
 
 No hay ningún endpoint que exponga actividad individual, ni lo habrá.
 
+## La ficha de producto
+
+Era la superficie con más tráfico y la única sin medir. Ahora `similares()`
+recibe el sujeto cuando existe, aplica los filtros duros y anota lo servido con
+la razón de **cada ítem** — la ficha mezcla parecido por ficha y co-visita, y
+aplastar las dos en `CONTENT_SIMILAR` haría imposible saber cuál acierta.
+
+El sujeto **no se crea** ahí: si el visitante no trae ninguno y no hay JWT, se
+sirve el carrusel igual y no se anota nada. Un rastreador recorriendo el
+catálogo llenaría la tabla de sujetos que no son nadie, y una recomendación no
+es motivo para empezar a seguir a alguien que no ha interactuado.
+
+Arreglando esto salió algo peor que la falta de medición: **la ficha no aplicaba
+los filtros duros**. Un producto marcado como «no me interesa» reaparecía en la
+ficha de cualquier otro, de modo que el botón parecía no servir.
+
+El primer dato que produjo la medición ya dice algo que antes era invisible: en
+el Home se ve el 100 % de lo servido, y en la ficha el **28,6 %**. El carrusel
+de relacionados queda por debajo del pliegue, así que la mayor parte de lo que
+el sistema propone ahí no llega a mirarse nunca.
+
 ## Métricas técnicas
 
 En `/actuator/prometheus`, etiquetadas solo por conjuntos cerrados y pequeños:

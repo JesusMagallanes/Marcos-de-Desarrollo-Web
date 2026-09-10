@@ -157,23 +157,58 @@ public class RecomendacionService {
      * eso ganaría siempre la de números más grandes, que aquí sería el contenido
      * por casualidad de sus unidades.
      */
-    public Carrusel similares(Long itemId, int limite) {
+    public Carrusel similares(Long itemId, UUID sujeto, int limite) {
         int aPedir = limite * FACTOR_SOBREMUESTREO;
+
+        /*
+         * Los filtros duros, que esta pantalla NO estaba aplicando.
+         *
+         * Es un fallo con cara visible: alguien marcaba «no me interesa» en un
+         * producto y volvia a encontrarselo en la ficha de cualquier otro. El
+         * boton parecia no servir, que es peor que no tenerlo. La fatiga estaba
+         * igual de ausente.
+         *
+         * Sin sujeto no hay descartes que aplicar —no se sabe de quien serian—
+         * y queda solo el propio producto, que no puede recomendarse a si mismo.
+         */
+        List<Long> excluidos = sujeto == null
+                ? new ArrayList<>(List.of(itemId, NINGUNO))
+                : excluidos(sujeto, Set.of(itemId));
 
         List<CandidatoConRazon> mezcla = new ArrayList<>();
         for (Candidato c : candidatos.similaresPorContenido(itemId, aPedir)) {
             mezcla.add(CandidatoConRazon.de(c, Origen.PERSONAL,
                     RazonRecomendacion.CONTENT_SIMILAR));
         }
-        for (Candidato c : candidatos.porCoVisitaDeItem(itemId, List.of(itemId, NINGUNO), aPedir)) {
+        for (Candidato c : candidatos.porCoVisitaDeItem(itemId, excluidos, aPedir)) {
             mezcla.add(CandidatoConRazon.de(c, Origen.COHORTE,
                     RazonRecomendacion.CO_VIEWED));
         }
 
-        List<Candidato> ordenados = new ArrayList<>(ranker.combinar(mezcla));
+        /*
+         * El contenido se filtra aqui y no en SQL a proposito: la consulta de
+         * parecido por ficha no recibe exclusiones, y anadirselas obligaria a
+         * tocar una consulta que funciona. La lista son unas decenas de
+         * candidatos, asi que el filtro en memoria no cuesta nada.
+         */
+        Set<Long> fuera = new HashSet<>(excluidos);
+        mezcla.removeIf(c -> fuera.contains(c.itemId()));
+
+        List<CandidatoConRazon> combinados = ranker.combinar(mezcla);
+        List<Long> elegidos = diversificar(new ArrayList<>(combinados), limite);
+
+        /*
+         * Se anota con la razon de CADA item, no con la del modulo. La ficha
+         * mezcla parecido por contenido y co-visita, y aplastar las dos en
+         * CONTENT_SIMILAR haria imposible saber cual de las dos acierta, que es
+         * justo lo que la medicion existe para responder.
+         */
+        registro.anotar(sujeto, ModuloDescubrimiento.RELACIONADOS, elegidos,
+                razonesDe(combinados), scoresDe(combinados),
+                sujeto != null && perfiles.tienePerfil(sujeto));
+
         return armar(ModuloDescubrimiento.RELACIONADOS, null,
-                "Relacionado con el que estás viendo",
-                diversificar(ordenados, limite));
+                "Relacionado con el que estás viendo", elegidos);
     }
 
     /**
