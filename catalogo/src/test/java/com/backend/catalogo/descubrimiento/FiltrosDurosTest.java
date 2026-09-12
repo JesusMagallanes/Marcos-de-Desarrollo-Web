@@ -78,6 +78,14 @@ class FiltrosDurosTest {
     @Mock
     private com.backend.catalogo.descubrimiento.adaptativo.RankerAdaptativo adaptativo;
 
+    /*
+     * Doble tambien: la elegibilidad solo interviene en la ruta de tendencias,
+     * que estas pruebas no ejercitan. Usar la real las ataria a una consulta
+     * contra la base que aqui no existe.
+     */
+    @Mock
+    private ElegibilidadService elegibilidad;
+
     @Captor
     private ArgumentCaptor<List<Long>> excluidos;
 
@@ -86,7 +94,7 @@ class FiltrosDurosTest {
         return new RecomendacionService(candidatos, descartes, impresiones, eventos,
                 perfiles, tendencias, productos,
                 new RankerHibrido(impresiones, pesos), adaptativo,
-                new MetricasDescubrimiento(new SimpleMeterRegistry()), registro, pesos);
+                new MetricasDescubrimiento(new SimpleMeterRegistry()), registro, elegibilidad, pesos);
     }
 
     @Test

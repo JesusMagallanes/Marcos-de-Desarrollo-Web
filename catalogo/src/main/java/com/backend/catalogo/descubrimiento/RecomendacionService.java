@@ -66,6 +66,7 @@ public class RecomendacionService {
     private final RankerAdaptativo adaptativo;
     private final MetricasDescubrimiento metricas;
     private final RegistroRecomendacionService registro;
+    private final ElegibilidadService elegibilidad;
     private final PesosDescubrimiento pesos;
 
     /**
@@ -329,7 +330,21 @@ public class RecomendacionService {
     public Carrusel tendenciasDeZona(UUID sujeto, String ubigeo, int limite, Set<Long> yaUsados) {
         TendenciaService.Resultado resultado = tendencias.enZona(ubigeo, limite * 2);
 
-        List<Long> ids = new ArrayList<>(resultado.ids());
+        /*
+         * ELEGIBILIDAD ANTES DE NADA, y aqui es donde de verdad hacia falta.
+         *
+         * Los otros seis generadores comprueban moderacion y stock dentro de su
+         * propio SQL, asi que lo que devuelven ya es elegible. Este no: lee
+         * IDENTIFICADORES de `tendencia_item`, una tabla derivada que se
+         * recalcula cada hora. Un producto que se agota a las 10:05 seguia
+         * saliendo en «lo mas visto en tu zona» hasta las 11:00, y quien pulsaba
+         * se encontraba una ficha sin stock.
+         *
+         * Va antes de las exclusiones y antes del recorte, no despues: filtrar
+         * al final dejaria huecos en el carrusel y —lo importante— convertiria
+         * la elegibilidad en algo que el ranking podria llegar a saltarse.
+         */
+        List<Long> ids = new ArrayList<>(elegibilidad.filtrar(resultado.ids()));
         ids.removeAll(excluidos(sujeto, yaUsados));
 
         if (ids.isEmpty()) {
