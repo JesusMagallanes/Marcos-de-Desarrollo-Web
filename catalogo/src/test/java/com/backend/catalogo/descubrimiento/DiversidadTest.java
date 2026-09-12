@@ -79,11 +79,19 @@ class DiversidadTest {
 
     private RecomendacionService servicio() {
         PesosDescubrimiento pesos = new PesosDescubrimiento();
-        return new RecomendacionService(candidatos, descartes, impresiones, eventos,
+        /*
+         * El enfriamiento es REAL y no un doble, a proposito. Lo unico que lee
+         * es `impresiones`, que ya esta mockeado, y usarlo de verdad es lo que
+         * permite comprobar que sin sujeto no toca la base — que es justo lo
+         * que afirma una de estas pruebas.
+         */
+        CooldownService enfriamiento =
+                new CooldownService(impresiones, pesos, new SimpleMeterRegistry());
+        return new RecomendacionService(candidatos, descartes, eventos,
                 perfiles, tendencias, productos,
                 new RankerHibrido(impresiones, pesos), adaptativo,
                 new MetricasDescubrimiento(new SimpleMeterRegistry()), registro, elegibilidad,
-                sesiones, pesos);
+                sesiones, enfriamiento, pesos);
     }
 
     /** Un candidato con su categoría y su marca. */

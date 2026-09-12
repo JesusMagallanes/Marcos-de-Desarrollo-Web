@@ -285,7 +285,7 @@ class FichaMedidaIT extends PruebaIntegracion {
         Long cansado = crearProducto("Hermano ya muy visto");
         crearProducto("Hermano fresco");
 
-        for (int i = 0; i <= pesos.getTopeImpresionesSinClic(); i++) {
+        for (int i = 0; i < pesos.getCooldownMaximo(); i++) {
             jdbc.update("INSERT INTO catalogo.impresion"
                     + " (sujeto_id, item_tipo, item_id, modulo, con_clic, mostrado_en)"
                     + " VALUES (?, 'PRODUCTO', ?, 'RELACIONADOS', false, ?)",

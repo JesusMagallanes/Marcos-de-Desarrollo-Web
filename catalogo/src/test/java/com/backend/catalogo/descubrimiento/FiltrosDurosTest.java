@@ -99,19 +99,33 @@ class FiltrosDurosTest {
 
     private RecomendacionService servicio() {
         PesosDescubrimiento pesos = new PesosDescubrimiento();
-        return new RecomendacionService(candidatos, descartes, impresiones, eventos,
+        /*
+         * El enfriamiento es REAL y no un doble, a proposito. Lo unico que lee
+         * es `impresiones`, que ya esta mockeado, y usarlo de verdad es lo que
+         * permite comprobar que sin sujeto no toca la base — que es justo lo
+         * que afirma una de estas pruebas.
+         */
+        CooldownService enfriamiento =
+                new CooldownService(impresiones, pesos, new SimpleMeterRegistry());
+        return new RecomendacionService(candidatos, descartes, eventos,
                 perfiles, tendencias, productos,
                 new RankerHibrido(impresiones, pesos), adaptativo,
                 new MetricasDescubrimiento(new SimpleMeterRegistry()), registro, elegibilidad,
-                sesiones, pesos);
+                sesiones, enfriamiento, pesos);
     }
 
     @Test
     @DisplayName("«lo más popular» no repesca lo que el sujeto descartó")
     void popularesRespetaElDescarte() {
         when(descartes.idsDescartados(SUJETO, TipoItem.PRODUCTO)).thenReturn(List.of(7L));
-        when(impresiones.itemsConFatiga(eq(SUJETO), anyString(), any(Instant.class), anyInt()))
-                .thenReturn(List.of(9L));
+        /*
+         * Seis impresiones del 9 en POPULARES y sin un solo clic: pasado el
+         * corte, asi que ese carrusel no puede ofrecerlo. Las columnas son las
+         * de `exposicionPorModulo`: item, modulo, veces, clics del item.
+         */
+        when(impresiones.exposicionPorModulo(eq(SUJETO), anyString(), any(Instant.class),
+                any(Instant.class)))
+                .thenReturn(List.<Object[]>of(new Object[] {9L, "POPULARES", 6, 0L}));
         when(candidatos.populares(isNull(), anyList(), anyInt())).thenReturn(List.of());
 
         servicio().populares(SUJETO, 12, new LinkedHashSet<>(List.of(3L)));
@@ -120,6 +134,49 @@ class FiltrosDurosTest {
         assertThat(excluidos.getValue())
                 .as("lo descartado, lo que ya cansa y lo que otro carrusel se llevó")
                 .contains(7L, 9L, 3L);
+    }
+
+    @Test
+    @DisplayName("el enfriamiento de un carrusel no borra el producto de otro")
+    void elEnfriamientoNoCruzaDeModulo() {
+        /*
+         * Seis impresiones en «relacionados» bastan para que el producto salga
+         * de ESE carrusel. En «lo mas popular», donde no ha aparecido nunca,
+         * cuentan a peso reducido —2,1 efectivas— y no llegan al corte: el
+         * producto sigue compitiendo, penalizado pero presente.
+         *
+         * Es la diferencia con la regla anterior, que era ciega al modulo y lo
+         * borraba de toda la pantalla por lo que habia pasado en un sitio.
+         */
+        when(impresiones.exposicionPorModulo(eq(SUJETO), anyString(), any(Instant.class),
+                any(Instant.class)))
+                .thenReturn(List.<Object[]>of(new Object[] {9L, "RELACIONADOS", 6, 0L}));
+        when(candidatos.populares(isNull(), anyList(), anyInt())).thenReturn(List.of());
+
+        servicio().populares(SUJETO, 12, new LinkedHashSet<>());
+
+        verify(candidatos).populares(isNull(), excluidos.capture(), anyInt());
+        assertThat(excluidos.getValue())
+                .as("lo que cansa en un carrusel no se borra del resto de la pantalla")
+                .doesNotContain(9L);
+    }
+
+    @Test
+    @DisplayName("«no me interesa» sí sale de todos los carruseles")
+    void elDescarteSiEsGlobal() {
+        /*
+         * La otra mitad de la frase anterior. El enfriamiento es local porque
+         * habla de insistencia; el descarte es global porque habla del
+         * producto. Sin esta distincion, graduar la fatiga habria sido la excusa
+         * para que «no me interesa» dejara de significar lo que dice.
+         */
+        when(descartes.idsDescartados(SUJETO, TipoItem.PRODUCTO)).thenReturn(List.of(7L));
+        when(candidatos.populares(isNull(), anyList(), anyInt())).thenReturn(List.of());
+
+        servicio().populares(SUJETO, 12, new LinkedHashSet<>());
+
+        verify(candidatos).populares(isNull(), excluidos.capture(), anyInt());
+        assertThat(excluidos.getValue()).contains(7L);
     }
 
     @Test

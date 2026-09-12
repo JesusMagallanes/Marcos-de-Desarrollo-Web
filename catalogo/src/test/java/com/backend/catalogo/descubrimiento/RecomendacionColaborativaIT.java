@@ -137,11 +137,19 @@ class RecomendacionColaborativaIT extends PruebaIntegracion {
         Long semilla = crearProducto("Semilla");
         Long destino = montarCoVisita(semilla, 20);
 
-        // Se le enseñó de sobra y nunca lo pulsó: dejar de insistir.
-        for (int i = 0; i <= pesos.getTopeImpresionesSinClic(); i++) {
+        /*
+         * Se le enseño de sobra EN ESTE carrusel y nunca lo pulso.
+         *
+         * El modulo de las impresiones era 'POPULARES' mientras la prueba
+         * comprobaba el colaborativo, y pasaba porque la regla anterior era
+         * ciega al modulo: bastaba con la cuenta. Ahora el enfriamiento se mide
+         * donde ocurre, asi que la prueba tiene que enseñar el producto donde
+         * dice que lo enseño.
+         */
+        for (int i = 0; i < pesos.getCooldownMaximo(); i++) {
             jdbc.update("INSERT INTO catalogo.impresion"
                     + " (sujeto_id, item_tipo, item_id, modulo, con_clic, mostrado_en)"
-                    + " VALUES (?, 'PRODUCTO', ?, 'POPULARES', false, ?)",
+                    + " VALUES (?, 'PRODUCTO', ?, 'OTROS_DESCUBRIERON', false, ?)",
                     yo, destino, Timestamp.from(hace(1)));
         }
 

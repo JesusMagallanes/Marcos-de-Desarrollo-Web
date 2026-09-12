@@ -252,7 +252,7 @@ class CatalogoNuevoIT extends PruebaIntegracion {
         Long nuevo = crearProducto("Nuevo y ya muy visto");
         conFecha(nuevo, hace(1));
 
-        for (int i = 0; i <= pesos.getTopeImpresionesSinClic(); i++) {
+        for (int i = 0; i < pesos.getCooldownMaximo(); i++) {
             jdbc.update("INSERT INTO catalogo.impresion"
                     + " (sujeto_id, item_tipo, item_id, modulo, con_clic, mostrado_en)"
                     + " VALUES (?, 'PRODUCTO', ?, 'POPULARES', false, ?)",

@@ -12,24 +12,56 @@ import org.springframework.data.repository.query.Param;
 public interface ImpresionRepository extends JpaRepository<Impresion, Long> {
 
     /**
-     * Los ítems que ya se le enseñaron N veces sin que los tocara.
+     * Qué se le ha enseñado a alguien, dónde, cuántas veces y si lo tocó.
      *
-     * <p>Es el antídoto contra el carrusel que repite lo mismo cada día. Se
-     * devuelve la lista entera de una vez y no ítem a ítem, porque se consulta
-     * en cada armado del Home.
+     * <h4>Una consulta para toda la pantalla</h4>
+     *
+     * <p>Sustituye a la que devolvía «los ítems que ya cansan». Aquella
+     * resolvía una pregunta de sí o no y ya venía decidida de la base, de modo
+     * que graduar el castigo era imposible sin volver a preguntar. Esta
+     * devuelve el dato en crudo —conteos por módulo— y deja la decisión en
+     * {@link CooldownService}, que es donde se puede leer, probar y calibrar.
+     *
+     * <p>Es UNA consulta por petición y no una por módulo ni, mucho menos, una
+     * por candidato: trae de golpe todas las filas del sujeto dentro de la
+     * ventana, y con ellas se resuelven los seis carruseles del Home. Agrupada
+     * en la base, así que lo que viaja son unas pocas decenas de filas y no el
+     * historial de impresiones.
+     *
+     * <h4>El clic perdona el ítem entero, no solo su módulo</h4>
+     *
+     * <p>La cuarta columna suma los clics del ítem en TODOS sus módulos, con
+     * una ventana sobre la partición. Es a propósito y refleja cómo se marca un
+     * clic hoy: {@code marcarClic} cierra la impresión más reciente sin clic del
+     * ítem, sin mirar en qué carrusel salió —el evento de entrada trae un
+     * {@code origen} de texto libre, no el módulo—. Inventarse aquí una
+     * atribución por módulo que la ingesta no garantiza habría sido construir
+     * sobre un dato que no existe.
+     *
+     * <p>Y además es lo que se quiere: si alguien tocó ese producto, mostrárselo
+     * otra vez no es insistir, es acertar.
+     *
+     * @param ahora corta el futuro. Las fechas las pone el servidor, pero una
+     *     fila con fecha adelantada —una importación, un reloj torcido— no
+     *     puede fabricar un enfriamiento que nadie se ha ganado
+     * @return filas {@code [itemId, modulo, veces, clicsDelItem]}
      */
     @Query(value = """
-            SELECT i.item_id
+            SELECT i.item_id,
+                   i.modulo,
+                   COUNT(*) AS veces,
+                   SUM(COUNT(*) FILTER (WHERE i.con_clic))
+                       OVER (PARTITION BY i.item_id) AS tocado
               FROM catalogo.impresion i
              WHERE i.sujeto_id = :sujeto
                AND i.item_tipo = :itemTipo
                AND i.mostrado_en >= :desde
-             GROUP BY i.item_id
-            HAVING COUNT(*) FILTER (WHERE i.con_clic) = 0
-               AND COUNT(*) >= :tope
+               AND i.mostrado_en < :ahora
+             GROUP BY i.item_id, i.modulo
             """, nativeQuery = true)
-    List<Long> itemsConFatiga(@Param("sujeto") UUID sujeto, @Param("itemTipo") String itemTipo,
-            @Param("desde") Instant desde, @Param("tope") int tope);
+    List<Object[]> exposicionPorModulo(@Param("sujeto") UUID sujeto,
+            @Param("itemTipo") String itemTipo, @Param("desde") Instant desde,
+            @Param("ahora") Instant ahora);
 
     /**
      * Marca como clicada la impresión más reciente de ese ítem.

@@ -223,7 +223,7 @@ class SesionIT extends PruebaIntegracion {
         ver(sujeto, sesion, crearProducto(catMonitores, "Monitor A"), hace(2));
         ver(sujeto, sesion, crearProducto(catMonitores, "Monitor B"), hace(1));
 
-        for (int i = 0; i <= pesos.getTopeImpresionesSinClic(); i++) {
+        for (int i = 0; i < pesos.getCooldownMaximo(); i++) {
             jdbc.update("INSERT INTO catalogo.impresion"
                     + " (sujeto_id, item_tipo, item_id, modulo, con_clic, mostrado_en)"
                     + " VALUES (?, 'PRODUCTO', ?, 'SEGUN_TUS_INTERESES', false, ?)",

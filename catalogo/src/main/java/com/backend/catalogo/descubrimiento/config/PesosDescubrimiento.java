@@ -66,11 +66,62 @@ public class PesosDescubrimiento {
     /** Mínimo de sujetos distintos para servir un dato agregado. */
     private int minimoSujetos = 50;
 
-    /** Impresiones sin clic tras las que se deja de mostrar un ítem. */
-    private int topeImpresionesSinClic = 3;
-
-    /** Días que dura ese castigo. */
+    /**
+     * Días que dura la memoria del enfriamiento. Ventana DESLIZANTE.
+     *
+     * <p>Deslizante es la palabra importante y es lo que hace que la
+     * recuperación no necesite ningún proceso: una impresión de hace quince
+     * días deja de contarse sola, el contador baja y el producto vuelve a
+     * competir. Un «desfatigador» programado sería una tarea que puede fallar,
+     * atrasarse o quedarse colgada, para conseguir exactamente lo mismo que
+     * consigue no hacer nada.
+     */
     private int diasSupresionPorFatiga = 14;
+
+    /**
+     * Cuánto enfría cada impresión sin respuesta, entre 0 y 1.
+     *
+     * <p>0,72 no es un número redondo y por eso está elegido: es el valor que
+     * hace que {@code factorCooldown(3)} valga exactamente la mitad. Tres
+     * impresiones sin que nadie las toque era el punto en el que la regla
+     * anterior BLOQUEABA el producto; ahora es el punto en el que vale la mitad
+     * y sigue compitiendo. La continuidad con la regla vieja es deliberada:
+     * cambiar la forma de la curva y además su calibración a la vez habría
+     * dejado sin saber cuál de las dos cosas movió los números.
+     */
+    private double penalizacionCooldown = 0.72;
+
+    /**
+     * Impresiones efectivas a partir de las cuales el ítem sale del módulo.
+     *
+     * <p>Seis, que es el doble del antiguo tope, y la razón de que sea el doble
+     * es que bloquear y descontar no piden la misma evidencia. Descontar se
+     * equivoca barato: si el sistema se pasa de frenada, el producto baja unos
+     * puestos. Bloquear se equivoca caro: el producto desaparece de ese módulo
+     * y no hay forma de que demuestre lo contrario hasta que la ventana corra.
+     *
+     * <p>Es {@code double} porque las impresiones de otros módulos cuentan
+     * fraccionadas; ver {@link #cooldownCruzado}.
+     */
+    private double cooldownMaximo = 6.0;
+
+    /**
+     * Cuánto cuenta una impresión que ocurrió en OTRO módulo, entre 0 y 1.
+     *
+     * <p>Ni 1 ni 0, y las dos alternativas son peores. Con 1 el cooldown deja
+     * de distinguir el módulo y volvemos a la regla anterior con más pasos:
+     * haber visto algo tres veces en «relacionados» lo borraría de «lo más
+     * popular», donde quizá nunca ha aparecido. Con 0 los módulos se ignoran
+     * entre sí y un mismo producto puede perseguir a alguien por toda la
+     * pantalla sin que ningún contador se entere.
+     *
+     * <p>0,35 dice lo que se quiere decir: una impresión en otro carrusel SÍ es
+     * exposición —la persona ya lo ha visto— pero no es la misma insistencia
+     * que repetirlo en el mismo sitio. Con este valor hacen falta dieciocho
+     * apariciones ajenas para bloquear un módulo donde el producto no ha salido
+     * nunca, que es tanto como decir que no pasa.
+     */
+    private double cooldownCruzado = 0.35;
 
     /** Cuánto del espacio se reserva a explorar en vez de acertar. */
     private double proporcionExploracion = 0.20;
@@ -333,6 +384,43 @@ public class PesosDescubrimiento {
             return 1.0;
         }
         return 1.0 / (1.0 + penalizacionPopularidad * Math.log1p(impresiones));
+    }
+
+    /**
+     * Cuánto conserva un candidato tras haber sido mostrado sin respuesta.
+     *
+     * <h4>Por qué una curva y no un escalón</h4>
+     *
+     * <p>La regla anterior era un escalón en tres: cero, una y dos impresiones
+     * valían exactamente lo mismo, y la tercera borraba el producto durante dos
+     * semanas. Las dos mitades de esa frase están mal. Por abajo, insistir dos
+     * veces con algo que nadie toca no puede costar lo mismo que no haberlo
+     * enseñado nunca. Por arriba, una exposición pasada se convertía en una
+     * sentencia: el producto no bajaba de puesto, desaparecía, y ya no había
+     * manera de que demostrara nada.
+     *
+     * <h4>La misma familia que ya usa el proyecto</h4>
+     *
+     * <p>{@code 1 / (1 + k·ln(1+n))}, que es la forma de {@link
+     * #factorPopularidad} y la del freno por exposición del ranker adaptativo.
+     * No se repite por inercia: es la forma correcta para algo que tiene que
+     * reaccionar mucho a las primeras repeticiones y poco a las siguientes. La
+     * diferencia entre haber visto algo una vez y tres importa; entre treinta y
+     * cuarenta, no.
+     *
+     * <p>Propiedades, que están probadas y no solo escritas aquí:
+     * {@code f(0) = 1} exacto —sin impresiones no hay castigo—, {@code f} es
+     * estrictamente decreciente, y nunca llega a cero, porque el cero lo pone
+     * el corte de {@link #getCooldownMaximo()} y no una asíntota.
+     *
+     * @param impresiones impresiones efectivas, que pueden ser fraccionarias
+     *     porque las de otros módulos cuentan a peso reducido
+     */
+    public double factorCooldown(double impresiones) {
+        if (impresiones <= 0) {
+            return 1.0;
+        }
+        return 1.0 / (1.0 + penalizacionCooldown * Math.log1p(impresiones));
     }
 
     /** La ventana colaborativa como duración, que es como la usa el proceso. */

@@ -1,8 +1,8 @@
 package com.backend.catalogo.descubrimiento;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.backend.catalogo.descubrimiento.CooldownService.Cooldown;
 import com.backend.catalogo.descubrimiento.adaptativo.ContextoRanking;
 import com.backend.catalogo.descubrimiento.adaptativo.RankerAdaptativo;
 import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
@@ -57,7 +58,6 @@ public class RecomendacionService {
 
     private final CandidatoRepository candidatos;
     private final ItemDescartadoRepository descartes;
-    private final ImpresionRepository impresiones;
     private final EventoInteraccionRepository eventos;
     private final PerfilService perfiles;
     private final TendenciaService tendencias;
@@ -68,6 +68,7 @@ public class RecomendacionService {
     private final RegistroRecomendacionService registro;
     private final ElegibilidadService elegibilidad;
     private final SesionService sesiones;
+    private final CooldownService cooldowns;
     private final PesosDescubrimiento pesos;
 
     /**
@@ -104,11 +105,25 @@ public class RecomendacionService {
         SesionService.Intencion intencion = sesiones.intencionDe(sujeto);
         boolean personalizable = conPerfil || intencion.hayIntencion();
 
+        /*
+         * El enfriamiento, UNA vez para toda la pantalla.
+         *
+         * Es lo que hace que sea una consulta por peticion y no una por
+         * carrusel, y —mas importante— que los seis modulos lean exactamente el
+         * mismo estado. Calcularlo dentro de cada uno abriria la puerta a que
+         * un producto quedara enfriado en el primero y no en el cuarto porque
+         * entre medias entro una impresion, que es una incoherencia dificil de
+         * ver y imposible de reproducir.
+         */
+        Cooldown enfriamiento = cooldowns.de(sujeto);
+
         if (personalizable) {
-            agregar(salida, segunIntereses(sujeto, porCarrusel, yaUsados, intencion), yaUsados);
+            agregar(salida, segunIntereses(sujeto, porCarrusel, yaUsados, intencion,
+                    enfriamiento), yaUsados);
         }
 
-        agregar(salida, tendenciasDeZona(sujeto, ubigeo, porCarrusel, yaUsados), yaUsados);
+        agregar(salida, tendenciasDeZona(sujeto, ubigeo, porCarrusel, yaUsados, enfriamiento),
+                yaUsados);
 
         /*
          * El colaborativo va tras intereses y zona, y ANTES de exploracion.
@@ -127,7 +142,7 @@ public class RecomendacionService {
          */
         boolean huboColaborativo = false;
         if (personalizable && pesos.getMaximoModulosColaborativos() > 0) {
-            Carrusel colab = colaborativo(sujeto, porCarrusel, yaUsados);
+            Carrusel colab = colaborativo(sujeto, porCarrusel, yaUsados, enfriamiento);
             huboColaborativo = colab != null;
             agregar(salida, colab, yaUsados);
         }
@@ -137,10 +152,10 @@ public class RecomendacionService {
             // que es. Un desacierto se perdona en un carrusel que promete algo
             // distinto; el mismo desacierto dentro de «según tus intereses»
             // dice que el sistema no te conoce.
-            agregar(salida, explorar(sujeto, porCarrusel, yaUsados), yaUsados);
+            agregar(salida, explorar(sujeto, porCarrusel, yaUsados, enfriamiento), yaUsados);
         }
 
-        agregar(salida, populares(sujeto, porCarrusel, yaUsados), yaUsados);
+        agregar(salida, populares(sujeto, porCarrusel, yaUsados, enfriamiento), yaUsados);
 
         // La proporcion de Homes sin perfil es la medida de si el sistema esta
         // aprendiendo de la gente o repartiendo lo mismo a todo el mundo.
@@ -170,7 +185,8 @@ public class RecomendacionService {
      * {@code home()}: este módulo ahora se sirve también cuando solo hay sesión.
      */
     public Carrusel segunIntereses(UUID sujeto, int limite, Set<Long> yaUsados) {
-        return segunIntereses(sujeto, limite, yaUsados, sesiones.intencionDe(sujeto));
+        return segunIntereses(sujeto, limite, yaUsados, sesiones.intencionDe(sujeto),
+                cooldowns.de(sujeto));
     }
 
     /**
@@ -180,9 +196,10 @@ public class RecomendacionService {
      * recalcularla aquí serían dos consultas más por petición para leer
      * exactamente lo mismo.
      */
-    public Carrusel segunIntereses(UUID sujeto, int limite, Set<Long> yaUsados,
-            SesionService.Intencion intencion) {
-        List<Long> excluidos = excluidos(sujeto, yaUsados);
+    Carrusel segunIntereses(UUID sujeto, int limite, Set<Long> yaUsados,
+            SesionService.Intencion intencion, Cooldown enfriamiento) {
+        ModuloDescubrimiento modulo = ModuloDescubrimiento.SEGUN_TUS_INTERESES;
+        List<Long> excluidos = excluidos(sujeto, yaUsados, modulo, enfriamiento);
         int aPedir = limite * FACTOR_SOBREMUESTREO;
 
         List<Candidato> crudos = candidatos.segunIntereses(sujeto, pesos.getConfianzaK(),
@@ -215,6 +232,8 @@ public class RecomendacionService {
             }
             metricas.candidatosGenerados(RazonRecomendacion.SESSION_INTENT, porSesion.size());
         }
+
+        enfriar(mezcla, modulo, enfriamiento);
 
         List<PerfilFaceta> top = perfiles.top(sujeto, TipoFaceta.CATEGORIA, 1);
         String motivo = top.isEmpty()
@@ -259,9 +278,11 @@ public class RecomendacionService {
          * Sin sujeto no hay descartes que aplicar —no se sabe de quien serian—
          * y queda solo el propio producto, que no puede recomendarse a si mismo.
          */
+        ModuloDescubrimiento modulo = ModuloDescubrimiento.RELACIONADOS;
+        Cooldown enfriamiento = cooldowns.de(sujeto);
         List<Long> excluidos = sujeto == null
                 ? new ArrayList<>(List.of(itemId, NINGUNO))
-                : excluidos(sujeto, Set.of(itemId));
+                : excluidos(sujeto, Set.of(itemId), modulo, enfriamiento);
 
         List<CandidatoConRazon> mezcla = new ArrayList<>();
         for (Candidato c : candidatos.similaresPorContenido(itemId, aPedir)) {
@@ -281,6 +302,7 @@ public class RecomendacionService {
          */
         Set<Long> fuera = new HashSet<>(excluidos);
         mezcla.removeIf(c -> fuera.contains(c.itemId()));
+        enfriar(mezcla, modulo, enfriamiento);
 
         boolean conPerfil = sujeto != null && perfiles.tienePerfil(sujeto);
         List<CandidatoConRazon> combinados = adaptativo.ordenar(mezcla,
@@ -319,10 +341,16 @@ public class RecomendacionService {
      * @return {@code null} si no hay evidencia suficiente; el Home lo omite
      */
     public Carrusel colaborativo(UUID sujeto, int limite, Set<Long> yaUsados) {
+        return colaborativo(sujeto, limite, yaUsados, cooldowns.de(sujeto));
+    }
+
+    /** La misma, con el enfriamiento de la pantalla ya calculado. */
+    Carrusel colaborativo(UUID sujeto, int limite, Set<Long> yaUsados, Cooldown enfriamiento) {
         if (sujeto == null) {
             return null;
         }
-        List<Long> excluidos = excluidos(sujeto, yaUsados);
+        ModuloDescubrimiento modulo = ModuloDescubrimiento.OTROS_DESCUBRIERON;
+        List<Long> excluidos = excluidos(sujeto, yaUsados, modulo, enfriamiento);
         int aPedir = limite * FACTOR_SOBREMUESTREO;
         Instant desde = Instant.now().minus(pesos.ventanaColaborativa());
 
@@ -343,6 +371,8 @@ public class RecomendacionService {
             mezcla.add(CandidatoConRazon.de(c, Origen.COHORTE,
                     RazonRecomendacion.SIMILAR_SUBJECT));
         }
+
+        enfriar(mezcla, modulo, enfriamiento);
 
         List<CandidatoConRazon> combinados = adaptativo.ordenar(mezcla,
                 ContextoRanking.home(true), sujeto, evidenciaDe(sujeto));
@@ -479,6 +509,20 @@ public class RecomendacionService {
 
     /** LO MÁS VISTO EN TU ZONA · con degradación geográfica si falta gente. */
     public Carrusel tendenciasDeZona(UUID sujeto, String ubigeo, int limite, Set<Long> yaUsados) {
+        return tendenciasDeZona(sujeto, ubigeo, limite, yaUsados, cooldowns.de(sujeto));
+    }
+
+    /**
+     * La misma, con el enfriamiento ya calculado.
+     *
+     * <p>Aquí el enfriamiento entra SOLO como exclusión y no como descuento, y
+     * no es un olvido. Este carrusel no ordena: lee un orden que calculó el
+     * proceso de tendencias y no tiene scores comparables que multiplicar —por
+     * eso tampoco anota score—. Aplicar un factor sobre números que no existen
+     * habría sido inventarlos.
+     */
+    Carrusel tendenciasDeZona(UUID sujeto, String ubigeo, int limite, Set<Long> yaUsados,
+            Cooldown enfriamiento) {
         TendenciaService.Resultado resultado = tendencias.enZona(ubigeo, limite * 2);
 
         /*
@@ -496,7 +540,8 @@ public class RecomendacionService {
          * la elegibilidad en algo que el ranking podria llegar a saltarse.
          */
         List<Long> ids = new ArrayList<>(elegibilidad.filtrar(resultado.ids()));
-        ids.removeAll(excluidos(sujeto, yaUsados));
+        ids.removeAll(excluidos(sujeto, yaUsados,
+                ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA, enfriamiento));
 
         if (ids.isEmpty()) {
             return null;
@@ -524,13 +569,35 @@ public class RecomendacionService {
 
     /** NUEVAS OPORTUNIDADES · categorías hermanas que todavía no ha pisado. */
     public Carrusel explorar(UUID sujeto, int limite, Set<Long> yaUsados) {
-        List<Candidato> crudos = candidatos.paraExplorar(sujeto, excluidos(sujeto, yaUsados),
-                limite * FACTOR_SOBREMUESTREO);
-        List<Long> elegidos = diversificar(crudos, limite);
-        anotar(sujeto, ModuloDescubrimiento.DESCUBRE_ALGO_NUEVO, elegidos, crudos, true);
+        return explorar(sujeto, limite, yaUsados, cooldowns.de(sujeto));
+    }
 
-        return armar(ModuloDescubrimiento.DESCUBRE_ALGO_NUEVO, null,
-                "Algo distinto de lo que sueles mirar", elegidos);
+    /**
+     * La misma, con el enfriamiento ya calculado.
+     *
+     * <p>Este módulo no pasa por el ranker —sus candidatos vienen ya ordenados
+     * por el SQL— así que el descuento se aplica aquí y la lista se reordena
+     * con él. Sin reordenar, multiplicar el score no habría cambiado nada: el
+     * orden de salida seguiría siendo el de entrada, y el enfriamiento sería un
+     * número que se calcula y no se usa.
+     */
+    Carrusel explorar(UUID sujeto, int limite, Set<Long> yaUsados, Cooldown enfriamiento) {
+        ModuloDescubrimiento modulo = ModuloDescubrimiento.DESCUBRE_ALGO_NUEVO;
+
+        List<CandidatoConRazon> mezcla = new ArrayList<>();
+        for (Candidato c : candidatos.paraExplorar(sujeto,
+                excluidos(sujeto, yaUsados, modulo, enfriamiento),
+                limite * FACTOR_SOBREMUESTREO)) {
+            mezcla.add(CandidatoConRazon.de(c, Origen.EXPLORACION,
+                    RazonRecomendacion.EXPLORATION));
+        }
+        enfriar(mezcla, modulo, enfriamiento);
+        mezcla.sort(Comparator.comparingDouble(CandidatoConRazon::score).reversed());
+
+        List<Long> elegidos = diversificar(new ArrayList<>(mezcla), limite);
+        anotar(sujeto, modulo, elegidos, new ArrayList<>(mezcla), true);
+
+        return armar(modulo, null, "Algo distinto de lo que sueles mirar", elegidos);
     }
 
     /**
@@ -544,12 +611,18 @@ public class RecomendacionService {
      * Descartar algo y verlo volver es peor que no poder descartarlo.
      */
     public Carrusel populares(UUID sujeto, int limite, Set<Long> yaUsados) {
+        return populares(sujeto, limite, yaUsados, cooldowns.de(sujeto));
+    }
+
+    /** La misma, con el enfriamiento de la pantalla ya calculado. */
+    Carrusel populares(UUID sujeto, int limite, Set<Long> yaUsados, Cooldown enfriamiento) {
+        ModuloDescubrimiento modulo = ModuloDescubrimiento.POPULARES;
         List<Long> excluidos;
         if (sujeto == null) {
             excluidos = new ArrayList<>(yaUsados);
             excluidos.add(NINGUNO);
         } else {
-            excluidos = excluidos(sujeto, yaUsados);
+            excluidos = excluidos(sujeto, yaUsados, modulo, enfriamiento);
         }
         /*
          * CATALOGO NUEVO · el unico sitio donde un producto sin historial puede
@@ -606,6 +679,8 @@ public class RecomendacionService {
          * `TENDENCIA`, un producto nuevo pesa menos que uno asentado y compite;
          * puede perfectamente no aparecer, y eso es lo correcto.
          */
+        enfriar(mezcla, modulo, enfriamiento);
+
         boolean conPerfilAqui = sujeto != null && perfiles.tienePerfil(sujeto);
         List<CandidatoConRazon> combinados = adaptativo.ordenar(mezcla,
                 ContextoRanking.home(conPerfilAqui), sujeto, evidenciaDe(sujeto));
@@ -680,18 +755,56 @@ public class RecomendacionService {
     /* ══════════════ Etapa B · filtros duros ══════════════ */
 
     /**
-     * Lo que NO puede aparecer: lo descartado a mano, lo que ya cansa y lo que
-     * otro carrusel de esta misma pantalla ya se llevó.
+     * Lo que NO puede aparecer en ESTE carrusel.
+     *
+     * <p>Tres listas que se suman y ninguna que reste. Lo descartado a mano, lo
+     * que ya se ha enseñado aquí hasta pasarse del corte, y lo que otro
+     * carrusel de esta misma pantalla ya se llevó.
+     *
+     * <h4>Por qué ahora recibe el módulo</h4>
+     *
+     * <p>Porque el enfriamiento dejó de ser global. Lo descartado sigue
+     * saliendo de todas partes —«no me interesa» es una respuesta sobre el
+     * producto, no sobre el sitio donde apareció—, pero haber visto algo tres
+     * veces en «relacionados» no es motivo para borrarlo de «lo más popular»,
+     * donde quizá no ha salido nunca.
+     *
+     * <h4>Esto se aplica ANTES de generar candidatos</h4>
+     *
+     * <p>La lista viaja al {@code NOT IN} de cada consulta, así que lo excluido
+     * no llega a existir como candidato. No es una preferencia de estilo: es lo
+     * que hace imposible que el ranker —o la exploración, que elige entre los
+     * mismos— reintroduzca algo que ya estaba fuera. Un filtro aplicado después
+     * de ordenar sería una promesa que depende de que nadie cambie el orden.
      */
-    private List<Long> excluidos(UUID sujeto, Set<Long> yaUsados) {
+    private List<Long> excluidos(UUID sujeto, Set<Long> yaUsados,
+            ModuloDescubrimiento modulo, Cooldown enfriamiento) {
         Set<Long> fuera = new HashSet<>(yaUsados);
         fuera.addAll(descartes.idsDescartados(sujeto, TipoItem.PRODUCTO));
-        fuera.addAll(impresiones.itemsConFatiga(sujeto, TipoItem.PRODUCTO.name(),
-                Instant.now().minus(pesos.getDiasSupresionPorFatiga(), ChronoUnit.DAYS),
-                pesos.getTopeImpresionesSinClic()));
+        fuera.addAll(enfriamiento.bloqueadosEn(modulo));
         // `NOT IN ()` es un error de sintaxis, no una lista vacía.
         fuera.add(NINGUNO);
         return new ArrayList<>(fuera);
+    }
+
+    /**
+     * Descuenta a cada candidato lo que ya se le ha insistido en este carrusel.
+     *
+     * <p>Va sobre la mezcla ya construida y ANTES del ranker, que es el orden
+     * que pide la etapa: el ranker recibe scores que ya llevan el enfriamiento
+     * dentro y no tiene que saber nada de él. Lo que no tiene castigo se deja
+     * intacto y no se reconstruye, porque el caso normal es justamente ese.
+     *
+     * <p>Lo que ha pasado del corte no está aquí: ese salió en las exclusiones
+     * y nunca llegó a ser candidato. Este método solo gradúa; no excluye a
+     * nadie ni devuelve a nadie.
+     */
+    private void enfriar(List<CandidatoConRazon> mezcla, ModuloDescubrimiento modulo,
+            Cooldown enfriamiento) {
+        mezcla.replaceAll(c -> {
+            double factor = enfriamiento.factor(modulo, c.itemId());
+            return factor == 1.0 ? c : c.conScore(c.score() * factor);
+        });
     }
 
     /** Lo último que miró, para «sigue donde lo dejaste». */
