@@ -17,6 +17,7 @@ import com.backend.catalogo.descubrimiento.ImpresionRepository;
 import com.backend.catalogo.descubrimiento.MetricasPipeline;
 import com.backend.catalogo.descubrimiento.Origen;
 import com.backend.catalogo.descubrimiento.RankerHibrido;
+import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
 import com.backend.catalogo.descubrimiento.adaptativo.AsignacionExperimento.Variante;
 
 import lombok.RequiredArgsConstructor;
@@ -61,6 +62,13 @@ public class RankerAdaptativo {
     private final MetricasPipeline cronometros;
     private final AsignacionExperimento asignacion;
     private final PesosAdaptativos pesos;
+    /*
+     * El piso de sujetos NO es un peso de la fase 4: es una proteccion del
+     * calculo de exposicion, compartida con el ranker estable. Vive en la
+     * configuracion comun para que los dos lean el mismo numero y no puedan
+     * separarse con el tiempo.
+     */
+    private final PesosDescubrimiento comunes;
     private final MetricasAdaptativas metricas;
 
     /** Ventana de exposición que se mira para la novedad y el freno. */
@@ -139,7 +147,8 @@ public class RankerAdaptativo {
          * lados se veria igual y se buscaria en el sitio equivocado.
          */
         List<Object[]> filas = cronometros.comun(superficie, MetricasPipeline.EXPOSICION,
-                () -> impresiones.contarPorItem(ids, Instant.now().minus(VENTANA_EXPOSICION)));
+                () -> impresiones.contarPorItem(ids, Instant.now().minus(VENTANA_EXPOSICION),
+                        comunes.getExposicionMinimaSujetos()));
 
         Map<Long, Long> exposicion = new HashMap<>();
         for (Object[] fila : filas) {

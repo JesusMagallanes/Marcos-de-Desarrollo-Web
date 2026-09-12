@@ -2,6 +2,7 @@ package com.backend.catalogo.descubrimiento;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +45,7 @@ class RankerHibridoTest {
         pesos = new PesosDescubrimiento();
         ranker = new RankerHibrido(impresiones, pesos);
         // Por defecto nadie está sobreexpuesto; cada prueba lo cambia si quiere.
-        when(impresiones.contarPorItem(anyList(), any(Instant.class))).thenReturn(List.<Object[]>of());
+        when(impresiones.contarPorItem(anyList(), any(Instant.class), anyInt())).thenReturn(List.<Object[]>of());
     }
 
     private CandidatoConRazon candidato(long id, double score, Origen origen,
@@ -88,7 +89,7 @@ class RankerHibridoTest {
     @Test
     @DisplayName("lo que ya se enseña demasiado baja")
     void laSobreexposicionSeCastiga() {
-        when(impresiones.contarPorItem(anyList(), any(Instant.class)))
+        when(impresiones.contarPorItem(anyList(), any(Instant.class), anyInt()))
                 .thenReturn(List.<Object[]>of(new Object[] { 1L, 5000L }));
 
         List<CandidatoConRazon> mezcla = List.of(

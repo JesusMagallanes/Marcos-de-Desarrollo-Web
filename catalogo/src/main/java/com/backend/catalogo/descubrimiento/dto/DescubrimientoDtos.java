@@ -58,6 +58,20 @@ public final class DescubrimientoDtos {
      * con datos móviles contados, que es la mayoría en Perú.
      */
     public record LoteEventosRequest(
+            /*
+             * El sujeto y su firma, para `navigator.sendBeacon`.
+             *
+             * Van en el CUERPO y no en la query string, que es de donde se
+             * retiraron: una URL acaba escrita en logs de acceso, en proxies,
+             * en el historial y en la cabecera `Referer`, y con la firma al lado
+             * eso convertia cualquier linea de log en una credencial que
+             * funciona. sendBeacon no puede poner cabeceras, pero si mandar un
+             * cuerpo JSON, asi que aqui es donde tienen que ir.
+             *
+             * Nulos en el camino normal: ahi viajan como cabeceras.
+             */
+            UUID sujeto,
+            @Size(max = 64) String firma,
             @NotNull UUID sesionId,
             /** Ubigeo INEI del distrito. Nunca coordenadas. */
             @Pattern(regexp = "^[0-9]{6}$", message = "El ubigeo son seis dígitos") String ubigeo,
@@ -73,6 +87,9 @@ public final class DescubrimientoDtos {
     }
 
     public record LoteImpresionesRequest(
+            /** Igual que en los eventos: en el cuerpo, nunca en la URL. */
+            UUID sujeto,
+            @Size(max = 64) String firma,
             @NotEmpty @Size(max = 200) List<@Valid ImpresionRequest> impresiones) {
     }
 
@@ -98,15 +115,26 @@ public final class DescubrimientoDtos {
      * <p>Incluye el {@code sujetoId} para que un visitante anónimo pueda
      * guardarlo y volver con él. Es lo que permite que su rastro sobreviva a
      * cerrar la pestaña y, más adelante, se funda con su cuenta.
+     *
+     * <p>Y la {@code firma} que lo acompaña, porque desde ahora el
+     * identificador solo vale con ella: conocerlo dejó de ser suficiente para
+     * usarlo. Las dos cosas se devuelven juntas y solo a su dueño.
      */
-    public record HomeResponse(UUID sujetoId, List<Carrusel> carruseles) {
+    public record HomeResponse(UUID sujetoId, String firma, List<Carrusel> carruseles) {
     }
 
     /** Una faceta del perfil, para la pantalla «Tus intereses». */
     public record InteresResponse(String tipo, String faceta, double score, int eventos) {
     }
 
-    /** Confirmación de la ingesta, con el sujeto que el cliente debe recordar. */
-    public record IngestaResponse(UUID sujetoId, int registrados) {
+    /**
+     * Confirmación de la ingesta, con el sujeto que el cliente debe recordar.
+     *
+     * <p>{@code descartados} no es un detalle de diagnóstico: son impresiones
+     * que el servidor no pudo casar con nada que le hubiera servido a ese
+     * sujeto. Un cliente legítimo verá siempre cero.
+     */
+    public record IngestaResponse(UUID sujetoId, String firma, int registrados,
+            int descartados) {
     }
 }

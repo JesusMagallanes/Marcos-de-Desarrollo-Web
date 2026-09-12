@@ -2,6 +2,7 @@ package com.backend.catalogo.descubrimiento.adaptativo;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
@@ -51,7 +52,7 @@ class RankerAdaptativoTest {
 
     @BeforeEach
     void preparar() {
-        when(impresiones.contarPorItem(anyList(), any(Instant.class)))
+        when(impresiones.contarPorItem(anyList(), any(Instant.class), anyInt()))
                 .thenReturn(List.<Object[]>of());
 
         pesos = new PesosAdaptativos();
@@ -64,6 +65,7 @@ class RankerAdaptativoTest {
                 new com.backend.catalogo.descubrimiento.MetricasPipeline(
                         new SimpleMeterRegistry()),
                 new AsignacionExperimento(pesos), pesos,
+                new com.backend.catalogo.descubrimiento.config.PesosDescubrimiento(),
                 new MetricasAdaptativas(new SimpleMeterRegistry()));
     }
 
@@ -189,7 +191,7 @@ class RankerAdaptativoTest {
     @Test
     @DisplayName("lo sobreexpuesto baja aunque su señal sea la mejor")
     void elFrenoPorExposicionSeAplica() {
-        when(impresiones.contarPorItem(anyList(), any(Instant.class)))
+        when(impresiones.contarPorItem(anyList(), any(Instant.class), anyInt()))
                 .thenReturn(List.<Object[]>of(new Object[] { 1L, 5000L }));
 
         List<CandidatoConRazon> mezcla = List.of(

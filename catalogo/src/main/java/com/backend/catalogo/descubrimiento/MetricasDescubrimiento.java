@@ -42,6 +42,10 @@ public class MetricasDescubrimiento {
     /** Homes servidos, separando los que no tenían nada personal que dar. */
     public static final String HOME = "smartzone_descubrimiento_home_total";
 
+    /** Impresiones declaradas que no correspondian a nada servido. */
+    public static final String IMPRESIONES_DESCARTADAS =
+            "smartzone_descubrimiento_impresiones_descartadas_total";
+
     /** Recomendaciones anotadas para poder evaluarlas después, por razón. */
     public static final String SERVIDAS = "smartzone_descubrimiento_servidas_total";
 
@@ -92,6 +96,21 @@ public class MetricasDescubrimiento {
     /** Lo que dejó la última pasada de la medición. Un cero sostenido es una avería. */
     public void medicionTerminada(long filasAgregadas) {
         metricasAgregadas.set(filasAgregadas);
+    }
+
+    /**
+     * Impresiones que el cliente declaró y el servidor no pudo sostener.
+     *
+     * <p>Agregado y sin identificadores: cuántas, no de quién ni de qué
+     * producto. Un cliente legítimo produce cero, porque solo declara lo que se
+     * le sirvió; un valor sostenido aquí es la señal de que alguien está
+     * intentando fabricar exposición.
+     */
+    public void impresionesDescartadas(int cuantas) {
+        if (cuantas <= 0) {
+            return;
+        }
+        registro.counter(IMPRESIONES_DESCARTADAS).increment(cuantas);
     }
 
     /** Lo que dejó la última pasada del proceso por lotes. */

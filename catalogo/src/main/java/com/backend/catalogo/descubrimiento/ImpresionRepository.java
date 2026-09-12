@@ -95,7 +95,21 @@ public interface ImpresionRepository extends JpaRepository<Impresion, Long> {
      * <p>Sobre la lista de candidatos ya recortada, no sobre el catálogo: son
      * unas decenas de identificadores y un recorrido de índice.
      *
-     * @return filas {@code [itemId, veces]}
+     * <h4>El piso de sujetos distintos</h4>
+     *
+     * <p>Un producto solo cuenta como expuesto si lo han visto varias personas
+     * DISTINTAS. Sin ese corte, la cuenta era un {@code COUNT(*)} y quien
+     * quisiera podía inflarla: como el freno se aplica al ranking de todo el
+     * mundo, bastaba con declarar impresiones de un producto rival para
+     * hundirlo para todos los visitantes. Es el mismo piso que ya protege
+     * tendencias, y por la misma razón: un agregado sostenido por una sola
+     * persona no describe un patrón, describe a esa persona.
+     *
+     * <p>Cambia el ranking en catálogos con poco tráfico —un producto por
+     * debajo del piso deja de tener freno— y es un precio aceptado a cambio de
+     * que nadie pueda mover el ranking de otros desde su navegador.
+     *
+     * @return filas {@code [itemId, veces]}; solo los que superan el piso
      */
     @Query(value = """
             SELECT i.item_id, COUNT(*)
@@ -104,6 +118,8 @@ public interface ImpresionRepository extends JpaRepository<Impresion, Long> {
                AND i.item_id IN (:items)
                AND i.mostrado_en >= :desde
              GROUP BY i.item_id
+            HAVING COUNT(DISTINCT i.sujeto_id) >= :minimoSujetos
             """, nativeQuery = true)
-    List<Object[]> contarPorItem(@Param("items") List<Long> items, @Param("desde") Instant desde);
+    List<Object[]> contarPorItem(@Param("items") List<Long> items, @Param("desde") Instant desde,
+            @Param("minimoSujetos") int minimoSujetos);
 }

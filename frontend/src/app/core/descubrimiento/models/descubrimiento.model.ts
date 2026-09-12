@@ -68,7 +68,11 @@ export interface ImpresionRequest {
 
 export interface IngestaResponse {
   sujetoId: string;
+  /** La credencial que acompaña al identificador. Sin ella no vale. */
+  firma: string;
   registrados: number;
+  /** Impresiones que el servidor no pudo casar con nada servido. Debe ser 0. */
+  descartados: number;
 }
 
 /**
@@ -88,5 +92,12 @@ export interface Carrusel {
 export interface HomeDescubrimiento {
   /** El identificador que el visitante anónimo debe conservar. */
   sujetoId: string;
+  /**
+   * La firma que lo acompaña.
+   *
+   * <p>El identificador dejó de valer solo: hay que devolver los dos. El
+   * secreto que la produce vive únicamente en el backend.
+   */
+  firma: string;
   carruseles: Carrusel[];
 }

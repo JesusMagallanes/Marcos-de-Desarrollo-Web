@@ -22,6 +22,10 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
+import com.backend.catalogo.shared.metricas.MetricasSeguridad;
+import com.backend.catalogo.shared.seguridad.LimitadorPeticiones;
+
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
  * Quién es el sujeto de una petición, y qué pasa cuando el anónimo inicia
@@ -44,10 +48,27 @@ class SujetoServiceTest {
 
     private SujetoService servicio;
 
+    private FirmaSujeto firmas;
+
     @BeforeEach
     void preparar() {
-        servicio = new SujetoService(repositorio, new PesosDescubrimiento());
+        /*
+         * Firma real y no un doble: lo que estas pruebas comprueban es
+         * precisamente que un identificador solo vale con su firma, y con un
+         * doble complaciente eso pasaria siempre sin demostrar nada.
+         */
+        firmas = new FirmaSujeto("secreto-de-prueba-solo-para-tests");
+        LimitadorPeticiones limitador = new LimitadorPeticiones();
+        servicio = new SujetoService(repositorio, firmas, limitador,
+                new MetricasSeguridad(new SimpleMeterRegistry(), limitador),
+                new PesosDescubrimiento());
         when(repositorio.save(any(Sujeto.class))).thenAnswer(i -> i.getArgument(0));
+    }
+
+    /** Lo que manda un cliente legítimo: su identificador Y su firma. */
+    private Sujeto resolver(Long usuarioId, UUID sujeto, String ubigeo) {
+        return servicio.resolver(usuarioId, sujeto,
+                sujeto == null ? null : firmas.de(sujeto), ubigeo, "127.0.0.1");
     }
 
     private Sujeto sujeto(UUID id, Long usuarioId) {
@@ -70,7 +91,7 @@ class SujetoServiceTest {
         // El id ajeno pertenece a OTRA cuenta, así que no es fusionable.
         when(repositorio.findById(deOtro)).thenReturn(Optional.of(sujeto(deOtro, 99L)));
 
-        Sujeto resuelto = servicio.resolver(ANA, deOtro, null);
+        Sujeto resuelto = resolver(ANA, deOtro, null);
 
         assertThat(resuelto.getId()).isEqualTo(cuenta.getId());
         assertThat(resuelto.getId()).isNotEqualTo(deOtro);
@@ -92,7 +113,7 @@ class SujetoServiceTest {
         when(repositorio.buscarVivoDeUsuario(ANA)).thenReturn(Optional.of(cuenta));
         when(repositorio.findById(anonimo)).thenReturn(Optional.of(sujeto(anonimo, null)));
 
-        Sujeto resuelto = servicio.resolver(ANA, anonimo, "110101");
+        Sujeto resuelto = resolver(ANA, anonimo, "110101");
 
         assertThat(resuelto.getId()).isEqualTo(cuenta.getId());
         verify(repositorio).moverEventos(anonimo, cuenta.getId());
@@ -115,7 +136,7 @@ class SujetoServiceTest {
         when(repositorio.buscarVivoDeUsuario(ANA)).thenReturn(Optional.of(cuenta));
         when(repositorio.findById(anonimo)).thenReturn(Optional.of(viejo));
 
-        servicio.resolver(ANA, anonimo, null);
+        resolver(ANA, anonimo, null);
 
         assertThat(viejo.getFusionadoEn()).isEqualTo(cuenta.getId());
         assertThat(viejo.estaFusionado()).isTrue();
@@ -133,7 +154,7 @@ class SujetoServiceTest {
         when(repositorio.findById(anonimo)).thenReturn(Optional.of(fusionado));
         when(repositorio.findById(cuenta.getId())).thenReturn(Optional.of(cuenta));
 
-        Sujeto resuelto = servicio.resolver(ANA, anonimo, null);
+        Sujeto resuelto = resolver(ANA, anonimo, null);
 
         assertThat(resuelto.getId()).isEqualTo(cuenta.getId());
     }
@@ -154,7 +175,7 @@ class SujetoServiceTest {
         when(repositorio.findById(anonimo)).thenReturn(Optional.of(fusionado));
         when(repositorio.findById(cuenta.getId())).thenReturn(Optional.of(cuenta));
 
-        Sujeto resuelto = servicio.resolver(null, anonimo, null);
+        Sujeto resuelto = resolver(null, anonimo, null);
 
         assertThat(resuelto.getId()).isNotEqualTo(cuenta.getId());
         assertThat(resuelto.getUsuarioId()).isNull();
@@ -163,7 +184,7 @@ class SujetoServiceTest {
     @Test
     @DisplayName("un visitante sin identificador estrena sujeto")
     void visitanteNuevo() {
-        Sujeto resuelto = servicio.resolver(null, null, "110101");
+        Sujeto resuelto = resolver(null, null, "110101");
 
         assertThat(resuelto.getId()).isNotNull();
         assertThat(resuelto.getUsuarioId()).isNull();
@@ -186,7 +207,7 @@ class SujetoServiceTest {
         UUID deUnaCuenta = UUID.randomUUID();
         when(repositorio.findById(deUnaCuenta)).thenReturn(Optional.of(sujeto(deUnaCuenta, ANA)));
 
-        Sujeto resuelto = servicio.resolver(null, deUnaCuenta, null);
+        Sujeto resuelto = resolver(null, deUnaCuenta, null);
 
         assertThat(resuelto.getId()).isNotEqualTo(deUnaCuenta);
         assertThat(resuelto.getUsuarioId()).isNull();
@@ -203,7 +224,7 @@ class SujetoServiceTest {
         UUID deLaCookie = UUID.randomUUID();
         when(repositorio.findById(deLaCookie)).thenReturn(Optional.empty());
 
-        Sujeto resuelto = servicio.resolver(null, deLaCookie, null);
+        Sujeto resuelto = resolver(null, deLaCookie, null);
 
         assertThat(resuelto.getId()).isEqualTo(deLaCookie);
     }

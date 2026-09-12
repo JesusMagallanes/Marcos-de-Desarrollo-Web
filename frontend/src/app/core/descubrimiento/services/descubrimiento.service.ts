@@ -14,6 +14,17 @@ import {
 /** Dónde vive el identificador del sujeto entre visitas. */
 const CLAVE_SUJETO = 'sz.descubrimiento.sujeto';
 
+/**
+ * La firma que acompaña al identificador de sujeto.
+ *
+ * <p>El identificador dejó de valer por sí solo. Antes, quien lo conociera
+ * —de un log, de una URL— podía mandarlo y el servidor le entregaba ese perfil
+ * entero. Ahora viaja con una firma que solo el backend sabe calcular; el
+ * secreto nunca llega hasta aquí y este cliente se limita a guardarla y
+ * devolverla tal cual.
+ */
+const CLAVE_FIRMA = 'sz.descubrimiento.firma';
+
 /** Cada cuánto se vacía el buzón de eventos. */
 const INTERVALO_ENVIO_MS = 5000;
 
@@ -53,7 +64,8 @@ export class DescubrimientoService {
   private readonly destroyRef = inject(DestroyRef);
 
   /** Identificador del sujeto; lo asigna el servidor y aquí solo se guarda. */
-  private readonly sujetoSig = signal<string | null>(leerSujetoGuardado());
+  private readonly sujetoSig = signal<string | null>(leerGuardado(CLAVE_SUJETO));
+  private readonly firmaSig = signal<string | null>(leerGuardado(CLAVE_FIRMA));
   readonly sujeto = this.sujetoSig.asReadonly();
 
   /** Una sesión por carga de la aplicación. Sirve para la saturación. */
@@ -257,7 +269,7 @@ export class DescubrimientoService {
         headers: this.cabeceras(),
       })
       .pipe(
-        tap((res) => this.guardarSujeto(res?.sujetoId)),
+        tap((res) => this.guardarSujeto(res?.sujetoId, res?.firma)),
         // Si Descubrimiento falla, el Home se pinta con el catálogo de siempre.
         // El usuario no tiene por qué enterarse de que hay un recomendador.
         catchError(() => of(null)),
@@ -348,17 +360,20 @@ export class DescubrimientoService {
     this.buzon = [];
 
     if (alCerrar && navigator.sendBeacon) {
+      // sendBeacon no admite cabeceras, así que el sujeto y su firma van en el
+      // CUERPO. Antes iban en la query string, y eso dejaba una credencial
+      // escrita en los logs de acceso, en los proxies y en el historial.
       const cuerpo = JSON.stringify({
+        sujeto: this.sujetoSig() ?? undefined,
+        firma: this.firmaSig() ?? undefined,
         sesionId: this.sesionId,
         ubigeo: this.ubigeoActual ?? undefined,
         eventos: lote,
-        // El sujeto no puede viajar en cabecera con sendBeacon, así que va en
-        // la URL. El servidor lo lee igual que la cabecera.
       });
-      const url = this.sujetoSig()
-        ? `${RUTAS_DESCUBRIMIENTO.eventos}?sujeto=${this.sujetoSig()}`
-        : RUTAS_DESCUBRIMIENTO.eventos;
-      navigator.sendBeacon(url, new Blob([cuerpo], { type: 'application/json' }));
+      navigator.sendBeacon(
+        RUTAS_DESCUBRIMIENTO.eventos,
+        new Blob([cuerpo], { type: 'application/json' }),
+      );
       return;
     }
     this.enviarLote(lote).subscribe();
@@ -372,19 +387,21 @@ export class DescubrimientoService {
         { headers: this.cabeceras() },
       )
       .pipe(
-        tap((res) => this.guardarSujeto(res?.sujetoId)),
+        tap((res) => this.guardarSujeto(res?.sujetoId, res?.firma)),
         catchError(() => EMPTY),
       );
   }
 
   private enviarImpresiones(impresiones: ImpresionRequest[], alCerrar = false): void {
     if (alCerrar && navigator.sendBeacon) {
-      const url = this.sujetoSig()
-        ? `${RUTAS_DESCUBRIMIENTO.impresiones}?sujeto=${this.sujetoSig()}`
-        : RUTAS_DESCUBRIMIENTO.impresiones;
+      const cuerpo = JSON.stringify({
+        sujeto: this.sujetoSig() ?? undefined,
+        firma: this.firmaSig() ?? undefined,
+        impresiones,
+      });
       navigator.sendBeacon(
-        url,
-        new Blob([JSON.stringify({ impresiones })], { type: 'application/json' }),
+        RUTAS_DESCUBRIMIENTO.impresiones,
+        new Blob([cuerpo], { type: 'application/json' }),
       );
       return;
     }
@@ -395,7 +412,7 @@ export class DescubrimientoService {
         { headers: this.cabeceras() },
       )
       .pipe(
-        tap((res) => this.guardarSujeto(res?.sujetoId)),
+        tap((res) => this.guardarSujeto(res?.sujetoId, res?.firma)),
         catchError(() => EMPTY),
       )
       .subscribe();
@@ -403,7 +420,16 @@ export class DescubrimientoService {
 
   private cabeceras(): HttpHeaders {
     const sujeto = this.sujetoSig();
-    return sujeto ? new HttpHeaders({ 'X-Sujeto': sujeto }) : new HttpHeaders();
+    const firma = this.firmaSig();
+    if (!sujeto) {
+      return new HttpHeaders();
+    }
+    // Sin firma el identificador no sirve de nada, pero se manda igual: el
+    // servidor responderá con un sujeto nuevo y su firma, que es justo lo que
+    // hace falta para recuperarse de un almacenamiento a medias.
+    return firma
+      ? new HttpHeaders({ 'X-Sujeto': sujeto, 'X-Sujeto-Firma': firma })
+      : new HttpHeaders({ 'X-Sujeto': sujeto });
   }
 
   /**
@@ -413,24 +439,32 @@ export class DescubrimientoService {
    * Al iniciar sesión el servidor devuelve el de la cuenta, y guardarlo es lo
    * que cierra la fusión del rastro anónimo.
    */
-  private guardarSujeto(sujetoId: string | undefined): void {
+  private guardarSujeto(sujetoId: string | undefined, firma?: string): void {
+    if (firma && firma !== this.firmaSig()) {
+      this.firmaSig.set(firma);
+      guardar(CLAVE_FIRMA, firma);
+    }
     if (!sujetoId || sujetoId === this.sujetoSig()) {
       return;
     }
     this.sujetoSig.set(sujetoId);
-    try {
-      localStorage.setItem(CLAVE_SUJETO, sujetoId);
-    } catch {
-      // Modo privado o almacenamiento lleno: el sujeto vive solo en memoria y
-      // se pierde al cerrar. Se degrada, no se rompe.
-    }
+    guardar(CLAVE_SUJETO, sujetoId);
   }
 }
 
-function leerSujetoGuardado(): string | null {
+function leerGuardado(clave: string): string | null {
   try {
-    return localStorage.getItem(CLAVE_SUJETO);
+    return localStorage.getItem(clave);
   } catch {
     return null;
+  }
+}
+
+function guardar(clave: string, valor: string): void {
+  try {
+    localStorage.setItem(clave, valor);
+  } catch {
+    // Modo privado o almacenamiento lleno: vive solo en memoria y se pierde al
+    // cerrar. Se degrada, no se rompe.
   }
 }

@@ -1,11 +1,16 @@
 package com.backend.catalogo.descubrimiento;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
 
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.EventoRequest;
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.ImpresionRequest;
@@ -28,6 +33,9 @@ public class IngestaService {
     private final EventoInteraccionRepository eventos;
     private final ImpresionRepository impresiones;
     private final ItemDescartadoRepository descartes;
+    private final RecomendacionServidaRepository servidas;
+    private final MetricasDescubrimiento metricas;
+    private final PesosDescubrimiento pesos;
     private final PerfilService perfiles;
 
     /**
@@ -93,11 +101,48 @@ public class IngestaService {
                 (int) Math.max(1, repeticion));
     }
 
-    /** Guarda lo que se mostró. El clic, si llega, lo marca después un evento. */
+    /** Cuántas impresiones se aceptaron y cuántas no pudieron sostenerse. */
+    public record Resultado(int aceptadas, int descartadas) {
+    }
+
+    /**
+     * Guarda lo que se mostró, si se le mostró de verdad.
+     *
+     * <h4>Por qué ya no se cree al cliente</h4>
+     *
+     * <p>Una impresión la declara el navegador, y hasta aquí se aceptaba tal
+     * cual: decir «he visto el producto 7 en POPULARES» bastaba para que se
+     * guardara. Con eso se podía fabricar exposición, y la exposición frena el
+     * ranking de TODO SmartZone, no solo el de quien la declara. Un vendedor
+     * podía hundir a un rival desde su propio navegador.
+     *
+     * <p>Ahora cada impresión tiene que corresponder a algo que el backend
+     * decidió servirle a ESE sujeto en ESE módulo. La prueba ya existía en
+     * {@code recomendacion_servida} y no hizo falta ninguna tabla nueva.
+     *
+     * <h4>La ventana</h4>
+     *
+     * <p>Se mira lo servido dentro de la retención del detalle, que es lo que
+     * de verdad hay. Más estrecha dejaría fuera a quien tiene una pestaña
+     * abierta desde ayer; no hay ninguna razón para castigar eso.
+     *
+     * <h4>Qué pasa con lo descartado</h4>
+     *
+     * <p>No se guarda y no se rompe la petición. El cliente legítimo nunca lo
+     * ve —lo que pinta es lo que le sirvieron— y devolver un error convertiría
+     * un desajuste inocente, como una pestaña con un Home purgado, en una
+     * pantalla rota. El número sale en la respuesta y en un contador agregado.
+     */
     @Transactional
-    public int registrarImpresiones(UUID sujeto, List<ImpresionRequest> lote) {
+    public Resultado registrarImpresiones(UUID sujeto, List<ImpresionRequest> lote) {
         Instant ahora = Instant.now();
+        List<Long> items = lote.stream().map(ImpresionRequest::itemId).distinct().toList();
+
+        Set<String> servidos = new HashSet<>(servidas.servidosDe(sujeto, items,
+                ahora.minus(Duration.ofDays(pesos.getRetencionDias()))));
+
         List<Impresion> filas = lote.stream()
+                .filter(i -> servidos.contains(i.modulo() + "|" + i.itemId()))
                 .map(i -> Impresion.builder()
                         .sujetoId(sujeto)
                         .itemTipo(i.itemTipo())
@@ -108,8 +153,18 @@ public class IngestaService {
                         .mostradoEn(ahora)
                         .build())
                 .toList();
+
         impresiones.saveAll(filas);
-        return filas.size();
+
+        int descartadas = lote.size() - filas.size();
+        if (descartadas > 0) {
+            /*
+             * Agregado y sin identificadores: cuantas, no de quien ni de que.
+             * Un valor sostenido aqui es la senal de que alguien esta probando.
+             */
+            metricas.impresionesDescartadas(descartadas);
+        }
+        return new Resultado(filas.size(), descartadas);
     }
 
     /**

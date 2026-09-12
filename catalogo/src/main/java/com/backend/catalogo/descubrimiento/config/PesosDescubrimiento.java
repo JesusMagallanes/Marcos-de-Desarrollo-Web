@@ -67,6 +67,54 @@ public class PesosDescubrimiento {
     private int minimoSujetos = 50;
 
     /**
+     * Personas distintas que hacen falta para que un producto cuente como
+     * expuesto ante el freno del ranking.
+     *
+     * <h4>Por qué existe</h4>
+     *
+     * <p>El freno por exposición se aplica al ranking de TODOS los visitantes,
+     * pero se alimentaba de un {@code COUNT(*)} sobre impresiones. Bastaba con
+     * declarar muchas impresiones de un producto rival para hundirlo en el Home
+     * de cualquiera. Con el piso, la exposición de una sola persona —o de unas
+     * pocas— deja de contar, y frenar un producto exige que mucha gente lo haya
+     * visto de verdad, que es justo lo que el freno quería medir.
+     *
+     * <h4>Por qué cinco y no cincuenta</h4>
+     *
+     * <p>No es el piso de privacidad de los agregados, que protege a las
+     * personas y por eso es alto. Este protege al ranking de la manipulación, y
+     * subirlo de más apagaría el freno en catálogos con poco tráfico: un
+     * producto legítimamente popular en una tienda pequeña dejaría de frenarse
+     * y acapararía la portada. Cinco personas distintas ya no las pone un
+     * atacante sin acumular cinco identidades firmadas por el servidor.
+     */
+    private int exposicionMinimaSujetos = 5;
+
+    /**
+     * Escrituras de ingesta por sujeto y minuto.
+     *
+     * <p>El cupo por IP existía y no bastaba: 120 escrituras por minuto con
+     * cien eventos cada una son doce mil eventos por minuto contra un mismo
+     * perfil. Este límite acota el daño por identidad, que es la unidad en la
+     * que se envenena un perfil.
+     */
+    private int ingestaPorSujetoPorMinuto = 60;
+
+    /**
+     * Sujetos nuevos que una misma IP puede estrenar por minuto.
+     *
+     * <p>Es lo que cierra la amplificación. Un cupo por sujeto no sirve de nada
+     * si fabricar sujetos es gratis: quien quiera más cupo se inventa más
+     * identidades. Desde que el servidor firma los sujetos, inventarlos exige
+     * pedirlos, y pedirlos pasa por aquí.
+     *
+     * <p>Veinte por minuto y por IP deja pasar sin rozarla la navegación real
+     * —un visitante estrena UN sujeto y lo reutiliza— y corta la creación en
+     * masa desde una sola procedencia.
+     */
+    private int sujetosNuevosPorIpPorMinuto = 20;
+
+    /**
      * Días que dura la memoria del enfriamiento. Ventana DESLIZANTE.
      *
      * <p>Deslizante es la palabra importante y es lo que hace que la

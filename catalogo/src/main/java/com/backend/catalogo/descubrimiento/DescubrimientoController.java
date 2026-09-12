@@ -1,6 +1,7 @@
 package com.backend.catalogo.descubrimiento;
 
 import java.util.LinkedHashSet;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +19,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.Carrusel;
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.HomeResponse;
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.IngestaResponse;
@@ -27,6 +32,11 @@ import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.LoteEventosReq
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.LoteImpresionesRequest;
 import com.backend.catalogo.shared.seguridad.JwtUtils;
 
+import com.backend.catalogo.shared.metricas.MetricasSeguridad;
+import com.backend.catalogo.shared.seguridad.IpCliente;
+import com.backend.catalogo.shared.seguridad.LimitadorPeticiones;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -59,12 +69,26 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DescubrimientoController {
 
+    /**
+     * La firma que acompaña al identificador de sujeto.
+     *
+     * <p>En una cabecera propia y no dentro de {@code X-Sujeto}: así el
+     * identificador sigue siendo un UUID a secas para quien lo lea, y añadir la
+     * credencial no obligó a cambiar el formato de nada de lo que ya existía.
+     */
+    public static final String CABECERA_FIRMA = "X-Sujeto-Firma";
+
     private static final int MAXIMO_POR_CARRUSEL = 24;
 
     private final SujetoService sujetos;
     private final IngestaService ingesta;
     private final RecomendacionService recomendador;
     private final PerfilService perfiles;
+    private final FirmaSujeto firmas;
+    private final LimitadorPeticiones limitador;
+    private final MetricasSeguridad seguridad;
+    private final IpCliente ipCliente;
+    private final PesosDescubrimiento pesos;
 
     /* ══════════════ Escritura ══════════════ */
 
@@ -80,22 +104,24 @@ public class DescubrimientoController {
     public IngestaResponse eventos(
             @Valid @RequestBody LoteEventosRequest lote,
             @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
-            /*
-             * Alternativa a la cabecera, solo para `navigator.sendBeacon`.
-             *
-             * Al ocultarse la pestaña el navegador ya no permite una peticion
-             * normal —se cancelaria y se perderian los eventos de la ultima
-             * pantalla, que suele ser la mas interesante—, y sendBeacon no
-             * admite cabeceras. Vale exactamente lo mismo que `X-Sujeto`: sigue
-             * mandando el JWT si lo hay, asi que no abre ninguna via de
-             * suplantacion que la cabecera no abriera ya.
-             */
-            @RequestParam(value = "sujeto", required = false) UUID sujetoEnQuery,
+            @RequestHeader(value = CABECERA_FIRMA, required = false) String firmaDelCliente,
             @AuthenticationPrincipal Jwt jwt) {
 
+        /*
+         * El sujeto ya no viaja en la query string.
+         *
+         * Estaba ahi para `navigator.sendBeacon`, que no admite cabeceras, y
+         * era un agujero: una URL termina en logs de acceso, proxies, historial
+         * y `Referer`. Ahora sendBeacon manda el identificador y su firma
+         * dentro del CUERPO, que no se escribe en ninguno de esos sitios.
+         */
         UUID sujeto = resolver(jwt,
-                sujetoDelCliente != null ? sujetoDelCliente : sujetoEnQuery, lote.ubigeo());
-        return new IngestaResponse(sujeto, ingesta.registrar(sujeto, lote));
+                sujetoDelCliente != null ? sujetoDelCliente : lote.sujeto(),
+                firmaDelCliente != null ? firmaDelCliente : lote.firma(),
+                lote.ubigeo());
+        comprobarCupoDe(sujeto);
+
+        return respuesta(sujeto, ingesta.registrar(sujeto, lote), 0);
     }
 
     /**
@@ -110,14 +136,17 @@ public class DescubrimientoController {
     public IngestaResponse impresiones(
             @Valid @RequestBody LoteImpresionesRequest lote,
             @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
-            /* Igual que en /eventos: sendBeacon no puede mandar cabeceras. */
-            @RequestParam(value = "sujeto", required = false) UUID sujetoEnQuery,
+            @RequestHeader(value = CABECERA_FIRMA, required = false) String firmaDelCliente,
             @AuthenticationPrincipal Jwt jwt) {
 
         UUID sujeto = resolver(jwt,
-                sujetoDelCliente != null ? sujetoDelCliente : sujetoEnQuery, null);
-        return new IngestaResponse(sujeto,
-                ingesta.registrarImpresiones(sujeto, lote.impresiones()));
+                sujetoDelCliente != null ? sujetoDelCliente : lote.sujeto(),
+                firmaDelCliente != null ? firmaDelCliente : lote.firma(),
+                null);
+        comprobarCupoDe(sujeto);
+
+        IngestaService.Resultado r = ingesta.registrarImpresiones(sujeto, lote.impresiones());
+        return respuesta(sujeto, r.aceptadas(), r.descartadas());
     }
 
     /* ══════════════ Lectura ══════════════ */
@@ -126,22 +155,25 @@ public class DescubrimientoController {
     @GetMapping("/home")
     public HomeResponse home(
             @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
+            @RequestHeader(value = CABECERA_FIRMA, required = false) String firmaDelCliente,
             @RequestParam(required = false)
             @Pattern(regexp = "^[0-9]{6}$", message = "El ubigeo son seis dígitos") String ubigeo,
             @RequestParam(defaultValue = "12") @Min(1) @Max(MAXIMO_POR_CARRUSEL) int porCarrusel,
             @AuthenticationPrincipal Jwt jwt) {
 
-        UUID sujeto = resolver(jwt, sujetoDelCliente, ubigeo);
-        return new HomeResponse(sujeto, recomendador.home(sujeto, ubigeo, porCarrusel));
+        UUID sujeto = resolver(jwt, sujetoDelCliente, firmaDelCliente, ubigeo);
+        return new HomeResponse(sujeto, firmas.de(sujeto),
+                recomendador.home(sujeto, ubigeo, porCarrusel));
     }
 
     @GetMapping("/segun-intereses")
     public Carrusel segunIntereses(
             @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
+            @RequestHeader(value = CABECERA_FIRMA, required = false) String firmaDelCliente,
             @RequestParam(defaultValue = "12") @Min(1) @Max(MAXIMO_POR_CARRUSEL) int limite,
             @AuthenticationPrincipal Jwt jwt) {
 
-        UUID sujeto = resolver(jwt, sujetoDelCliente, null);
+        UUID sujeto = resolver(jwt, sujetoDelCliente, firmaDelCliente, null);
         return vacioSiFalta(ModuloDescubrimiento.SEGUN_TUS_INTERESES,
                 recomendador.segunIntereses(sujeto, limite, new LinkedHashSet<>()));
     }
@@ -170,11 +202,12 @@ public class DescubrimientoController {
     public Carrusel similares(
             @PathVariable @Positive Long itemId,
             @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
+            @RequestHeader(value = CABECERA_FIRMA, required = false) String firmaDelCliente,
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(defaultValue = "12") @Min(1) @Max(MAXIMO_POR_CARRUSEL) int limite) {
 
         UUID sujeto = (jwt != null || sujetoDelCliente != null)
-                ? resolver(jwt, sujetoDelCliente, null)
+                ? resolver(jwt, sujetoDelCliente, firmaDelCliente, null)
                 : null;
 
         return vacioSiFalta(ModuloDescubrimiento.RELACIONADOS,
@@ -184,12 +217,13 @@ public class DescubrimientoController {
     @GetMapping("/tendencias")
     public Carrusel tendencias(
             @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
+            @RequestHeader(value = CABECERA_FIRMA, required = false) String firmaDelCliente,
             @RequestParam(required = false)
             @Pattern(regexp = "^[0-9]{6}$", message = "El ubigeo son seis dígitos") String ubigeo,
             @RequestParam(defaultValue = "12") @Min(1) @Max(MAXIMO_POR_CARRUSEL) int limite,
             @AuthenticationPrincipal Jwt jwt) {
 
-        UUID sujeto = resolver(jwt, sujetoDelCliente, ubigeo);
+        UUID sujeto = resolver(jwt, sujetoDelCliente, firmaDelCliente, ubigeo);
         return vacioSiFalta(ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA,
                 recomendador.tendenciasDeZona(sujeto, ubigeo, limite, new LinkedHashSet<>()));
     }
@@ -200,15 +234,22 @@ public class DescubrimientoController {
      * «Tus intereses»: lo que el sistema cree saber de quien pregunta.
      *
      * <p>Cubre el derecho de acceso de la Ley 29733 y, sobre todo, convierte un
-     * sistema opaco en uno que se puede auditar. Devuelve SOLO el perfil del
-     * sujeto que hace la petición; no hay forma de pedir el de otro.
+     * sistema opaco en uno que se puede auditar.
+     *
+     * <p>Devuelve SOLO el perfil de quien pregunta, y ahora es verdad. Antes
+     * este comentario prometía que «no hay forma de pedir el de otro», y para un
+     * visitante anónimo era falso: bastaba con mandar su identificador en la
+     * cabecera. Lo que lo sostiene no es esta frase, sino que el identificador
+     * ya no se acepta sin la firma que solo el servidor sabe calcular; quien
+     * mande uno ajeno sin ella recibe un sujeto nuevo y vacío.
      */
     @GetMapping("/mis-intereses")
     public List<InteresResponse> misIntereses(
             @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
+            @RequestHeader(value = CABECERA_FIRMA, required = false) String firmaDelCliente,
             @AuthenticationPrincipal Jwt jwt) {
 
-        UUID sujeto = resolver(jwt, sujetoDelCliente, null);
+        UUID sujeto = resolver(jwt, sujetoDelCliente, firmaDelCliente, null);
         return perfiles.completo(sujeto).stream()
                 .map(f -> new InteresResponse(
                         f.getId().getTipoFaceta().name(),
@@ -223,9 +264,10 @@ public class DescubrimientoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void olvidarme(
             @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
+            @RequestHeader(value = CABECERA_FIRMA, required = false) String firmaDelCliente,
             @AuthenticationPrincipal Jwt jwt) {
 
-        perfiles.olvidar(resolver(jwt, sujetoDelCliente, null));
+        perfiles.olvidar(resolver(jwt, sujetoDelCliente, firmaDelCliente, null));
     }
 
     /**
@@ -248,7 +290,42 @@ public class DescubrimientoController {
      * <p>El JWT gana siempre. La cabecera solo se mira cuando no hay cuenta —y
      * aun entonces sirve para fusionar el rastro anónimo, no para suplantar.
      */
-    private UUID resolver(Jwt jwt, UUID sujetoDelCliente, String ubigeo) {
-        return sujetos.resolver(JwtUtils.uidDe(jwt), sujetoDelCliente, ubigeo).getId();
+    private UUID resolver(Jwt jwt, UUID sujetoDelCliente, String firma, String ubigeo) {
+        return sujetos.resolver(JwtUtils.uidDe(jwt), sujetoDelCliente, firma, ubigeo,
+                ipCliente.de(peticionActual())).getId();
+    }
+
+    /** La petición en curso, para conocer la procedencia sin ensuciar cada firma. */
+    private HttpServletRequest peticionActual() {
+        return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+                .getRequest();
+    }
+
+    /**
+     * El cupo de ingesta de ESTE sujeto.
+     *
+     * <h4>Por qué no bastaba el cupo por IP</h4>
+     *
+     * <p>El de IP permite ciento veinte escrituras por minuto, y cada una
+     * admite cien eventos: doce mil eventos por minuto contra un mismo perfil.
+     * El daño de envenenar un perfil se mide por identidad, no por procedencia,
+     * así que el límite tiene que estar también ahí.
+     *
+     * <p>La clave vive solo en memoria del limitador. No se registra, no se
+     * etiqueta ninguna métrica con ella y no sale en ninguna respuesta.
+     */
+    private void comprobarCupoDe(UUID sujeto) {
+        if (!limitador.permitir("sujeto:" + sujeto + "|ingesta",
+                pesos.getIngestaPorSujetoPorMinuto(), Duration.ofMinutes(1))) {
+
+            seguridad.rateLimitBloqueado("ingesta-sujeto");
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Demasiados eventos para este visitante. Inténtalo en un minuto.");
+        }
+    }
+
+    /** La confirmación de una ingesta, con la firma que el cliente debe guardar. */
+    private IngestaResponse respuesta(UUID sujeto, int registrados, int descartados) {
+        return new IngestaResponse(sujeto, firmas.de(sujeto), registrados, descartados);
     }
 }

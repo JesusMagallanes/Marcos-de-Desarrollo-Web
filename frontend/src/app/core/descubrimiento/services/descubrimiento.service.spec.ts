@@ -7,6 +7,7 @@ import { DescubrimientoService } from './descubrimiento.service';
 const EVENTOS = '/api/descubrimiento/eventos';
 const IMPRESIONES = '/api/descubrimiento/impresiones';
 const CLAVE_SUJETO = 'sz.descubrimiento.sujeto';
+const CLAVE_FIRMA = 'sz.descubrimiento.firma';
 
 /** Lo que devuelve la ingesta: el sujeto que el cliente debe recordar. */
 const SUJETO = '11111111-2222-3333-4444-555555555555';
@@ -233,6 +234,27 @@ describe('DescubrimientoService', () => {
     req.flush({ sujetoId: SUJETO, registrados: 1 });
 
     expect(localStorage.getItem(CLAVE_SUJETO)).toBe(SUJETO);
+  });
+
+  it('la firma se guarda y viaja con el identificador', () => {
+    /*
+     * El identificador dejó de valer solo. El servidor lo devuelve con una
+     * firma que solo él sabe calcular, y el cliente tiene que conservarla y
+     * devolverla: sin ella el backend entrega un sujeto nuevo y vacío, que es
+     * lo que impide que quien copie un UUID se lleve el perfil ajeno.
+     */
+    servicio.vistaDeProducto(9, 4);
+    vaciar();
+    http.expectOne(EVENTOS).flush({ sujetoId: SUJETO, firma: 'FIRMA-DEL-SERVIDOR', registrados: 1 });
+
+    expect(localStorage.getItem(CLAVE_FIRMA)).toBe('FIRMA-DEL-SERVIDOR');
+
+    servicio.vistaDeProducto(10, 4);
+    vaciar();
+    const segunda = http.expectOne(EVENTOS);
+    expect(segunda.request.headers.get('X-Sujeto')).toBe(SUJETO);
+    expect(segunda.request.headers.get('X-Sujeto-Firma')).toBe('FIRMA-DEL-SERVIDOR');
+    segunda.flush({ sujetoId: SUJETO, firma: 'FIRMA-DEL-SERVIDOR', registrados: 1 });
   });
 
   it('el sujeto devuelto se manda en las peticiones siguientes', () => {

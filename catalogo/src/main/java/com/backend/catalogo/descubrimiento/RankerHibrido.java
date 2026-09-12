@@ -103,7 +103,8 @@ public class RankerHibrido {
         }
         // Sobre los candidatos ya recortados: unas decenas de identificadores.
         List<Object[]> conteos = impresiones.contarPorItem(
-                List.copyOf(porItem.keySet()), Instant.now().minus(VENTANA_EXPOSICION));
+                List.copyOf(porItem.keySet()), Instant.now().minus(VENTANA_EXPOSICION),
+                pesos.getExposicionMinimaSujetos());
 
         for (Object[] fila : conteos) {
             Long itemId = ((Number) fila[0]).longValue();

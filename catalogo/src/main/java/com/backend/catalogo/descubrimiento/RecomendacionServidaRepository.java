@@ -111,6 +111,39 @@ public interface RecomendacionServidaRepository extends JpaRepository<Recomendac
     @Query("DELETE FROM RecomendacionServida r WHERE r.servidoEn < :corte")
     int purgarAnterioresA(@Param("corte") Instant corte);
 
+    /**
+     * De estos ítems, cuáles se le sirvieron DE VERDAD a este sujeto ahí.
+     *
+     * <h4>Para qué</h4>
+     *
+     * <p>Una impresión la declara el cliente, y hasta ahora se aceptaba tal
+     * cual: bastaba con decir «he visto el producto 7 en POPULARES» para que el
+     * servidor lo creyera. Eso permitía forjar exposición, y la exposición
+     * frena el ranking — de todos, no solo del que la declara.
+     *
+     * <p>La evidencia de que algo se sirvió ya existía y no hacía falta
+     * inventar ninguna tabla: {@code recomendacion_servida} guarda sujeto,
+     * ítem y módulo en el momento en que el backend decidió enseñarlo.
+     *
+     * <h4>Una consulta para el lote entero</h4>
+     *
+     * <p>Un lote trae hasta doscientas impresiones. Preguntar una por una sería
+     * el N+1 que estas fases tienen prohibido, y además pondría el coste de
+     * defenderse en manos de quien ataca.
+     *
+     * @return los pares {@code modulo + '|' + itemId} que sí se sirvieron
+     */
+    @Query(value = """
+            SELECT DISTINCT r.modulo || '|' || r.item_id
+              FROM catalogo.recomendacion_servida r
+             WHERE r.sujeto_id = :sujeto
+               AND r.item_tipo = 'PRODUCTO'
+               AND r.item_id IN (:items)
+               AND r.servido_en >= :desde
+            """, nativeQuery = true)
+    List<String> servidosDe(@Param("sujeto") UUID sujeto, @Param("items") List<Long> items,
+            @Param("desde") Instant desde);
+
     /** Lo servido a un sujeto en una ventana. Para pruebas y para la evaluación. */
     @Query("""
             SELECT r FROM RecomendacionServida r
