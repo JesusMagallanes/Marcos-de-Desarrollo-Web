@@ -40,6 +40,7 @@ public class ColaborativoService {
     private final ItemRelacionRepository relaciones;
     private final SujetoSimilitudRepository similitudes;
     private final MetricasDescubrimiento metricas;
+    private final CerrojoProceso cerrojo;
     private final PesosDescubrimiento pesos;
 
     /** Lo que la última pasada dejó hecho. Para métricas y para las pruebas. */
@@ -70,6 +71,15 @@ public class ColaborativoService {
             initialDelayString = "${descubrimiento.colaborativo.retraso-inicial-ms:180000}")
     @Transactional
     public void programado() {
+        if (!cerrojo.intentar("colaborativo")) {
+            metricas.pasadaSaltada("colaborativo");
+            return;
+        }
+        metricas.pasada("colaborativo", this::pasadaConCerrojo);
+    }
+
+    /** La pasada, ya con el cerrojo de esta transacción en la mano. */
+    private void pasadaConCerrojo() {
         Resultado r = recalcular();
         /*
          * Sin identificadores de nadie: son cuentas agregadas. Un log de CI es

@@ -29,13 +29,22 @@ public interface TendenciaItemRepository
      * <p>El {@code HAVING} sobre sujetos distintos es el piso de privacidad: una
      * fila sostenida por menos de N personas no se publica, porque en un
      * distrito pequeño delataría a quien la generó.
+     *
+     * <h4>Un solo reloj</h4>
+     *
+     * <p>{@code calculado_en} recibe el instante que manda el servicio, el
+     * mismo con el que después purga lo obsoleto. Antes se estampaba con el
+     * {@code now()} de PostgreSQL mientras la purga cortaba por el reloj de la
+     * JVM: dos relojes distintos para decidir qué sobrevive. Si el de la base
+     * fuera anterior, la pasada borraría lo que acababa de escribir. Es el
+     * patrón que ya usaba el colaborativo, y ahora los dos hacen lo mismo.
      */
     @Modifying
     @Query(value = """
             INSERT INTO catalogo.tendencia_item
                    (nivel, zona, item_tipo, item_id, categoria_id, score, sujetos, calculado_en)
             SELECT CAST(:nivel AS varchar), z.zona, z.item_tipo, z.item_id,
-                   z.categoria_id, z.score, z.sujetos, now()
+                   z.categoria_id, z.score, z.sujetos, CAST(:ahora AS timestamptz)
               FROM (
                     SELECT LEFT(COALESCE(e.ubigeo, ''), :digitos) AS zona,
                            e.item_tipo,
@@ -63,11 +72,11 @@ public interface TendenciaItemRepository
                 score = EXCLUDED.score,
                 sujetos = EXCLUDED.sujetos,
                 categoria_id = EXCLUDED.categoria_id,
-                calculado_en = now()
+                calculado_en = EXCLUDED.calculado_en
             """, nativeQuery = true)
     int recalcular(@Param("nivel") String nivel, @Param("digitos") int digitos,
             @Param("desde") Instant desde, @Param("corte") Instant corte,
-            @Param("minimoSujetos") int minimoSujetos);
+            @Param("minimoSujetos") int minimoSujetos, @Param("ahora") Instant ahora);
 
     /** Lo que ya no se recalculó en la última pasada deja de ser tendencia. */
     @Modifying

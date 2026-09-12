@@ -41,6 +41,8 @@ public class MedicionService {
     private final ImpresionRepository impresiones;
     private final MetricaDescubrimientoRepository metricas;
     private final MetricasDescubrimiento indicadores;
+    private final PurgaEventosService purgaEventos;
+    private final CerrojoProceso cerrojo;
     private final PesosDescubrimiento pesos;
 
     /**
@@ -64,11 +66,39 @@ public class MedicionService {
             initialDelayString = "${descubrimiento.medicion.retraso-inicial-ms:240000}")
     @Transactional
     public void programado() {
+        if (!cerrojo.intentar("medicion")) {
+            indicadores.pasadaSaltada("medicion");
+            return;
+        }
+        indicadores.pasada("medicion", this::pasadaConCerrojo);
+    }
+
+    /** La pasada, ya con el cerrojo de esta transacción en la mano. */
+    private void pasadaConCerrojo() {
         Resultado r = agregarYPurgar();
         log.info("Medición: {} filas de ayer, {} de hoy; purgadas {} servidas y {} impresiones",
                 r.filasAyer(), r.filasHoy(), r.detallePurgado(), r.impresionesPurgadas());
 
         indicadores.medicionTerminada(metricas.count());
+
+        /*
+         * Los eventos se purgan DESPUES de agregar, y aqui y no en un proceso
+         * aparte.
+         *
+         * Despues, porque la agregacion del dia lee acciones posteriores a lo
+         * servido y no puede quedarse sin ellas — aunque con noventa dias de
+         * retencion frente a un dia de atribucion no haya solape posible, el
+         * orden es el que hace que esa afirmacion no dependa de los numeros.
+         *
+         * Aqui, porque es el mismo corte y la misma retencion que servidas e
+         * impresiones: tres tablas de detalle con una sola politica.
+         *
+         * Va fuera de la transaccion de arriba: cada lote confirma la suya. La
+         * de este metodo ya ha hecho su trabajo cuando se llega a este punto y
+         * lo unico que retiene son las filas de servidas e impresiones que
+         * acaba de borrar, que la purga de eventos no toca.
+         */
+        purgaEventos.purgar(Instant.now().minus(Duration.ofDays(pesos.getRetencionDias())));
     }
 
     /**

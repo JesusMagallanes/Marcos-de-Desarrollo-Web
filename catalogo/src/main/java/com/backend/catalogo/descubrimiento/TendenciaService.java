@@ -29,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 public class TendenciaService {
 
     private final TendenciaItemRepository tendencias;
+    private final MetricasDescubrimiento metricas;
+    private final CerrojoProceso cerrojo;
     private final PesosDescubrimiento pesos;
 
     /** Ventana que se considera «reciente» frente al periodo anterior. */
@@ -82,6 +84,15 @@ public class TendenciaService {
             initialDelayString = "${descubrimiento.tendencia.retraso-inicial-ms:120000}")
     @Transactional
     public void recalcular() {
+        if (!cerrojo.intentar("tendencias")) {
+            metricas.pasadaSaltada("tendencias");
+            return;
+        }
+        metricas.pasada("tendencias", this::pasadaConCerrojo);
+    }
+
+    /** La pasada, ya con el cerrojo de esta transacción en la mano. */
+    private void pasadaConCerrojo() {
         Instant ahora = Instant.now();
         Instant corte = ahora.minus(Duration.ofDays(diasVentana));
         // Se leen dos ventanas: la reciente y la anterior, para poder medir
@@ -90,7 +101,7 @@ public class TendenciaService {
 
         for (NivelGeografico nivel : NivelGeografico.values()) {
             int filas = tendencias.recalcular(nivel.name(), nivel.digitos(), desde, corte,
-                    pesos.getMinimoSujetos());
+                    pesos.getMinimoSujetos(), ahora);
             // Lo que no se recalculó en esta pasada dejó de ser tendencia.
             tendencias.purgarObsoletas(nivel, ahora);
             log.debug("Tendencias {} recalculadas: {} filas", nivel, filas);

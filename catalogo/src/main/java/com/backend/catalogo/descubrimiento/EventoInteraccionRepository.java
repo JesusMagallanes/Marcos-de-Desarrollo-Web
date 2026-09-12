@@ -145,7 +145,47 @@ public interface EventoInteraccionRepository extends JpaRepository<EventoInterac
             @Param("ahora") Instant ahora,
             @Param("sesion") UUID sesion);
 
+    /**
+     * Retención, por fin ejecutada.
+     *
+     * <p>Este método existía desde la fase 1 y no lo llamaba nadie: la tabla
+     * crecía sin techo, que es exactamente el defecto que la fase 3 encontró en
+     * las impresiones. Se conserva para las pruebas y para un borrado de golpe
+     * si alguna vez hiciera falta; el mantenimiento usa {@link #purgarLote}.
+     */
     @Modifying
     @Query("DELETE FROM EventoInteraccion e WHERE e.ocurridoEn < :limite")
     int purgarAnterioresA(@Param("limite") Instant limite);
+
+    /**
+     * Un lote de la purga, y no la purga entera.
+     *
+     * <h4>Por qué por lotes</h4>
+     *
+     * <p>La primera pasada tras desplegar esto se encuentra con todo el atraso
+     * acumulado desde la fase 1. Un {@code DELETE} de golpe sobre eso es una
+     * transacción de minutos que retiene bloqueos, hincha el WAL y, si se cae a
+     * medias, deshace todo el trabajo. Un lote de unos miles de filas se
+     * confirma en milisegundos y el siguiente continúa donde lo dejó.
+     *
+     * <h4>El índice que usa</h4>
+     *
+     * <p>{@code idx_evento_fecha (ocurrido_en)}, que V21 creó exactamente para
+     * esto: «la purga por retención barre por fecha». El {@code ORDER BY} sobre
+     * la misma columna hace que el subselect sea un recorrido corto del índice
+     * desde el extremo antiguo. No hace falta ningún índice nuevo.
+     *
+     * @return cuántas filas se borraron; menos de {@code lote} significa que ya
+     *     no queda nada vencido
+     */
+    @Modifying
+    @Query(value = """
+            DELETE FROM catalogo.evento_interaccion
+             WHERE id IN (SELECT e.id
+                            FROM catalogo.evento_interaccion e
+                           WHERE e.ocurrido_en < :limite
+                           ORDER BY e.ocurrido_en
+                           LIMIT :lote)
+            """, nativeQuery = true)
+    int purgarLote(@Param("limite") Instant limite, @Param("lote") int lote);
 }

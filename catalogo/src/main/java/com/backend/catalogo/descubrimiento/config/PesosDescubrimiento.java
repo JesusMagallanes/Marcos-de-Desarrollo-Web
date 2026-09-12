@@ -370,6 +370,26 @@ public class PesosDescubrimiento {
     private int retencionDias = 90;
 
     /**
+     * Filas por lote al purgar eventos.
+     *
+     * <p>Cada lote es una transacción propia. Cinco mil filas se borran en
+     * milisegundos por el índice de fecha y no retienen nada que estorbe a la
+     * ingesta que sigue entrando. Es un valor inicial sin dato previo detrás:
+     * si un lote tarda más de lo razonable, la medida es bajarlo, no subirlo.
+     */
+    private int purgaLote = 5000;
+
+    /**
+     * Techo de filas que borra UNA pasada del mantenimiento.
+     *
+     * <p>Acota cuánto trabajo hace una ejecución; lo que quede lo termina la
+     * siguiente. Existe por la primera pasada tras desplegar la purga, que se
+     * encuentra con todo el atraso acumulado desde la fase 1: sin tope, esa
+     * pasada haría de una sola vez lo que después será una hora de eventos.
+     */
+    private int purgaMaximoPorEjecucion = 200_000;
+
+    /**
      * La versión que se graba con cada recomendación servida.
      *
      * <p>Etiqueta MÁS huella de los pesos efectivos, por ejemplo

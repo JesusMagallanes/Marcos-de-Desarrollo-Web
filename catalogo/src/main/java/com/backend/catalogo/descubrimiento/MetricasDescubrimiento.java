@@ -8,6 +8,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 
 /**
  * Lo que hay que poder mirar del recomendador sin abrir la base de datos.
@@ -41,6 +42,15 @@ public class MetricasDescubrimiento {
 
     /** Homes servidos, separando los que no tenían nada personal que dar. */
     public static final String HOME = "smartzone_descubrimiento_home_total";
+
+    /** Pasadas de un proceso programado que se saltaron por cerrojo. */
+    public static final String SALTADAS = "smartzone_descubrimiento_saltadas_total";
+
+    /** Lo que tarda una pasada de un proceso programado. */
+    public static final String MANTENIMIENTO = "smartzone_descubrimiento_mantenimiento_segundos";
+
+    /** Filas retiradas por el mantenimiento, por tabla. */
+    public static final String PURGADAS = "smartzone_descubrimiento_purgadas_total";
 
     /** Impresiones declaradas que no correspondian a nada servido. */
     public static final String IMPRESIONES_DESCARTADAS =
@@ -111,6 +121,49 @@ public class MetricasDescubrimiento {
             return;
         }
         registro.counter(IMPRESIONES_DESCARTADAS).increment(cuantas);
+    }
+
+    /**
+     * Lo que retiró el mantenimiento, sin decir qué.
+     *
+     * <p>La etiqueta es el nombre de la tabla: un conjunto cerrado de tres
+     * valores. Un cero sostenido aquí con una tabla que crece es la señal de
+     * que la purga dejó de ejecutarse, que es justo lo que pasó desde la fase 1
+     * hasta ahora sin que nadie lo viera.
+     */
+    public void purgadas(String tabla, int cuantas) {
+        if (cuantas <= 0) {
+            return;
+        }
+        Counter.builder(PURGADAS)
+                .description("Filas retiradas por el mantenimiento")
+                .tags(Tags.of("tabla", tabla))
+                .register(registro)
+                .increment(cuantas);
+    }
+
+    /**
+     * Una pasada que no llegó a trabajar porque otra instancia ya lo hacía.
+     *
+     * <p>Un valor ocasional es normal con varias instancias; uno sostenido
+     * significa que una pasada tarda más que el intervalo y las demás se pasan
+     * la vida esperando su turno — que es cuando hay que mirar el cronómetro.
+     */
+    public void pasadaSaltada(String proceso) {
+        Counter.builder(SALTADAS)
+                .description("Pasadas de mantenimiento saltadas por cerrojo")
+                .tags(Tags.of("proceso", proceso))
+                .register(registro)
+                .increment();
+    }
+
+    /** Cronometra una pasada entera de un proceso programado. */
+    public void pasada(String proceso, Runnable trabajo) {
+        Timer.builder(MANTENIMIENTO)
+                .description("Duracion de una pasada de mantenimiento")
+                .tags(Tags.of("proceso", proceso))
+                .register(registro)
+                .record(trabajo);
     }
 
     /** Lo que dejó la última pasada del proceso por lotes. */
