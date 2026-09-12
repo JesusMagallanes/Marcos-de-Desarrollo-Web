@@ -1,9 +1,12 @@
 package com.backend.catalogo.descubrimiento;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,6 +80,17 @@ class DiversidadTest {
     @Mock
     private SesionService sesiones;
 
+    /*
+     * El perfil se resuelve UNA vez por peticion desde el bloque G, asi que el
+     * doble tiene que devolver algo. `sinNada()` es el caso por defecto de estas
+     * pruebas: hablan de filtros duros y de diversidad, no de personalizacion.
+     */
+    @BeforeEach
+    void sinPerfil() {
+        lenient().when(perfiles.estado(any()))
+                .thenReturn(PerfilService.EstadoDePerfil.sinNada());
+    }
+
     private RecomendacionService servicio() {
         PesosDescubrimiento pesos = new PesosDescubrimiento();
         /*
@@ -91,7 +105,13 @@ class DiversidadTest {
                 perfiles, tendencias, productos,
                 new RankerHibrido(impresiones, pesos), adaptativo,
                 new MetricasDescubrimiento(new SimpleMeterRegistry()), registro, elegibilidad,
-                sesiones, enfriamiento, pesos);
+                sesiones, enfriamiento,
+                /*
+                 * Cronometros reales sobre un registro de juguete. Medir no
+                 * puede cambiar el resultado, y usarlos de verdad aqui es lo
+                 * que hace que estas pruebas lo comprueben sin decirlo.
+                 */
+                new MetricasPipeline(new SimpleMeterRegistry()), pesos);
     }
 
     /** Un candidato con su categoría y su marca. */

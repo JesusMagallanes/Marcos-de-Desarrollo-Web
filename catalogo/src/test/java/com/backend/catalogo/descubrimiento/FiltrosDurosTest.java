@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -16,6 +17,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -97,6 +99,17 @@ class FiltrosDurosTest {
     @Captor
     private ArgumentCaptor<List<Long>> excluidos;
 
+    /*
+     * El perfil se resuelve UNA vez por peticion desde el bloque G, asi que el
+     * doble tiene que devolver algo. `sinNada()` es el caso por defecto de estas
+     * pruebas: hablan de filtros duros y de diversidad, no de personalizacion.
+     */
+    @BeforeEach
+    void sinPerfil() {
+        lenient().when(perfiles.estado(any()))
+                .thenReturn(PerfilService.EstadoDePerfil.sinNada());
+    }
+
     private RecomendacionService servicio() {
         PesosDescubrimiento pesos = new PesosDescubrimiento();
         /*
@@ -111,7 +124,13 @@ class FiltrosDurosTest {
                 perfiles, tendencias, productos,
                 new RankerHibrido(impresiones, pesos), adaptativo,
                 new MetricasDescubrimiento(new SimpleMeterRegistry()), registro, elegibilidad,
-                sesiones, enfriamiento, pesos);
+                sesiones, enfriamiento,
+                /*
+                 * Cronometros reales sobre un registro de juguete. Medir no
+                 * puede cambiar el resultado, y usarlos de verdad aqui es lo
+                 * que hace que estas pruebas lo comprueben sin decirlo.
+                 */
+                new MetricasPipeline(new SimpleMeterRegistry()), pesos);
     }
 
     @Test

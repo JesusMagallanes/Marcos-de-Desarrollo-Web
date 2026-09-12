@@ -61,6 +61,8 @@ class RankerAdaptativoTest {
         PesosDescubrimiento base = new PesosDescubrimiento();
         hibrido = new RankerHibrido(impresiones, base);
         ranker = new RankerAdaptativo(hibrido, impresiones,
+                new com.backend.catalogo.descubrimiento.MetricasPipeline(
+                        new SimpleMeterRegistry()),
                 new AsignacionExperimento(pesos), pesos,
                 new MetricasAdaptativas(new SimpleMeterRegistry()));
     }

@@ -112,4 +112,57 @@ public class PerfilService {
     public boolean tienePerfil(UUID sujeto) {
         return perfiles.countByIdSujetoId(sujeto) > 0;
     }
+
+    /**
+     * Todo lo que el Home necesita saber del perfil, resuelto de una vez.
+     *
+     * <h4>Por qué existe</h4>
+     *
+     * <p>Porque lo mismo se preguntaba ocho veces por peticion. Armar un Home
+     * son seis modulos y cada uno resolvia por su cuenta si habia perfil y
+     * cuanta evidencia lo sostenia: {@code tienePerfil} en cuatro sitios,
+     * {@code top} en otros cuatro a traves de {@code evidenciaDe}. Ocho
+     * consultas para dos datos que no cambian durante la peticion.
+     *
+     * <p>No era un N+1 por candidato —que es lo que vigilaban las pruebas de
+     * las fases anteriores— sino repeticion por modulo, que ninguna de ellas
+     * podia ver. Lo encontro la auditoria de latencia.
+     *
+     * <h4>Por qué siguen siendo DOS consultas y no una</h4>
+     *
+     * <p>Porque preguntan cosas distintas y colapsarlas cambiaria el
+     * comportamiento. {@code tienePerfil} cuenta facetas de CUALQUIER tipo;
+     * {@code top} pide solo las de categoria. Alguien que solo haya dejado
+     * rastro de marcas o de atributos tiene perfil y no tiene categoria
+     * preferida, y deducir lo primero de lo segundo lo dejaria fuera de los
+     * modulos personalizados.
+     */
+    @Transactional(readOnly = true)
+    public EstadoDePerfil estado(UUID sujeto) {
+        if (sujeto == null) {
+            return EstadoDePerfil.sinNada();
+        }
+        List<PerfilFaceta> top = top(sujeto, TipoFaceta.CATEGORIA, 1);
+        return new EstadoDePerfil(
+                tienePerfil(sujeto),
+                top.isEmpty() ? 0 : top.get(0).getEventos(),
+                top.isEmpty() ? null : top.get(0).getId().getFaceta());
+    }
+
+    /**
+     * El perfil del sujeto visto desde el armado del Home.
+     *
+     * @param tiene si hay alguna faceta, del tipo que sea. Es lo que decide si
+     *     se personaliza y lo que se anota como arranque en frio
+     * @param eventos cuanta evidencia sostiene su categoria principal; calibra
+     *     el presupuesto de exploracion
+     * @param facetaPrincipal el nombre de esa categoria, para el texto del
+     *     motivo. {@code null} si no hay ninguna
+     */
+    public record EstadoDePerfil(boolean tiene, int eventos, String facetaPrincipal) {
+
+        public static EstadoDePerfil sinNada() {
+            return new EstadoDePerfil(false, 0, null);
+        }
+    }
 }

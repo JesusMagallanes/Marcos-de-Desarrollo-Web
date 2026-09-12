@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.catalogo.descubrimiento.CooldownService.Cooldown;
+import com.backend.catalogo.descubrimiento.PerfilService.EstadoDePerfil;
 import com.backend.catalogo.descubrimiento.adaptativo.ContextoRanking;
 import com.backend.catalogo.descubrimiento.adaptativo.RankerAdaptativo;
 import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
@@ -45,6 +46,10 @@ public class RecomendacionService {
     /** Se recupera de más para que filtrar y diversificar tengan de dónde elegir. */
     private static final int FACTOR_SOBREMUESTREO = 5;
 
+    /** Las dos superficies que sirve este servicio, para etiquetar los tiempos. */
+    private static final String HOME_S = MetricasPipeline.HOME;
+    private static final String FICHA_S = MetricasPipeline.FICHA;
+
     /** Centinela para que `NOT IN (:lista)` nunca reciba una lista vacía. */
     private static final Long NINGUNO = -1L;
 
@@ -69,6 +74,7 @@ public class RecomendacionService {
     private final ElegibilidadService elegibilidad;
     private final SesionService sesiones;
     private final CooldownService cooldowns;
+    private final MetricasPipeline cronometros;
     private final PesosDescubrimiento pesos;
 
     /**
@@ -84,10 +90,38 @@ public class RecomendacionService {
      * con lo mejor y los de abajo no lo repiten.
      */
     public List<Carrusel> home(UUID sujeto, String ubigeo, int porCarrusel) {
+        return cronometros.total(MetricasPipeline.HOME,
+                () -> armarHome(sujeto, ubigeo, porCarrusel));
+    }
+
+    /**
+     * El Home de verdad, con el cronómetro total ya puesto por fuera.
+     *
+     * <p>El total se mide aquí y no sumando etapas: sumar solo puede devolver lo
+     * que se instrumentó, y lo que interesa saber es justamente si queda tiempo
+     * fuera de las etapas conocidas.
+     */
+    private List<Carrusel> armarHome(UUID sujeto, String ubigeo, int porCarrusel) {
         Set<Long> yaUsados = new LinkedHashSet<>();
         List<Carrusel> salida = new ArrayList<>();
 
-        boolean conPerfil = perfiles.tienePerfil(sujeto);
+        /*
+         * EL PERFIL, UNA SOLA VEZ.
+         *
+         * Se preguntaba ocho veces por peticion: cada uno de los seis modulos
+         * resolvia por su cuenta si habia perfil y cuanta evidencia lo sostenia.
+         * No era un N+1 por candidato —lo que vigilaban las pruebas anteriores—
+         * sino repeticion por modulo, que ninguna de ellas podia ver; lo
+         * encontro la auditoria de latencia de este bloque.
+         *
+         * Son dos consultas y no una porque preguntan cosas distintas: si hay
+         * alguna faceta, del tipo que sea, y cual es la categoria principal.
+         * Colapsarlas dejaria fuera de lo personalizado a quien solo haya dejado
+         * rastro de marcas.
+         */
+        EstadoDePerfil perfil = cronometros.comun(MetricasPipeline.HOME,
+                MetricasPipeline.PERFIL, () -> perfiles.estado(sujeto));
+        boolean conPerfil = perfil.tiene();
 
         /*
          * Con perfil O con sesion. El «o» es lo que anade este bloque.
@@ -119,11 +153,11 @@ public class RecomendacionService {
 
         if (personalizable) {
             agregar(salida, segunIntereses(sujeto, porCarrusel, yaUsados, intencion,
-                    enfriamiento), yaUsados);
+                    enfriamiento, perfil), yaUsados);
         }
 
-        agregar(salida, tendenciasDeZona(sujeto, ubigeo, porCarrusel, yaUsados, enfriamiento),
-                yaUsados);
+        agregar(salida, tendenciasDeZona(sujeto, ubigeo, porCarrusel, yaUsados, enfriamiento,
+                perfil), yaUsados);
 
         /*
          * El colaborativo va tras intereses y zona, y ANTES de exploracion.
@@ -142,7 +176,8 @@ public class RecomendacionService {
          */
         boolean huboColaborativo = false;
         if (personalizable && pesos.getMaximoModulosColaborativos() > 0) {
-            Carrusel colab = colaborativo(sujeto, porCarrusel, yaUsados, enfriamiento);
+            Carrusel colab = colaborativo(sujeto, porCarrusel, yaUsados, enfriamiento,
+                    perfil);
             huboColaborativo = colab != null;
             agregar(salida, colab, yaUsados);
         }
@@ -152,10 +187,12 @@ public class RecomendacionService {
             // que es. Un desacierto se perdona en un carrusel que promete algo
             // distinto; el mismo desacierto dentro de «según tus intereses»
             // dice que el sistema no te conoce.
-            agregar(salida, explorar(sujeto, porCarrusel, yaUsados, enfriamiento), yaUsados);
+            agregar(salida, explorar(sujeto, porCarrusel, yaUsados, enfriamiento),
+                    yaUsados);
         }
 
-        agregar(salida, populares(sujeto, porCarrusel, yaUsados, enfriamiento), yaUsados);
+        agregar(salida, populares(sujeto, porCarrusel, yaUsados, enfriamiento, perfil),
+                yaUsados);
 
         // La proporcion de Homes sin perfil es la medida de si el sistema esta
         // aprendiendo de la gente o repartiendo lo mismo a todo el mundo.
@@ -186,7 +223,7 @@ public class RecomendacionService {
      */
     public Carrusel segunIntereses(UUID sujeto, int limite, Set<Long> yaUsados) {
         return segunIntereses(sujeto, limite, yaUsados, sesiones.intencionDe(sujeto),
-                cooldowns.de(sujeto));
+                cooldowns.de(sujeto), perfiles.estado(sujeto));
     }
 
     /**
@@ -197,13 +234,19 @@ public class RecomendacionService {
      * exactamente lo mismo.
      */
     Carrusel segunIntereses(UUID sujeto, int limite, Set<Long> yaUsados,
-            SesionService.Intencion intencion, Cooldown enfriamiento) {
+            SesionService.Intencion intencion, Cooldown enfriamiento, EstadoDePerfil perfil) {
         ModuloDescubrimiento modulo = ModuloDescubrimiento.SEGUN_TUS_INTERESES;
-        List<Long> excluidos = excluidos(sujeto, yaUsados, modulo, enfriamiento);
+        String nombre = modulo.name();
+
+        List<Long> excluidos = cronometros.etapa(HOME_S, nombre, MetricasPipeline.EXCLUSIONES,
+                () -> excluidos(sujeto, yaUsados, modulo, enfriamiento));
         int aPedir = limite * FACTOR_SOBREMUESTREO;
 
-        List<Candidato> crudos = candidatos.segunIntereses(sujeto, pesos.getConfianzaK(),
-                excluidos, aPedir);
+        List<Candidato> crudos = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.CANDIDATOS_SQL,
+                () -> candidatos.segunIntereses(sujeto, pesos.getConfianzaK(),
+                        excluidos, aPedir));
+        cronometros.candidatos(HOME_S, nombre, crudos.size());
 
         List<CandidatoConRazon> mezcla = new ArrayList<>();
         for (Candidato c : crudos) {
@@ -224,8 +267,9 @@ public class RecomendacionService {
             List<Long> sinRepetir = new ArrayList<>(excluidos);
             crudos.forEach(c -> sinRepetir.add(c.getItemId()));
 
-            List<Candidato> porSesion = candidatos.porIntencionDeSesion(
-                    deSesion, sinRepetir, aPedir);
+            List<Candidato> porSesion = cronometros.etapa(HOME_S, nombre,
+                    MetricasPipeline.CANDIDATOS_SQL,
+                    () -> candidatos.porIntencionDeSesion(deSesion, sinRepetir, aPedir));
             for (Candidato c : porSesion) {
                 mezcla.add(CandidatoConRazon.de(c, Origen.PERSONAL,
                         RazonRecomendacion.SESSION_INTENT));
@@ -233,22 +277,26 @@ public class RecomendacionService {
             metricas.candidatosGenerados(RazonRecomendacion.SESSION_INTENT, porSesion.size());
         }
 
-        enfriar(mezcla, modulo, enfriamiento);
+        cronometros.etapa(HOME_S, nombre, MetricasPipeline.ENFRIAR,
+                () -> enfriar(mezcla, modulo, enfriamiento));
 
-        List<PerfilFaceta> top = perfiles.top(sujeto, TipoFaceta.CATEGORIA, 1);
-        String motivo = top.isEmpty()
+        // El motivo sale del perfil ya resuelto: ni una consulta mas.
+        String motivo = perfil.facetaPrincipal() == null
                 ? "Por lo que has estado explorando"
-                : "Porque te interesa " + top.get(0).getId().getFaceta();
+                : "Porque te interesa " + perfil.facetaPrincipal();
 
-        boolean conPerfilAqui = perfiles.tienePerfil(sujeto);
-        List<CandidatoConRazon> combinados = adaptativo.ordenar(mezcla,
-                ContextoRanking.home(conPerfilAqui), sujeto, evidenciaDe(sujeto));
-        List<Long> elegidos = diversificar(new ArrayList<>(combinados), limite);
+        List<CandidatoConRazon> combinados = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.ORDENAR,
+                () -> adaptativo.ordenar(mezcla, ContextoRanking.home(perfil.tiene()),
+                        sujeto, perfil.eventos()));
+        List<Long> elegidos = cronometros.etapa(HOME_S, nombre, MetricasPipeline.DIVERSIFICAR,
+                () -> diversificar(new ArrayList<>(combinados), limite));
 
-        registro.anotar(sujeto, ModuloDescubrimiento.SEGUN_TUS_INTERESES, elegidos,
-                razonesDe(combinados), scoresDe(combinados), conPerfilAqui);
+        cronometros.etapa(HOME_S, nombre, MetricasPipeline.ANOTAR,
+                () -> registro.anotar(sujeto, modulo, elegidos,
+                        razonesDe(combinados), scoresDe(combinados), perfil.tiene()));
 
-        return armar(ModuloDescubrimiento.SEGUN_TUS_INTERESES, null, motivo, elegidos);
+        return armar(HOME_S, modulo, null, motivo, elegidos);
     }
 
     /**
@@ -265,6 +313,11 @@ public class RecomendacionService {
      * por casualidad de sus unidades.
      */
     public Carrusel similares(Long itemId, UUID sujeto, int limite) {
+        return cronometros.total(FICHA_S, () -> armarFicha(itemId, sujeto, limite));
+    }
+
+    /** La ficha de verdad, con el total ya puesto por fuera. */
+    private Carrusel armarFicha(Long itemId, UUID sujeto, int limite) {
         int aPedir = limite * FACTOR_SOBREMUESTREO;
 
         /*
@@ -279,17 +332,35 @@ public class RecomendacionService {
          * y queda solo el propio producto, que no puede recomendarse a si mismo.
          */
         ModuloDescubrimiento modulo = ModuloDescubrimiento.RELACIONADOS;
+        String nombre = modulo.name();
         Cooldown enfriamiento = cooldowns.de(sujeto);
-        List<Long> excluidos = sujeto == null
-                ? new ArrayList<>(List.of(itemId, NINGUNO))
-                : excluidos(sujeto, Set.of(itemId), modulo, enfriamiento);
+
+        List<Long> excluidos = cronometros.etapa(FICHA_S, nombre,
+                MetricasPipeline.EXCLUSIONES,
+                () -> sujeto == null
+                        ? new ArrayList<>(List.of(itemId, NINGUNO))
+                        : excluidos(sujeto, Set.of(itemId), modulo, enfriamiento));
+
+        /*
+         * Los dos generadores se cronometran por separado. Responden preguntas
+         * distintas —«se parece a esto» y «va con esto»— y cuestan cosas
+         * distintas: el de contenido cruza atributos y el de co-visita lee una
+         * tabla precalculada. Un solo numero no diria cual conviene tocar.
+         */
+        List<Candidato> porContenido = cronometros.etapa(FICHA_S, nombre,
+                MetricasPipeline.CONTENIDO,
+                () -> candidatos.similaresPorContenido(itemId, aPedir));
+        List<Candidato> porCoVisita = cronometros.etapa(FICHA_S, nombre,
+                MetricasPipeline.CO_VISITA,
+                () -> candidatos.porCoVisitaDeItem(itemId, excluidos, aPedir));
+        cronometros.candidatos(FICHA_S, nombre, porContenido.size() + porCoVisita.size());
 
         List<CandidatoConRazon> mezcla = new ArrayList<>();
-        for (Candidato c : candidatos.similaresPorContenido(itemId, aPedir)) {
+        for (Candidato c : porContenido) {
             mezcla.add(CandidatoConRazon.de(c, Origen.PERSONAL,
                     RazonRecomendacion.CONTENT_SIMILAR));
         }
-        for (Candidato c : candidatos.porCoVisitaDeItem(itemId, excluidos, aPedir)) {
+        for (Candidato c : porCoVisita) {
             mezcla.add(CandidatoConRazon.de(c, Origen.COHORTE,
                     RazonRecomendacion.CO_VIEWED));
         }
@@ -300,14 +371,25 @@ public class RecomendacionService {
          * tocar una consulta que funciona. La lista son unas decenas de
          * candidatos, asi que el filtro en memoria no cuesta nada.
          */
-        Set<Long> fuera = new HashSet<>(excluidos);
-        mezcla.removeIf(c -> fuera.contains(c.itemId()));
-        enfriar(mezcla, modulo, enfriamiento);
+        cronometros.etapa(FICHA_S, nombre, MetricasPipeline.FILTRO, () -> {
+            Set<Long> fuera = new HashSet<>(excluidos);
+            mezcla.removeIf(c -> fuera.contains(c.itemId()));
+        });
+        cronometros.etapa(FICHA_S, nombre, MetricasPipeline.ENFRIAR,
+                () -> enfriar(mezcla, modulo, enfriamiento));
 
-        boolean conPerfil = sujeto != null && perfiles.tienePerfil(sujeto);
-        List<CandidatoConRazon> combinados = adaptativo.ordenar(mezcla,
-                ContextoRanking.ficha(conPerfil), sujeto, evidenciaDe(sujeto));
-        List<Long> elegidos = diversificar(new ArrayList<>(combinados), limite);
+        // El perfil, una vez tambien aqui: antes eran dos consultas.
+        EstadoDePerfil perfil = cronometros.comun(FICHA_S, MetricasPipeline.PERFIL,
+                () -> perfiles.estado(sujeto));
+        boolean conPerfil = perfil.tiene();
+
+        List<CandidatoConRazon> combinados = cronometros.etapa(FICHA_S, nombre,
+                MetricasPipeline.ORDENAR,
+                () -> adaptativo.ordenar(mezcla, ContextoRanking.ficha(conPerfil),
+                        sujeto, perfil.eventos()));
+        List<Long> elegidos = cronometros.etapa(FICHA_S, nombre,
+                MetricasPipeline.DIVERSIFICAR,
+                () -> diversificar(new ArrayList<>(combinados), limite));
 
         /*
          * Se anota con la razon de CADA item, no con la del modulo. La ficha
@@ -315,10 +397,11 @@ public class RecomendacionService {
          * CONTENT_SIMILAR haria imposible saber cual de las dos acierta, que es
          * justo lo que la medicion existe para responder.
          */
-        registro.anotar(sujeto, ModuloDescubrimiento.RELACIONADOS, elegidos,
-                razonesDe(combinados), scoresDe(combinados), conPerfil);
+        cronometros.etapa(FICHA_S, nombre, MetricasPipeline.ANOTAR,
+                () -> registro.anotar(sujeto, modulo, elegidos,
+                        razonesDe(combinados), scoresDe(combinados), conPerfil));
 
-        return armar(ModuloDescubrimiento.RELACIONADOS, null,
+        return armar(FICHA_S, modulo, null,
                 "Relacionado con el que estás viendo", elegidos);
     }
 
@@ -341,24 +424,33 @@ public class RecomendacionService {
      * @return {@code null} si no hay evidencia suficiente; el Home lo omite
      */
     public Carrusel colaborativo(UUID sujeto, int limite, Set<Long> yaUsados) {
-        return colaborativo(sujeto, limite, yaUsados, cooldowns.de(sujeto));
+        return colaborativo(sujeto, limite, yaUsados, cooldowns.de(sujeto),
+                perfiles.estado(sujeto));
     }
 
-    /** La misma, con el enfriamiento de la pantalla ya calculado. */
-    Carrusel colaborativo(UUID sujeto, int limite, Set<Long> yaUsados, Cooldown enfriamiento) {
+    /** La misma, con el enfriamiento y el perfil de la pantalla ya calculados. */
+    Carrusel colaborativo(UUID sujeto, int limite, Set<Long> yaUsados, Cooldown enfriamiento,
+            EstadoDePerfil perfil) {
         if (sujeto == null) {
             return null;
         }
         ModuloDescubrimiento modulo = ModuloDescubrimiento.OTROS_DESCUBRIERON;
-        List<Long> excluidos = excluidos(sujeto, yaUsados, modulo, enfriamiento);
+        String nombre = modulo.name();
+        List<Long> excluidos = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.EXCLUSIONES,
+                () -> excluidos(sujeto, yaUsados, modulo, enfriamiento));
         int aPedir = limite * FACTOR_SOBREMUESTREO;
         Instant desde = Instant.now().minus(pesos.ventanaColaborativa());
 
-        List<Candidato> porItem = candidatos.porCoVisita(
-                sujeto, SEMILLAS_CO_VISITA, excluidos, aPedir);
-        List<Candidato> porVecinos = candidatos.porSujetosSimilares(sujeto,
-                pesos.getSimilitudMinima(), pesos.getSimilitudVecinosConsultados(), desde,
-                pesos.getSimilitudMinAportantes(), excluidos, aPedir);
+        List<Candidato> porItem = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.CANDIDATOS_SQL,
+                () -> candidatos.porCoVisita(sujeto, SEMILLAS_CO_VISITA, excluidos, aPedir));
+        List<Candidato> porVecinos = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.CANDIDATOS_SQL,
+                () -> candidatos.porSujetosSimilares(sujeto,
+                        pesos.getSimilitudMinima(), pesos.getSimilitudVecinosConsultados(),
+                        desde, pesos.getSimilitudMinAportantes(), excluidos, aPedir));
+        cronometros.candidatos(HOME_S, nombre, porItem.size() + porVecinos.size());
 
         metricas.candidatosGenerados(RazonRecomendacion.CO_VIEWED, porItem.size());
         metricas.candidatosGenerados(RazonRecomendacion.SIMILAR_SUBJECT, porVecinos.size());
@@ -372,11 +464,16 @@ public class RecomendacionService {
                     RazonRecomendacion.SIMILAR_SUBJECT));
         }
 
-        enfriar(mezcla, modulo, enfriamiento);
+        cronometros.etapa(HOME_S, nombre, MetricasPipeline.ENFRIAR,
+                () -> enfriar(mezcla, modulo, enfriamiento));
 
-        List<CandidatoConRazon> combinados = adaptativo.ordenar(mezcla,
-                ContextoRanking.home(true), sujeto, evidenciaDe(sujeto));
-        List<Long> elegidos = diversificar(new ArrayList<>(combinados), limite);
+        List<CandidatoConRazon> combinados = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.ORDENAR,
+                () -> adaptativo.ordenar(mezcla, ContextoRanking.home(true), sujeto,
+                        perfil.eventos()));
+        List<Long> elegidos = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.DIVERSIFICAR,
+                () -> diversificar(new ArrayList<>(combinados), limite));
 
         /*
          * Este modulo es el unico que mezcla dos razones en un carrusel, asi que
@@ -384,27 +481,12 @@ public class RecomendacionService {
          * la de cada item, que es justo el dato que permitira saber cual de los
          * dos generadores acierta.
          */
-        registro.anotar(sujeto, ModuloDescubrimiento.OTROS_DESCUBRIERON, elegidos,
-                razonesDe(combinados), scoresDe(combinados), true);
+        cronometros.etapa(HOME_S, nombre, MetricasPipeline.ANOTAR,
+                () -> registro.anotar(sujeto, modulo, elegidos,
+                        razonesDe(combinados), scoresDe(combinados), true));
 
-        return armar(ModuloDescubrimiento.OTROS_DESCUBRIERON, null,
+        return armar(HOME_S, modulo, null,
                 "Descubierto por gente con intereses parecidos a los tuyos", elegidos);
-    }
-
-    /**
-     * Cuánta evidencia sostiene el perfil de este sujeto.
-     *
-     * <p>Decide cuánto se explora: a quien el sistema no conoce, explorar es lo
-     * único que puede hacer; a quien conoce bien, explorar cuesta y se hace con
-     * medida. Se usa el número de eventos de su faceta más fuerte, que es la
-     * cifra que ya tenía la fase 1 y no obliga a preguntar nada nuevo.
-     */
-    private int evidenciaDe(UUID sujeto) {
-        if (sujeto == null) {
-            return 0;
-        }
-        List<PerfilFaceta> top = perfiles.top(sujeto, TipoFaceta.CATEGORIA, 1);
-        return top.isEmpty() ? 0 : top.get(0).getEventos();
     }
 
     /**
@@ -509,7 +591,8 @@ public class RecomendacionService {
 
     /** LO MÁS VISTO EN TU ZONA · con degradación geográfica si falta gente. */
     public Carrusel tendenciasDeZona(UUID sujeto, String ubigeo, int limite, Set<Long> yaUsados) {
-        return tendenciasDeZona(sujeto, ubigeo, limite, yaUsados, cooldowns.de(sujeto));
+        return tendenciasDeZona(sujeto, ubigeo, limite, yaUsados, cooldowns.de(sujeto),
+                perfiles.estado(sujeto));
     }
 
     /**
@@ -522,8 +605,10 @@ public class RecomendacionService {
      * habría sido inventarlos.
      */
     Carrusel tendenciasDeZona(UUID sujeto, String ubigeo, int limite, Set<Long> yaUsados,
-            Cooldown enfriamiento) {
-        TendenciaService.Resultado resultado = tendencias.enZona(ubigeo, limite * 2);
+            Cooldown enfriamiento, EstadoDePerfil perfil) {
+        String nombre = ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA.name();
+        TendenciaService.Resultado resultado = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.CANDIDATOS_SQL, () -> tendencias.enZona(ubigeo, limite * 2));
 
         /*
          * ELEGIBILIDAD ANTES DE NADA, y aqui es donde de verdad hacia falta.
@@ -540,8 +625,10 @@ public class RecomendacionService {
          * la elegibilidad en algo que el ranking podria llegar a saltarse.
          */
         List<Long> ids = new ArrayList<>(elegibilidad.filtrar(resultado.ids()));
-        ids.removeAll(excluidos(sujeto, yaUsados,
-                ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA, enfriamiento));
+        cronometros.candidatos(HOME_S, nombre, ids.size());
+        ids.removeAll(cronometros.etapa(HOME_S, nombre, MetricasPipeline.EXCLUSIONES,
+                () -> excluidos(sujeto, yaUsados,
+                        ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA, enfriamiento)));
 
         if (ids.isEmpty()) {
             return null;
@@ -556,15 +643,17 @@ public class RecomendacionService {
          * proceso de tendencias. Anotar un numero improvisado seria peor que no
          * anotar ninguno, porque acabaria comparandose con los de verdad.
          */
-        anotar(sujeto, ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA, elegidos,
-                List.of(), sujeto != null && perfiles.tienePerfil(sujeto));
+        cronometros.etapa(HOME_S, nombre, MetricasPipeline.ANOTAR,
+                () -> anotar(sujeto, ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA, elegidos,
+                        List.of(), perfil.tiene()));
 
         return new Carrusel(
                 ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA.name(),
                 ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA.titulo(detalle),
                 ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA.origen(),
                 "Se está viendo mucho cerca de ti",
-                productos.porIds(elegidos));
+                cronometros.etapa(HOME_S, nombre, MetricasPipeline.POR_IDS,
+                        () -> productos.porIds(elegidos)));
     }
 
     /** NUEVAS OPORTUNIDADES · categorías hermanas que todavía no ha pisado. */
@@ -583,21 +672,34 @@ public class RecomendacionService {
      */
     Carrusel explorar(UUID sujeto, int limite, Set<Long> yaUsados, Cooldown enfriamiento) {
         ModuloDescubrimiento modulo = ModuloDescubrimiento.DESCUBRE_ALGO_NUEVO;
+        String nombre = modulo.name();
+
+        List<Long> excluidos = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.EXCLUSIONES,
+                () -> excluidos(sujeto, yaUsados, modulo, enfriamiento));
+        List<Candidato> crudos = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.CANDIDATOS_SQL,
+                () -> candidatos.paraExplorar(sujeto, excluidos,
+                        limite * FACTOR_SOBREMUESTREO));
+        cronometros.candidatos(HOME_S, nombre, crudos.size());
 
         List<CandidatoConRazon> mezcla = new ArrayList<>();
-        for (Candidato c : candidatos.paraExplorar(sujeto,
-                excluidos(sujeto, yaUsados, modulo, enfriamiento),
-                limite * FACTOR_SOBREMUESTREO)) {
+        for (Candidato c : crudos) {
             mezcla.add(CandidatoConRazon.de(c, Origen.EXPLORACION,
                     RazonRecomendacion.EXPLORATION));
         }
-        enfriar(mezcla, modulo, enfriamiento);
-        mezcla.sort(Comparator.comparingDouble(CandidatoConRazon::score).reversed());
+        cronometros.etapa(HOME_S, nombre, MetricasPipeline.ENFRIAR, () -> {
+            enfriar(mezcla, modulo, enfriamiento);
+            mezcla.sort(Comparator.comparingDouble(CandidatoConRazon::score).reversed());
+        });
 
-        List<Long> elegidos = diversificar(new ArrayList<>(mezcla), limite);
-        anotar(sujeto, modulo, elegidos, new ArrayList<>(mezcla), true);
+        List<Long> elegidos = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.DIVERSIFICAR,
+                () -> diversificar(new ArrayList<>(mezcla), limite));
+        cronometros.etapa(HOME_S, nombre, MetricasPipeline.ANOTAR,
+                () -> anotar(sujeto, modulo, elegidos, new ArrayList<>(mezcla), true));
 
-        return armar(modulo, null, "Algo distinto de lo que sueles mirar", elegidos);
+        return armar(HOME_S, modulo, null, "Algo distinto de lo que sueles mirar", elegidos);
     }
 
     /**
@@ -611,19 +713,24 @@ public class RecomendacionService {
      * Descartar algo y verlo volver es peor que no poder descartarlo.
      */
     public Carrusel populares(UUID sujeto, int limite, Set<Long> yaUsados) {
-        return populares(sujeto, limite, yaUsados, cooldowns.de(sujeto));
+        return populares(sujeto, limite, yaUsados, cooldowns.de(sujeto),
+                perfiles.estado(sujeto));
     }
 
-    /** La misma, con el enfriamiento de la pantalla ya calculado. */
-    Carrusel populares(UUID sujeto, int limite, Set<Long> yaUsados, Cooldown enfriamiento) {
+    /** La misma, con el enfriamiento y el perfil de la pantalla ya calculados. */
+    Carrusel populares(UUID sujeto, int limite, Set<Long> yaUsados, Cooldown enfriamiento,
+            EstadoDePerfil perfil) {
         ModuloDescubrimiento modulo = ModuloDescubrimiento.POPULARES;
-        List<Long> excluidos;
-        if (sujeto == null) {
-            excluidos = new ArrayList<>(yaUsados);
-            excluidos.add(NINGUNO);
-        } else {
-            excluidos = excluidos(sujeto, yaUsados, modulo, enfriamiento);
-        }
+        String nombre = modulo.name();
+        List<Long> excluidos = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.EXCLUSIONES, () -> {
+                    if (sujeto == null) {
+                        List<Long> sinSujeto = new ArrayList<>(yaUsados);
+                        sinSujeto.add(NINGUNO);
+                        return sinSujeto;
+                    }
+                    return excluidos(sujeto, yaUsados, modulo, enfriamiento);
+                });
         /*
          * CATALOGO NUEVO · el unico sitio donde un producto sin historial puede
          * asomar.
@@ -638,8 +745,10 @@ public class RecomendacionService {
          * nuevo no es una credencial: un producto recien dado de alta y ya
          * agotado no entra, y uno descartado no vuelve por ser reciente.
          */
-        List<Candidato> nuevos = candidatos.catalogoNuevo(
-                pesos.fronteraCatalogoNuevo(), excluidos, pesos.getCatalogoNuevoCupo());
+        List<Candidato> nuevos = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.CANDIDATOS_SQL,
+                () -> candidatos.catalogoNuevo(pesos.fronteraCatalogoNuevo(), excluidos,
+                        pesos.getCatalogoNuevoCupo()));
         metricas.candidatosGenerados(RazonRecomendacion.NEW_ARRIVAL, nuevos.size());
 
         /*
@@ -657,8 +766,10 @@ public class RecomendacionService {
         List<Long> sinRepetir = new ArrayList<>(excluidos);
         nuevos.forEach(c -> sinRepetir.add(c.getItemId()));
 
-        List<Candidato> crudos = candidatos.populares(null, sinRepetir,
-                limite * FACTOR_SOBREMUESTREO);
+        List<Candidato> crudos = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.CANDIDATOS_SQL,
+                () -> candidatos.populares(null, sinRepetir, limite * FACTOR_SOBREMUESTREO));
+        cronometros.candidatos(HOME_S, nombre, crudos.size() + nuevos.size());
 
         List<CandidatoConRazon> mezcla = new ArrayList<>();
         for (Candidato c : crudos) {
@@ -679,13 +790,18 @@ public class RecomendacionService {
          * `TENDENCIA`, un producto nuevo pesa menos que uno asentado y compite;
          * puede perfectamente no aparecer, y eso es lo correcto.
          */
-        enfriar(mezcla, modulo, enfriamiento);
+        cronometros.etapa(HOME_S, nombre, MetricasPipeline.ENFRIAR,
+                () -> enfriar(mezcla, modulo, enfriamiento));
 
-        boolean conPerfilAqui = sujeto != null && perfiles.tienePerfil(sujeto);
-        List<CandidatoConRazon> combinados = adaptativo.ordenar(mezcla,
-                ContextoRanking.home(conPerfilAqui), sujeto, evidenciaDe(sujeto));
-        List<Long> elegidos = reservarCupoDeNovedad(
-                diversificar(new ArrayList<>(combinados), limite), combinados);
+        boolean conPerfilAqui = perfil.tiene();
+        List<CandidatoConRazon> combinados = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.ORDENAR,
+                () -> adaptativo.ordenar(mezcla, ContextoRanking.home(conPerfilAqui),
+                        sujeto, perfil.eventos()));
+        List<Long> elegidos = cronometros.etapa(HOME_S, nombre,
+                MetricasPipeline.DIVERSIFICAR,
+                () -> reservarCupoDeNovedad(
+                        diversificar(new ArrayList<>(combinados), limite), combinados));
         /*
          * `conPerfil` es «habia algo personal de donde tirar», NO «habia sujeto».
          *
@@ -697,10 +813,11 @@ public class RecomendacionService {
          * quien ya lo usaba. Lo delato el recorrido en navegador: el sujeto
          * estrenado tras cerrar sesion salia con perfil.
          */
-        registro.anotar(sujeto, ModuloDescubrimiento.POPULARES, elegidos,
-                razonesDe(combinados), scoresDe(combinados), conPerfilAqui);
+        cronometros.etapa(HOME_S, nombre, MetricasPipeline.ANOTAR,
+                () -> registro.anotar(sujeto, modulo, elegidos,
+                        razonesDe(combinados), scoresDe(combinados), conPerfilAqui));
 
-        return armar(ModuloDescubrimiento.POPULARES, null,
+        return armar(HOME_S, modulo, null,
                 "Bien valorado y con la ficha completa", elegidos);
     }
 
@@ -813,13 +930,22 @@ public class RecomendacionService {
                 PageRequest.of(0, limite));
     }
 
-    private Carrusel armar(ModuloDescubrimiento modulo, String detalle, String motivo,
-            List<Long> ids) {
+    /**
+     * El armado final, que es la etapa que más fácil se olvida al medir.
+     *
+     * <p>{@code porIds} carga los productos con sus imágenes para pintarlos, y
+     * es de las pocas partes del pipeline cuyo coste crece con lo que se
+     * devuelve y no con lo que se descarta. Va cronometrada por módulo porque
+     * cada carrusel pide su propio lote.
+     */
+    private Carrusel armar(String superficie, ModuloDescubrimiento modulo, String detalle,
+            String motivo, List<Long> ids) {
         if (ids.isEmpty()) {
             return null;
         }
         return new Carrusel(modulo.name(), modulo.titulo(detalle), modulo.origen(), motivo,
-                productos.porIds(ids));
+                cronometros.etapa(superficie, modulo.name(), MetricasPipeline.POR_IDS,
+                        () -> productos.porIds(ids)));
     }
 
     private void agregar(List<Carrusel> salida, Carrusel carrusel, Set<Long> yaUsados) {

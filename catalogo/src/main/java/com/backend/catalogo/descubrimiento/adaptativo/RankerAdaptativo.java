@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import com.backend.catalogo.descubrimiento.CandidatoConRazon;
 import com.backend.catalogo.descubrimiento.ImpresionRepository;
+import com.backend.catalogo.descubrimiento.MetricasPipeline;
 import com.backend.catalogo.descubrimiento.Origen;
 import com.backend.catalogo.descubrimiento.RankerHibrido;
 import com.backend.catalogo.descubrimiento.adaptativo.AsignacionExperimento.Variante;
@@ -57,6 +58,7 @@ public class RankerAdaptativo {
 
     private final RankerHibrido hibrido;
     private final ImpresionRepository impresiones;
+    private final MetricasPipeline cronometros;
     private final AsignacionExperimento asignacion;
     private final PesosAdaptativos pesos;
     private final MetricasAdaptativas metricas;
@@ -80,10 +82,27 @@ public class RankerAdaptativo {
             Variante variante = asignacion.de(sujeto);
             metricas.varianteServida(variante, contexto);
 
-            List<CaracteristicasCandidato> rasgos = extraer(candidatos);
-            List<CandidatoConRazon> ordenados = puntuar(candidatos, rasgos, contexto, variante);
+            /*
+             * Las tres etapas, cronometradas por separado.
+             *
+             * Juntas no dicen nada util: `extraer` hace una consulta y las otras
+             * dos son aritmetica en memoria, asi que un unico numero solo
+             * responderia «el ranker tarda», que ya se sabia. Separadas dicen si
+             * el coste esta en la base o en el calculo, que son dos problemas
+             * con soluciones opuestas.
+             */
+            String superficie = contexto.superficie().name();
 
-            return explorar(ordenados, rasgos, contexto, eventosDelPerfil);
+            List<CaracteristicasCandidato> rasgos = cronometros.comun(
+                    superficie, MetricasPipeline.EXTRAER,
+                    () -> extraer(candidatos, superficie));
+
+            List<CandidatoConRazon> ordenados = cronometros.comun(
+                    superficie, MetricasPipeline.PUNTUAR,
+                    () -> puntuar(candidatos, rasgos, contexto, variante));
+
+            return cronometros.comun(superficie, MetricasPipeline.EXPLORAR,
+                    () -> explorar(ordenados, rasgos, contexto, eventosDelPerfil));
 
         } catch (RuntimeException fallo) {
             /*
@@ -108,12 +127,22 @@ public class RankerAdaptativo {
      * recortados: unas decenas. Preguntarla por candidato sería exactamente el
      * N+1 que esta fase tiene prohibido introducir.
      */
-    private List<CaracteristicasCandidato> extraer(List<CandidatoConRazon> candidatos) {
+    private List<CaracteristicasCandidato> extraer(List<CandidatoConRazon> candidatos,
+            String superficie) {
         List<Long> ids = candidatos.stream().map(CandidatoConRazon::itemId).distinct().toList();
 
+        /*
+         * La consulta va con su propio cronometro dentro del de `extraer`.
+         *
+         * Es lo que permite separar «la exposicion cuesta» de «convertir sus
+         * filas cuesta». Sin partirlo, una regresion en cualquiera de los dos
+         * lados se veria igual y se buscaria en el sitio equivocado.
+         */
+        List<Object[]> filas = cronometros.comun(superficie, MetricasPipeline.EXPOSICION,
+                () -> impresiones.contarPorItem(ids, Instant.now().minus(VENTANA_EXPOSICION)));
+
         Map<Long, Long> exposicion = new HashMap<>();
-        for (Object[] fila : impresiones.contarPorItem(
-                ids, Instant.now().minus(VENTANA_EXPOSICION))) {
+        for (Object[] fila : filas) {
             exposicion.put(((Number) fila[0]).longValue(), ((Number) fila[1]).longValue());
         }
         long maximaExposicion = exposicion.values().stream().mapToLong(Long::longValue).max()
