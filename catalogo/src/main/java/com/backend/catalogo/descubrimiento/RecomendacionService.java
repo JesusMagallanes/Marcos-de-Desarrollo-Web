@@ -67,6 +67,7 @@ public class RecomendacionService {
     private final MetricasDescubrimiento metricas;
     private final RegistroRecomendacionService registro;
     private final ElegibilidadService elegibilidad;
+    private final SesionService sesiones;
     private final PesosDescubrimiento pesos;
 
     /**
@@ -85,10 +86,26 @@ public class RecomendacionService {
         Set<Long> yaUsados = new LinkedHashSet<>();
         List<Carrusel> salida = new ArrayList<>();
 
-        boolean personalizable = perfiles.tienePerfil(sujeto);
+        boolean conPerfil = perfiles.tienePerfil(sujeto);
+
+        /*
+         * Con perfil O con sesion. El «o» es lo que anade este bloque.
+         *
+         * Antes hacia falta perfil para recibir cualquier cosa personalizada, y
+         * eso dejaba fuera al caso mas obvio: alguien que acaba de llegar, busca
+         * «monitor», abre dos fichas y sigue viendo lo mismo que veria si no
+         * hubiera hecho nada. Ha dicho de sobra lo que quiere; esperar a tener
+         * perfil para escucharle es desperdiciar la unica informacion que hay.
+         *
+         * La intencion exige un minimo de interacciones, asi que un clic suelto
+         * no dispara esto: sin senal suficiente el Home sigue siendo el de
+         * tendencia, zona y exploracion.
+         */
+        SesionService.Intencion intencion = sesiones.intencionDe(sujeto);
+        boolean personalizable = conPerfil || intencion.hayIntencion();
 
         if (personalizable) {
-            agregar(salida, segunIntereses(sujeto, porCarrusel, yaUsados), yaUsados);
+            agregar(salida, segunIntereses(sujeto, porCarrusel, yaUsados, intencion), yaUsados);
         }
 
         agregar(salida, tendenciasDeZona(sujeto, ubigeo, porCarrusel, yaUsados), yaUsados);
@@ -127,23 +144,90 @@ public class RecomendacionService {
 
         // La proporcion de Homes sin perfil es la medida de si el sistema esta
         // aprendiendo de la gente o repartiendo lo mismo a todo el mundo.
-        metricas.homeServido(personalizable, huboColaborativo);
+        /*
+         * `conPerfil` y NO `personalizable`. La diferencia importa: desde este
+         * bloque se personaliza tambien con solo sesion, y contar eso como
+         * «tenia perfil» volveria a vaciar de sentido la segmentacion de
+         * arranque en frio — el mismo fallo que costo una vuelta en la fase 4.
+         */
+        metricas.homeServido(conPerfil, huboColaborativo);
         return salida;
     }
 
-    /** SEGÚN TUS INTERESES · lo que sale del perfil, y de nada más. */
+    /**
+     * SEGÚN TUS INTERESES · el perfil, y lo que está mirando ahora.
+     *
+     * <p>Dos señales que pueden contradecirse, y tienen que poder hacerlo. El
+     * perfil dice lo que le gusta a alguien y acierta; la sesión dice a qué ha
+     * venido hoy. A quien le gustan los monitores pero entró buscando una
+     * impresora, servirle monitores es tener razón y no ayudar.
+     *
+     * <p>La sesión NO sustituye al perfil: se suma como candidatos más, y el
+     * ranker decide. Un perfil de meses no puede deshacerse por una visita, ni
+     * una visita puede quedar enterrada bajo meses de otra cosa.
+     *
+     * <p>Y es lo único que hay para quien todavía no tiene perfil. Ver
+     * {@code home()}: este módulo ahora se sirve también cuando solo hay sesión.
+     */
     public Carrusel segunIntereses(UUID sujeto, int limite, Set<Long> yaUsados) {
+        return segunIntereses(sujeto, limite, yaUsados, sesiones.intencionDe(sujeto));
+    }
+
+    /**
+     * La misma, con la intención ya calculada.
+     *
+     * <p>El Home la necesita antes —para decidir si sirve este módulo— y
+     * recalcularla aquí serían dos consultas más por petición para leer
+     * exactamente lo mismo.
+     */
+    public Carrusel segunIntereses(UUID sujeto, int limite, Set<Long> yaUsados,
+            SesionService.Intencion intencion) {
         List<Long> excluidos = excluidos(sujeto, yaUsados);
+        int aPedir = limite * FACTOR_SOBREMUESTREO;
+
         List<Candidato> crudos = candidatos.segunIntereses(sujeto, pesos.getConfianzaK(),
-                excluidos, limite * FACTOR_SOBREMUESTREO);
+                excluidos, aPedir);
+
+        List<CandidatoConRazon> mezcla = new ArrayList<>();
+        for (Candidato c : crudos) {
+            mezcla.add(CandidatoConRazon.de(c, Origen.PERSONAL,
+                    RazonRecomendacion.PERSONAL_INTEREST));
+        }
+
+        /*
+         * La intención de sesión, si la hay. Se piden los candidatos APARTE y
+         * excluyendo los que ya trajo el perfil: si un producto llegara por las
+         * dos vías, el ranker deduplicaria quedandose con el mejor score y se
+         * perderia saber cual de las dos senales lo trajo — el mismo fallo que
+         * costo una vuelta en el bloque B.
+         */
+        List<Long> deSesion = intencion.categoriasDeSesion(pesos.getSesionMaximasFacetas());
+
+        if (!deSesion.isEmpty()) {
+            List<Long> sinRepetir = new ArrayList<>(excluidos);
+            crudos.forEach(c -> sinRepetir.add(c.getItemId()));
+
+            List<Candidato> porSesion = candidatos.porIntencionDeSesion(
+                    deSesion, sinRepetir, aPedir);
+            for (Candidato c : porSesion) {
+                mezcla.add(CandidatoConRazon.de(c, Origen.PERSONAL,
+                        RazonRecomendacion.SESSION_INTENT));
+            }
+            metricas.candidatosGenerados(RazonRecomendacion.SESSION_INTENT, porSesion.size());
+        }
 
         List<PerfilFaceta> top = perfiles.top(sujeto, TipoFaceta.CATEGORIA, 1);
         String motivo = top.isEmpty()
                 ? "Por lo que has estado explorando"
                 : "Porque te interesa " + top.get(0).getId().getFaceta();
 
-        List<Long> elegidos = diversificar(crudos, limite);
-        anotar(sujeto, ModuloDescubrimiento.SEGUN_TUS_INTERESES, elegidos, crudos, true);
+        boolean conPerfilAqui = perfiles.tienePerfil(sujeto);
+        List<CandidatoConRazon> combinados = adaptativo.ordenar(mezcla,
+                ContextoRanking.home(conPerfilAqui), sujeto, evidenciaDe(sujeto));
+        List<Long> elegidos = diversificar(new ArrayList<>(combinados), limite);
+
+        registro.anotar(sujeto, ModuloDescubrimiento.SEGUN_TUS_INTERESES, elegidos,
+                razonesDe(combinados), scoresDe(combinados), conPerfilAqui);
 
         return armar(ModuloDescubrimiento.SEGUN_TUS_INTERESES, null, motivo, elegidos);
     }

@@ -176,6 +176,44 @@ public class PesosDescubrimiento {
     /** Tope de carruseles colaborativos en el Home. */
     private int maximoModulosColaborativos = 1;
 
+    /* ══════════════ Temporalidad y sesión ══════════════ */
+
+    /**
+     * Cuánto tiempo sin actividad da una sesión por terminada.
+     *
+     * <p>Treinta minutos, que es la convención de toda la analítica web y encaja
+     * con lo que hace el cliente: cada carga de la aplicación estrena un
+     * {@code sesionId}, y una pestaña abierta conserva el suyo. Sirve para
+     * decidir qué sesión está VIVA, porque el identificador de sesión no viaja
+     * en las peticiones de lectura y hay que deducirlo del último evento.
+     */
+    private int sesionVentanaMinutos = 30;
+
+    /**
+     * Qué se considera «interés reciente», en horas.
+     *
+     * <p>Veinticuatro, y sale de la vida media que ya existe, no de una
+     * corazonada. Con siete días de vida media, un evento de hace un día
+     * conserva {@code 2^(-1/7) ≈ 0,91} de su peso: el olvido todavía no ha
+     * hecho prácticamente nada. «Reciente» es exactamente esa franja — aquello
+     * que el perfil aún no ha empezado a difuminar.
+     *
+     * <p>A los dos días serían 0,82 y a los siete 0,50, que ya es otra cosa.
+     */
+    private int interesRecienteHoras = 24;
+
+    /**
+     * Interacciones mínimas para creerse una intención de sesión.
+     *
+     * <p>Con una sola, cualquier clic accidental convertiría el Home entero en
+     * un monográfico. Dos es el mínimo que ya no es un resbalón, y por debajo de
+     * eso el sistema hace lo que hacía: tendencia, zona, exploración.
+     */
+    private int sesionMinimasInteracciones = 2;
+
+    /** Cuántas categorías de la sesión se usan para buscar candidatos. */
+    private int sesionMaximasFacetas = 3;
+
     /* ══════════════ Catálogo nuevo ══════════════ */
 
     /**

@@ -334,6 +334,50 @@ public interface CandidatoRepository extends Repository<Producto, Long> {
             @Param("cupo") int cupo);
 
     /**
+     * INTENCIÓN DE SESIÓN · lo que encaja con lo que está mirando AHORA.
+     *
+     * <p>Es la única vía por la que el sistema puede responder a alguien cuyo
+     * perfil dice una cosa y cuya visita de hoy dice otra. El perfil no se
+     * equivoca —a esa persona le gustan los monitores— pero hoy entró buscando
+     * una impresora, y servirle monitores es tener razón y no ayudar.
+     *
+     * <p>También es lo único que hay para quien no tiene perfil todavía. Un
+     * visitante que llega, busca y abre dos fichas ha dicho bastante sobre lo
+     * que quiere; esperar a tener un perfil para escucharle sería desperdiciar
+     * la única información disponible.
+     *
+     * <p><b>Los mismos filtros de siempre.</b> Moderación, stock y exclusiones,
+     * escritos igual que en las otras ocho consultas. La intención de sesión
+     * ordena candidatos; no abre ninguna puerta.
+     *
+     * <p>El score mezcla la calidad de la ficha con la posición de la categoría
+     * en la intención: lo que se está mirando ahora pesa más que lo que se miró
+     * al principio de la visita.
+     */
+    @Query(value = """
+            SELECT p.id           AS "itemId",
+                   p.categoria_id AS "categoriaId",
+                   p.marca_id     AS "marcaId",
+                   CAST(
+                     COALESCE(AVG(v.calificacion), 3.5)
+                     + LEAST(COUNT(DISTINCT img.id), 4) * 0.25
+                   AS double precision) AS "score"
+              FROM catalogo.producto p
+              LEFT JOIN catalogo.valoracion v ON v.producto_id = p.id
+              LEFT JOIN catalogo.producto_imagen img ON img.producto_id = p.id
+             WHERE p.categoria_id IN (:categorias)
+               AND p.estado_moderacion = 'APROBADO'
+               AND p.stock > 0
+               AND p.id NOT IN (:excluidos)
+             GROUP BY p.id, p.categoria_id, p.marca_id
+             ORDER BY 4 DESC
+             LIMIT :limite
+            """, nativeQuery = true)
+    List<Candidato> porIntencionDeSesion(@Param("categorias") List<Long> categorias,
+            @Param("excluidos") List<Long> excluidos,
+            @Param("limite") int limite);
+
+    /**
      * COLABORATIVO · por sujetos de perfil parecido.
      *
      * <p>Lo que descubrió gente cuyo gusto se parece al de esta persona y que

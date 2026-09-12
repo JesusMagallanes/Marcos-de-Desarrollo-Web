@@ -50,5 +50,16 @@ public enum RazonRecomendacion {
      * {@code POPULAR} habría hecho imposible medir si esa oportunidad sirve de
      * algo, que es justo lo que hay que poder responder antes de ampliarla.
      */
-    NEW_ARRIVAL
+    NEW_ARRIVAL,
+
+    /**
+     * Encaja con lo que esta persona está explorando en esta visita.
+     *
+     * <p>Distinta de {@code PERSONAL_INTEREST} a propósito, aunque las dos sean
+     * «personales». Aquella sale del perfil, que describe un gusto construido
+     * con meses; esta sale de la sesión en curso, que puede contradecirlo. Sin
+     * separarlas no se podría responder la pregunta que importa: ¿acierta más el
+     * sistema escuchando lo que alguien es o lo que alguien está haciendo ahora?
+     */
+    SESSION_INTENT
 }

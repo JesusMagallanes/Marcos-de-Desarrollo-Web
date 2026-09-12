@@ -69,12 +69,21 @@ class DiversidadTest {
     @Mock
     private ElegibilidadService elegibilidad;
 
+    /*
+     * Doble: la intencion de sesion es una consulta agregada contra la base que
+     * estas pruebas no levantan. Lo que comprueban —diversidad y filtros duros—
+     * es anterior y posterior a esa senal.
+     */
+    @Mock
+    private SesionService sesiones;
+
     private RecomendacionService servicio() {
         PesosDescubrimiento pesos = new PesosDescubrimiento();
         return new RecomendacionService(candidatos, descartes, impresiones, eventos,
                 perfiles, tendencias, productos,
                 new RankerHibrido(impresiones, pesos), adaptativo,
-                new MetricasDescubrimiento(new SimpleMeterRegistry()), registro, elegibilidad, pesos);
+                new MetricasDescubrimiento(new SimpleMeterRegistry()), registro, elegibilidad,
+                sesiones, pesos);
     }
 
     /** Un candidato con su categoría y su marca. */
