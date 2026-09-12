@@ -19,6 +19,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -130,6 +131,17 @@ public class Producto {
      * servicio, y cruzar servicios con una clave foránea es justo lo que este
      * proyecto evita.
      */
+    /**
+     * Cuándo se dio de alta. {@code NULL} = no se sabe.
+     *
+     * <p>Los productos anteriores a V24 se quedan en {@code NULL} y el sistema
+     * los trata como NO nuevos. Ver la migración: rellenarlos con una fecha
+     * derivada del {@code id} habría sido inventar un dato del que después se
+     * toman decisiones comerciales.
+     */
+    @Column(name = "creado_en", updatable = false)
+    private Instant creadoEn;
+
     @Column(name = "propietario_id")
     private Long propietarioId;
 
@@ -218,6 +230,27 @@ public class Producto {
     public void reponerStock(int cantidad) {
         if (cantidad > 0) {
             this.stock += cantidad;
+        }
+    }
+
+    /**
+     * Sella la fecha de alta al insertar.
+     *
+     * <p>En la entidad y no en el servicio a propósito: hay DOS rutas de alta
+     * —el panel de la tienda y el de un colaborador— y mañana puede haber una
+     * tercera. Poniéndolo aquí no hay forma de olvidarlo, que es exactamente lo
+     * que pasó con las purgas escritas y nunca conectadas.
+     *
+     * <p>Es el mismo idioma que ya usan {@code ReservaStock}, {@code Usuario},
+     * {@code Carrito} y otras tres entidades del proyecto.
+     *
+     * <p>Respeta un valor puesto a mano: hace falta para poder fabricar un
+     * producto «de hace dos meses» en una prueba sin tocar la base por detrás.
+     */
+    @PrePersist
+    void alCrear() {
+        if (creadoEn == null) {
+            creadoEn = Instant.now();
         }
     }
 }

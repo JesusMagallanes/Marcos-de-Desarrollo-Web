@@ -39,5 +39,16 @@ public enum RazonRecomendacion {
     EXPLORATION,
 
     /** Arranque en frío: no hay nada personal que ofrecer todavía. */
-    POPULAR
+    POPULAR,
+
+    /**
+     * Recién llegado al catálogo, sin historial que lo sostenga.
+     *
+     * <p>Hacía falta una razón propia. Un producto nuevo no llega por parecido,
+     * ni por conducta ajena, ni por ser popular —no puede serlo—: llega porque
+     * el sistema le reserva una oportunidad a propósito. Anotarlo como
+     * {@code POPULAR} habría hecho imposible medir si esa oportunidad sirve de
+     * algo, que es justo lo que hay que poder responder antes de ampliarla.
+     */
+    NEW_ARRIVAL
 }

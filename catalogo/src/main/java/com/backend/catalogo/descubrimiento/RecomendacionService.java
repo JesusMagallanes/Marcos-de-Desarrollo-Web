@@ -293,6 +293,73 @@ public class RecomendacionService {
         return top.isEmpty() ? 0 : top.get(0).getEventos();
     }
 
+    /**
+     * Reserva los últimos huecos para lo recién llegado, si no entró por score.
+     *
+     * <h4>Por qué un techo no bastaba</h4>
+     *
+     * <p>La primera versión se limitaba a traer como mucho {@code cupo}
+     * candidatos nuevos y dejar que compitieran. No funcionaba, y las pruebas lo
+     * dijeron: con la normalización por origen, el mejor producto nuevo queda en
+     * {@code 1,0 × peso(EXPLORACION)} —0,5 en el Home de quien no tiene perfil—
+     * mientras que entre sesenta candidatos populares hay decenas por encima de
+     * eso. En doce huecos no entraba nunca. El cupo acotaba algo que no pasaba,
+     * y el mecanismo entero era decorativo.
+     *
+     * <p>Un presupuesto de exposición ES una reserva; si no, no es un
+     * presupuesto. Es además lo que ya hace la exploración de la fase 4, que
+     * aparta posiciones por novedad en vez de confiar en que el score las gane.
+     *
+     * <h4>Por qué esto NO es saltarse el ranker</h4>
+     *
+     * <p>Los candidatos nuevos llegaron aquí por la consulta que aplica los
+     * mismos filtros duros que todas —moderación, stock, exclusiones, descarte,
+     * fatiga— y pasaron por el ranker, que los puntuó y los ordenó ENTRE ELLOS.
+     * Lo único que hace esta reserva es garantizar que los mejor puntuados de
+     * ese grupo ocupen unos pocos huecos. No resucita nada ni reordena a nadie
+     * más.
+     *
+     * <p>Van al final de la lista: la primera tarjeta es la que más se mira y no
+     * es sitio para una apuesta. Y nunca pueden ser todas — se sustituyen como
+     * mucho {@code cupo} posiciones de una lista que siempre conserva las de
+     * arriba.
+     */
+    private List<Long> reservarCupoDeNovedad(List<Long> elegidos,
+            List<CandidatoConRazon> combinados) {
+
+        int cupo = pesos.getCatalogoNuevoCupo();
+        if (cupo <= 0 || elegidos.size() <= 1) {
+            return elegidos;
+        }
+
+        List<Long> novedades = combinados.stream()
+                .filter(c -> c.razon() == RazonRecomendacion.NEW_ARRIVAL)
+                .map(CandidatoConRazon::itemId)
+                .toList();
+        if (novedades.isEmpty()) {
+            // Sin nada nuevo, el carrusel es exactamente el de siempre.
+            return elegidos;
+        }
+
+        List<Long> salida = new ArrayList<>(elegidos);
+        long yaDentro = salida.stream().filter(novedades::contains).count();
+
+        // Nunca mas de `cupo`, y nunca mas de lo que deje media lista en pie.
+        int porColocar = (int) Math.min(cupo - yaDentro, (long) (salida.size() - 1) / 2);
+
+        for (Long nueva : novedades) {
+            if (porColocar <= 0) {
+                break;
+            }
+            if (salida.contains(nueva)) {
+                continue;
+            }
+            salida.set(salida.size() - porColocar, nueva);
+            porColocar--;
+        }
+        return salida;
+    }
+
     /** {@code itemId -> razon}, para anotar lo servido sin perder de dónde vino. */
     private Map<Long, RazonRecomendacion> razonesDe(List<CandidatoConRazon> candidatos) {
         Map<Long, RazonRecomendacion> razones = new HashMap<>();
@@ -400,9 +467,66 @@ public class RecomendacionService {
         } else {
             excluidos = excluidos(sujeto, yaUsados);
         }
-        List<Candidato> crudos = candidatos.populares(null, excluidos,
+        /*
+         * CATALOGO NUEVO · el unico sitio donde un producto sin historial puede
+         * asomar.
+         *
+         * Va aqui y no en un modulo propio por una razon de alcance: este
+         * carrusel se sirve SIEMPRE, tambien a quien acaba de llegar y no tiene
+         * perfil, que es precisamente quien nunca veria un producto nuevo por
+         * ninguna otra via. Los modulos personalizados no le llegan.
+         *
+         * La consulta trae como mucho `catalogoNuevoCupo` candidatos, con los
+         * MISMOS filtros que el resto —moderacion, stock, exclusiones—. Ser
+         * nuevo no es una credencial: un producto recien dado de alta y ya
+         * agotado no entra, y uno descartado no vuelve por ser reciente.
+         */
+        List<Candidato> nuevos = candidatos.catalogoNuevo(
+                pesos.fronteraCatalogoNuevo(), excluidos, pesos.getCatalogoNuevoCupo());
+        metricas.candidatosGenerados(RazonRecomendacion.NEW_ARRIVAL, nuevos.size());
+
+        /*
+         * Lo nuevo se pide PRIMERO y se excluye de la otra consulta.
+         *
+         * Sin esto, un producto recien llegado con ficha completa lo devuelven
+         * las dos: la de novedad y la de populares —cumple moderacion y stock—.
+         * El ranker deduplica quedandose con el mejor score, que es el de
+         * TENDENCIA por tener mas peso, y el candidato perdia su razon
+         * NEW_ARRIVAL. Con ella se perdian las dos cosas que justifican esta
+         * puerta: poder MEDIR si sirve, y poder reservarle sitio.
+         *
+         * Lo delato una prueba que exigia que la novedad llegara a servirse.
+         */
+        List<Long> sinRepetir = new ArrayList<>(excluidos);
+        nuevos.forEach(c -> sinRepetir.add(c.getItemId()));
+
+        List<Candidato> crudos = candidatos.populares(null, sinRepetir,
                 limite * FACTOR_SOBREMUESTREO);
-        List<Long> elegidos = diversificar(crudos, limite);
+
+        List<CandidatoConRazon> mezcla = new ArrayList<>();
+        for (Candidato c : crudos) {
+            mezcla.add(CandidatoConRazon.de(c, Origen.TENDENCIA, RazonRecomendacion.POPULAR));
+        }
+        for (Candidato c : nuevos) {
+            mezcla.add(CandidatoConRazon.de(c, Origen.EXPLORACION,
+                    RazonRecomendacion.NEW_ARRIVAL));
+        }
+
+        /*
+         * Y ahora TODO pasa por el ranker, lo nuevo y lo popular juntos.
+         *
+         * Este modulo no lo usaba: ordenaba por el score de su SQL y
+         * diversificaba. Ahora tiene que hacerlo, porque si no el catalogo nuevo
+         * entraria por una via que se salta la ponderacion por contexto — que es
+         * exactamente el bypass que no puede existir. Con `EXPLORACION` frente a
+         * `TENDENCIA`, un producto nuevo pesa menos que uno asentado y compite;
+         * puede perfectamente no aparecer, y eso es lo correcto.
+         */
+        boolean conPerfilAqui = sujeto != null && perfiles.tienePerfil(sujeto);
+        List<CandidatoConRazon> combinados = adaptativo.ordenar(mezcla,
+                ContextoRanking.home(conPerfilAqui), sujeto, evidenciaDe(sujeto));
+        List<Long> elegidos = reservarCupoDeNovedad(
+                diversificar(new ArrayList<>(combinados), limite), combinados);
         /*
          * `conPerfil` es «habia algo personal de donde tirar», NO «habia sujeto».
          *
@@ -414,8 +538,8 @@ public class RecomendacionService {
          * quien ya lo usaba. Lo delato el recorrido en navegador: el sujeto
          * estrenado tras cerrar sesion salia con perfil.
          */
-        anotar(sujeto, ModuloDescubrimiento.POPULARES, elegidos, crudos,
-                sujeto != null && perfiles.tienePerfil(sujeto));
+        registro.anotar(sujeto, ModuloDescubrimiento.POPULARES, elegidos,
+                razonesDe(combinados), scoresDe(combinados), conPerfilAqui);
 
         return armar(ModuloDescubrimiento.POPULARES, null,
                 "Bien valorado y con la ficha completa", elegidos);

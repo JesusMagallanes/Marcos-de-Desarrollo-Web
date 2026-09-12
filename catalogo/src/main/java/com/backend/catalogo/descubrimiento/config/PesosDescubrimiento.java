@@ -176,6 +176,43 @@ public class PesosDescubrimiento {
     /** Tope de carruseles colaborativos en el Home. */
     private int maximoModulosColaborativos = 1;
 
+    /* ══════════════ Catálogo nuevo ══════════════ */
+
+    /**
+     * Cuántos días se considera nuevo un producto.
+     *
+     * <p>Treinta, y no es un número al azar: es la misma ventana que usa el
+     * cálculo colaborativo. «Nuevo» significa entonces algo concreto y
+     * defendible — que todavía no ha tenido tiempo de acumular la evidencia de
+     * conducta con la que se recomienda todo lo demás. Que las dos ventanas
+     * coincidan no es estética: es que describen el mismo umbral desde los dos
+     * lados.
+     *
+     * <p>La cuenta se hace SIEMPRE contra {@code creado_en}, nunca contra el
+     * {@code id}. Un identificador alto solo dice que la fila se insertó
+     * después; la semilla metió sesenta y ocho productos en un segundo.
+     */
+    private int catalogoNuevoDias = 30;
+
+    /**
+     * Cuántos productos nuevos como mucho pueden entrar en un carrusel.
+     *
+     * <p>Un tope en unidades y no un porcentaje: con carruseles de doce, un
+     * porcentaje da fracciones que hay que redondear y el número deja de
+     * poderse razonar. Dos de doce es aproximadamente un sexto.
+     *
+     * <p>Es un TECHO de candidatos, no un suelo de huecos. Los productos nuevos
+     * entran a competir y el ranker decide; pueden acabar sin aparecer. Eso es
+     * lo correcto: el cupo existe para que la novedad no desplace a la
+     * relevancia, no para garantizarle sitio a nada.
+     */
+    private int catalogoNuevoCupo = 2;
+
+    /** El instante a partir del cual un producto cuenta como nuevo. */
+    public java.time.Instant fronteraCatalogoNuevo() {
+        return java.time.Instant.now().minus(Duration.ofDays(catalogoNuevoDias));
+    }
+
     /* ══════════════ Fase 3 · medición ══════════════ */
 
     /**

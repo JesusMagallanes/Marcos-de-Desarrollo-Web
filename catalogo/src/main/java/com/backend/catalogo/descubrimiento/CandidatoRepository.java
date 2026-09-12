@@ -283,6 +283,57 @@ public interface CandidatoRepository extends Repository<Producto, Long> {
             @Param("limite") int limite);
 
     /**
+     * CATÁLOGO NUEVO · lo que acaba de llegar y nadie ha visto todavía.
+     *
+     * <p>Rompe un ciclo cerrado. Un producto recién publicado no genera eventos
+     * porque nadie lo ve; sin eventos no entra en ninguna relación de
+     * co-visita; sin relaciones no lo propone ningún generador; y sin que nadie
+     * lo proponga, nadie lo ve. De ahí no sale solo por bueno que sea.
+     *
+     * <p><b>Los mismos filtros que los otros seis, ni uno menos.</b>
+     * {@code estado_moderacion}, {@code stock} y {@code excluidos} están aquí
+     * escritos igual que en el resto: ser nuevo no es una credencial que
+     * permita saltarse nada. Un producto recién dado de alta y ya agotado no
+     * puede recomendarse, y uno que alguien descartó tampoco vuelve por ser
+     * reciente.
+     *
+     * <p>Se ordena por fecha descendente —lo más reciente primero— y el
+     * {@code LIMIT} lleva el cupo. Es un TECHO de candidatos: de aquí salen como
+     * mucho dos, y después compiten en el ranker como cualquier otro. Pueden no
+     * aparecer.
+     *
+     * <p>El score que devuelve mide la CALIDAD DE LA FICHA, no la popularidad,
+     * que un producto nuevo no puede tener. Es lo único honesto que se puede
+     * puntuar de algo que nadie ha mirado, y además empuja en la dirección
+     * correcta: una ficha con fotos y características decepciona menos a quien
+     * la abre por primera vez.
+     */
+    @Query(value = """
+            SELECT p.id           AS "itemId",
+                   p.categoria_id AS "categoriaId",
+                   p.marca_id     AS "marcaId",
+                   CAST(
+                     1.0
+                     + LEAST(COUNT(DISTINCT img.id), 4) * 0.25
+                     + LEAST(COUNT(DISTINCT pa.atributo_id), 6) * 0.15
+                   AS double precision) AS "score"
+              FROM catalogo.producto p
+              LEFT JOIN catalogo.producto_imagen img ON img.producto_id = p.id
+              LEFT JOIN catalogo.producto_atributo pa ON pa.producto_id = p.id
+             WHERE p.creado_en IS NOT NULL
+               AND p.creado_en >= :desde
+               AND p.estado_moderacion = 'APROBADO'
+               AND p.stock > 0
+               AND p.id NOT IN (:excluidos)
+             GROUP BY p.id, p.categoria_id, p.marca_id, p.creado_en
+             ORDER BY p.creado_en DESC
+             LIMIT :cupo
+            """, nativeQuery = true)
+    List<Candidato> catalogoNuevo(@Param("desde") Instant desde,
+            @Param("excluidos") List<Long> excluidos,
+            @Param("cupo") int cupo);
+
+    /**
      * COLABORATIVO · por sujetos de perfil parecido.
      *
      * <p>Lo que descubrió gente cuyo gusto se parece al de esta persona y que
