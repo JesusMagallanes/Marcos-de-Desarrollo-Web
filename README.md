@@ -1060,6 +1060,7 @@ El último bloque está **automatizado** y se puede repetir:
 docker compose --profile neon up -d
 bash docs/pruebas/colaboradores.sh
 bash docs/pruebas/ubicacion.sh
+python docs/pruebas/descubrimiento/ejecutar.py   # cuatro visitantes, pila aislada
 ```
 
 Cubre el alta con verificación de identidad, el rechazo de archivos disfrazados, los permisos de
