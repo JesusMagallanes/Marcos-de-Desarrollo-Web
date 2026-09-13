@@ -68,8 +68,13 @@ def pasada(numero):
     comprobar_aislamiento()
     levantar()
     try:
-        r = subprocess.run([sys.executable, os.path.join(AQUI, "visitantes.py")],
-                           cwd=RAIZ, env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+        # `-u` para que la salida del hijo salga linea a linea: bajo
+        # redireccion a fichero, sin esto Python la retiene en un buffer de
+        # bloque y el resultado real se pierde.
+        r = subprocess.run([sys.executable, "-u", os.path.join(AQUI, "visitantes.py")],
+                           cwd=RAIZ,
+                           env={**os.environ, "PYTHONIOENCODING": "utf-8",
+                                "PYTHONUNBUFFERED": "1"})
         return r.returncode == 0
     finally:
         derribar()

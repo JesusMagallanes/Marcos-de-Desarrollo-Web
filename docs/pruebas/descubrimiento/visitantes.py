@@ -460,21 +460,23 @@ def visitante_2(cat, ids, otra):
                VALUES ('%s', 'CATEGORIA', '%s', 90.0, 40, now())
                ON CONFLICT DO NOTHING""" % (s2b, nombre_otra))
         w.home(esperar=3)
-        w.ficha_spa(ids[0], esperar=3)
-        w.ficha_spa(ids[1], esperar=3)
+        # Espera completa (>= intervalo de lote del cliente): los eventos de
+        # estas dos fichas tienen que estar PERSISTIDOS antes de medir el Home,
+        # o la sesion viva no los ve todavia. Con 3s se corria contra el batch de
+        # 5s y SESSION_INTENT salia 0 por carrera, no por el codigo.
+        w.ficha_spa(ids[0])
+        w.ficha_spa(ids[1])
         tarjetas = w.volver_al_home_spa()
 
         intencion = int(uno("SELECT COUNT(*) FROM catalogo.recomendacion_servida"
                             " WHERE sujeto_id = '%s' AND razon = 'SESSION_INTENT'" % s2b))
         monitores_en_home = [t for t in tarjetas if t in ids]
-        # Lo observable es que la categoria de ESTA visita llega al Home pese a
-        # un perfil que dice lo contrario. La etiqueta SESSION_INTENT no aparece
-        # y es un hallazgo sobre C, no un fallo del arnes: la ingesta vuelca cada
-        # evento al perfil al instante, asi que cuando se sirve el Home el
-        # perfil ya contiene la sesion y se queda con la atribucion. La conducta
-        # es correcta; la medicion no puede separar las dos senales. Se reporta.
-        anota(V, "La intencion de esta visita influye aunque el perfil diga otra cosa",
-              len(monitores_en_home) > 0,
+        # Desde la fase K la atribucion de sesion se decide al anotar, asi que
+        # ahora SESSION_INTENT SI aparece desde el flujo real: la categoria de
+        # esta visita llega al Home pese a un perfil que dice lo contrario, y
+        # queda anotada como intencion de sesion. Antes de K esto era 0.
+        anota(V, "La intencion de esta visita produce SESSION_INTENT real",
+              len(monitores_en_home) > 0 and intencion > 0,
               "%d monitores en el Home; %d anotados como SESSION_INTENT"
               % (len(monitores_en_home), intencion))
         anota(V, "Y el perfil historico no se borra por una visita",

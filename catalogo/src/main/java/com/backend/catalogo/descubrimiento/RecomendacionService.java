@@ -248,21 +248,52 @@ public class RecomendacionService {
                         excluidos, aPedir));
         cronometros.candidatos(HOME_S, nombre, crudos.size());
 
+        /*
+         * LA ATRIBUCION DE SESION SE DECIDE AQUI, no en la consulta.
+         *
+         * La fase K lo encontro auditando: la ingesta vuelca cada evento al
+         * perfil en la misma transaccion, asi que cuando se sirve el Home el
+         * perfil ya contiene la categoria que la persona esta mirando y su
+         * consulta devuelve esos productos ANTES de que la sesion pueda
+         * pedirlos. La consulta de sesion, que excluye lo que trajo el perfil,
+         * se quedaba casi siempre sin nada, y SESSION_INTENT no aparecia en
+         * produccion salvo con un perfil historico tan grande que saturase el
+         * limite de candidatos. Las metricas de E y F no podian saber cuanto
+         * aporta la sesion.
+         *
+         * La regla: si el candidato pertenece a una categoria de la sesion viva,
+         * su razon es SESSION_INTENT; si no, PERSONAL_INTEREST. Cuando perfil y
+         * sesion respaldan el mismo producto gana la sesion, porque «lo que
+         * esta mirando ahora» es la senal mas informativa y era la que se
+         * estaba perdiendo. La regla es determinista y no depende del orden.
+         *
+         * Lo que NO cambia: los candidatos son exactamente los mismos, con el
+         * mismo score, y el ranker pondera por ORIGEN, no por razon — la razon
+         * solo viaja hasta la anotacion. Ni una posicion se mueve. Hay una
+         * prueba que lo fija.
+         */
+        List<Long> deSesion = intencion.categoriasDeSesion(pesos.getSesionMaximasFacetas());
+        Set<Long> categoriasDeSesion = new HashSet<>(deSesion);
+
         List<CandidatoConRazon> mezcla = new ArrayList<>();
+        int reatribuidos = 0;
         for (Candidato c : crudos) {
+            boolean respaldadoPorSesion = c.getCategoriaId() != null
+                    && categoriasDeSesion.contains(c.getCategoriaId());
             mezcla.add(CandidatoConRazon.de(c, Origen.PERSONAL,
-                    RazonRecomendacion.PERSONAL_INTEREST));
+                    respaldadoPorSesion
+                            ? RazonRecomendacion.SESSION_INTENT
+                            : RazonRecomendacion.PERSONAL_INTEREST));
+            if (respaldadoPorSesion) {
+                reatribuidos++;
+            }
         }
 
         /*
-         * La intención de sesión, si la hay. Se piden los candidatos APARTE y
-         * excluyendo los que ya trajo el perfil: si un producto llegara por las
-         * dos vías, el ranker deduplicaria quedandose con el mejor score y se
-         * perderia saber cual de las dos senales lo trajo — el mismo fallo que
-         * costo una vuelta en el bloque B.
+         * Y ademas lo que la sesion aporta por su cuenta: los productos de sus
+         * categorias que el perfil no llego a traer, pedidos APARTE y excluyendo
+         * los que ya estan para que ninguno entre dos veces.
          */
-        List<Long> deSesion = intencion.categoriasDeSesion(pesos.getSesionMaximasFacetas());
-
         if (!deSesion.isEmpty()) {
             List<Long> sinRepetir = new ArrayList<>(excluidos);
             crudos.forEach(c -> sinRepetir.add(c.getItemId()));
@@ -274,8 +305,9 @@ public class RecomendacionService {
                 mezcla.add(CandidatoConRazon.de(c, Origen.PERSONAL,
                         RazonRecomendacion.SESSION_INTENT));
             }
-            metricas.candidatosGenerados(RazonRecomendacion.SESSION_INTENT, porSesion.size());
+            reatribuidos += porSesion.size();
         }
+        metricas.candidatosGenerados(RazonRecomendacion.SESSION_INTENT, reatribuidos);
 
         cronometros.etapa(HOME_S, nombre, MetricasPipeline.ENFRIAR,
                 () -> enfriar(mezcla, modulo, enfriamiento));

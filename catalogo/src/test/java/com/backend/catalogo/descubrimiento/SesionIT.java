@@ -7,7 +7,9 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
@@ -21,6 +23,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.backend.catalogo.PruebaIntegracion;
 import com.backend.catalogo.descubrimiento.config.PesosDescubrimiento;
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.Carrusel;
+import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.EventoRequest;
+import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.LoteEventosRequest;
 
 /**
  * Lo que alguien ES frente a lo que alguien está HACIENDO ahora.
@@ -45,6 +49,17 @@ class SesionIT extends PruebaIntegracion {
 
     @Autowired
     private SesionService sesiones;
+
+    /*
+     * La ingesta de produccion. Las pruebas de FLUJO —las que demuestran que
+     * SESSION_INTENT aparece— pasan por aqui, no por INSERT directo: la fase K
+     * descubrio que el estado se falsificaba con JDBC y validaba un caso que en
+     * produccion no ocurre, porque la ingesta vuelca cada evento al perfil en
+     * la misma transaccion. Las pruebas de SERVICIO (ventana, sesion viva,
+     * determinismo) siguen con JDBC: ahi el objetivo es SesionService aislado.
+     */
+    @Autowired
+    private IngestaService ingesta;
 
     @Autowired
     private RecomendacionService recomendador;
@@ -250,28 +265,40 @@ class SesionIT extends PruebaIntegracion {
     /* ══════════════ Arranque en frío ══════════════ */
 
     @Test
-    @DisplayName("sin perfil pero con sesión, el Home responde a la sesión")
-    void sinPerfilLaSesionSirve() {
+    @DisplayName("la sesión real produce SESSION_INTENT desde el flujo de ingesta")
+    void laSesionRealProduceSessionIntent() {
         /*
-         * El caso que este bloque existe para resolver. Alguien que acaba de
-         * llegar, busca y abre dos fichas ha dicho de sobra lo que quiere.
-         * Esperar a tener perfil para escucharle desperdicia la única
-         * información disponible.
+         * EL caso de la fase K, y por el camino de produccion.
+         *
+         * Dos vistas de monitores entran por la ingesta REAL: se persisten y,
+         * en la MISMA transaccion, actualizan el perfil. Es justo el flujo que
+         * hacia que SESSION_INTENT no apareciera —el perfil ya trae la
+         * categoria cuando se sirve el Home—. Con la atribucion de K, esos
+         * candidatos se anotan como SESSION_INTENT porque su categoria es la de
+         * la sesion viva. No se falsifica ningun `perfil_faceta`.
          */
         crearProducto(catMonitores, "Monitor candidato A");
         crearProducto(catMonitores, "Monitor candidato B");
-        ver(sujeto, sesion, crearProducto(catMonitores, "Monitor visto 1"), hace(2));
-        ver(sujeto, sesion, crearProducto(catMonitores, "Monitor visto 2"), hace(1));
+        verReal(crearProducto(catMonitores, "Monitor visto 1"), catMonitores, sesion);
+        verReal(crearProducto(catMonitores, "Monitor visto 2"), catMonitores, sesion);
 
-        assertThat(perfiles.todasDe(sujeto)).as("no hay perfil todavía").isEmpty();
+        assertThat(perfiles.todasDe(sujeto))
+                .as("la ingesta real SI crea perfil: es la premisa de K, no un fallo")
+                .isNotEmpty();
 
         List<Carrusel> home = recomendador.home(sujeto, null, 12);
 
         assertThat(home).anySatisfy(c ->
                 assertThat(c.modulo()).isEqualTo(ModuloDescubrimiento.SEGUN_TUS_INTERESES.name()));
         assertThat(servidas.findAll()).extracting(RecomendacionServida::getRazon)
-                .as("y las recomendaciones vienen por la vía de la sesión")
+                .as("y desde el flujo real aparece la atribución de sesión")
                 .contains(RazonRecomendacion.SESSION_INTENT);
+
+        List<Long> servidos = servidas.findAll().stream()
+                .map(RecomendacionServida::getItemId).toList();
+        assertThat(servidos)
+                .as("ningún producto se sirve dos veces")
+                .doesNotHaveDuplicates();
     }
 
     @Test
@@ -308,39 +335,61 @@ class SesionIT extends PruebaIntegracion {
     /* ══════════════ Sesión y perfil conviven ══════════════ */
 
     @Test
-    @DisplayName("una visita no borra el perfil, ni el perfil tapa la visita")
+    @DisplayName("perfil e intención conviven, cada uno con su razón, sin estado falso")
     void lasDosSenalesConviven() {
         /*
-         * A quien le gustan los monitores pero entró buscando una impresora,
-         * servirle solo monitores es tener razón y no ayudar; servirle solo
-         * impresoras es olvidar meses de evidencia por una tarde.
+         * El caso mixto de K, construido SOLO con ingesta real.
+         *
+         * Primero una sesion de impresoras; despues, mas tarde, una de
+         * monitores. Las dos crean perfil —es lo que hace la ingesta— pero la
+         * sesion VIVA es la ultima, la de monitores. Asi, sin falsificar nada:
+         *
+         *   monitores  → perfil + sesion viva → SESSION_INTENT
+         *   impresoras → perfil, fuera de la sesion viva → PERSONAL_INTEREST
+         *
+         * El caso «solo sesion, sin perfil» no se construye porque en
+         * produccion no existe: la ingesta siempre escribe perfil. Ese es
+         * justamente el hallazgo de K, no un hueco de la prueba.
          */
         for (int i = 0; i < 4; i++) {
             crearProducto(catMonitores, "Monitor catalogo " + i);
             crearProducto(catImpresoras, "Impresora catalogo " + i);
         }
-        /*
-         * El perfil se siembra por SQL y no con `acumular`: esa consulta es
-         * `@Modifying` y exige transaccion, y esta clase no puede ser
-         * transaccional porque el registro escribe en una propia.
-         */
-        jdbc.update("INSERT INTO catalogo.perfil_faceta"
-                + " (sujeto_id, tipo_faceta, faceta, score, eventos, actualizado_en)"
-                + " SELECT ?, 'CATEGORIA', slug, 30.0, 12, now()"
-                + " FROM catalogo.categoria WHERE id = ?", sujeto, catMonitores);
-        // Sesión de hoy: impresoras.
-        ver(sujeto, sesion, crearProducto(catImpresoras, "Impresora vista 1"), hace(2));
-        ver(sujeto, sesion, crearProducto(catImpresoras, "Impresora vista 2"), hace(1));
+
+        UUID sesionVieja = UUID.randomUUID();
+        verReal(crearProducto(catImpresoras, "Impresora vista 1"), catImpresoras, sesionVieja);
+        verReal(crearProducto(catImpresoras, "Impresora vista 2"), catImpresoras, sesionVieja);
+        esperarUnInstante();
+        verReal(crearProducto(catMonitores, "Monitor visto 1"), catMonitores, sesion);
+        verReal(crearProducto(catMonitores, "Monitor visto 2"), catMonitores, sesion);
 
         recomendador.segunIntereses(sujeto, 12, new LinkedHashSet<>());
 
-        List<RazonRecomendacion> razones = servidas.findAll().stream()
-                .map(RecomendacionServida::getRazon).toList();
+        List<RecomendacionServida> servido = servidas.findAll();
+        assertThat(servido.stream().map(RecomendacionServida::getItemId).toList())
+                .as("ningún producto se sirve dos veces")
+                .doesNotHaveDuplicates();
 
-        assertThat(razones)
-                .as("las dos señales aportan; ninguna se lleva por delante a la otra")
+        Long catDe = null;
+        for (RecomendacionServida r : servido) {
+            Long cat = jdbc.queryForObject(
+                    "SELECT categoria_id FROM catalogo.producto WHERE id = ?",
+                    Long.class, r.getItemId());
+            if (cat.equals(catMonitores)) {
+                assertThat(r.getRazon())
+                        .as("lo de la sesión viva es intención de sesión")
+                        .isEqualTo(RazonRecomendacion.SESSION_INTENT);
+            } else if (cat.equals(catImpresoras)) {
+                assertThat(r.getRazon())
+                        .as("lo del perfil fuera de la sesión es interés histórico")
+                        .isEqualTo(RazonRecomendacion.PERSONAL_INTEREST);
+                catDe = cat;
+            }
+        }
+        assertThat(servido).extracting(RecomendacionServida::getRazon)
                 .contains(RazonRecomendacion.SESSION_INTENT)
                 .contains(RazonRecomendacion.PERSONAL_INTEREST);
+        assertThat(catDe).as("hubo al menos una impresora, para el contraste").isNotNull();
     }
 
     /* ══════════════ Identidad ══════════════ */
@@ -388,6 +437,90 @@ class SesionIT extends PruebaIntegracion {
                 .isFalse();
     }
 
+    /* ══════════════ K · la atribución no mueve el ranking ══════════════ */
+
+    @Test
+    @DisplayName("cambiar la razón a SESSION_INTENT no cambia ítem, posición, score ni módulo")
+    void laAtribucionNoTocaElRanking() {
+        /*
+         * La garantia central de la alternativa A: la razon es lo UNICO que
+         * puede cambiar. Se comparan dos sujetos con el MISMO perfil y el mismo
+         * catalogo; uno tiene una sesion viva en esa categoria y el otro no.
+         *
+         * El de la sesion vera SESSION_INTENT; el otro, PERSONAL_INTEREST. Todo
+         * lo demas —que producto, en que puesto, con que score, en que modulo—
+         * tiene que coincidir producto a producto. Si algo de eso se mueve, la
+         * atribucion estaria tocando el ranking y A no se sostendria.
+         *
+         * La sesion del primer sujeto se siembra por JDBC A PROPOSITO: aqui el
+         * objetivo es aislar el efecto de la atribucion, y la ingesta real
+         * cambiaria tambien su perfil, con lo que los dos sujetos dejarian de
+         * ser comparables. El flujo real ya se prueba en las otras dos.
+         */
+        String slug = jdbc.queryForObject(
+                "SELECT slug FROM catalogo.categoria WHERE id = ?", String.class, catMonitores);
+
+        // Cuatro productos con marcas de peso distinto: orden total, sin empates.
+        List<Long> productos = new java.util.ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            Long marca = crearMarca("K-marca-" + i);
+            productos.add(crearProductoConMarca(catMonitores, "K monitor " + i, marca));
+        }
+
+        UUID conSesion = crearSujeto();
+        UUID sinSesion = crearSujeto();
+        for (UUID quien : List.of(conSesion, sinSesion)) {
+            sembrarPerfilCategoria(quien, slug, 50.0, 20);
+            int score = 40;
+            for (Long producto : productos) {
+                sembrarPerfilMarca(quien, marcaDe(producto), score);
+                score -= 10;
+            }
+        }
+        // Solo el primero tiene una visita viva en la categoria del perfil.
+        for (Long producto : productos) {
+            ver(conSesion, sesion, producto, hace(1));
+        }
+
+        Map<Long, RecomendacionServida> conRazonSesion = servir(conSesion);
+        Map<Long, RecomendacionServida> conRazonPerfil = servir(sinSesion);
+
+        assertThat(conRazonSesion.keySet())
+                .as("los dos sirven exactamente los mismos productos")
+                .isEqualTo(conRazonPerfil.keySet());
+
+        for (Long item : conRazonSesion.keySet()) {
+            RecomendacionServida a = conRazonSesion.get(item);
+            RecomendacionServida b = conRazonPerfil.get(item);
+            assertThat(a.getPosicion()).as("misma posición para " + item)
+                    .isEqualTo(b.getPosicion());
+            assertThat(a.getScore()).as("mismo score para " + item)
+                    .isEqualByComparingTo(b.getScore());
+            assertThat(a.getModulo()).as("mismo módulo para " + item)
+                    .isEqualTo(b.getModulo());
+        }
+
+        assertThat(conRazonSesion.values()).extracting(RecomendacionServida::getRazon)
+                .as("con sesión viva, la atribución es de sesión")
+                .contains(RazonRecomendacion.SESSION_INTENT);
+        assertThat(conRazonPerfil.values()).extracting(RecomendacionServida::getRazon)
+                .as("sin sesión, todo es interés histórico y nada se cuela como sesión")
+                .containsOnly(RazonRecomendacion.PERSONAL_INTEREST);
+    }
+
+    /** Sirve el módulo personal a un sujeto y devuelve lo anotado, por ítem. */
+    private Map<Long, RecomendacionServida> servir(UUID quien) {
+        jdbc.update("DELETE FROM catalogo.recomendacion_servida WHERE sujeto_id = ?", quien);
+        recomendador.segunIntereses(quien, 12, new LinkedHashSet<>());
+        Map<Long, RecomendacionServida> porItem = new HashMap<>();
+        for (RecomendacionServida r : servidas.findAll()) {
+            if (r.getSujetoId().equals(quien)) {
+                porItem.put(r.getItemId(), r);
+            }
+        }
+        return porItem;
+    }
+
     /* ══════════════ Utilidades ══════════════ */
 
     private double pesoDe(List<SesionService.Intencion.Faceta> facetas, Long categoria) {
@@ -422,6 +555,41 @@ class SesionIT extends PruebaIntegracion {
                 Long.class, unico);
     }
 
+    private Long crearMarca(String base) {
+        String nombre = base + " " + UUID.randomUUID();
+        jdbc.update("INSERT INTO catalogo.marca (name, descripcion) VALUES (?, 'IT')", nombre);
+        return jdbc.queryForObject("SELECT id FROM catalogo.marca WHERE name = ?",
+                Long.class, nombre);
+    }
+
+    private Long crearProductoConMarca(Long categoria, String nombre, Long marca) {
+        String unico = nombre + " " + UUID.randomUUID();
+        jdbc.update("INSERT INTO catalogo.producto"
+                + " (name, description, precio, stock, categoria_id, marca_id, estado_moderacion)"
+                + " VALUES (?, 'IT', ?, 10, ?, ?, 'APROBADO')",
+                unico, new BigDecimal("100.00"), categoria, marca);
+        return jdbc.queryForObject("SELECT id FROM catalogo.producto WHERE name = ?",
+                Long.class, unico);
+    }
+
+    private String marcaDe(Long producto) {
+        return jdbc.queryForObject("SELECT m.name FROM catalogo.marca m"
+                + " JOIN catalogo.producto p ON p.marca_id = m.id WHERE p.id = ?",
+                String.class, producto);
+    }
+
+    private void sembrarPerfilCategoria(UUID quien, String slug, double score, int eventos) {
+        jdbc.update("INSERT INTO catalogo.perfil_faceta"
+                + " (sujeto_id, tipo_faceta, faceta, score, eventos, actualizado_en)"
+                + " VALUES (?, 'CATEGORIA', ?, ?, ?, now())", quien, slug, score, eventos);
+    }
+
+    private void sembrarPerfilMarca(UUID quien, String marca, double score) {
+        jdbc.update("INSERT INTO catalogo.perfil_faceta"
+                + " (sujeto_id, tipo_faceta, faceta, score, eventos, actualizado_en)"
+                + " VALUES (?, 'MARCA', ?, ?, 15, now())", quien, marca, score);
+    }
+
     private UUID crearSujeto() {
         UUID id = UUID.randomUUID();
         jdbc.update("INSERT INTO catalogo.sujeto (id) VALUES (?)", id);
@@ -430,6 +598,30 @@ class SesionIT extends PruebaIntegracion {
 
     private void ver(UUID quien, UUID cualSesion, Long producto, Instant cuando) {
         eventoDe(quien, cualSesion, producto, null, "ITEM_VIEW", cuando);
+    }
+
+    /**
+     * Una vista por el flujo REAL de ingesta.
+     *
+     * <p>Persiste el evento y actualiza el perfil en la misma transaccion,
+     * exactamente como en produccion, con {@code ocurrido_en = now()}. Es el
+     * camino que las pruebas de flujo de K tienen que ejercer.
+     */
+    private void verReal(Long producto, Long categoria, UUID cualSesion) {
+        EventoRequest evento = new EventoRequest(
+                TipoEvento.ITEM_VIEW_DEEP, TipoItem.PRODUCTO, producto, categoria,
+                5000, null, null, null, null, null);
+        ingesta.registrar(sujeto,
+                new LoteEventosRequest(null, null, cualSesion, null, List.of(evento)));
+    }
+
+    /** Un respiro real para que dos sesiones no empaten en `ocurrido_en`. */
+    private void esperarUnInstante() {
+        try {
+            Thread.sleep(15);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void eventoDe(UUID quien, UUID cualSesion, Long producto, Long categoria,
