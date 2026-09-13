@@ -1,6 +1,16 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { Observable, Subscription, forkJoin, of, switchMap } from 'rxjs';
 import {
   AuthService,
   BloqueCategoria,
@@ -37,6 +47,7 @@ export class Home implements OnInit {
   private descubrimiento = inject(DescubrimientoService);
   private ubigeoService = inject(UbigeoService);
   private auth = inject(AuthService);
+  private destroyRef = inject(DestroyRef);
 
   protected cargando = signal(true);
 
@@ -57,6 +68,33 @@ export class Home implements OnInit {
   protected descubriendo = signal(true);
   protected error = signal('');
   protected categorias = signal<Categoria[]>([]);
+
+  /** La petición de descubrimiento en curso, para cortarla si cambia quién mira. */
+  private peticionDescubrimiento: Subscription | null = null;
+  private ultimoUsuarioId: number | null | undefined;
+
+  constructor() {
+    /*
+     * Los carruseles se vuelven a pedir cada vez que cambia QUIEN mira.
+     *
+     * Se pedian una sola vez, al crear la pagina. Quien iniciaba sesion desde
+     * la portada se quedaba viendo el Home del visitante anonimo —solo «lo mas
+     * popular»— hasta que navegaba a otro sitio y volvia; y, peor, quien
+     * cerraba sesion desde la portada seguia viendo SUS carruseles personales
+     * en una pantalla que ya no era suya.
+     *
+     * Se compara el id y no la senal entera porque el usuario en memoria
+     * tambien cambia al editar el perfil, y eso no es motivo para recargar.
+     */
+    effect(() => {
+      const usuarioId = this.auth.usuario()?.id ?? null;
+      if (usuarioId === this.ultimoUsuarioId) {
+        return;
+      }
+      this.ultimoUsuarioId = usuarioId;
+      untracked(() => this.cargarDescubrimiento());
+    });
+  }
 
   /*
    * Las tres listas llegan ya resueltas del servidor.
@@ -94,20 +132,15 @@ export class Home implements OnInit {
   protected ofertaChunks = computed(() => this.chunk(this.enOferta(), 6));
 
   ngOnInit(): void {
-    this.fijarZona();
-
     /*
-     * Va en paralelo y NO dentro del forkJoin de abajo a proposito.
+     * El descubrimiento NO va dentro de este forkJoin, a proposito.
      *
      * Con forkJoin, un fallo de Descubrimiento tumbaria tambien la portada y el
      * Home entero se quedaria en el mensaje de error. Separado, cada mitad de
      * la pantalla llega cuando puede y el fallo de una no arrastra a la otra.
+     * Lo pide el efecto del constructor, que ademas lo repite al cambiar de
+     * sesion.
      */
-    this.descubrimiento.home(12).subscribe((res) => {
-      this.carruseles.set(res?.carruseles ?? []);
-      this.descubriendo.set(false);
-    });
-
     forkJoin({
       categorias: this.categoriaService.listar(),
       portada: this.productoService.portada(),
@@ -134,23 +167,45 @@ export class Home implements OnInit {
   }
 
   /**
-   * Le dice a Descubrimiento en que distrito esta el usuario.
+   * Pide los carruseles para quien esta mirando ahora.
    *
-   * <p>Solo si el usuario YA guardo su direccion en el perfil: es un dato que
-   * el mismo dio, para envios, y reutilizarlo no pide permisos nuevos ni
-   * geolocalizacion. Nunca se mandan coordenadas, solo el ubigeo del INEI.
+   * <p>Primero la zona, despues el Home. Si el usuario ya guardo su direccion
+   * en el perfil se traduce a ubigeo y se manda con la peticion; es un dato
+   * que el mismo dio, para envios, y reutilizarlo no pide permisos nuevos ni
+   * geolocalizacion. Nunca se mandan coordenadas, solo el codigo del INEI.
+   * Antes las dos peticiones salian a la vez y el Home llegaba siempre sin
+   * zona: las tendencias caian a nacional en la primera carga.
    *
-   * <p>Sin esto las tendencias caen a nacional, que es la degradacion prevista
-   * y un resultado perfectamente valido: se pierde precision, no la seccion.
+   * <p>Sin direccion, o si el ubigeo falla, se pide igual: se pierde precision,
+   * no la seccion.
    */
-  private fijarZona(): void {
+  private cargarDescubrimiento(): void {
+    // Si cambia la sesion con una peticion en vuelo, la respuesta vieja no
+    // debe pisar a la nueva.
+    this.peticionDescubrimiento?.unsubscribe();
+    this.descubriendo.set(true);
+
+    this.peticionDescubrimiento = this.zona()
+      .pipe(
+        switchMap((codigo) => {
+          this.descubrimiento.fijarUbigeo(codigo);
+          return this.descubrimiento.home(12);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((res) => {
+        this.carruseles.set(res?.carruseles ?? []);
+        this.descubriendo.set(false);
+      });
+  }
+
+  /** El ubigeo de la direccion guardada, o `null`; nunca falla. */
+  private zona(): Observable<string | null> {
     const dir = this.auth.usuario()?.direccion;
     if (!dir?.departamento || !dir.provincia || !dir.distrito) {
-      return;
+      return of(null);
     }
-    this.ubigeoService
-      .codigo(dir.departamento, dir.provincia, dir.distrito)
-      .subscribe((codigo) => this.descubrimiento.fijarUbigeo(codigo));
+    return this.ubigeoService.codigo(dir.departamento, dir.provincia, dir.distrito);
   }
 
   private chunk<T>(elementos: T[], tamaño: number): T[][] {

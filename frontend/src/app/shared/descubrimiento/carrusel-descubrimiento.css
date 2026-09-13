@@ -1,58 +1,154 @@
 /*
  * Un carrusel de recomendaciones.
  *
- * Se desplaza con scroll nativo y ajuste por celda en vez de con botones y
- * transformaciones: en movil el gesto es el que el usuario ya espera, no hay
- * listeners de arrastre que mantener, y el teclado lo recorre solo.
+ * Se desplaza con scroll nativo y ajuste por celda, y las flechas solo hacen
+ * `scrollBy`: en móvil el gesto es el que el usuario ya espera, no hay
+ * listeners de arrastre que mantener y el teclado lo recorre solo.
+ *
+ * El ancho de cada tarjeta lo fija `--por-vista`: cuántas caben a la vez. Es
+ * un ancho FIJO y no un `minmax(0, …)`: con el mínimo en cero la rejilla
+ * repartía el sitio entre todas las tarjetas y, con doce, cada una quedaba en
+ * un tercio de lo previsto; con cuatro, en el doble. Así el carrusel mide lo
+ * mismo que las secciones de catálogo de debajo tenga las tarjetas que tenga.
  */
-.carrusel-desc {
-  margin: 2rem 0;
+:host {
+  display: block;
+  --por-vista: 2.3;
+  --hueco: 0.85rem;
 }
+
+@media (min-width: 576px) {
+  :host {
+    --por-vista: 3.2;
+  }
+}
+
+@media (min-width: 768px) {
+  :host {
+    --por-vista: 4;
+  }
+}
+
+@media (min-width: 992px) {
+  :host {
+    --por-vista: 5;
+    --hueco: 1rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  :host {
+    --por-vista: 6;
+  }
+}
+
+.carrusel-desc {
+  margin: 1.5rem 0 0.5rem;
+}
+
+/* ── Cabecera ─────────────────────────────────────────────────────── */
 
 .carrusel-desc__cabecera {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.carrusel-desc__textos {
+  min-width: 0;
+}
+
+/* De dónde sale el carrusel. Es el único texto que no redacta el backend. */
+.carrusel-desc__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #06b56c;
+  margin-bottom: 0.3rem;
 }
 
 .carrusel-desc__titulo {
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #16251c;
   margin: 0;
+  line-height: 1.2;
 }
 
 .carrusel-desc__motivo {
-  margin: 0.15rem 0 0;
+  margin: 0.25rem 0 0;
   font-size: 0.85rem;
-  color: #6c757d;
+  color: #6b7a70;
 }
+
+/* ── Flechas ──────────────────────────────────────────────────────── */
+
+.carrusel-desc__flechas {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Mismo botón redondo y blanco que las flechas de «Productos Top». */
+.carrusel-desc__flecha {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid #e3e8e5;
+  border-radius: 50%;
+  background: #fff;
+  color: #16251c;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.carrusel-desc__flecha:hover:not(:disabled) {
+  transform: scale(1.06);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.16);
+}
+
+.carrusel-desc__flecha:focus-visible {
+  outline: 2px solid #06b56c;
+  outline-offset: 2px;
+}
+
+.carrusel-desc__flecha:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* En táctil se desliza con el dedo; las flechas solo quitan sitio. */
+@media (hover: none) and (max-width: 767.98px) {
+  .carrusel-desc__flechas {
+    display: none;
+  }
+}
+
+/* ── Pista ────────────────────────────────────────────────────────── */
 
 .carrusel-desc__pista {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(160px, 1fr);
-  gap: 0.85rem;
+  grid-auto-columns: calc((100% - (var(--por-vista) - 1) * var(--hueco)) / var(--por-vista));
+  gap: var(--hueco);
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
-  /* Deja respirar la sombra de las tarjetas, que si no se recorta al borde. */
-  padding: 0.25rem 0.25rem 0.75rem;
+  /* Deja respirar la sombra y la elevación de las tarjetas al pasar el ratón. */
+  padding: 0.5rem 0.25rem 1rem;
+  margin: 0 -0.25rem;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
-/* Cuantas caben a la vez, por tamano de pantalla. */
-@media (min-width: 576px) {
-  .carrusel-desc__pista {
-    grid-auto-columns: minmax(190px, 1fr);
-  }
-}
-
-@media (min-width: 992px) {
-  .carrusel-desc__pista {
-    grid-auto-columns: minmax(0, calc((100% - 4 * 0.85rem) / 5));
-  }
+.carrusel-desc__pista::-webkit-scrollbar {
+  display: none;
 }
 
 .carrusel-desc__celda {
@@ -61,31 +157,39 @@
   min-width: 0;
 }
 
-/* El menu de descarte: discreto hasta que se busca. */
+.carrusel-desc__tarjeta {
+  height: 100%;
+}
+
+/* ── Descartar ────────────────────────────────────────────────────── */
+
+/* El menú de descarte: discreto hasta que se busca. */
 .carrusel-desc__descartar {
   position: absolute;
-  top: 0.4rem;
-  right: 0.4rem;
+  top: 0.6rem;
+  right: 0.6rem;
   z-index: 2;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.9rem;
+  height: 1.9rem;
   border: none;
   border-radius: 50%;
-  background: rgb(255 255 255 / 85%);
+  background: rgb(255 255 255 / 92%);
   color: #495057;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.12);
   opacity: 0;
   transition: opacity 0.15s ease;
   cursor: pointer;
 }
 
 .carrusel-desc__celda:hover .carrusel-desc__descartar,
-.carrusel-desc__descartar:focus-visible {
+.carrusel-desc__descartar:focus-visible,
+.carrusel-desc__descartar[aria-expanded='true'] {
   opacity: 1;
 }
 
 /*
- * En tactil no hay hover, asi que ahi el boton se ve siempre. Sin esto la
- * accion de descartar seria inalcanzable en movil, que es donde mas se navega.
+ * En táctil no hay hover, así que ahí el botón se ve siempre. Sin esto la
+ * acción de descartar sería inalcanzable en móvil, que es donde más se navega.
  */
 @media (hover: none) {
   .carrusel-desc__descartar {
@@ -95,20 +199,22 @@
 
 .carrusel-desc__menu {
   position: absolute;
-  top: 2.2rem;
-  right: 0.4rem;
+  top: 2.7rem;
+  right: 0.6rem;
   z-index: 3;
   background: #fff;
   border: 1px solid #dee2e6;
-  border-radius: 0.4rem;
-  box-shadow: 0 4px 14px rgb(0 0 0 / 12%);
+  border-radius: 0.5rem;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
   overflow: hidden;
 }
 
 .carrusel-desc__menu button {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
-  padding: 0.5rem 0.9rem;
+  padding: 0.55rem 0.9rem;
   border: none;
   background: none;
   font-size: 0.85rem;
@@ -122,7 +228,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .carrusel-desc__descartar {
+  .carrusel-desc__descartar,
+  .carrusel-desc__flecha {
     transition: none;
+  }
+
+  .carrusel-desc__pista {
+    scroll-behavior: auto;
   }
 }

@@ -46,6 +46,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
      */
     private static final Cupo VALORACION = new Cupo("valoracion", 10, Duration.ofMinutes(1));
 
+    /**
+     * Subir fotos de producto. El límite de tamaño ya acota cada archivo; este
+     * cupo acota cuántos: con el cupo general de escritura, una cuenta podía
+     * dejar 120 archivos de 5 MB por minuto en el volumen, y las huérfanas
+     * tardan una semana en purgarse. Treinta cada diez minutos sobran para
+     * cargar la galería de varios productos seguidos.
+     */
+    private static final Cupo SUBIDA = new Cupo("subida", 30, Duration.ofMinutes(10));
+
     @Override
     protected void doFilterInternal(HttpServletRequest peticion,
             HttpServletResponse respuesta,
@@ -93,6 +102,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
         // un navegador, y estrangularlo rompería el carrito.
         if (ruta.startsWith("/api/inventario/")) {
             return INVENTARIO;
+        }
+        // Solo la subida; ver una foto es tráfico normal de la vitrina.
+        if (ruta.equals("/api/productos/imagenes") && "POST".equals(peticion.getMethod())) {
+            return SUBIDA;
         }
         return "GET".equals(peticion.getMethod()) ? LECTURA : ESCRITURA;
     }

@@ -1,0 +1,26 @@
+<input
+  #selector
+  type="file"
+  class="d-none"
+  [accept]="acepta"
+  (change)="alElegir($event)"
+  aria-hidden="true"
+  tabindex="-1"
+/>
+<button
+  type="button"
+  class="btn btn-outline-success"
+  [class.btn-sm]="tamano() === 'sm'"
+  [disabled]="subiendo()"
+  (click)="elegir()"
+>
+  @if (subiendo()) {
+    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+    Subiendo…
+  } @else {
+    <i class="fa-solid fa-upload me-1" aria-hidden="true"></i>{{ etiqueta() }}
+  }
+</button>
+@if (error()) {
+  <span class="subir-imagen__error" role="alert">{{ error() }}</span>
+}

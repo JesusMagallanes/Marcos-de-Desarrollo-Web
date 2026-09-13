@@ -15,6 +15,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.backend.catalogo.shared.metricas.MetricasSeguridad;
@@ -36,6 +37,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RecursoNoEncontradoException.class)
     ProblemDetail noEncontrado(RecursoNoEncontradoException ex) {
         return construir(HttpStatus.NOT_FOUND, "Recurso no encontrado", ex.getMessage());
+    }
+
+    /** El mensaje lo redacta el código, nunca la entrada: se puede enseñar. */
+    @ExceptionHandler(DatosInvalidosException.class)
+    ProblemDetail datosInvalidos(DatosInvalidosException ex) {
+        return construir(HttpStatus.BAD_REQUEST, "Datos inválidos", ex.getMessage());
     }
 
     @ExceptionHandler(ConflictoException.class)
@@ -92,6 +99,18 @@ public class GlobalExceptionHandler {
         metricas.entradaRechazada("tipo");
         return construir(HttpStatus.BAD_REQUEST, "Solicitud inválida",
                 "El parámetro '" + ex.getName() + "' no tiene el formato esperado");
+    }
+
+    /**
+     * Spring corta la subida antes de llegar al controlador. Sin esto caía en
+     * el manejador genérico y el usuario leía «error interno» cuando lo único
+     * que pasaba es que su foto pesaba demasiado.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    ProblemDetail ficheroDemasiadoGrande(MaxUploadSizeExceededException ex) {
+        metricas.entradaRechazada("tamano");
+        return construir(HttpStatus.PAYLOAD_TOO_LARGE, "Archivo demasiado grande",
+                "El archivo supera el máximo permitido de 5 MB");
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)

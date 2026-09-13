@@ -181,38 +181,106 @@
 
 
 /*
+ * Bloque de descubrimiento: mismos margenes laterales que .mas-vendidos y el
+ * mismo ancho maximo que .carrusel-productos, para que sus tarjetas queden en
+ * columna con las de «Productos Top» y no en un contenedor mas estrecho.
+ */
+.descubrimiento {
+  /* 1280 de contenido, como .carrusel-productos, más los 50 px de cada lado. */
+  max-width: 1380px;
+  margin: 1.5rem auto 0;
+  padding: 0 50px;
+  --por-vista: 2.3;
+  --hueco: 0.85rem;
+}
+
+@media (max-width: 1199.98px) {
+  .descubrimiento {
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .descubrimiento {
+    padding: 0 16px;
+  }
+}
+
+/*
  * Esqueleto de los carruseles de descubrimiento.
  *
  * Ocupa el sitio que van a ocupar para que la pagina no de un salto cuando
  * llegan. Sin esto, el catalogo se pinta primero y todo baja de golpe unos
  * cientos de pixeles, que es de las cosas que mas sensacion de rotura dan.
+ *
+ * Las tarjetas miden lo mismo que las del carrusel real (misma formula de
+ * `--por-vista`), y los puntos de corte son los de carrusel-descubrimiento.css.
  */
+@media (min-width: 576px) {
+  .descubrimiento {
+    --por-vista: 3.2;
+  }
+}
+
+@media (min-width: 768px) {
+  .descubrimiento {
+    --por-vista: 4;
+  }
+}
+
+@media (min-width: 992px) {
+  .descubrimiento {
+    --por-vista: 5;
+    --hueco: 1rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  .descubrimiento {
+    --por-vista: 6;
+  }
+}
+
 .descubrimiento-esqueleto {
-  margin: 2rem 0;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.descubrimiento-esqueleto__etiqueta,
+.descubrimiento-esqueleto__titulo,
+.descubrimiento-esqueleto__tarjeta {
+  background: linear-gradient(90deg, #eef1ef 25%, #e3e8e5 37%, #eef1ef 63%);
+  background-size: 400% 100%;
+  animation: descubrimiento-brillo 1.4s ease infinite;
+}
+
+.descubrimiento-esqueleto__etiqueta {
+  width: 5rem;
+  height: 0.7rem;
+  border-radius: 0.3rem;
+  margin-bottom: 0.5rem;
 }
 
 .descubrimiento-esqueleto__titulo {
-  width: 12rem;
-  height: 1.15rem;
+  width: 16rem;
+  max-width: 70%;
+  height: 1.5rem;
   border-radius: 0.3rem;
-  background: #e9ecef;
-  margin-bottom: 0.85rem;
+  margin-bottom: 1.4rem;
 }
 
 .descubrimiento-esqueleto__fila {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(160px, 1fr);
-  gap: 0.85rem;
+  grid-auto-columns: calc((100% - (var(--por-vista) - 1) * var(--hueco)) / var(--por-vista));
+  gap: var(--hueco);
   overflow: hidden;
+  padding: 0.5rem 0.25rem 1rem;
+  margin: 0 -0.25rem;
 }
 
 .descubrimiento-esqueleto__tarjeta {
-  height: 250px;
-  border-radius: 0.5rem;
-  background: linear-gradient(90deg, #f1f3f5 25%, #e9ecef 37%, #f1f3f5 63%);
-  background-size: 400% 100%;
-  animation: descubrimiento-brillo 1.4s ease infinite;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
 }
 
 @keyframes descubrimiento-brillo {
@@ -221,6 +289,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .descubrimiento-esqueleto__etiqueta,
+  .descubrimiento-esqueleto__titulo,
   .descubrimiento-esqueleto__tarjeta {
     animation: none;
   }

@@ -10,6 +10,8 @@ export const RUTAS_CATALOGO = {
     porCategoria: (slug: string) => `${API}/productos/categoria/${slug}`,
     /** Facetas (marcas, atributos y conteos) del mismo conjunto filtrado. */
     facetas: `${API}/productos/facetas`,
+    /** Fotos alojadas en la tienda: POST para subir; las URL devueltas cuelgan de aquí. */
+    imagenes: `${API}/productos/imagenes`,
     // Productos de colaborador y su cola de revisión (SZ-B08).
     mios: `${API}/productos/mios`,
     mio: (id: number) => `${API}/productos/mios/${id}`,

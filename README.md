@@ -792,6 +792,82 @@ literales para elegir rama y agregan con `CASE WHEN`. Todo eso es una cadena de 
 Hibernate la traduce: **compila igual esté bien o mal**. Por eso van cubiertas por un `*IT` con
 Postgres real, que en CI sí se ejecuta.
 
+### Búsqueda y navegación por categoría, con filtros en el servidor
+
+La navegación por categoría filtraba **solo los doce productos que ya habían llegado** al
+navegador, y la búsqueda de la tienda no filtraba nada. Ahora el trabajo lo hace la base: se
+filtra el catálogo entero, se ordena, se pagina y **solo entonces** se cargan las entidades de la
+página. Nunca se pagina y luego se filtra en el navegador; el total refleja el conjunto filtrado
+completo, no la página.
+
+Los filtros son opcionales y se combinan: precio (min/máx), varias marcas (OR), varios atributos
+—AND entre códigos distintos, OR entre valores del mismo código— y disponibilidad. El orden
+—relevancia, precio, nombre, novedad— es **determinista**, siempre con desempate por `id` para
+que dos páginas no repitan ni salten un producto. Se resuelve con el mismo idioma del panel de
+descuentos: una consulta de IDs (`filtrar`) que deja a Postgres filtrar, ordenar y paginar, y
+guardas con centinela (`:sinMarcas`, `:numAtributos`) porque un `IN ()` vacío es un error de
+sintaxis.
+
+| Endpoint | Qué hace |
+|---|---|
+| `GET /api/productos` | Búsqueda por texto + filtros, orden y paginación. **Sin parámetros se comporta como antes.** |
+| `GET /api/productos/categoria/{slug}` | Igual, acotado a la categoría. También compatible sin filtros. |
+| `GET /api/productos/facetas` | Marcas y atributos disponibles con sus **conteos sobre el conjunto filtrado entero**, no sobre la página |
+
+Las facetas se cuentan sobre todos los resultados y no sobre los doce visibles, reusando la tabla
+`producto_atributo` que ya existe: no hay una segunda representación de atributos en el navegador.
+Los parámetros viajan como `precioMin`, `precioMax`, `marcaId` (repetible), `atributo` (repetible,
+`codigo:valor`), `soloDisponibles` y `orden`. En el frontend, `pages/buscar` y `pages/categoria`
+comparten un rail de filtros (`shared/filtros-catalogo`) y guardan el filtro y el orden en la
+**URL**, para poder compartir un enlace ya filtrado y que atrás/adelante reconstruyan la vista.
+No se añadió ningún índice: las consultas reusan los que ya cubren `producto_atributo(atributo_id,
+valor)` y las claves de categoría y marca. Todo está cubierto por `BusquedaFiltradaIT` (Postgres
+real) y por dos recorridos E2E versionados (búsqueda y categoría) en
+[docs/pruebas/descubrimiento](docs/pruebas/descubrimiento/README.md).
+
+### Los carruseles de descubrimiento en el Home
+
+Son el bloque personalizado de la portada («Lo más popular», «Según tus intereses»…). Los
+resuelve `catalogo` en **una** petición (`GET /api/descubrimiento/home`), y el Home los pinta con
+un único componente, `shared/descubrimiento`, sea cual sea el módulo. Tres cosas que costaron
+una vuelta:
+
+- **Las tarjetas miden lo mismo tenga el carrusel cuatro o doce.** La pista repartía el ancho
+  entre todas (`minmax(0, …)`): con doce productos cada tarjeta quedaba en un tercio del tamaño
+  y con cuatro en el doble, y ningún carrusel medía lo que las secciones de catálogo de debajo.
+  Ahora `--por-vista` fija cuántas caben por punto de corte y el resto se desplaza, con flechas
+  que solo aparecen cuando hay algo que desplazar.
+- **Se vuelven a pedir cuando cambia quién mira.** Se pedían una vez, al crear la página: quien
+  entraba desde la portada seguía viendo el Home anónimo hasta navegar y volver, y quien salía
+  seguía viendo sus carruseles personales en una pantalla que ya no era suya. Un `effect` sobre
+  el id del usuario los recarga —y corta la petición anterior si aún estaba en vuelo—.
+- **El «espacio en blanco» al iniciar sesión era latencia, no un fallo.** Con cuenta se sirven
+  tres carruseles en vez de uno, y cada uno pagaba dos cuellos de botella contra Neon (~100 ms por
+  viaje): anotar lo servido hacía **doce INSERT de uno en uno** —el id `IDENTITY` impide a
+  Hibernate agruparlos— y componer las fichas hacía **un SELECT por atributo** (`ProductoAtributo
+  → Atributo` era LAZY sin `@BatchSize`). El Home con sesión tardaba 13-17 s y el visitante veía el
+  esqueleto gris hasta rendirse. `RecomendacionServida` pasa a id por secuencia en bloques de 50
+  (migración V25 + `hibernate.jdbc.batch_size`) y `Atributo` lleva `@BatchSize`: de 3,5 s a 0,6 s
+  en anotar, de 1,9 s a 0,5 s en las fichas, y el Home con sesión baja a ~5 s. Lo que queda es
+  latencia pura —unos 35 viajes secuenciales a una base en otra región—; con la base cerca el
+  mismo Home tarda menos de un segundo.
+
+Un detalle de esa migración: `ALTER SEQUENCE … INCREMENT BY 50` deja la columna con su `DEFAULT`
+y los INSERT a mano siguen funcionando (con huecos de 50 en el id, que no significan nada). Y
+Hibernate comprueba al arrancar que el paso de la secuencia coincide con su tamaño de bloque, así
+que si la migración faltara el servicio no arrancaría en vez de repetir ids.
+
+### `redirectTo` y guardias no se mezclan
+
+La entrada del panel (`/admin` sin sección) tenía `redirectTo: 'productos'` **y** una guardia que
+elegía la primera sección permitida. Angular resuelve la redirección antes que las guardias, así
+que la guardia nunca corría —todo el mundo caía en «productos»— y desde Angular 20 la combinación
+es un error de configuración (`NG04014`) que **impide arrancar la aplicación con `ng serve`**. El
+build de producción no valida las rutas, y por eso Docker seguía funcionando mientras `pnpm start`
+mostraba una página vacía. La elección de sección es ahora una función de `redirectTo`
+(`adminInicioRedirect`), y `app.routes.spec.ts` recorre todas las rutas para que ninguna vuelva a
+combinar las dos cosas.
+
 ### Caché de los estáticos
 
 Lo que decide **no es la extensión sino si el nombre cambia cuando cambia el contenido**, que es
@@ -829,12 +905,52 @@ dejaba el fallo vivo en el otro. Las dos mitades están verificadas con peticion
 sirviendo el build de producción, y el gateway con el bundle copiado como indica el apartado de
 despliegue— no solo con pruebas unitarias.
 
-**Imágenes que no cargan.** Las de los productos son URLs de otros sitios, y las plantillas
+**Imágenes que no cargan.** Las de los productos eran URLs de otros sitios, y las plantillas
 tenían `src="imagen || '/Img/img.png'"`, que solo cubre el caso de que no haya URL. Si la hay y
 falla —el que la alojaba la borró o bloqueó el enlace desde fuera— ese operador no llega a
 evaluarse y el navegador pinta el icono de imagen rota. La directiva `ImagenCaida` escucha el
 `error` del elemento y pone el marcador, una sola vez por imagen para no entrar en bucle si el
 propio marcador faltara.
+
+### Fotos de producto: alojadas en la tienda, no enlazadas
+
+El panel solo admitía **pegar URLs de otros sitios**, y las dos únicas fotos reales del catálogo
+(Falabella) se veían en la primera visita y **fallaban desde la segunda**: con el service worker
+ya controlando la página, cada imagen se vuelve a pedir con `fetch()` desde el worker, `fetch()`
+cae bajo `connect-src`, y la CSP del worker era la del HTML (`connect-src 'self'`). El worker no
+podía traerlas, `ImagenCaida` ponía el marcador y nada quedaba en ningún registro: el fallo
+ocurre dentro del worker. Se reprodujo en Chromium con tres visitas seguidas al mismo perfil.
+
+Dos arreglos, uno para cada mitad del problema:
+
+- **El worker lleva su propia CSP** (`connect-src 'self' https:`), en nginx (`location =
+  /ngsw-worker.js`) y en el gateway (`DelegatingRequestMatcherHeaderWriter` sobre esa ruta, con la
+  del HTML negada para el resto; con dos cabeceras el navegador aplica la intersección y el
+  worker seguiría bloqueado). No amplía nada: el worker solo reenvía peticiones que la página
+  inició, y esas ya están limitadas por la CSP del documento. `PasarelaIT` comprueba que cada
+  respuesta lleva UNA CSP y cuál.
+- **Las fotos se suben y se sirven desde aquí.** `POST /api/productos/imagenes` (multipart, quien
+  pueda publicar: `PRODUCTOS_GESTIONAR` o `PRODUCTOS_PROPIOS`) guarda el archivo en el volumen
+  `imagenes-productos` y devuelve una URL relativa (`/api/productos/imagenes/2026/09/<uuid>.jpg`)
+  que el formulario pone en la casilla como cualquier otra. `GET` de esa URL es público, con
+  `Cache-Control: immutable` un año: el nombre no se reutiliza jamás. Mismas reglas que los
+  documentos de identidad —el tipo se decide **por los bytes** (JPG, PNG, WebP; un SVG se rechaza
+  porque puede llevar scripts), el nombre original no toca la ruta, y la ruta pública solo admite
+  la forma exacta que se genera— más un cupo propio (30 subidas cada 10 minutos) y una purga
+  nocturna de lo subido que ningún producto usa pasados 7 días. La purga corre **como sistema**:
+  con RLS, una tarea sin usuario no vería los productos pendientes de un colaborador y borraría
+  sus fotos por «huérfanas».
+
+Dos cosas de infraestructura que salieron al probarlo por nginx: `location /api/` era un prefijo
+a secas y **la regex de estáticos (`.jpg$`) le ganaba**, así que la foto subida daba un 404 de
+nginx sin llegar al gateway —ahora es `location ^~ /api/`—; y sin `client_max_body_size` nginx
+cortaba cualquier subida por encima de su 1 MB por defecto, lo que también afectaba a los
+documentos de identidad de 5 MB.
+
+En el panel (`/admin/productos`) y en `/vender/mis-productos` hay un botón **Subir** junto a cada
+foto, con miniatura de lo que hay en la casilla antes de guardar. Los 68 productos de la semilla
+siguen con el marcador: V20 los sembró así a propósito para no atar el catálogo a fotos ajenas,
+y ahora sí hay una forma de ponerles la suya.
 
 ### Accesibilidad
 
@@ -869,7 +985,7 @@ navegador. Es duplicación consciente: si cambian en el backend, hay que cambiar
 |---|---|---|
 | **A01** | Control de acceso roto | **[Row Level Security](#row-level-security) en los tres servicios de dominio**: el filtro por usuario lo aplica Postgres, no el `WHERE` que alguien puede olvidar; `@PreAuthorize` por endpoint; el `usuarioId` sale del token, nunca de la URL; los ítems del carrito se buscan por `id` **y** `carrito_id`; un pedido o documento ajeno responde 404 (no 403) para no confirmar que existe; validación en **cada** servicio, no solo en el gateway |
 | **A02** | Fallos criptográficos | BCrypt con coste 12; el arranque falla si `JWT_SECRET` tiene <32 bytes o es un valor de ejemplo; HSTS; comparación de firmas en tiempo constante |
-| **A03** | Inyección | JPA parametrizado en todas las consultas; validación con Bean Validation en cada DTO; los archivos subidos se identifican **por sus primeros bytes**, no por la extensión ni el `Content-Type` que declara el cliente; el nombre original nunca construye una ruta; el chatbot escapa los nombres de producto antes de meterlos en HTML; Angular sanea con `[innerHTML]` |
+| **A03** | Inyección | JPA parametrizado en todas las consultas; validación con Bean Validation en cada DTO; los archivos subidos —documentos de identidad y fotos de producto— se identifican **por sus primeros bytes**, no por la extensión ni el `Content-Type` que declara el cliente; el nombre original nunca construye una ruta; el chatbot escapa los nombres de producto antes de meterlos en HTML; Angular sanea con `[innerHTML]` |
 | **A04** | Diseño inseguro | Saga con compensaciones; reservas de stock con caducidad; máquina de estados del pedido; importe calculado siempre en el servidor; rate limiting |
 | **A05** | Configuración defectuosa | CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy; actuator reducido a `/health` sin detalles; sin trazas de pila ni whitelabel en errores; límites de tamaño de cuerpo y cabeceras |
 | **A06** | Componentes vulnerables | Spring Boot 4.1.0 y JJWT 0.12.6 (el monolito usaba JJWT 0.11.5, con API retirada) |
@@ -999,7 +1115,7 @@ Densidad actual: 6-10 % de líneas de comentario, frente al 11-21 % anterior.
 
 ### Pruebas
 
-**283 unitarias de backend** + **151 de frontend** + las de integración:
+**283 unitarias de backend** + **320 de frontend** + las de integración:
 
 ```bash
 # Backend
@@ -1011,7 +1127,7 @@ cd compras  && ./mvnw verify    # añade las *IT con Testcontainers
 
 # Frontend
 cd frontend && pnpm lint         # ESLint + reglas de accesibilidad de Angular (0 errores)
-cd frontend && pnpm test         # 151 — estado, interceptores, caché, guards, services, modelos
+cd frontend && pnpm test         # 320 — estado, interceptores, caché, guards, rutas, services, modelos
 ```
 
 Tres zonas que no tenían ninguna prueba y ahora sí, porque son las que más caro salen si se

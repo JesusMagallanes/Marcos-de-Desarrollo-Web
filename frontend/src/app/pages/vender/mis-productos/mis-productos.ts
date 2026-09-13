@@ -1,4 +1,5 @@
 import { Cargando } from '../../../shared/cargando/cargando';
+import { SubirImagen } from '../../../shared/imagen/subir-imagen';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -6,6 +7,7 @@ import {
   Categoria,
   CategoriaService,
   ErrorApi,
+  ImagenSubida,
   Marca,
   MarcaService,
   Producto,
@@ -22,7 +24,7 @@ import {
  */
 @Component({
   selector: 'app-mis-productos',
-  imports: [RouterLink, CurrencyPipe, Cargando],
+  imports: [RouterLink, CurrencyPipe, Cargando, SubirImagen],
   templateUrl: './mis-productos.html',
   styleUrl: './mis-productos.css',
 })
@@ -48,6 +50,13 @@ export class MisProductos implements OnInit {
   protected categoriaId = signal<number | null>(null);
   protected marcaId = signal<number | null>(null);
   protected imagenes = signal('');
+
+  /** Una foto subida se añade como una línea más; la primera sigue siendo la principal. */
+  protected anadirImagen(imagen: ImagenSubida): void {
+    const actual = this.imagenes().trim();
+    this.imagenes.set(actual ? `${actual}
+${imagen.url}` : imagen.url);
+  }
 
   protected pendientes = computed(
     () => this.lista().filter((p) => p.estadoModeracion === 'PENDIENTE').length,

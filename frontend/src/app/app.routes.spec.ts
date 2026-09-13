@@ -38,4 +38,31 @@ describe('rutas del panel admin', () => {
 
     expect(sinGuarda).toEqual([]);
   });
+
+  it('la entrada del panel redirige según el permiso, no a «productos» a secas', () => {
+    const inicio = hijas.find((r) => r.path === '');
+    expect(typeof inicio?.redirectTo).toBe('function');
+  });
+});
+
+/**
+ * Angular resuelve `redirectTo` ANTES que las guardias; una ruta con las dos
+ * cosas es un error de configuración (NG04014) que impide arrancar la app con
+ * `ng serve` y que el build de producción no valida. Pasó con /admin: en
+ * desarrollo la aplicación no cargaba y en producción la guardia nunca corría.
+ */
+describe('configuración de rutas', () => {
+  const aplanar = (lista: Route[], prefijo = ''): { ruta: string; r: Route }[] =>
+    lista.flatMap((r) => {
+      const ruta = `${prefijo}/${r.path ?? ''}`;
+      return [{ ruta, r }, ...aplanar((r.children ?? []) as Route[], ruta)];
+    });
+
+  it('ninguna ruta combina redirectTo con una guardia', () => {
+    const invalidas = aplanar(routes)
+      .filter(({ r }) => r.redirectTo !== undefined && (r.canActivate ?? []).length > 0)
+      .map(({ ruta }) => ruta);
+
+    expect(invalidas).toEqual([]);
+  });
 });

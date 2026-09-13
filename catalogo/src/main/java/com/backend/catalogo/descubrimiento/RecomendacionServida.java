@@ -11,6 +11,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,8 +44,19 @@ import lombok.Setter;
 @Builder
 public class RecomendacionServida {
 
+    /**
+     * Por secuencia y en bloques, no {@code IDENTITY}.
+     *
+     * <p>Con {@code IDENTITY} Hibernate necesita el id que devuelve cada INSERT
+     * y no puede agruparlos: doce tarjetas eran doce viajes a la base. Con la
+     * secuencia reserva 50 ids de golpe y manda el carrusel entero en un solo
+     * lote ({@code hibernate.jdbc.batch_size}). La migración V25 pone la
+     * secuencia al mismo paso.
+     */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "recomendacion_servida_seq")
+    @SequenceGenerator(name = "recomendacion_servida_seq",
+            sequenceName = "recomendacion_servida_id_seq", allocationSize = 50)
     private Long id;
 
     @Column(name = "sujeto_id", nullable = false)

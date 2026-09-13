@@ -163,19 +163,29 @@
       </div>
 
       <div class="mb-2">
-        <span class="form-label small fw-semibold">Imágenes (URLs)</span>
+        <span class="form-label small fw-semibold">Fotos</span>
         <div formArrayName="imagenes">
           @for (imagen of imagenesControles; track $index) {
-            <div class="input-group input-group-sm mb-1">
+            <div class="input-group input-group-sm mb-1 fila-imagen">
               <span class="input-group-text" [class.text-success]="$index === 0">{{ $index + 1 }}</span>
+              <!-- Miniatura de lo que hay en la casilla: se ve si la URL carga ANTES de guardar. -->
+              <span class="input-group-text p-0 fila-imagen__miniatura">
+                @if (imagen.value) {
+                  <img [src]="imagen.value" alt="" width="34" height="34" loading="lazy" />
+                } @else {
+                  <i class="fa-solid fa-image text-secondary" aria-hidden="true"></i>
+                }
+              </span>
               <input
                 class="form-control"
                 [formControlName]="$index"
                 [class.is-invalid]="imagen.invalid && imagen.touched"
-                placeholder="https://…"
+                [attr.aria-label]="'URL de la foto ' + ($index + 1)"
+                placeholder="Sube una foto o pega una URL https://…"
               />
+              <app-subir-imagen (subida)="ponerImagen($index, $event)" />
               @if (imagenesControles.length > 1) {
-                <button type="button" class="btn btn-outline-danger" (click)="quitarImagen($index)">
+                <button type="button" class="btn btn-outline-danger" aria-label="Quitar foto" (click)="quitarImagen($index)">
                   <i class="fa-solid fa-xmark"></i>
                 </button>
               }
@@ -184,9 +194,9 @@
         </div>
         <div class="d-flex justify-content-between align-items-center">
           <button type="button" class="btn btn-sm btn-outline-secondary" (click)="agregarImagen()">
-            <i class="fa-solid fa-plus me-1"></i>Otra imagen
+            <i class="fa-solid fa-plus me-1"></i>Otra foto
           </button>
-          <span class="form-text mb-0">La primera es la imagen principal.</span>
+          <span class="form-text mb-0">La primera es la principal. JPG, PNG o WebP, hasta 5 MB.</span>
         </div>
       </div>
 

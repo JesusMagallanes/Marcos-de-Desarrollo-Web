@@ -1,0 +1,22 @@
+-- Anotar un carrusel servido cuesta UN viaje a la base, no doce.
+--
+-- `recomendacion_servida` se escribe en cada Home: una fila por tarjeta, doce
+-- por carrusel, hasta tres carruseles por pantalla. Con el id como BIGSERIAL
+-- Hibernate no puede agrupar los INSERT —necesita el id que la base devuelve
+-- en cada uno— y los manda de uno en uno. Contra una base remota, a ~100 ms el
+-- viaje, un carrusel tardaba 3,5 s solo en dejar constancia de si mismo, y el
+-- Home con sesion se iba a mas de diez segundos de esqueleto gris.
+--
+-- La entidad pasa a pedir los ids a la secuencia en bloques de 50 (ver
+-- `RecomendacionServida`), y para eso la secuencia tiene que avanzar de 50 en
+-- 50: un `nextval` reserva el bloque entero y Hibernate lo reparte en memoria.
+-- Con eso un carrusel son dos viajes —reservar ids y el INSERT agrupado— en vez
+-- de doce.
+--
+-- La secuencia es la misma que creo el BIGSERIAL; solo cambia su paso. La
+-- columna conserva su DEFAULT, asi que un INSERT hecho a mano sigue funcionando
+-- (deja huecos de 50, que no significan nada). Y como Hibernate comprueba al
+-- arrancar que el paso de la secuencia coincide con su tamano de bloque, si
+-- esta migracion faltara el servicio no arrancaria en vez de generar ids
+-- repetidos.
+ALTER SEQUENCE recomendacion_servida_id_seq INCREMENT BY 50;

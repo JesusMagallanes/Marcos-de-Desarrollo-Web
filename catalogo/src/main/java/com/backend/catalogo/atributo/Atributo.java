@@ -13,6 +13,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 /**
  * El vocabulario de características del catálogo.
@@ -26,6 +27,10 @@ import lombok.Setter;
  */
 @Entity
 @Table(name = "atributo")
+// Al componer la ficha se lee el atributo de cada fila de `producto_atributo`,
+// y sin esto Hibernate hacía un SELECT por atributo: en el Home eran ~20
+// viajes a la base por carrusel.
+@BatchSize(size = 100)
 @Getter
 @Setter
 @NoArgsConstructor

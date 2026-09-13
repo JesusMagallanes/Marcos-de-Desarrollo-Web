@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import {
   adminGuard,
-  adminInicioGuard,
+  adminInicioRedirect,
   authGuard,
   invitadoGuard,
   permisoGuard,
@@ -104,8 +104,7 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        canActivate: [adminInicioGuard],
-        redirectTo: 'productos',
+        redirectTo: adminInicioRedirect,
       },
       {
         path: 'productos',

@@ -57,6 +57,14 @@ public final class ProductoDtos {
         }
     }
 
+    /**
+     * Lo que devuelve la subida de una foto: la URL relativa lista para pegar
+     * en el formulario. Relativa a propósito: vale igual detrás de nginx, del
+     * gateway o de cualquier dominio con el que se despliegue la tienda.
+     */
+    public record ImagenSubida(String url, String tipoMime, long tamanoBytes) {
+    }
+
     public record ProductoResponse(
             Long id,
             String name,

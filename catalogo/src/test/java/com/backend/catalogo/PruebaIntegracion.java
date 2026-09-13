@@ -55,6 +55,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
         "DB_USER=prueba",
         "DB_PASSWORD=prueba",
         "JWT_SECRET=secreto-de-pruebas-suficientemente-largo-para-hs256",
+        // El almacén de fotos de producto apunta por defecto a /datos, que en un
+        // runner de CI sin root no se puede crear y tumbaría el contexto entero.
+        "smartzone.imagenes.ruta=${java.io.tmpdir}/smartzone-imagenes-pruebas",
 })
 @Tag("integracion")
 public abstract class PruebaIntegracion {

@@ -23,7 +23,12 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.ContentSecurityPolicyHeaderWriter;
+import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 /**
  * El gateway valida el token para rechazar cuanto antes lo que ya se sabe inválido,
@@ -76,6 +81,29 @@ public class SecurityConfig {
             "form-action 'self'",
             "object-src 'none'");
 
+    /** El script del service worker de Angular. */
+    static final String RUTA_SERVICE_WORKER = "/ngsw-worker.js";
+
+    /**
+     * CSP del service worker, que NO es la del HTML.
+     *
+     * Un service worker vuelve a emitir con `fetch()` cada petición de la
+     * página que intercepta, y `fetch()` cae bajo `connect-src`. Con la CSP de
+     * arriba —`connect-src 'self'`— el worker no podía traer las fotos de
+     * producto alojadas en otros dominios, que la página SÍ puede cargar por
+     * `img-src https:`: en la primera visita se veían, y desde la segunda, ya
+     * con el worker controlando, fallaban todas y la tarjeta enseñaba el
+     * marcador. Nada en los registros, porque el fallo ocurre dentro del worker.
+     *
+     * `connect-src 'self' https:` le da al worker exactamente lo que la página
+     * ya puede pedir. No amplía nada: el worker solo reenvía peticiones que la
+     * página inició, y esas siguen limitadas por la CSP del documento.
+     */
+    static final String CSP_SERVICE_WORKER = String.join("; ",
+            "default-src 'self'",
+            "connect-src 'self' https:",
+            "img-src 'self' data: https:");
+
     @Bean
     JwtDecoder jwtDecoder() {
         if (secreto == null || secreto.getBytes(StandardCharsets.UTF_8).length < 32) {
@@ -108,6 +136,10 @@ public class SecurityConfig {
         return convertidor;
     }
 
+    private static RequestMatcher esServiceWorker() {
+        return PathPatternRequestMatcher.withDefaults().matcher(RUTA_SERVICE_WORKER);
+    }
+
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationConverter convertidor,
             RespuestasSeguridad respuestas) throws Exception {
@@ -121,7 +153,16 @@ public class SecurityConfig {
                         .frameOptions(frame -> frame.deny())
                         .referrerPolicy(ref -> ref.policy(
                                 ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
-                        .contentSecurityPolicy(csp -> csp.policyDirectives(CSP_SPA))
+                        // Dos CSP, una por tipo de respuesta, cada una a lo suyo. Con
+                        // `.contentSecurityPolicy(...)` global más una segunda cabecera
+                        // para el worker se mandarían las dos y el navegador aplica la
+                        // intersección: el worker seguiría bloqueado.
+                        .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
+                                esServiceWorker(),
+                                new ContentSecurityPolicyHeaderWriter(CSP_SERVICE_WORKER)))
+                        .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
+                                new NegatedRequestMatcher(esServiceWorker()),
+                                new ContentSecurityPolicyHeaderWriter(CSP_SPA)))
                         .httpStrictTransportSecurity(hsts -> hsts
                                 .includeSubDomains(true)
                                 .maxAgeInSeconds(31_536_000))

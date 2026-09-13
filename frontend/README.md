@@ -12,7 +12,7 @@ Thymeleaf del monolito; los servicios Spring quedaron como APIs REST puras.
 pnpm install
 pnpm start          # http://localhost:4200
 pnpm run build      # genera dist/frontend/browser
-pnpm test           # 65 pruebas
+pnpm test           # 320 pruebas
 ```
 
 `proxy.conf.json` redirige `/api/**`, `/oauth2/**` y `/login/oauth2/**` al gateway (`:8080`),
@@ -48,7 +48,9 @@ src/app/
 │                     perfil/{cuenta,mis-compras}, envios,
 │                     admin/{productos,categorias,marcas,usuarios,metodos-pago},
 │                     estaticas, no-encontrado
-└── shared/           producto-card
+└── shared/           producto-card, filtros-catalogo (rail de filtros compartido),
+                      descubrimiento (carrusel de recomendaciones + directiva de impresión),
+                      imagen (ImagenCaida y el botón SubirImagen de las fotos de producto)
 ```
 
 Cada carpeta de servicio contiene **sus rutas, sus modelos y sus services**. Las páginas
@@ -58,6 +60,13 @@ importan del barrel raíz y no conocen ninguna URL:
 import { ProductoService, Producto, ErrorApi } from '../../core';
 ```
 
+La búsqueda (`pages/buscar`) y la navegación por categoría (`pages/categoria`) **filtran,
+ordenan y paginan en el servidor**: comparten `shared/filtros-catalogo` (marca, atributos,
+precio, disponibilidad y orden) y guardan el filtro y el orden en la **URL** como parámetros de
+consulta, así un enlace ya filtrado se puede compartir y atrás/adelante reconstruyen la vista.
+La categoría dejó de filtrar en el navegador los doce productos cargados; el detalle está en
+«Búsqueda y navegación por categoría» del [README de la raíz](../README.md#frontend).
+
 Todas las rutas usan `loadComponent`, así que un visitante anónimo no descarga el panel admin.
 
 ## Interceptores
@@ -65,9 +74,10 @@ Todas las rutas usan `loadComponent`, así que un visitante anónimo no descarga
 | # | Interceptor | Qué hace |
 |---|---|---|
 | 1 | `correlacion` | Añade `X-Correlation-Id` a todo lo que sale |
-| 2 | `error` | Convierte cualquier fallo en `ErrorApi` |
-| 3 | `reintento` | Repite los GET que fallaron por algo transitorio |
-| 4 | `auth` | Adjunta el JWT; ante un 401 renueva la sesión y reintenta |
+| 2 | `cache` | Responde desde memoria lo ya pedido (lista blanca); una escritura invalida su recurso |
+| 3 | `error` | Convierte cualquier fallo en `ErrorApi` |
+| 4 | `reintento` | Repite los GET que fallaron por algo transitorio |
+| 5 | `auth` | Adjunta el JWT; ante un 401 renueva la sesión y reintenta |
 
 El detalle de por qué ese orden, cómo se serializa la renovación del token y qué hace seguro
 el reintento está en el [README de la raíz](../README.md#frontend).

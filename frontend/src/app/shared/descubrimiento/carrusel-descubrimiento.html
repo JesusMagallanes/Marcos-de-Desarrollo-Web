@@ -1,7 +1,11 @@
 @if (visibles().length > 0) {
   <section class="carrusel-desc" [attr.data-origen]="carrusel().origen">
     <header class="carrusel-desc__cabecera">
-      <div>
+      <div class="carrusel-desc__textos">
+        <span class="carrusel-desc__etiqueta">
+          <i [class]="'fa-solid ' + etiqueta().icono" aria-hidden="true"></i>
+          {{ etiqueta().texto }}
+        </span>
         <h2 class="carrusel-desc__titulo">{{ carrusel().titulo }}</h2>
         <!--
           El motivo se enseña tal como lo redacta el backend («Porque te
@@ -12,9 +16,32 @@
           <p class="carrusel-desc__motivo">{{ carrusel().motivo }}</p>
         }
       </div>
+
+      @if (desborda()) {
+        <div class="carrusel-desc__flechas">
+          <button
+            type="button"
+            class="carrusel-desc__flecha"
+            aria-label="Ver anteriores"
+            [disabled]="!hayAnterior()"
+            (click)="desplazar(-1)"
+          >
+            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            class="carrusel-desc__flecha"
+            aria-label="Ver siguientes"
+            [disabled]="!haySiguiente()"
+            (click)="desplazar(1)"
+          >
+            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+          </button>
+        </div>
+      }
     </header>
 
-    <div class="carrusel-desc__pista" role="list">
+    <div class="carrusel-desc__pista" role="list" #pista (scroll)="medir()">
       @for (p of visibles(); track p.id; let i = $index) {
         <div
           class="carrusel-desc__celda"
@@ -35,11 +62,14 @@
 
           @if (menuAbierto() === p.id) {
             <div class="carrusel-desc__menu">
-              <button type="button" (click)="noMeInteresa(p)">No me interesa</button>
+              <button type="button" (click)="noMeInteresa(p)">
+                <i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
+                No me interesa
+              </button>
             </div>
           }
 
-          <div (click)="alAbrir(p)">
+          <div class="carrusel-desc__tarjeta" (click)="alAbrir(p)">
             <app-producto-card [producto]="p" variante="carrusel" />
           </div>
         </div>

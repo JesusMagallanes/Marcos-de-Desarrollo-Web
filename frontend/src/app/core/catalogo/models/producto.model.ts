@@ -69,6 +69,19 @@ export interface Producto {
   motivoRechazo: string | null;
 }
 
+/** Lo que devuelve subir una foto: la URL relativa lista para el formulario. */
+export interface ImagenSubida {
+  url: string;
+  tipoMime: string;
+  tamanoBytes: number;
+}
+
+/** Tope de una foto de producto; el backend aplica el mismo (`AlmacenImagenes`). */
+export const IMAGEN_TAMANO_MAXIMO = 5 * 1024 * 1024;
+
+/** Lo que el almacén acepta, decidido allí por los bytes; aquí solo se filtra el selector. */
+export const IMAGEN_TIPOS_ACEPTADOS = ['image/jpeg', 'image/png', 'image/webp'] as const;
+
 export interface ProductoRequest {
   name: string;
   description: string;

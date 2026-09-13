@@ -97,7 +97,7 @@ describe('FiltrosCatalogo', () => {
   });
 
   it('el orden viaja al filtro', () => {
-    const select: HTMLSelectElement = el.querySelector('#ordenSel')!;
+    const select: HTMLSelectElement = el.querySelector('select[id^="ordenSel"]')!;
     select.value = 'precio-asc';
     select.dispatchEvent(new Event('change'));
 

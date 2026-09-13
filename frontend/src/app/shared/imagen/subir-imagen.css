@@ -1,0 +1,16 @@
+:host {
+  display: contents;
+}
+
+/*
+ * El aviso sale a la derecha del botón y no debajo: el botón vive dentro de
+ * un `input-group`, y un bloque debajo rompería la fila.
+ */
+.subir-imagen__error {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.6rem;
+  font-size: 0.78rem;
+  color: #b02a37;
+  white-space: nowrap;
+}

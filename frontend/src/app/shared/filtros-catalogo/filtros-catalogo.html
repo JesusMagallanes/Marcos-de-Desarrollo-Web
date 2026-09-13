@@ -10,8 +10,8 @@
 
   <!-- ORDEN -->
   <div class="mb-4">
-    <label class="filtro-titulo" for="ordenSel">Ordenar por</label>
-    <select id="ordenSel" class="form-select form-select-sm mt-2" [value]="filtro().orden"
+    <label class="filtro-titulo" [for]="'ordenSel' + sufijo">Ordenar por</label>
+    <select [id]="'ordenSel' + sufijo" class="form-select form-select-sm mt-2" [value]="filtro().orden"
       (change)="fijarOrden($any($event.target).value)">
       @for (o of opciones; track o.valor) {
         <option [value]="o.valor">{{ o.etiqueta }}</option>
@@ -73,19 +73,21 @@
     <p class="filtro-titulo">Gama de precios</p>
     <div class="row g-2">
       <div class="col-6">
-        <label class="form-label small" style="color: #888;">Mín</label>
+        <label class="form-label small" style="color: #888;" [for]="'precioMin' + sufijo">Mín</label>
         <div class="input-group input-group-sm">
           <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
           <input type="number" class="form-control precio-input" min="0" placeholder="0"
+            [id]="'precioMin' + sufijo"
             [value]="filtro().precioMin ?? ''"
             (change)="fijarPrecioMin($any($event.target).value)" />
         </div>
       </div>
       <div class="col-6">
-        <label class="form-label small" style="color: #888;">Máx</label>
+        <label class="form-label small" style="color: #888;" [for]="'precioMax' + sufijo">Máx</label>
         <div class="input-group input-group-sm">
           <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
           <input type="number" class="form-control precio-input" min="0" placeholder="—"
+            [id]="'precioMax' + sufijo"
             [value]="filtro().precioMax ?? ''"
             (change)="fijarPrecioMax($any($event.target).value)" />
         </div>

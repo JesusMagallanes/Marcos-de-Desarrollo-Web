@@ -52,13 +52,14 @@
       que enseñar —visitante nuevo, o Descubrimiento caido— no se pinta NADA y
       debajo sigue el Home de siempre.
     -->
-    <div class="container">
+    <section class="descubrimiento" aria-label="Recomendaciones">
       @if (descubriendo()) {
         <!-- Esqueleto: sin el, la pagina da un salto cuando llegan los carruseles. -->
         <div class="descubrimiento-esqueleto" aria-hidden="true">
+          <div class="descubrimiento-esqueleto__etiqueta"></div>
           <div class="descubrimiento-esqueleto__titulo"></div>
           <div class="descubrimiento-esqueleto__fila">
-            @for (i of [1, 2, 3, 4, 5]; track i) {
+            @for (i of [1, 2, 3, 4, 5, 6]; track i) {
               <div class="descubrimiento-esqueleto__tarjeta"></div>
             }
           </div>
@@ -68,7 +69,7 @@
           <app-carrusel-descubrimiento [carrusel]="c" />
         }
       }
-    </div>
+    </section>
 
     @if (enOferta().length > 0) {
       <section class="mas-vendidos py-4">

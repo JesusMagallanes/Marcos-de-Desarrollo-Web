@@ -271,6 +271,10 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             """)
     List<Producto> listarPorEstadoModeracion(@Param("estado") EstadoModeracion estado);
 
+    /** Las imágenes principales alojadas aquí; ver {@code PurgaImagenes}. */
+    @Query("SELECT p.imageUrl FROM Producto p WHERE p.imageUrl LIKE CONCAT(:prefijo, '%')")
+    List<String> imagenesPrincipalesQueEmpiezanPor(@Param("prefijo") String prefijo);
+
     /* ══════════════ Búsqueda y filtrado con facetas ══════════════ */
 
     /**

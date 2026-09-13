@@ -8,6 +8,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -101,5 +102,30 @@ class PasarelaIT {
                     .as("lectura numero %d", i + 1)
                     .isNotEqualTo(429);
         }
+    }
+
+    /**
+     * El service worker lleva su propia CSP y el resto la del HTML, y cada
+     * respuesta lleva UNA. Si llevara las dos, el navegador aplica la
+     * intersección y el worker vuelve a quedarse sin poder traer las fotos de
+     * producto de otros dominios: el fallo silencioso que esto arregló.
+     */
+    @Test
+    @DisplayName("el service worker recibe su CSP y el índice la suya, nunca las dos")
+    void cadaRespuestaLlevaUnaSolaCsp() throws Exception {
+        List<String> delWorker = pedir("GET", "/ngsw-worker.js").headers()
+                .allValues("Content-Security-Policy");
+        List<String> delIndice = pedir("GET", "/").headers()
+                .allValues("Content-Security-Policy");
+
+        assertThat(delWorker).hasSize(1);
+        assertThat(delWorker.get(0))
+                .contains("connect-src 'self' https:")
+                .doesNotContain("script-src");
+
+        assertThat(delIndice).hasSize(1);
+        assertThat(delIndice.get(0))
+                .contains("script-src 'self'")
+                .contains("connect-src 'self';");
     }
 }

@@ -1,6 +1,9 @@
 import { Component, computed, input, model, output } from '@angular/core';
 import { FacetasCatalogo, FiltroCatalogo, OrdenCatalogo } from '../../core';
 
+/** Cuántos rails se han creado; da un sufijo distinto a los `id` de cada uno. */
+let instancias = 0;
+
 /**
  * El rail de filtros, común a la búsqueda y a la categoría.
  *
@@ -36,6 +39,15 @@ export class FiltrosCatalogo {
 
   /** Solo al APLICAR un atributo (no al quitarlo): es la señal más específica. */
   readonly atributoAplicado = output<{ codigo: string; valor: string }>();
+
+  /**
+   * Sufijo para los `id` de los controles con etiqueta.
+   *
+   * <p>La categoría pinta este rail DOS veces —la columna de escritorio y el
+   * panel lateral del móvil—, así que un `id` fijo se repetiría en la página y
+   * cada etiqueta apuntaría al control de la otra copia.
+   */
+  protected readonly sufijo = `-${++instancias}`;
 
   protected readonly marcas = computed(() => this.facetas()?.marcas ?? []);
   protected readonly atributos = computed(() => this.facetas()?.atributos ?? []);

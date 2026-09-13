@@ -339,3 +339,18 @@ code {
   color: #06b56c;
   margin-bottom: 0.5rem;
 }
+
+/* ── Fotos del producto: una fila por foto, con miniatura ───────────── */
+
+.fila-imagen__miniatura {
+  width: 36px;
+  justify-content: center;
+  overflow: hidden;
+  background: #fff;
+}
+
+.fila-imagen__miniatura img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}

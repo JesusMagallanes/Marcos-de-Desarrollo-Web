@@ -56,7 +56,22 @@ SmartZone es un e-commerce de tecnologia (Perú) con arquitectura de microservic
   `LEFT JOIN FETCH p.imagenes`. Es una mejora de rendimiento (evita el N+1), **no
   la causa del fallo**: `Producto.imagenes` es LAZY con `@BatchSize(100)` y el
   servicio es `@Transactional(readOnly = true)`, asi que la coleccion se cargaba
-  igual. Las imagenes no faltaban por esto. **Sin diagnosticar.**
+  igual. Las imagenes no faltaban por esto.
+- **Diagnosticado (2026-09-13).** La causa real es el DATO, no la carga: **68 de 71**
+  productos tienen `image_url = /Img/img.png` guardado en la base, es decir la foto
+  almacenada *es* el placeholder; la tarjeta pinta lo que hay. De los pocos con URL
+  externa real (Falabella), ninguna carga por dos motivos a la vez: (1) el service
+  worker de Angular (`ngsw-worker.js`) reemite la imagen como `fetch()`, que cae bajo
+  `connect-src 'self'` de la CSP en `frontend/nginx.conf` y queda bloqueada, y (2) el
+  origen responde **504** (hotlink). Arreglo real: poblar `image_url` con imagenes que
+  carguen, preferentemente **mismo-origen** (asi `'self'` cubre `img-src` y `connect-src`
+  y el service worker no choca con la CSP). No es un fallo del codigo de la tienda.
+- **Resuelto (2026-09-13, cuarta revision).** Las dos mitades: el service worker tiene
+  su propia CSP (`connect-src 'self' https:`) en nginx y en el gateway, con lo que las
+  URL externas vuelven a cargar en la segunda visita (reproducido y verificado en
+  Chromium); y el panel puede **subir** fotos, que se guardan en el volumen
+  `imagenes-productos` y se sirven desde `/api/productos/imagenes/**` (mismo origen).
+  Los 68 productos de la semilla siguen con el marcador hasta que alguien les suba foto.
 
 ---
 
@@ -75,6 +90,32 @@ Los dos primeros los **introdujo** esa misma pasada.
 | D | `/api/sync/**` sin enrutar en el gateway: la cola de valoraciones sin conexion recibia el `index.html` de la SPA en vez de JSON y nunca publicaba lo guardado. Tampoco funcionaba con `ng serve` (el proxy apunta al gateway) | web-gateway | **FIX** + `RutasConfigTest` |
 | E | Consultas paginadas de producto sin `ORDER BY`: Postgres no promete orden entre consultas, asi que la pagina 2 podia repetir productos de la 1 y saltarse otros | catalogo | **FIX** - `ORDER BY p.id` en las cuatro |
 | F | `Cortacircuitos`: si la peticion de prueba moria con un `Error` (no `RuntimeException`), `pruebasEnCurso` se quedaba en 1 y el circuito rechazaba todo para siempre | compras | **FIX** |
+
+### CUARTA revision (2026-09-13) - el Home con sesion
+
+Salio de un sintoma reportado como «al iniciar sesion "lo mas popular" ya no
+sale y deja un espacio en blanco, con todos los roles». No era que no saliera:
+era que **tardaba 13-17 segundos**, y lo que se veia era el esqueleto gris.
+Confirmado cruzando el log de nginx con `recomendacion_servida`: la peticion
+del Home con sesion de las 09:50 termino a las 09:51:00, cuando el usuario ya
+habia cerrado sesion.
+
+| # | Bug | Servicio | Estado |
+|---|-----|----------|--------|
+| K | `RegistroRecomendacionService` anotaba lo servido con `saveAll` sobre un id `IDENTITY`: Hibernate no puede agrupar esos INSERT y mandaba **doce, uno por viaje** (~3,5 s por carrusel contra Neon). Con sesion son tres carruseles | catalogo | **FIX** - id por secuencia en bloques de 50 (V25) + `hibernate.jdbc.batch_size`: 0,6 s |
+| L | `ProductoAtributo -> Atributo` era LAZY sin `@BatchSize`: componer doce fichas hacia **un SELECT por atributo** (~1,9 s por carrusel) | catalogo | **FIX** - `@BatchSize(100)` en `Atributo`: 0,5 s |
+| M | El Home pedia los carruseles UNA vez al crearse: quien entraba desde la portada seguia viendo el Home anonimo, y quien salia seguia viendo sus carruseles personales | frontend | **FIX** - `effect` sobre el id del usuario, que recarga y corta la peticion en vuelo |
+| N | La pista de `carrusel-descubrimiento` usaba `minmax(0, …)`: con doce tarjetas se aplastaban a un tercio y con cuatro se doblaban | frontend | **FIX** - ancho fijo por `--por-vista`, flechas solo si desborda, alineado con las secciones de catalogo |
+| O | `/admin` (sin seccion) combinaba `redirectTo` con `canActivate`. La guardia nunca corria y, desde Angular 20, es `NG04014`: **`pnpm start` arrancaba con la pagina en blanco**. El build de produccion no valida rutas, por eso Docker funcionaba | frontend | **FIX** - funcion de `redirectTo` (`adminInicioRedirect`) + prueba que recorre todas las rutas |
+| P | El rail de filtros se pinta dos veces en la categoria (columna y panel movil) con `id` fijos; dos etiquetas sin control asociado (lint en rojo desde el ultimo commit) | frontend | **FIX** - sufijo por instancia |
+| Q | Las fotos de producto con URL externa cargaban en la primera visita y **fallaban desde la segunda**: el service worker las reemite con `fetch()` y su CSP era la del HTML (`connect-src 'self'`). Sin rastro en ningun log | nginx + web-gateway | **FIX** - CSP propia para `/ngsw-worker.js` (`connect-src 'self' https:`), una sola cabecera por respuesta; `PasarelaIT` lo vigila |
+| R | El panel solo admitia pegar URLs ajenas; no habia forma de darle a un producto una foto propia | catalogo + frontend | **FIX** - `POST /api/productos/imagenes` (bytes verificados, volumen, cupo, purga como sistema) + boton Subir en `/admin/productos` y `/vender/mis-productos` |
+| S | En nginx la regex de estaticos ganaba a `location /api/`: cualquier `/api/...x.jpg` era un 404 de nginx. Y sin `client_max_body_size`, toda subida >1 MB moria con 413 antes del gateway, incluidos los documentos de identidad | nginx | **FIX** - `location ^~ /api/` y `client_max_body_size 6m` |
+
+Lo que queda del Home con sesion (~5 s aqui, <1 s con la base en la misma
+region) es latencia pura: unos 35 viajes secuenciales a ~100 ms. Bajarlo mas
+exige reorganizar el pipeline (menos consultas o modulos en paralelo), no un
+arreglo local.
 
 ### CRITICOS - tercera revision (CI en rojo)
 
@@ -235,8 +276,10 @@ una **V12** nueva y la V11 quedo como estaba.
 - [x] Fix F: el cortacircuitos suelta el contador de pruebas tambien ante un `Error`
 
 ### Pendiente (requiere decision del equipo)
-- [ ] **Diagnosticar de verdad "el cache no funciona" y "las imagenes desaparecen".**
-      Lo que se apunto como causa en 1.3 y 1.4 no lo era; ver esas secciones
+- [x] **Diagnosticar de verdad "el cache no funciona" y "las imagenes desaparecen".**
+      Hecho: la cache (1.3) y las imagenes (1.4) quedan diagnosticadas en sus secciones.
+      Las imagenes son un problema de DATOS (`image_url` = placeholder en 68/71) mas CSP +
+      service worker + 504 en las pocas URLs externas; no es un fallo del codigo.
 - [ ] **Hacer que las pruebas de integracion corran en local**, o que su ausencia
       no deje el build en verde. Hoy 29 pruebas se saltan sin que nada avise
 - [ ] Implementar Redis para cache y rate limiting distribuido

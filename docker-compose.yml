@@ -165,6 +165,10 @@ services:
       # porque el gusto colectivo no cambia por minutos.
       DESCUBRIMIENTO_COLABORATIVO_INTERVALO_MS: ${DESCUBRIMIENTO_COLABORATIVO_INTERVALO_MS:-3600000}
       DESCUBRIMIENTO_COLABORATIVO_RETRASO_INICIAL_MS: ${DESCUBRIMIENTO_COLABORATIVO_RETRASO_INICIAL_MS:-180000}
+    # Fotos de producto subidas desde el panel. En un volumen para que
+    # sobrevivan a un despliegue: se sirven por /api/productos/imagenes/**.
+    volumes:
+      - imagenes-productos:/datos/imagenes
     depends_on:
       verificador: {condition: service_completed_successfully}
       postgres: {condition: service_healthy, required: false}
@@ -251,3 +255,4 @@ networks:
 volumes:
   datos-postgres:
   documentos-identidad:
+  imagenes-productos:

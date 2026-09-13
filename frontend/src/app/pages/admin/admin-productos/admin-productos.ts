@@ -1,4 +1,5 @@
 import { ImagenCaida } from '../../../shared/imagen/imagen-caida';
+import { SubirImagen } from '../../../shared/imagen/subir-imagen';
 import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -10,6 +11,7 @@ import {
   CategoriaService,
   ErrorApi,
   EstadoPeticion,
+  ImagenSubida,
   Marca,
   MarcaService,
   Producto,
@@ -19,7 +21,7 @@ import {
 
 @Component({
   selector: 'app-admin-productos',
-  imports: [ReactiveFormsModule, CurrencyPipe, Cargando, ImagenCaida],
+  imports: [ReactiveFormsModule, CurrencyPipe, Cargando, ImagenCaida, SubirImagen],
   templateUrl: './admin-productos.html',
   styleUrl: '../admin-tabla.css',
 })
@@ -98,6 +100,13 @@ export class AdminProductos implements OnInit, OnDestroy {
 
   protected quitarImagen(indice: number): void {
     this.form.controls.imagenes.removeAt(indice);
+  }
+
+  /** La foto recién subida ocupa la casilla desde la que se subió. */
+  protected ponerImagen(indice: number, imagen: ImagenSubida): void {
+    const control = this.form.controls.imagenes.at(indice);
+    control.setValue(imagen.url);
+    control.markAsDirty();
   }
 
   ngOnInit(): void {

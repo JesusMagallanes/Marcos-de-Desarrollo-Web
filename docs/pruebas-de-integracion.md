@@ -14,7 +14,7 @@ entera en un puerto y le hablan por HTTP.
 
 | servicio | unitarias | integración | qué cubre la integración |
 |---|---|---|---|
-| catalogo | 111 | 19 | consultas del panel de descuentos, galería con JOIN FETCH, el SQL nativo de descubrimiento |
+| catalogo | 178 | 270 | descubrimiento (aislamiento de sujetos, cooldown, sesión, purga, procesos programados), consultas del panel de descuentos, galería con JOIN FETCH, y **búsqueda/categoría con filtros, orden, paginación y facetas** (`BusquedaFiltradaIT`) |
 | usuarios | 106 | 4 | la cadena Flyway → esquema → entidades, con `ddl-auto=validate` |
 | compras | 100 | 16 | saga de checkout, métodos de pago, envíos |
 | web-gateway | 52 | 2 | la cadena de filtros montada de verdad: cupos y cabeceras |

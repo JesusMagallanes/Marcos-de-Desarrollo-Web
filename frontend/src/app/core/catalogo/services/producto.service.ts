@@ -11,6 +11,7 @@ import {
   EstadoDescuento,
   FacetasCatalogo,
   FiltroCatalogo,
+  ImagenSubida,
   PaginaDescuentos,
   Portada,
   EstadoModeracion,
@@ -290,6 +291,24 @@ export class ProductoService {
    */
   mios(): Observable<Producto[]> {
     return this.http.get<Producto[]>(RUTAS_CATALOGO.productos.mios);
+  }
+
+  /**
+   * POST /productos/imagenes — sube una foto y devuelve su URL relativa.
+   *
+   * Va aparte de crear o editar el producto, y antes: así un error de
+   * validación en un campo de texto no obliga a volver a subir varios megas, y
+   * se puede ver la miniatura antes de guardar. La URL que vuelve se pone en el
+   * formulario como cualquier otra; la relación con el producto la fija el
+   * guardado, no la subida.
+   *
+   * No pasa por la caché de lectura ni la invalida: subir una foto no cambia
+   * ningún producto todavía.
+   */
+  subirImagen(archivo: File): Observable<ImagenSubida> {
+    const datos = new FormData();
+    datos.append('archivo', archivo, archivo.name);
+    return this.http.post<ImagenSubida>(RUTAS_CATALOGO.productos.imagenes, datos);
   }
 
   /** POST /productos/mios — nace PENDIENTE: nadie publica sin revisión. */

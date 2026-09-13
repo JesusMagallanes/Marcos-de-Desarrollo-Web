@@ -162,6 +162,13 @@ ponerlos.
 | Variantes                      | El mismo modelo en tres colores y dos capacidades                                |
 | Descuentos con vigencia        | Promociones programadas e historial                                              |
 
+Los **atributos tipados ya están y alimentan filtros por facetas reales**: la búsqueda y la
+navegación por categoría filtran, ordenan y paginan en servidor consultando `producto_atributo`
+(AND entre códigos distintos, OR entre valores del mismo código), y las facetas cuentan sobre el
+conjunto filtrado entero. Ver «Búsqueda y navegación por categoría, con filtros en el servidor»
+en el [README de la raíz](../README.md#frontend). Lo que sigue pendiente de esta fila son las
+**variantes**, no los filtros.
+
 ---
 
 ## 4 · Plan por etapas

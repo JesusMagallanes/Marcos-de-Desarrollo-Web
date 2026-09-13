@@ -156,6 +156,28 @@ describe('ProductoService', () => {
     (await esperarPeticion(http, PRIMERA_PAGINA)).flush(paginaCon(producto(1), producto(2)));
   });
 
+  it('subirImagen() manda el archivo como multipart y devuelve la URL relativa', () => {
+    const archivo = new File([new Uint8Array([0xff, 0xd8, 0xff])], 'foto.jpg', {
+      type: 'image/jpeg',
+    });
+    let respuesta: { url: string } | undefined;
+
+    servicio.subirImagen(archivo).subscribe((r) => (respuesta = r));
+
+    const peticion = http.expectOne({ url: '/api/productos/imagenes', method: 'POST' });
+    expect(peticion.request.body).toBeInstanceOf(FormData);
+    expect((peticion.request.body as FormData).get('archivo')).toBeInstanceOf(File);
+    // Sin Content-Type a mano: el navegador pone el multipart con su boundary.
+    expect(peticion.request.headers.has('Content-Type')).toBe(false);
+    peticion.flush({
+      url: '/api/productos/imagenes/2026/09/x.jpg',
+      tipoMime: 'image/jpeg',
+      tamanoBytes: 3,
+    });
+
+    expect(respuesta?.url).toBe('/api/productos/imagenes/2026/09/x.jpg');
+  });
+
   it('eliminar() también invalida la caché', async () => {
     servicio.listar().subscribe();
     (await esperarPeticion(http, PRIMERA_PAGINA)).flush(paginaCon(producto(1)));

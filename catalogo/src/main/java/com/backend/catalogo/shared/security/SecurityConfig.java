@@ -121,6 +121,10 @@ public class SecurityConfig {
                         // desaparece el día que alguien la quita al refactorizar.
                         .requestMatchers("/api/productos/mios/**").hasAuthority("PERMISO_PRODUCTOS_PROPIOS")
                         .requestMatchers("/api/productos/moderacion/**").hasAuthority("PERMISO_PRODUCTOS_GESTIONAR")
+                        // Subir una foto: quien puede publicar, sea la tienda o un
+                        // colaborador. Verla (GET) es público, como el resto de la vitrina.
+                        .requestMatchers(HttpMethod.POST, "/api/productos/imagenes")
+                        .hasAnyAuthority("PERMISO_PRODUCTOS_GESTIONAR", "PERMISO_PRODUCTOS_PROPIOS")
                         // Vitrina pública: cualquiera puede navegar el catálogo y leer
                         // las guías de ayuda que estén publicadas.
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**",
