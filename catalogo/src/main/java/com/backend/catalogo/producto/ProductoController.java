@@ -22,6 +22,7 @@ import com.backend.catalogo.producto.dto.ProductoDtos.PaginaResponse;
 import com.backend.catalogo.producto.dto.ProductoDtos.PortadaResponse;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoRequest;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoResponse;
+import com.backend.catalogo.producto.dto.ProductoDtos.Facetas;
 import com.backend.catalogo.producto.dto.ProductoDtos.QuitarDescuentoRequest;
 import com.backend.catalogo.shared.validacion.Limites;
 
@@ -30,6 +31,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
@@ -56,15 +58,57 @@ public class ProductoController {
      * `MAX_PAGINA` que el listado por categoría, así que nadie puede pedir el
      * catálogo entero disfrazándolo de una página muy grande.
      */
+    /**
+     * Búsqueda con filtros, orden y paginación en servidor.
+     *
+     * <p>Los parámetros de filtro son todos opcionales: sin ninguno, el
+     * resultado es exactamente el de antes —la vitrina o la búsqueda por
+     * texto—, así el contrato viejo no se rompe. Con ellos, la base filtra
+     * sobre TODO el catálogo antes de paginar.
+     */
     @GetMapping
     public PaginaResponse<ProductoResponse> listar(
             @RequestParam(required = false)
             @Size(max = Limites.MAX_BUSQUEDA, message = "La búsqueda es demasiado larga")
             @Pattern(regexp = Limites.TEXTO_BUSQUEDA, message = "La búsqueda tiene caracteres no permitidos")
             String search,
+            @RequestParam(required = false) @PositiveOrZero java.math.BigDecimal precioMin,
+            @RequestParam(required = false) @PositiveOrZero java.math.BigDecimal precioMax,
+            @RequestParam(required = false) List<@Positive Long> marcaId,
+            @RequestParam(required = false) List<@Size(max = 160) String> atributo,
+            @RequestParam(defaultValue = "false") boolean soloDisponibles,
+            @RequestParam(required = false) @Size(max = 20) String orden,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "12") @Min(1) @Max(Limites.MAX_PAGINA) int size) {
-        return servicio.listar(search, page, size);
+        FiltroProductos filtro = new FiltroProductos(precioMin, precioMax, marcaId, atributo,
+                soloDisponibles, FiltroProductos.Orden.de(orden));
+        return servicio.buscar(search, null, filtro, page, size);
+    }
+
+    /**
+     * Las facetas del mismo conjunto: en qué se puede seguir filtrando.
+     *
+     * <p>Endpoint aparte para no cambiar la forma de la respuesta paginada, que
+     * consume medio frontend. Acepta los mismos filtros: el rail cuenta sobre lo
+     * que de verdad quedaría.
+     */
+    @GetMapping("/facetas")
+    public Facetas facetas(
+            @RequestParam(required = false)
+            @Size(max = Limites.MAX_BUSQUEDA, message = "La búsqueda es demasiado larga")
+            @Pattern(regexp = Limites.TEXTO_BUSQUEDA, message = "La búsqueda tiene caracteres no permitidos")
+            String search,
+            @RequestParam(required = false)
+            @Pattern(regexp = Limites.SLUG, message = "Slug no válido") String slug,
+            @RequestParam(required = false) @PositiveOrZero java.math.BigDecimal precioMin,
+            @RequestParam(required = false) @PositiveOrZero java.math.BigDecimal precioMax,
+            @RequestParam(required = false) List<@Positive Long> marcaId,
+            @RequestParam(required = false) List<@Size(max = 160) String> atributo,
+            @RequestParam(defaultValue = "false") boolean soloDisponibles,
+            @RequestParam(required = false) @Size(max = 20) String orden) {
+        FiltroProductos filtro = new FiltroProductos(precioMin, precioMax, marcaId, atributo,
+                soloDisponibles, FiltroProductos.Orden.de(orden));
+        return servicio.facetas(search, slug, filtro);
     }
 
     /**
@@ -116,12 +160,24 @@ public class ProductoController {
     }
 
     /** GET /api/productos/categoria/{slug} — público y paginado. */
+    /**
+     * Navegación por categoría, ahora con los mismos filtros server-side que la
+     * búsqueda. Sin filtros se comporta como antes.
+     */
     @GetMapping("/categoria/{slug}")
     public PaginaResponse<ProductoResponse> porCategoria(
             @PathVariable @Pattern(regexp = Limites.SLUG, message = "Slug no válido") String slug,
+            @RequestParam(required = false) @PositiveOrZero java.math.BigDecimal precioMin,
+            @RequestParam(required = false) @PositiveOrZero java.math.BigDecimal precioMax,
+            @RequestParam(required = false) List<@Positive Long> marcaId,
+            @RequestParam(required = false) List<@Size(max = 160) String> atributo,
+            @RequestParam(defaultValue = "false") boolean soloDisponibles,
+            @RequestParam(required = false) @Size(max = 20) String orden,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "12") @Min(1) @Max(Limites.MAX_PAGINA) int size) {
-        return servicio.listarPorCategoria(slug, page, size);
+        FiltroProductos filtro = new FiltroProductos(precioMin, precioMax, marcaId, atributo,
+                soloDisponibles, FiltroProductos.Orden.de(orden));
+        return servicio.buscar(null, slug, filtro, page, size);
     }
 
     @PostMapping

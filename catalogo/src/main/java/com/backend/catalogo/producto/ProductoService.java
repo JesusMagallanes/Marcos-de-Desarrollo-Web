@@ -26,6 +26,12 @@ import com.backend.catalogo.producto.dto.ProductoDtos.LineaPrecio;
 import com.backend.catalogo.producto.dto.ProductoDtos.PaginaResponse;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoRequest;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoResponse;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import com.backend.catalogo.producto.dto.ProductoDtos.Facetas;
+import com.backend.catalogo.producto.dto.ProductoDtos.FacetaAtributo;
+import com.backend.catalogo.producto.dto.ProductoDtos.FacetaMarca;
+import com.backend.catalogo.producto.dto.ProductoDtos.FacetaValor;
 import com.backend.catalogo.shared.error.ConflictoException;
 import com.backend.catalogo.shared.metricas.MetricasSeguridad;
 import com.backend.catalogo.shared.error.RecursoNoEncontradoException;
@@ -71,6 +77,89 @@ public class ProductoService {
                 : repositorio.buscarPorTexto(busqueda.trim(), pagina);
 
         return aPagina(productos);
+    }
+
+    /**
+     * Búsqueda y navegación con filtros, orden y paginación, todo en la BASE.
+     *
+     * <p>La secuencia es la que exige el bloque: filtrar el catálogo entero,
+     * ordenar, paginar y solo entonces cargar las entidades de la página. Nada
+     * de traerse todo y filtrar en memoria.
+     *
+     * <p>Sirve igual para la búsqueda (texto) y para la categoría (slug): son
+     * el mismo problema con un predicado de más. Sin filtros ni texto ni slug,
+     * devuelve la vitrina igual que {@link #listar}, así el contrato viejo se
+     * conserva.
+     *
+     * @param texto términos de búsqueda, o {@code null}
+     * @param slug categoría, o {@code null}
+     */
+    @Transactional(readOnly = true)
+    public PaginaResponse<ProductoResponse> buscar(String texto, String slug,
+            FiltroProductos filtro, int page, int size) {
+
+        Pageable pagina = PageRequest.of(page, size, filtro.comoSort());
+        Page<Long> ids = repositorio.filtrar(
+                limpiar(texto), slug, filtro.precioMin(), filtro.precioMax(),
+                filtro.sinMarcas(), filtro.marcasParaConsulta(), filtro.soloDisponibles(),
+                filtro.numCodigos(), filtro.atributosParaConsulta(), pagina);
+
+        List<ProductoResponse> contenido = enOrden(ids.getContent());
+        return new PaginaResponse<>(contenido, ids.getNumber(), ids.getSize(),
+                ids.getTotalElements(), ids.getTotalPages());
+    }
+
+    /**
+     * Las facetas del MISMO conjunto filtrado, para el rail de filtros.
+     *
+     * <p>Se cuentan sobre todos los resultados, no sobre la página: se piden
+     * los IDs del conjunto entero —enteros, no entidades— y se agrega sobre
+     * ellos. Si el conjunto es vacío, no hay nada que ofrecer.
+     */
+    @Transactional(readOnly = true)
+    public Facetas facetas(String texto, String slug, FiltroProductos filtro) {
+        List<Long> ids = repositorio.filtrarTodos(
+                limpiar(texto), slug, filtro.precioMin(), filtro.precioMax(),
+                filtro.sinMarcas(), filtro.marcasParaConsulta(), filtro.soloDisponibles(),
+                filtro.numCodigos(), filtro.atributosParaConsulta());
+
+        if (ids.isEmpty()) {
+            return new Facetas(0, 0, List.of(), List.of());
+        }
+
+        List<FacetaMarca> marcas = repositorio.conteoMarcas(ids).stream()
+                .map(f -> new FacetaMarca(((Number) f[0]).longValue(), (String) f[1],
+                        ((Number) f[2]).longValue()))
+                .toList();
+
+        // Los valores de cada atributo se agrupan bajo su codigo, conservando el
+        // orden que ya trajo la consulta (por nombre, luego por conteo).
+        Map<String, FacetaAtributo> porCodigo = new LinkedHashMap<>();
+        for (Object[] f : repositorio.conteoAtributos(ids)) {
+            String codigo = (String) f[0];
+            String nombre = (String) f[1];
+            FacetaValor valor = new FacetaValor((String) f[2], ((Number) f[3]).longValue());
+            porCodigo.computeIfAbsent(codigo,
+                    c -> new FacetaAtributo(codigo, nombre, new ArrayList<>()))
+                    .valores().add(valor);
+        }
+
+        return new Facetas(ids.size(), repositorio.contarDisponibles(ids),
+                marcas, List.copyOf(porCodigo.values()));
+    }
+
+    /** Carga las entidades de la página conservando el orden que dio la base. */
+    private List<ProductoResponse> enOrden(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, Producto> porId = repositorio.buscarConImagenes(ids).stream()
+                .collect(Collectors.toMap(Producto::getId, prod -> prod));
+        return aRespuestas(ids.stream().map(porId::get).filter(Objects::nonNull).toList());
+    }
+
+    private String limpiar(String texto) {
+        return (texto == null || texto.isBlank()) ? null : texto.trim();
     }
 
     /**

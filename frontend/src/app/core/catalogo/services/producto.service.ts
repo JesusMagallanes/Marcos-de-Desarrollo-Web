@@ -9,6 +9,8 @@ import { RUTAS_CATALOGO } from '../catalogo.routes';
 import {
   AplicarDescuentoRequest,
   EstadoDescuento,
+  FacetasCatalogo,
+  FiltroCatalogo,
   PaginaDescuentos,
   Portada,
   EstadoModeracion,
@@ -16,6 +18,8 @@ import {
   ProductoRequest,
   QuitarDescuentoRequest,
   RechazoProducto,
+  filtroActivo,
+  ordenBackend,
 } from '../models';
 
 /** Productos — servicio `catalogo` (:8081). */
@@ -49,15 +53,18 @@ export class ProductoService {
     buscar?: string | null,
     page = 0,
     size: number = PAGINACION.productosPorPagina,
+    filtro?: FiltroCatalogo | null,
   ): Observable<Pagina<Producto>> {
-    const params = this.parametros(buscar, page, size);
+    const params = this.parametros(buscar, page, size, filtro);
     const pedir = () =>
       this.http.get<Pagina<Producto>>(RUTAS_CATALOGO.productos.base, { params });
 
-    // Una búsqueda no se cachea: los términos son infinitos y llenarían
-    // IndexedDB de entradas de un solo uso. Las páginas sí, que son las que se
-    // repiten al ir y volver.
-    if (buscar) {
+    // Una búsqueda o un filtro no se cachean: los términos y las combinaciones
+    // son infinitos y llenarían IndexedDB de entradas de un solo uso. Un orden
+    // distinto del de por defecto tampoco, porque la página cacheada viene sin
+    // ordenar. Las páginas «desnudas» sí, que son las que se repiten al ir y
+    // volver.
+    if (buscar || this.filtroFuerzaRed(filtro)) {
       return pedir();
     }
     return this.cache.obtener(
@@ -124,16 +131,66 @@ export class ProductoService {
     return this.http.get<PaginaDescuentos>(RUTAS_CATALOGO.productos.paraDescuentos, { params });
   }
 
-  private parametros(buscar: string | null | undefined, page: number, size: number): HttpParams {
+  private parametros(
+    buscar: string | null | undefined,
+    page: number,
+    size: number,
+    filtro?: FiltroCatalogo | null,
+  ): HttpParams {
     // El término se recorta al límite del backend: una búsqueda de 200
     // caracteres volvería con un 400 que se puede evitar sin salir del navegador.
     const termino = buscar ? normalizarBusqueda(buscar) : null;
 
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('page', Math.max(0, page))
       .set('size', acotarTamanoPagina(size));
 
-    return termino ? params.set('search', termino) : params;
+    if (termino) params = params.set('search', termino);
+    return this.conFiltro(params, filtro);
+  }
+
+  /**
+   * GET /api/productos/facetas — en qué se puede seguir filtrando.
+   *
+   * <p>Acepta los mismos filtros que el listado, así el rail cuenta sobre lo que
+   * de verdad quedaría. No se cachea: cambia con cada combinación de filtros y
+   * cachearla daría poco acierto y mucha entrada de un solo uso.
+   */
+  facetas(opciones: {
+    buscar?: string | null;
+    slug?: string | null;
+    filtro?: FiltroCatalogo | null;
+  }): Observable<FacetasCatalogo> {
+    let params = new HttpParams();
+    const termino = opciones.buscar ? normalizarBusqueda(opciones.buscar) : null;
+    if (termino) params = params.set('search', termino);
+    if (opciones.slug) params = params.set('slug', opciones.slug);
+    params = this.conFiltro(params, opciones.filtro);
+    return this.http.get<FacetasCatalogo>(RUTAS_CATALOGO.productos.facetas, { params });
+  }
+
+  /**
+   * Añade a la petición los parámetros del filtro, con la convención del
+   * backend: `marcaId` y `atributo` se repiten; el precio y la disponibilidad
+   * solo viajan si aportan algo, para no ensuciar la URL ni saltarse la caché
+   * sin motivo.
+   */
+  private conFiltro(params: HttpParams, filtro?: FiltroCatalogo | null): HttpParams {
+    if (!filtro) return params;
+    if (filtro.precioMin != null) params = params.set('precioMin', filtro.precioMin);
+    if (filtro.precioMax != null) params = params.set('precioMax', filtro.precioMax);
+    for (const id of filtro.marcaIds) params = params.append('marcaId', id);
+    for (const atr of filtro.atributos) params = params.append('atributo', atr);
+    if (filtro.soloDisponibles) params = params.set('soloDisponibles', true);
+    if (filtro.orden && filtro.orden !== 'relevancia') {
+      params = params.set('orden', ordenBackend(filtro.orden));
+    }
+    return params;
+  }
+
+  /** Si el filtro obliga a ir al servidor en vez de a la caché. */
+  private filtroFuerzaRed(filtro?: FiltroCatalogo | null): boolean {
+    return filtroActivo(filtro) || (!!filtro && filtro.orden !== 'relevancia');
   }
 
   /** GET /api/productos/{id} — 404 si no existe. */
@@ -143,21 +200,36 @@ export class ProductoService {
     );
   }
 
-  /** GET /api/productos/categoria/{slug} — paginado. Cacheado por página. */
+  /**
+   * GET /api/productos/categoria/{slug} — paginado, ahora con filtros.
+   *
+   * <p>Sin filtros se comporta como antes y se cachea por página. Con filtros
+   * (o con un orden distinto del de por defecto) va al servidor: es el backend
+   * quien filtra, ordena y pagina sobre TODA la categoría, no el navegador
+   * sobre los doce que le tocaron.
+   */
   listarPorCategoria(
     slug: string,
     page = 0,
     size: number = PAGINACION.productosPorPagina,
+    filtro?: FiltroCatalogo | null,
   ): Observable<Pagina<Producto>> {
     // El backend rechaza size > 100; se acota aquí para no gastar una petición.
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('page', Math.max(0, page))
       .set('size', acotarTamanoPagina(size));
+    params = this.conFiltro(params, filtro);
 
+    const pedir = () =>
+      this.http.get<Pagina<Producto>>(RUTAS_CATALOGO.productos.porCategoria(slug), { params });
+
+    if (this.filtroFuerzaRed(filtro)) {
+      return pedir();
+    }
     return this.cache.obtener(
       `productos:cat:${slug}:${Math.max(0, page)}:${acotarTamanoPagina(size)}`,
       TTL.productos,
-      () => this.http.get<Pagina<Producto>>(RUTAS_CATALOGO.productos.porCategoria(slug), { params }),
+      pedir,
     );
   }
 

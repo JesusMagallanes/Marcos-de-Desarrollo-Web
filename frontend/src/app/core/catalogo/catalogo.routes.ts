@@ -8,6 +8,8 @@ export const RUTAS_CATALOGO = {
     portada: `${API}/productos/portada`,
     porId: (id: number) => `${API}/productos/${id}`,
     porCategoria: (slug: string) => `${API}/productos/categoria/${slug}`,
+    /** Facetas (marcas, atributos y conteos) del mismo conjunto filtrado. */
+    facetas: `${API}/productos/facetas`,
     // Productos de colaborador y su cola de revisión (SZ-B08).
     mios: `${API}/productos/mios`,
     mio: (id: number) => `${API}/productos/mios/${id}`,

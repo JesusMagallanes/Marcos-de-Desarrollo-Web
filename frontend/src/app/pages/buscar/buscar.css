@@ -20,3 +20,12 @@
   border-radius: 8px;
   font-size: 0.9rem;
 }
+
+.page-item.active .page-link {
+  background-color: #198754;
+  border-color: #198754;
+}
+
+.page-link {
+  color: #198754;
+}

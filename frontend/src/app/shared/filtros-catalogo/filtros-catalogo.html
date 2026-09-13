@@ -1,0 +1,95 @@
+<div class="filtros-container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="m-0" style="color: #5a5a5a; font-weight: 600;">Filtros</h4>
+    @if (cuantosActivos() > 0) {
+      <button class="btn btn-link btn-sm p-0 text-success" type="button" (click)="limpiar()">
+        Limpiar ({{ cuantosActivos() }})
+      </button>
+    }
+  </div>
+
+  <!-- ORDEN -->
+  <div class="mb-4">
+    <label class="filtro-titulo" for="ordenSel">Ordenar por</label>
+    <select id="ordenSel" class="form-select form-select-sm mt-2" [value]="filtro().orden"
+      (change)="fijarOrden($any($event.target).value)">
+      @for (o of opciones; track o.valor) {
+        <option [value]="o.valor">{{ o.etiqueta }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- MARCA -->
+  @if (marcas().length) {
+    <div class="mb-4">
+      <p class="filtro-titulo">Marca</p>
+      <div class="filtro-content">
+        @for (m of marcas(); track m.id) {
+          <label class="opcion-filtro" [class.opcion-vacia]="m.conteo === 0">
+            <input class="form-check-input filter-checkbox" type="checkbox"
+              [checked]="marcaActiva(m.id)"
+              (change)="alternarMarca(m.id, $any($event.target).checked)" />
+            <span>{{ m.nombre }}</span>
+            <span class="conteo">{{ m.conteo }}</span>
+          </label>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ATRIBUTOS (FACETAS) -->
+  @for (a of atributos(); track a.codigo) {
+    <div class="mb-4">
+      <p class="filtro-titulo">{{ a.nombre }}</p>
+      <div class="filtro-content">
+        @for (v of a.valores; track v.valor) {
+          <label class="opcion-filtro" [class.opcion-vacia]="v.conteo === 0">
+            <input class="form-check-input filter-checkbox" type="checkbox"
+              [checked]="atributoActivo(a.codigo, v.valor)"
+              (change)="alternarAtributo(a.codigo, v.valor)" />
+            <span>{{ v.valor }}</span>
+            <span class="conteo">{{ v.conteo }}</span>
+          </label>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- DISPONIBILIDAD -->
+  <div class="mb-4">
+    <p class="filtro-titulo">Disponibilidad</p>
+    <div class="filtro-content">
+      <label class="opcion-filtro">
+        <input class="form-check-input filter-checkbox" type="checkbox"
+          [checked]="filtro().soloDisponibles"
+          (change)="alternarDisponibles($any($event.target).checked)" />
+        <span>Solo con stock</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- PRECIO -->
+  <div class="mb-4">
+    <p class="filtro-titulo">Gama de precios</p>
+    <div class="row g-2">
+      <div class="col-6">
+        <label class="form-label small" style="color: #888;">Mín</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
+          <input type="number" class="form-control precio-input" min="0" placeholder="0"
+            [value]="filtro().precioMin ?? ''"
+            (change)="fijarPrecioMin($any($event.target).value)" />
+        </div>
+      </div>
+      <div class="col-6">
+        <label class="form-label small" style="color: #888;">Máx</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
+          <input type="number" class="form-control precio-input" min="0" placeholder="—"
+            [value]="filtro().precioMax ?? ''"
+            (change)="fijarPrecioMax($any($event.target).value)" />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

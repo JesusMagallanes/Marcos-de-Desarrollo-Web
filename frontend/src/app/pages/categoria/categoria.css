@@ -99,3 +99,9 @@
 #productos-container .producto-col app-producto-card > * {
   width: 100%;
 }
+
+/* Antes era un style inline con 9rem fijos; en pantallas estrechas comía todo
+   el ancho. Se acota con el viewport para que el móvil no quede sin sitio. */
+.categoria-wrap {
+  padding-inline: clamp(1rem, 6vw, 9rem);
+}

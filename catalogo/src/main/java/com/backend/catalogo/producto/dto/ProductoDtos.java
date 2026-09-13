@@ -179,6 +179,31 @@ public final class ProductoDtos {
     }
 
     /**
+     * Las facetas de un conjunto de resultados: en qué se puede seguir filtrando
+     * y cuántos productos quedarían.
+     *
+     * <p>Los conteos son sobre TODO el conjunto filtrado, no sobre la página que
+     * se ve. Es lo que permite que el rail de filtros diga la verdad: «marca
+     * Lenovo (7)» son siete en toda la búsqueda, no siete de los doce visibles.
+     */
+    public record Facetas(
+            long total,
+            long disponibles,
+            List<FacetaMarca> marcas,
+            List<FacetaAtributo> atributos) {
+    }
+
+    public record FacetaMarca(Long id, String nombre, long conteo) {
+    }
+
+    /** Un atributo con sus valores posibles dentro del conjunto y su conteo. */
+    public record FacetaAtributo(String codigo, String nombre, List<FacetaValor> valores) {
+    }
+
+    public record FacetaValor(String valor, long conteo) {
+    }
+
+    /**
      * Todo lo que la portada necesita, en una respuesta y acotado.
      *
      * <p>La portada pedía el catálogo COMPLETO y luego, en el navegador, se

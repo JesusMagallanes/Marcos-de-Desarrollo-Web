@@ -271,6 +271,118 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             """)
     List<Producto> listarPorEstadoModeracion(@Param("estado") EstadoModeracion estado);
 
+    /* ══════════════ Búsqueda y filtrado con facetas ══════════════ */
+
+    /**
+     * IDs de una página de resultados filtrados, ordenados en la BASE.
+     *
+     * <p>Solo IDs por lo mismo que {@link #buscarConImagenes}: paginar con
+     * {@code JOIN FETCH} de colecciones rompe el {@code LIMIT}. El orden lo pone
+     * el {@code Sort} del {@code Pageable} sobre el alias {@code p}, asi un
+     * metodo sirve para precio, nombre y novedad; el servicio desempata por id.
+     *
+     * <p>Marcas y atributos llegan con centinela y guardian ({@code :sinMarcas},
+     * {@code :numAtributos}) porque {@code IN ()} es un error de sintaxis; es el
+     * idioma de {@code NINGUNO} de descubrimiento. La subconsulta exige que el
+     * producto tenga TODOS los codigos pedidos, no cualquiera.
+     */
+    @Query(value = """
+            SELECT p.id FROM Producto p
+            WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
+              AND (CAST(:slug AS string) IS NULL OR p.categoria.slug = :slug)
+              AND (CAST(:texto AS string) IS NULL
+                   OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
+                   OR LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%')))
+              AND (:precioMin IS NULL OR p.precio >= :precioMin)
+              AND (:precioMax IS NULL OR p.precio <= :precioMax)
+              AND (:sinMarcas = TRUE OR p.marca.id IN :marcaIds)
+              AND (:soloDisponibles = FALSE OR p.stock > 0)
+              AND (:numAtributos = 0 OR (
+                    SELECT COUNT(DISTINCT pa.atributo.codigo)
+                      FROM ProductoAtributo pa
+                     WHERE pa.producto = p
+                       AND CONCAT(pa.atributo.codigo, ':', pa.valor) IN :atributos
+                   ) = :numAtributos)
+            """,
+            countQuery = """
+                    SELECT COUNT(p) FROM Producto p
+                    WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
+                      AND (CAST(:slug AS string) IS NULL OR p.categoria.slug = :slug)
+                      AND (CAST(:texto AS string) IS NULL
+                           OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
+                           OR LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%')))
+                      AND (:precioMin IS NULL OR p.precio >= :precioMin)
+                      AND (:precioMax IS NULL OR p.precio <= :precioMax)
+                      AND (:sinMarcas = TRUE OR p.marca.id IN :marcaIds)
+                      AND (:soloDisponibles = FALSE OR p.stock > 0)
+                      AND (:numAtributos = 0 OR (
+                            SELECT COUNT(DISTINCT pa.atributo.codigo)
+                              FROM ProductoAtributo pa
+                                     WHERE pa.producto = p
+                                       AND CONCAT(pa.atributo.codigo, ':', pa.valor) IN :atributos
+                           ) = :numAtributos)
+                    """)
+    Page<Long> filtrar(@Param("texto") String texto, @Param("slug") String slug,
+            @Param("precioMin") java.math.BigDecimal precioMin,
+            @Param("precioMax") java.math.BigDecimal precioMax,
+            @Param("sinMarcas") boolean sinMarcas, @Param("marcaIds") List<Long> marcaIds,
+            @Param("soloDisponibles") boolean soloDisponibles,
+            @Param("numAtributos") int numAtributos, @Param("atributos") List<String> atributos,
+            Pageable pageable);
+
+    /**
+     * Todos los IDs que cumplen el filtro, para calcular las facetas sobre el
+     * conjunto ENTERO y no sobre la pagina visible. Son IDs, no entidades.
+     */
+    @Query(value = """
+            SELECT p.id FROM Producto p
+            WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
+              AND (CAST(:slug AS string) IS NULL OR p.categoria.slug = :slug)
+              AND (CAST(:texto AS string) IS NULL
+                   OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
+                   OR LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%')))
+              AND (:precioMin IS NULL OR p.precio >= :precioMin)
+              AND (:precioMax IS NULL OR p.precio <= :precioMax)
+              AND (:sinMarcas = TRUE OR p.marca.id IN :marcaIds)
+              AND (:soloDisponibles = FALSE OR p.stock > 0)
+              AND (:numAtributos = 0 OR (
+                    SELECT COUNT(DISTINCT pa.atributo.codigo)
+                      FROM ProductoAtributo pa
+                     WHERE pa.producto = p
+                       AND CONCAT(pa.atributo.codigo, ':', pa.valor) IN :atributos
+                   ) = :numAtributos)
+            """)
+    List<Long> filtrarTodos(@Param("texto") String texto, @Param("slug") String slug,
+            @Param("precioMin") java.math.BigDecimal precioMin,
+            @Param("precioMax") java.math.BigDecimal precioMax,
+            @Param("sinMarcas") boolean sinMarcas, @Param("marcaIds") List<Long> marcaIds,
+            @Param("soloDisponibles") boolean soloDisponibles,
+            @Param("numAtributos") int numAtributos, @Param("atributos") List<String> atributos);
+
+    /** Cuantos productos del conjunto tiene cada marca. Filas [marcaId, nombre, conteo]. */
+    @Query("""
+            SELECT p.marca.id, p.marca.name, COUNT(p)
+              FROM Producto p
+             WHERE p.id IN :ids AND p.marca IS NOT NULL
+             GROUP BY p.marca.id, p.marca.name
+             ORDER BY COUNT(p) DESC, p.marca.name ASC
+            """)
+    List<Object[]> conteoMarcas(@Param("ids") List<Long> ids);
+
+    /** Cuantos del conjunto tienen cada valor de cada atributo. Filas [codigo, nombre, valor, conteo]. */
+    @Query("""
+            SELECT pa.atributo.codigo, pa.atributo.nombre, pa.valor, COUNT(pa)
+              FROM ProductoAtributo pa
+             WHERE pa.producto.id IN :ids
+             GROUP BY pa.atributo.codigo, pa.atributo.nombre, pa.valor
+             ORDER BY pa.atributo.nombre ASC, COUNT(pa) DESC, pa.valor ASC
+            """)
+    List<Object[]> conteoAtributos(@Param("ids") List<Long> ids);
+
+    /** Cuantos del conjunto tienen stock, para la faceta de disponibilidad. */
+    @Query("SELECT COUNT(p) FROM Producto p WHERE p.id IN :ids AND p.stock > 0")
+    long contarDisponibles(@Param("ids") List<Long> ids);
+
     /** Cuántos lleva publicados, para el tope por colaborador. */
     long countByPropietarioId(Long propietarioId);
 }

@@ -1,0 +1,37 @@
+/* El contenedor (filtros-container, filtro-content, filter-checkbox, precio-input)
+   usa las clases globales de src/styles/productosCategoria.css, para que el rail
+   se vea igual esté en la búsqueda o en la categoría. Lo de aquí es lo propio. */
+
+.filtro-titulo {
+  color: #5a5a5a;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.opcion-filtro {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  color: #5a5a5a;
+  font-size: 0.95rem;
+}
+
+.opcion-filtro .conteo {
+  margin-left: auto;
+  color: #9a9a9a;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Una opción sin resultados en el conjunto filtrado sigue siendo elegible
+   (multi-select con OR), pero se atenúa para que se note que hoy no suma nada. */
+.opcion-vacia {
+  opacity: 0.5;
+}
+
+.opcion-filtro input {
+  margin: 0;
+}

@@ -124,3 +124,128 @@ export interface BloqueCategoria {
   categoria: Categoria;
   productos: Producto[];
 }
+
+/* ══════════════ Búsqueda y filtrado con facetas ══════════════ */
+
+/**
+ * Orden del listado. Los valores son los que viajan en la URL; el servicio los
+ * traduce al enumerado del backend (`precio-asc` → `PRECIO_ASC`).
+ */
+export type OrdenCatalogo =
+  | 'relevancia'
+  | 'precio-asc'
+  | 'precio-desc'
+  | 'nombre-asc'
+  | 'nombre-desc'
+  | 'novedad';
+
+/**
+ * El estado de un filtro de catálogo, el mismo para búsqueda y para categoría.
+ *
+ * <p>`atributos` son cadenas `codigo:valor`, la forma que ya usaba la selección
+ * de características. Varios códigos distintos se exigen todos (AND); dos valores
+ * del mismo código son alternativa (OR). Esa semántica la resuelve el servidor;
+ * aquí solo se transporta la lista.
+ */
+export interface FiltroCatalogo {
+  precioMin: number | null;
+  precioMax: number | null;
+  marcaIds: number[];
+  atributos: string[];
+  soloDisponibles: boolean;
+  orden: OrdenCatalogo;
+}
+
+/** Un filtro sin nada seleccionado. */
+export function filtroVacio(): FiltroCatalogo {
+  return {
+    precioMin: null,
+    precioMax: null,
+    marcaIds: [],
+    atributos: [],
+    soloDisponibles: false,
+    orden: 'relevancia',
+  };
+}
+
+/**
+ * Si el filtro estrecha de verdad el conjunto.
+ *
+ * <p>El orden no cuenta como «activo» para decidir si hay filtro, pero sí para
+ * saltarse la caché: una página cacheada viene en el orden por defecto.
+ */
+export function filtroActivo(f: FiltroCatalogo | null | undefined): boolean {
+  if (!f) return false;
+  return (
+    f.precioMin != null ||
+    f.precioMax != null ||
+    f.marcaIds.length > 0 ||
+    f.atributos.length > 0 ||
+    f.soloDisponibles
+  );
+}
+
+/** El token del backend para un orden. `precio-asc` → `PRECIO_ASC`. */
+export function ordenBackend(orden: OrdenCatalogo): string {
+  return orden.replace(/-/g, '_').toUpperCase();
+}
+
+/** Las facetas de un conjunto de resultados, tal como las da el servidor. */
+export interface FacetasCatalogo {
+  total: number;
+  disponibles: number;
+  marcas: FacetaMarca[];
+  atributos: FacetaAtributo[];
+}
+
+export interface FacetaMarca {
+  id: number;
+  nombre: string;
+  conteo: number;
+}
+
+export interface FacetaAtributo {
+  codigo: string;
+  nombre: string;
+  valores: FacetaValor[];
+}
+
+export interface FacetaValor {
+  valor: string;
+  conteo: number;
+}
+
+/**
+ * Combina el UNIVERSO de opciones con los CONTEOS del conjunto ya filtrado.
+ *
+ * <p>El universo se lee una vez (sin filtros, solo el texto o la categoría) y no
+ * cambia: es lo que mantiene utilizable el multi-select. Si al elegir «Lenovo»
+ * las facetas vivas solo devolvieran «Lenovo», ya no se podría añadir otra marca
+ * ni otro valor del mismo atributo (que es un OR). Así que las opciones salen
+ * del universo y solo el número «(7)» sale del conteo vivo; una opción ausente
+ * del conteo aparece con cero.
+ */
+export function fusionarFacetas(
+  universo: FacetasCatalogo | null,
+  conteos: FacetasCatalogo | null,
+): FacetasCatalogo | null {
+  if (!universo) return conteos;
+  const numMarca = new Map((conteos?.marcas ?? []).map((m) => [m.id, m.conteo]));
+  const numAtr = new Map(
+    (conteos?.atributos ?? []).flatMap((a) =>
+      a.valores.map((v) => [`${a.codigo}:${v.valor}`, v.conteo] as const),
+    ),
+  );
+  return {
+    total: conteos?.total ?? universo.total,
+    disponibles: conteos?.disponibles ?? universo.disponibles,
+    marcas: universo.marcas.map((m) => ({ ...m, conteo: numMarca.get(m.id) ?? 0 })),
+    atributos: universo.atributos.map((a) => ({
+      ...a,
+      valores: a.valores.map((v) => ({
+        ...v,
+        conteo: numAtr.get(`${a.codigo}:${v.valor}`) ?? 0,
+      })),
+    })),
+  };
+}

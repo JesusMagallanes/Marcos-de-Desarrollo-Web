@@ -1,11 +1,13 @@
 <!-- Botón flotante para mostrar filtros en móvil -->
-<button class="btn btn-success btn-filtros-mobile d-lg-none" type="button" data-bs-toggle="offcanvas"
-  data-bs-target="#offcanvasFiltros" aria-controls="offcanvasFiltros">
-  <i class="fas fa-filter"></i>
-</button>
+@if (!cargandoCategoria() && !noEncontrada()) {
+  <button class="btn btn-success btn-filtros-mobile d-lg-none" type="button" data-bs-toggle="offcanvas"
+    data-bs-target="#offcanvasFiltros" aria-controls="offcanvasFiltros">
+    <i class="fas fa-filter"></i>
+  </button>
+}
 
-<div class="container-fluid" style="padding-inline: 9rem;">
-  @if (cargando()) {
+<div class="container-fluid categoria-wrap">
+  @if (cargandoCategoria()) {
     <app-cargando />
   } @else if (noEncontrada()) {
     <div class="text-center py-5">
@@ -40,184 +42,22 @@
     <div class="row">
       <!-- SIDEBAR DE FILTROS (Desktop) -->
       <div class="col-lg-3 mt-4 mb-4 d-none d-lg-block filtros-sidebar">
-        <div class="filtros-container">
-          <!-- TÍTULO -->
-          <h4 class="mb-4" style="color: #5a5a5a; font-weight: 600;">Filtros</h4>
-
-          <!-- FILTRO DE MARCA -->
-          <div class="mb-4">
-            <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMarca">
-              Marca
-              <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
-            </button>
-            <div class="collapse show" id="collapseMarca">
-              <div class="filtro-content">
-                @for (m of marcas(); track m.id) {
-                  <div class="form-check mb-2">
-                    <input class="form-check-input filter-checkbox" type="checkbox" [id]="'marcaD' + m.id"
-                      [checked]="marcasSeleccionadas().has(m.id)"
-                      (change)="alternarMarca(m.id, $any($event.target).checked)" />
-                    <label class="form-check-label" [for]="'marcaD' + m.id" style="color: #5a5a5a; font-size: 0.95rem;">
-                      {{ m.name }}
-                    </label>
-                  </div>
-                } @empty {
-                  <p class="text-muted small mb-0">No hay marcas disponibles</p>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!--
-            FILTROS POR CARACTERÍSTICA
-            ==========================
-            Se construyen con los atributos que ya viajan en cada producto
-            (`producto_atributo`), sin ninguna petición extra ni taxonomía
-            paralela en el navegador: si mañana el panel añade una
-            característica nueva, aparece aquí sola.
-
-            Aplicar uno es la señal MÁS específica que se puede capturar sin
-            preguntar —dice el atributo y el valor exactos—, y por eso se
-            registra como ATTRIBUTE_FILTER.
-          -->
-          @for (f of facetas(); track f.codigo) {
-            <div class="mb-4">
-              <button class="filtro-btn" type="button" data-bs-toggle="collapse"
-                [attr.data-bs-target]="'#collapseAtr' + f.codigo">
-                {{ f.nombre }}
-                <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
-              </button>
-              <div class="collapse show" [id]="'collapseAtr' + f.codigo">
-                <div class="filtro-content">
-                  @for (v of f.valores; track v) {
-                    <div class="form-check mb-2">
-                      <input class="form-check-input filter-checkbox" type="checkbox"
-                        [id]="'atr-' + f.codigo + '-' + v"
-                        [checked]="atributoActivo(f.codigo, v)"
-                        (change)="alternarAtributo(f.codigo, v)" />
-                      <label class="form-check-label" [for]="'atr-' + f.codigo + '-' + v"
-                        style="color: #5a5a5a; font-size: 0.95rem;">
-                        {{ v }}
-                      </label>
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-          }
-
-          <!-- FILTRO DE DISPONIBILIDAD -->
-          <div class="mb-4">
-            <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStock">
-              Disponible en catálogo extendido
-              <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
-            </button>
-            <div class="collapse" id="collapseStock">
-              <div class="filtro-content">
-                <div class="form-check mb-2">
-                  <input class="form-check-input filter-checkbox" type="checkbox" id="stockD1"
-                    [checked]="disponibilidad() === 'stock'"
-                    (change)="alternarDisponibilidad('stock', $any($event.target).checked)" />
-                  <label class="form-check-label" for="stockD1" style="color: #5a5a5a; font-size: 0.95rem;">
-                    En stock
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input filter-checkbox" type="checkbox" id="stockD2"
-                    [checked]="disponibilidad() === 'agotado'"
-                    (change)="alternarDisponibilidad('agotado', $any($event.target).checked)" />
-                  <label class="form-check-label" for="stockD2" style="color: #5a5a5a; font-size: 0.95rem;">
-                    Agotado
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- FILTRO DE PRECIO -->
-          <div class="mb-4">
-            <h6 class="mb-3" style="color: #5a5a5a; font-weight: 600;">Gama de Precios</h6>
-            <div class="row g-2 mb-3">
-              <div class="col-6">
-                <label for="precioMinD" class="form-label small" style="color: #888;">Min</label>
-                <div class="input-group input-group-sm">
-                  <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
-                  <input type="number" class="form-control precio-input" id="precioMinD" value="0" min="0"
-                    [value]="precioMin() ?? ''"
-                    (input)="precioMin.set($any($event.target).value ? +$any($event.target).value : null)" />
-                </div>
-              </div>
-              <div class="col-6">
-                <label for="precioMaxD" class="form-label small" style="color: #888;">Max</label>
-                <div class="input-group input-group-sm">
-                  <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
-                  <input type="number" class="form-control precio-input" id="precioMaxD" value="10000" max="10000"
-                    [value]="precioMax() ?? ''"
-                    (input)="precioMax.set($any($event.target).value ? +$any($event.target).value : null)" />
-                </div>
-              </div>
-            </div>
-            <input type="range" class="form-range" min="0" max="10000" step="100" id="rangoPrecio"
-              [value]="precioMax() ?? 10000" [style.--value]="((precioMax() ?? 10000) / 100) + '%'"
-              (input)="precioMax.set(+$any($event.target).value)" />
-          </div>
-
-          <!-- BOTÓN LIMPIAR -->
-          <button class="btn btn-outline-success w-100 mt-2" (click)="limpiarFiltros()"
-            style="border-radius: 8px; font-weight: 500;">
-            <i class="fas fa-times me-2"></i>Limpiar filtros
-          </button>
-        </div>
+        <app-filtros-catalogo [facetas]="facetas()" [filtro]="filtro()"
+          (filtroChange)="alFiltrar($event)" (atributoAplicado)="alAtributo($event)" />
       </div>
 
       <!-- ÁREA DE PRODUCTOS -->
       <div class="col-lg-9 col-12 pt-4">
-        <!-- HEADER CON CONTADOR Y ORDENAR -->
+        <!-- HEADER CON CONTADOR -->
         <div class="d-flex justify-content-between flex-wrap p-3 align-items-center mb-3 resultados-header">
-          <div>
-            <p class="m-0 fw-bold">
-              {{ visibles().length }} de {{ totalElementos() }} resultados
-            </p>
-          </div>
-          <div class="dropdown">
-            <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="fas fa-sort me-2"></i>Ordenar
-            </button>
-            <ul class="dropdown-menu">
-              <li>
-                <a class="dropdown-item" href="#" (click)="orden.set('relevancia'); $event.preventDefault()">
-                  <i class="fas fa-star me-2"></i>Relevancia
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="#" (click)="orden.set('nombre-asc'); $event.preventDefault()">
-                  <i class="fas fa-sort-alpha-down me-2"></i>Nombre A-Z
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="#" (click)="orden.set('nombre-desc'); $event.preventDefault()">
-                  <i class="fas fa-sort-alpha-up me-2"></i>Nombre Z-A
-                </a>
-              </li>
-              <li><hr class="dropdown-divider" /></li>
-              <li>
-                <a class="dropdown-item" href="#" (click)="orden.set('precio-asc'); $event.preventDefault()">
-                  <i class="fas fa-arrow-up me-2"></i>Precio: Menor a Mayor
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="#" (click)="orden.set('precio-desc'); $event.preventDefault()">
-                  <i class="fas fa-arrow-down me-2"></i>Precio: Mayor a Menor
-                </a>
-              </li>
-            </ul>
-          </div>
+          <p class="m-0 fw-bold">{{ totalElementos() }} resultados</p>
         </div>
 
-        <!-- GRID DE PRODUCTOS -->
-        @if (visibles().length) {
+        @if (cargandoProductos()) {
+          <app-cargando />
+        } @else if (productos().length) {
           <div class="row mt-3" id="productos-container">
-            @for (p of visibles(); track p.id) {
+            @for (p of productos(); track p.id) {
               <div class="col-lg-4 col-md-6 col-12 mb-4 producto-item producto-col d-flex">
                 <app-producto-card [producto]="p" />
               </div>
@@ -245,9 +85,6 @@
           <div class="alert alert-info text-center mt-3">
             <i class="fas fa-info-circle me-2"></i>
             <strong>No se encontraron productos</strong> que coincidan con los filtros seleccionados.
-            <br />
-            <small>Intenta ajustar los filtros o <a href="#" (click)="limpiarFiltros(); $event.preventDefault()">limpiar
-                todos</a></small>
           </div>
         }
       </div>
@@ -256,103 +93,18 @@
 </div>
 
 <!-- OFFCANVAS PARA FILTROS EN MÓVIL -->
-<div class="offcanvas offcanvas-start offcanvas-filtros" tabindex="-1" id="offcanvasFiltros"
-  aria-labelledby="offcanvasFiltrosLabel">
-  <div class="offcanvas-header" style="background-color: #198754; color: white;">
-    <h5 class="offcanvas-title" id="offcanvasFiltrosLabel">
-      <i class="fas fa-filter me-2"></i>Filtros
-    </h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body p-0">
-    <div class="filtros-container">
-      <!-- FILTRO DE MARCA -->
-      <div class="mb-4">
-        <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMarcaMobile">
-          Marca
-          <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
-        </button>
-        <div class="collapse show" id="collapseMarcaMobile">
-          <div class="filtro-content">
-            @for (m of marcas(); track m.id) {
-              <div class="form-check mb-2">
-                <input class="form-check-input filter-checkbox" type="checkbox" [id]="'marcaM' + m.id"
-                  [checked]="marcasSeleccionadas().has(m.id)"
-                  (change)="alternarMarca(m.id, $any($event.target).checked)" />
-                <label class="form-check-label" [for]="'marcaM' + m.id" style="color: #5a5a5a; font-size: 0.95rem;">
-                  {{ m.name }}
-                </label>
-              </div>
-            } @empty {
-              <p class="text-muted small mb-0">No hay marcas disponibles</p>
-            }
-          </div>
-        </div>
-      </div>
-
-      <!-- FILTRO DE DISPONIBILIDAD -->
-      <div class="mb-4">
-        <button class="filtro-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStockMobile">
-          Disponibilidad
-          <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
-        </button>
-        <div class="collapse" id="collapseStockMobile">
-          <div class="filtro-content">
-            <div class="form-check mb-2">
-              <input class="form-check-input filter-checkbox" type="checkbox" id="stockM1"
-                [checked]="disponibilidad() === 'stock'"
-                (change)="alternarDisponibilidad('stock', $any($event.target).checked)" />
-              <label class="form-check-label" for="stockM1" style="color: #5a5a5a; font-size: 0.95rem;">
-                En stock
-              </label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input filter-checkbox" type="checkbox" id="stockM2"
-                [checked]="disponibilidad() === 'agotado'"
-                (change)="alternarDisponibilidad('agotado', $any($event.target).checked)" />
-              <label class="form-check-label" for="stockM2" style="color: #5a5a5a; font-size: 0.95rem;">
-                Agotado
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- FILTRO DE PRECIO -->
-      <div class="mb-4">
-        <h6 class="mb-3" style="color: #5a5a5a; font-weight: 600;">Gama de Precios</h6>
-        <div class="row g-2 mb-3">
-          <div class="col-6">
-            <label for="precioMinM" class="form-label small" style="color: #888;">Min</label>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
-              <input type="number" class="form-control precio-input" id="precioMinM" value="0" min="0"
-                [value]="precioMin() ?? ''"
-                (input)="precioMin.set($any($event.target).value ? +$any($event.target).value : null)" />
-            </div>
-          </div>
-          <div class="col-6">
-            <label for="precioMaxM" class="form-label small" style="color: #888;">Max</label>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text" style="background: white; border-color: #e0e0e0;">S/</span>
-              <input type="number" class="form-control precio-input" id="precioMaxM" value="10000" max="10000"
-                [value]="precioMax() ?? ''"
-                (input)="precioMax.set($any($event.target).value ? +$any($event.target).value : null)" />
-            </div>
-          </div>
-        </div>
-        <input type="range" class="form-range" min="0" max="10000" step="100" id="rangoPrecioMobile"
-          [value]="precioMax() ?? 10000" [style.--value]="((precioMax() ?? 10000) / 100) + '%'"
-          (input)="precioMax.set(+$any($event.target).value)" />
-      </div>
-
-      <!-- BOTONES -->
-      <button class="btn btn-success w-100 mb-2" data-bs-dismiss="offcanvas">
-        <i class="fas fa-check me-2"></i>Aplicar Filtros
-      </button>
-      <button class="btn btn-outline-success w-100" (click)="limpiarFiltros()">
-        <i class="fas fa-times me-2"></i>Limpiar filtros
-      </button>
+@if (!cargandoCategoria() && !noEncontrada()) {
+  <div class="offcanvas offcanvas-start offcanvas-filtros" tabindex="-1" id="offcanvasFiltros"
+    aria-labelledby="offcanvasFiltrosLabel">
+    <div class="offcanvas-header" style="background-color: #198754; color: white;">
+      <h5 class="offcanvas-title" id="offcanvasFiltrosLabel">
+        <i class="fas fa-filter me-2"></i>Filtros
+      </h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+      <app-filtros-catalogo [facetas]="facetas()" [filtro]="filtro()"
+        (filtroChange)="alFiltrar($event)" (atributoAplicado)="alAtributo($event)" />
     </div>
   </div>
-</div>
+}

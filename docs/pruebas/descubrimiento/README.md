@@ -9,6 +9,27 @@ python docs/pruebas/descubrimiento/ejecutar.py          una pasada
 python docs/pruebas/descubrimiento/ejecutar.py --dos    dos pasadas desde cero
 ```
 
+## Recorridos de búsqueda y categoría
+
+El mismo aislamiento (proyecto Compose `smartzone-e2e`, base vacía, `down -v` al
+terminar), otro flujo: comprobar que la **búsqueda y la navegación por categoría
+filtran, ordenan y paginan en el SERVIDOR**, no en el navegador.
+
+```
+python docs/pruebas/descubrimiento/ejecutar_busqueda.py
+```
+
+Dos recorridos con Chromium propio:
+
+1. Inicio → buscar → filtrar por marca → ordenar por precio → paginar → ficha → carrito.
+2. Categoría → filtrar por atributo → ordenar → paginar → ficha.
+
+Se comprueban invariantes, no listas: el total es el del conjunto entero (no el
+de la página), el filtro y el orden viajan en la petición (`marcaId`,
+`atributo`, `orden`, `page`), lo ordenado llega ya ordenado de la base, y los
+filtros quedan en la URL para poder compartirla. El paso de carrito inicia
+sesión con el administrador que ya siembra la pila; no hace falta pago real.
+
 Cada pasada levanta la pila con el proyecto Compose `smartzone-e2e`, volúmenes
 propios y una base **vacía**, recorre, y la destruye con `down -v`. Por eso una
 pasada no puede depender de restos de la anterior; `--dos` lo demuestra.
