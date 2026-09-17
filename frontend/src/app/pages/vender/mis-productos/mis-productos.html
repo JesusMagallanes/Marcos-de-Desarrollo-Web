@@ -60,7 +60,22 @@
           </div>
 
           <div class="col-12">
-            <label for="p-desc" class="form-label small fw-semibold">Descripción</label>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
+              <label for="p-desc" class="form-label small fw-semibold mb-0">Descripción</label>
+              @if (ia.disponible()) {
+                <button type="button" class="btn btn-sm btn-outline-success" [disabled]="redactando()"
+                  (click)="redactar()">
+                  @if (redactando()) {
+                    <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Redactando…
+                  } @else {
+                    <i class="fa-solid fa-wand-magic-sparkles me-1" aria-hidden="true"></i> Redactar con IA
+                  }
+                </button>
+              }
+            </div>
+            @if (avisoRedaccion()) {
+              <div class="form-text mt-0 mb-1">{{ avisoRedaccion() }}</div>
+            }
             <textarea id="p-desc" class="form-control" rows="2" maxlength="500"
               [value]="descripcion()" (input)="descripcion.set($any($event.target).value)"></textarea>
           </div>
@@ -96,6 +111,7 @@
               [value]="imagenes()" (input)="imagenes.set($any($event.target).value)"></textarea>
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
               <app-subir-imagen etiqueta="Subir foto" tamano="md" (subida)="anadirImagen($event)" />
+              <app-revision-foto class="w-100" [url]="ultimaFoto()" [nombre]="nombre()" />
               <span class="form-text mb-0">La primera es la principal. JPG, PNG o WebP, hasta 5 MB.</span>
             </div>
           </div>
@@ -141,6 +157,7 @@
                 <div class="fw-semibold">{{ p.name }}</div>
                 @if (p.estadoModeracion === 'RECHAZADO' && p.motivoRechazo) {
                   <div class="small text-danger">{{ p.motivoRechazo }}</div>
+                  <app-como-corregir [productoId]="p.id" />
                 }
               </td>
               <td class="text-end">{{ p.precio | currency: 'PEN' : 'S/ ' }}</td>

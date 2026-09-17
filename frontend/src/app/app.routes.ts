@@ -34,6 +34,11 @@ export const routes: Routes = [
     title: 'Búsqueda — SmartZone',
   },
   {
+    path: 'comparar',
+    loadComponent: () => import('./pages/comparar/comparar').then((m) => m.Comparar),
+    title: 'Comparar productos — SmartZone',
+  },
+  {
     path: 'login',
     canActivate: [invitadoGuard],
     loadComponent: () => import('./pages/login/login').then((m) => m.Login),

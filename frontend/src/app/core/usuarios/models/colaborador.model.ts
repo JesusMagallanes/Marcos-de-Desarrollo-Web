@@ -142,3 +142,17 @@ export interface SolicitudAdminResponse extends SolicitudResponse {
 export interface RechazoRequest {
   motivo: string;
 }
+
+/**
+ * Pre-revisión del negocio de una solicitud (IA + reglas). Nunca aprueba ni
+ * rechaza: orienta al administrador. `conIa: false` = solo reglas.
+ *
+ * Al modelo solo le llegan nombre comercial, rubro y descripción; nunca el
+ * documento ni los datos personales.
+ */
+export interface AnalisisSolicitud {
+  riesgo: 'BAJO' | 'MEDIO' | 'ALTO';
+  motivos: string[];
+  sugerencia: string;
+  conIa: boolean;
+}

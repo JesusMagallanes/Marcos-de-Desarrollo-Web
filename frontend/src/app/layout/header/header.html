@@ -64,6 +64,7 @@
             (ngModelChange)="consulta.set($event); panelAbierto.set(true)"
             name="q"
           />
+          <app-buscar-foto />
           <button class="btn boton-lupa" type="submit">
             <i class="fas fa-search"></i>
           </button>
@@ -211,6 +212,7 @@
           (ngModelChange)="consulta.set($event)"
           name="q"
         />
+        <app-buscar-foto />
         <button class="btn boton-lupa" type="submit"><i class="fas fa-search"></i></button>
       </div>
     </form>

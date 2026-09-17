@@ -2,6 +2,21 @@
   <h5 class="mb-1">Resultados para “{{ consulta() }}”</h5>
   <p class="text-muted small mb-4">{{ totalEncontrados() }} productos encontrados</p>
 
+  @if (sugerencia(); as s) {
+    <div class="sugerencia-ia mb-4" role="status">
+      <i class="fa-solid fa-wand-magic-sparkles sugerencia-ia__icono" aria-hidden="true"></i>
+      <div class="flex-grow-1 min-w-0">
+        <div class="sugerencia-ia__titulo">Entendí tu búsqueda así</div>
+        <div class="sugerencia-ia__resumen">{{ s.resumen }}</div>
+      </div>
+      <button type="button" class="btn btn-sm btn-success" (click)="aplicarSugerencia()">Aplicar filtros</button>
+      <button type="button" class="btn btn-sm btn-link text-secondary" aria-label="Descartar sugerencia"
+        (click)="sugerencia.set(null)">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </div>
+  }
+
   <div class="row">
     <!-- FILTROS -->
     <div class="col-lg-3 mb-4">

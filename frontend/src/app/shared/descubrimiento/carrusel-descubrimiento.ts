@@ -113,6 +113,17 @@ export class CarruselDescubrimiento implements AfterViewInit {
     this.haySiguiente.set(el.scrollLeft < tope - 2);
   }
 
+  /** La explicación abierta, por producto. */
+  protected readonly porQue = signal<{ id: number; texto: string } | null>(null);
+
+  protected verPorQue(producto: Producto): void {
+    this.menuAbierto.set(null);
+    this.porQue.set({ id: producto.id, texto: 'Buscando el motivo…' });
+    this.descubrimiento.porQue(producto.id, this.carrusel().modulo).subscribe((r) => {
+      this.porQue.set({ id: producto.id, texto: r?.explicacion ?? 'No pude explicarlo ahora.' });
+    });
+  }
+
   protected alternarMenu(productoId: number): void {
     this.menuAbierto.update((abierto) => (abierto === productoId ? null : productoId));
   }

@@ -96,6 +96,12 @@
           }
         </div>
       </div>
+
+      <!-- Dentro de la columna del carrito: como hijo directo de la fila
+           empujaba el resumen de la orden debajo. -->
+      @if (!vacio()) {
+        <app-complementos-carrito [productoIds]="idsEnCarrito()" />
+      }
     </div>
 
     <!-- Resumen de la orden -->

@@ -20,7 +20,7 @@ referencia. No se arranca.
 - [Decisiones de arquitectura](#decisiones-de-arquitectura) · [Estructura de un servicio](#estructura-de-un-servicio)
 - [La saga de compra](#la-saga-de-compra) · [Resiliencia entre servicios](#resiliencia-entre-servicios)
 - [Roles y alta de colaboradores](#roles-y-alta-de-colaboradores) · [Row Level Security](#row-level-security)
-- [Frontend](#frontend)
+- [IA aplicada](#ia-aplicada) · [Frontend](#frontend)
 - [OWASP Top 10](#owasp-top-10-2021) · [DDoS](#defensa-frente-a-abuso-ddos) · [Métricas](#métricas-de-seguridad)
 - [Pruebas](#pruebas) · [Pendiente](#pendiente)
 
@@ -57,6 +57,7 @@ del código.
 | `FACEBOOK_CLIENT_ID` · `FACEBOOK_CLIENT_SECRET` | No | Vacío = sin botón de Facebook |
 | `MP_ACCESS_TOKEN` | No | Vacío = el checkout responde 503 |
 | `MP_WEBHOOK_SECRET` | No | Ya generado. Pégalo también en el panel de MercadoPago |
+| `GROQ_API_KEY` · `GROQ_MODEL` | No | Vacío = las funciones de IA usan su versión algorítmica. Ver [IA aplicada](#ia-aplicada) |
 | `PAGOEFECTIVO_*` | No | Reservadas; la integración aún no está implementada |
 
 ### Comprobación previa
@@ -352,7 +353,10 @@ retorno no duplica nada.
 
 ### Resiliencia entre servicios
 
-`compras → catálogo` es la única llamada saliente, y va con:
+`compras → catálogo` es la llamada de la que depende una venta, y va con lo de abajo. Las otras
+salidas son secundarias y fallan en cerrado sin arrastrar nada: `catálogo → compras` (¿lo compró?,
+y los pedidos propios para el chat, con el token de la persona y timeouts de 3 s / 5 s) y la del
+proveedor de IA (ver [IA aplicada](#ia-aplicada), con su propio cortacircuitos). La de la venta va con:
 
 - **Timeouts** explícitos (3 s conexión / 5 s lectura).
 - **Reintentos** con espera exponencial, solo en operaciones idempotentes. Un 4xx (sin stock)
@@ -542,6 +546,128 @@ escriben en el log, que además permite revisar el texto sin mandar nada a nadie
 > Para Gmail hace falta una **contraseña de aplicación** (16 caracteres), no la de la cuenta:
 > verificación en dos pasos activada → [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
 > → generar una para «Correo». La contraseña normal la rechaza Google desde 2022.
+
+## IA aplicada
+
+La rama `mobile` trajo un chatbot con **Groq**, hecho sobre el monolito. Aquí esa idea se lleva a
+los microservicios y a **todo el negocio**, no solo al chat: la IA interviene donde hay texto que
+leer o escribir y una persona que se ahorra trabajo con ello. Se mantiene Groq como proveedor
+—el que eligió el equipo— detrás de la API de chat de OpenAI, así que cambiar a OpenAI, Together o
+un Ollama local es cambiar `GROQ_API_URL` y `GROQ_MODEL`, no código.
+
+| Dónde | Para quién | Qué hace la IA | Sin IA |
+|---|---|---|---|
+| Chat de la tienda (`catalogo`) | cliente | Entiende la pregunta **con la conversación previa** («¿y en 16 GB?»), **busca en el catálogo real** y responde recomendando productos de esa búsqueda | Reglas por palabras clave, como antes |
+| Chat: «¿dónde está mi pedido?» | cliente con sesión | Consulta sus pedidos en `compras` **con su propio token** y los explica | Reglas |
+| Ficha: «Pregúntale a este producto» | cliente | Responde con la ficha, las características y las reseñas; si no consta, lo dice | No aparece |
+| `/comparar` | cliente | Explica las diferencias de 2–3 productos para el uso que diga y cuál encaja mejor | La tabla sale igual, sin explicación |
+| Carrito: «Completa tu compra» | cliente | Elige accesorios entre los productos relacionados, con su porqué | No aparece |
+| Reseñas: «Ideas para tu reseña» | cliente con sesión | Propone **preguntas** para escribir mejor; nunca redacta la opinión | No aparece |
+| Carruseles: «¿Por qué lo veo?» | cliente | Redacta la razón a partir de coincidencias reales con **su** perfil | Frase de plantilla con las mismas señales |
+| Búsqueda por foto (icono de cámara) | cliente | El modelo de visión describe el producto y eso se convierte en filtros; la foto no se guarda | No aparece |
+| Subir foto de producto | tienda, vendedor | Revisa si la foto es del producto, marcas de agua, teléfonos, y propone texto alternativo | No aparece |
+| Producto rechazado | vendedor | Convierte el motivo del moderador en pasos para corregir | Se ve el motivo |
+| Búsqueda (`/buscar`) | cliente | Convierte «laptop para jugar que no pase de 4000» en categoría, marca, precio, atributos y orden reales, y lo **ofrece** con un botón | La búsqueda por texto de siempre |
+| Ficha de producto | cliente | Resume las reseñas aprobadas: a favor, en contra | No aparece el bloque |
+| Formulario de producto (panel y colaborador) | tienda, vendedor | Redacta un borrador de descripción y especificaciones con el vocabulario de atributos de la categoría | No aparece el botón |
+| Moderación de productos | personal | Riesgo y motivos: réplica, descripción que no encaja, precio anómalo… | Solo las reglas: contacto externo, precio fuera de rango, intento de manipulación |
+| Moderación de reseñas | personal | Insultos, spam, calificación que contradice el texto | Solo reglas |
+| Solicitudes para vender (`usuarios`) | administrador | Si el negocio descrito encaja en una tienda de tecnología | Solo reglas |
+
+`compras` no lleva IA, y es una decisión: ahí se decide dinero y stock, que tienen que ser
+deterministas y auditables. Un modelo que «casi siempre» calcula bien un total no sirve. El chat
+**lee** pedidos de `compras` pero no cambia nada, y por la misma razón la IA no añade al carrito, no
+toca precios ni descuentos y no crea pedidos: una inyección de prompt que consiguiera colarse se
+quedaría en un texto raro, nunca en una acción.
+
+**Memoria del chat.** La guarda el navegador y viaja con cada mensaje (8 turnos como mucho); el
+servidor no almacena conversaciones. Como la escribe el cliente, cada turno pasa por la guardia y
+uno sospechoso se descarta; un «asistente» del historial no se cree más que un «usuario».
+
+**Pedidos en el chat.** Al modelo solo le llegan número, fecha, estado, productos, total, estado del
+envío y distrito. El resumen se arma campo a campo sobre la respuesta de `compras`: si mañana esa
+respuesta gana un dato personal, no llega al modelo sin que alguien lo añada a mano.
+
+**Imágenes.** La búsqueda por foto y la revisión de fotos usan un modelo con visión
+(`GROQ_VISION_MODEL`). La imagen va incrustada en la petición, nunca como enlace; la revisión solo
+acepta fotos ya alojadas en la tienda —descargar una URL cualquiera desde el servidor sería SSRF— y
+la búsqueda por foto valida los bytes y no guarda nada.
+
+### Cuatro principios, en código y no en promesas
+
+1. **El modelo propone; el sistema valida contra datos reales.** El chat solo puede recomendar
+   productos de la lista que le dio el servidor, y las tarjetas que ve el cliente salen de la base
+   —con su precio y stock—, no del texto del modelo: un id que no estaba se descarta. La búsqueda
+   solo aplica categorías, marcas y atributos que existen, y si la propuesta no encuentra nada se
+   relaja (primero el texto libre, luego los atributos) antes de dejar la pantalla vacía. El
+   resumen que ve el cliente lo compone el servidor con lo que se aplicó de verdad.
+2. **Asiste, no decide.** Ningún análisis aprueba, rechaza ni oculta nada: orienta a una persona,
+   que es la que queda en la auditoría. La búsqueda interpretada se ofrece con un botón, no se
+   aplica sola. Los borradores de ficha rellenan el formulario y se revisan antes de guardar.
+3. **Sin clave, todo funciona.** `ClienteIa` devuelve vacío si no hay `GROQ_API_KEY`, si el
+   proveedor falla o si la respuesta no es un JSON válido, y cada función cae a su versión
+   algorítmica. Tras tres fallos seguidos deja de llamar un minuto (cortacircuitos), para que un
+   proveedor caído no haga lenta la tienda. `GET /api/ia/estado` le dice al frontend si enseñar los
+   botones.
+4. **Inyección de prompts: estructura primero, lista después.** La `PromptSecurityFilter` de
+   `mobile` era una lista negra tan ancha que bloqueaba «¿la impresora imprime…?» (`print`), «--» o
+   «escape». `GuardiaPrompt` solo marca frases que intentan cambiar las reglas del modelo (tras
+   normalizar NFKC, que desarma el truco de las letras de ancho completo), y la defensa de verdad es
+   otra: todo texto de terceros va **delimitado** en etiquetas que no puede cerrar, el sistema
+   declara que lo delimitado son datos, el modelo no tiene herramientas ni permisos, y lo que
+   devuelve se valida y **se escapa** antes de llegar al HTML. Un texto que intenta manipular al
+   revisor de moderación no se le envía al modelo: es por sí mismo un riesgo ALTO.
+
+### Privacidad
+
+- **Al modelo no le llegan datos personales.** Las reseñas se resumen sin nombres. De una solicitud
+  para vender solo viajan nombre comercial, rubro y descripción; el tipo `NegocioParaRevision` no
+  tiene campo para el documento, el titular, el teléfono ni el domicilio, así que añadirlos al
+  prompt exige cambiar el tipo, no «una línea más».
+- **Ni prompts ni respuestas en el log.** Solo la función, el resultado y el tiempo, en
+  `smartzone_ia_total{funcion,resultado}` y `smartzone_ia_segundos{funcion}`.
+
+### Coste y abuso
+
+Cupo propio `ia` de 20 peticiones por minuto por IP en `catalogo` (cada llamada al proveedor cuesta
+dinero). El resumen de reseñas se guarda con una huella de las reseñas que lo produjeron: la ficha,
+que es la página más visitada, solo llama al modelo cuando cambian. Los análisis de moderación se
+piden con un botón, no al abrir la bandeja. Ninguna llamada al modelo ocurre dentro de una
+transacción: el chat dejó de ser `@Transactional` para no retener una conexión del pool mientras
+espera al proveedor.
+
+### Estructura
+
+`ClienteIa` y `GuardiaPrompt` viven en `shared/ia` de `catalogo` y `usuarios`, idénticas, y el
+guardián de copias del CI (`verificar-duplicados.sh`) falla si divergen. Las funciones de negocio
+están junto a lo que asisten: `catalogo/ia/` (intérprete, redactor, revisor, resumen, `IaController`
+en `/api/ia/**`), `catalogo/chatbot/AsistenteChat` y `usuarios/colaborador/RevisorSolicitudes`
+(`GET /api/colaboradores/solicitudes/{id}/analisis-ia`).
+
+> **Funciones de interacción, verificadas extremo a extremo.** Con `catalogo`, `usuarios` y `compras`
+> arrancados contra la base real y un proveedor falso con el protocolo de Groq (texto y visión):
+> 21/21 comprobaciones — memoria del chat delimitada, autor de historial inventado rechazado,
+> pedidos sin sesión, preguntar a la ficha, comparar con recomendación válida, complementos sin ids
+> inventados, ayuda de reseña solo con sesión, «por qué» genérico en módulos colectivos, revisión
+> de foto con la imagen incrustada al modelo de visión, URL externa rechazada, búsqueda por foto con
+> bytes validados y «cómo corregir» solo para colaboradores. 
+>
+> **Pedidos en el chat, con pedidos de verdad.** Los tres servicios contra una base Postgres
+> desechable (contenedor) con dos pedidos de clientes distintos, y el envío con receptor, teléfono,
+> calle y referencia: 8/8 comprobaciones. El chat contesta con el número real; al modelo le llegan
+> número, fecha, estado, producto, total, envío y distrito, y **nada** de receptor, teléfono, calle,
+> referencia ni el pedido del otro cliente; sin sesión o con un token inválido no se consulta nada.
+>
+> **Qué está verificado y qué no.** Las pruebas cubren el cliente contra un servidor HTTP que imita
+> a Groq, la validación de cada respuesta, la guardia y la caída a reglas. `catalogo` y `usuarios` se
+> arrancaron contra la base real sin `GROQ_API_KEY` (todo cae a reglas, permisos correctos) y
+> `catalogo` además contra un proveedor falso con el protocolo de Groq: la búsqueda descartó la
+> marca y el atributo inventados y relajó el texto que dejaba cero resultados, y el chat descartó un
+> id inexistente y escapó el HTML del modelo. Ese recorrido destapó un fallo que las unitarias no
+> veían: el cuerpo salía con `Transfer-Encoding: chunked` y sin `Content-Length`, y la IA fallaba
+> siempre en silencio; ahora se envía con longitud fija y la prueba lo exige. **No se ha probado
+> con una clave real**: antes de publicarlo conviene revisar la calidad de las respuestas del modelo
+> por defecto (`llama-3.3-70b-versatile`, que admite modo JSON).
 
 ## Row Level Security
 

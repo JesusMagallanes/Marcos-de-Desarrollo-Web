@@ -132,6 +132,13 @@ public class SecurityConfig {
                                 "/api/valoraciones/top")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/chatbot/**").permitAll()
+                        // IA aplicada: lo que usa un visitante es público; redactar y
+                        // moderar exigen permiso en el propio controlador y caen en
+                        // `.anyRequest().authenticated()`.
+                        .requestMatchers(HttpMethod.GET, "/api/ia/estado",
+                                "/api/ia/productos/*/resumen-resenas").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/ia/busqueda/**", "/api/ia/comparar",
+                                "/api/ia/carrito/complementos", "/api/ia/productos/*/preguntar").permitAll()
                         /*
                          * Descubrimiento: publico A PROPOSITO, lecturas y escrituras.
                          *

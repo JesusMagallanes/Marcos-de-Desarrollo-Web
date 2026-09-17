@@ -127,6 +127,10 @@
                 <app-ubicacion [soloLectura]="true" [coordenadas]="ubicacionDe(s)" />
 
                 <p class="small mt-3 mb-0">{{ s.descripcion }}</p>
+                @if (s.estado === 'PENDIENTE') {
+                  <!-- Solo evalúa el negocio; la identidad se revisa con los documentos. -->
+                  <app-analisis-ia class="mt-2" tipo="solicitud" [id]="s.id" />
+                }
               </div>
 
               <div class="col-12 col-xl-6">

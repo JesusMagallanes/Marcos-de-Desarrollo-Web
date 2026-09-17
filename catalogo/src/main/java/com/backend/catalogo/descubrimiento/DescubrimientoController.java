@@ -30,6 +30,7 @@ import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.IngestaRespons
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.InteresResponse;
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.LoteEventosRequest;
 import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.LoteImpresionesRequest;
+import com.backend.catalogo.descubrimiento.dto.DescubrimientoDtos.PorQueResponse;
 import com.backend.catalogo.shared.seguridad.JwtUtils;
 
 import com.backend.catalogo.shared.metricas.MetricasSeguridad;
@@ -89,6 +90,7 @@ public class DescubrimientoController {
     private final MetricasSeguridad seguridad;
     private final IpCliente ipCliente;
     private final PesosDescubrimiento pesos;
+    private final ExplicadorRecomendacion explicador;
 
     /* ══════════════ Escritura ══════════════ */
 
@@ -226,6 +228,31 @@ public class DescubrimientoController {
         UUID sujeto = resolver(jwt, sujetoDelCliente, firmaDelCliente, ubigeo);
         return vacioSiFalta(ModuloDescubrimiento.LO_MAS_VISTO_EN_TU_ZONA,
                 recomendador.tendenciasDeZona(sujeto, ubigeo, limite, new LinkedHashSet<>()));
+    }
+
+    /**
+     * «¿Por qué veo esto?» para una tarjeta de recomendación.
+     *
+     * <p>Usa el perfil de quien pregunta —resuelto igual que el resto: JWT o
+     * identificador firmado— y nada más. Ver {@link ExplicadorRecomendacion}.
+     *
+     * <p>Como en {@link #similares}, el sujeto NO se crea aquí: quien pregunta sin
+     * JWT ni identificador recibe la explicación genérica, en vez de estrenar
+     * una identidad —y una fila— por pedir un «por qué».
+     */
+    @GetMapping("/por-que/{itemId}")
+    public PorQueResponse porQue(
+            @PathVariable @Positive Long itemId,
+            @RequestParam(required = false)
+            @Pattern(regexp = "^[A-Z_]{1,40}$", message = "Módulo no válido") String modulo,
+            @RequestHeader(value = "X-Sujeto", required = false) UUID sujetoDelCliente,
+            @RequestHeader(value = CABECERA_FIRMA, required = false) String firmaDelCliente,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        UUID sujeto = (jwt != null || sujetoDelCliente != null)
+                ? resolver(jwt, sujetoDelCliente, firmaDelCliente, null)
+                : null;
+        return explicador.explicar(sujeto, itemId, modulo);
     }
 
     /* ══════════════ Control del propio perfil ══════════════ */

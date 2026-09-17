@@ -1,0 +1,32 @@
+:host {
+  display: block;
+}
+
+.analisis-ia {
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #e3e8e5;
+  border-left: 3px solid #06b56c;
+  border-radius: 0.5rem;
+  background: #f8faf9;
+  font-size: 0.8rem;
+  white-space: normal;
+}
+
+.analisis-ia__fuente {
+  color: #6b7a70;
+  font-size: 0.72rem;
+}
+
+.analisis-ia__motivos {
+  margin: 0.25rem 0 0.35rem;
+  padding-left: 1.1rem;
+}
+
+.analisis-ia__sugerencia {
+  color: #16251c;
+}
+
+.analisis-ia__boton {
+  white-space: nowrap;
+}

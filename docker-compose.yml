@@ -134,6 +134,10 @@ services:
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_REMITENTE: ${MAIL_REMITENTE:-}
+      # IA aplicada: pre-revision de solicitudes. Opcional.
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      GROQ_VISION_MODEL: ${GROQ_VISION_MODEL:-meta-llama/llama-4-scout-17b-16e-instruct}
     # Documentos de identidad de los colaboradores. En un volumen y no dentro
     # del contenedor porque si no se perderian en cada despliegue, y con ellos
     # la prueba de que la identidad se verifico. No lo monta nadie mas: solo
@@ -165,6 +169,11 @@ services:
       # porque el gusto colectivo no cambia por minutos.
       DESCUBRIMIENTO_COLABORATIVO_INTERVALO_MS: ${DESCUBRIMIENTO_COLABORATIVO_INTERVALO_MS:-3600000}
       DESCUBRIMIENTO_COLABORATIVO_RETRASO_INICIAL_MS: ${DESCUBRIMIENTO_COLABORATIVO_RETRASO_INICIAL_MS:-180000}
+      # IA aplicada: chat, busqueda en lenguaje natural, fichas, moderacion y
+      # resumen de resenas. Opcional: sin clave, todo cae a su version algoritmica.
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      GROQ_VISION_MODEL: ${GROQ_VISION_MODEL:-meta-llama/llama-4-scout-17b-16e-instruct}
     # Fotos de producto subidas desde el panel. En un volumen para que
     # sobrevivan a un despliegue: se sirven por /api/productos/imagenes/**.
     volumes:

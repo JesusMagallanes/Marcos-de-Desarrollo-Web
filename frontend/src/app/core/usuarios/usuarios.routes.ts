@@ -34,6 +34,7 @@ export const RUTAS_USUARIOS = {
     adjunto: (id: number) => `${API}/colaboradores/solicitudes/adjuntos/${id}`,
     aprobar: (id: number) => `${API}/colaboradores/solicitudes/${id}/aprobar`,
     rechazar: (id: number) => `${API}/colaboradores/solicitudes/${id}/rechazar`,
+    analisisIa: (id: number) => `${API}/colaboradores/solicitudes/${id}/analisis-ia`,
   },
 
   roles: {

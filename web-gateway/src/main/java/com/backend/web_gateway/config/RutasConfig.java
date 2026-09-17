@@ -48,6 +48,8 @@ public class RutasConfig {
                 .route(path("/api/sync/**"), http())
                 // Descubrimiento: eventos, recomendaciones y tendencias.
                 .route(path("/api/descubrimiento/**"), http())
+                // IA aplicada: búsqueda en lenguaje natural, fichas, moderación, reseñas.
+                .route(path("/api/ia/**"), http())
                 .before(uri(catalogoUrl))
                 .build();
     }

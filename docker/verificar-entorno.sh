@@ -99,6 +99,7 @@ opcional "FACEBOOK_CLIENT_ID" "${FACEBOOK_CLIENT_ID:-}" "Login con Facebook"
 opcional "MP_ACCESS_TOKEN"   "${MP_ACCESS_TOKEN:-}"   "Cobros con MercadoPago"
 opcional "MP_WEBHOOK_SECRET" "${MP_WEBHOOK_SECRET:-}" "Verificacion de webhooks"
 opcional "MP_NOTIFICACION_URL" "${MP_NOTIFICACION_URL:-}" "Aviso de cobro (webhook)"
+opcional "GROQ_API_KEY"      "${GROQ_API_KEY:-}"      "IA aplicada (chat, busqueda, moderacion)"
 
 # El cobro se hace y la tienda no se entera, sin un solo error por ninguna
 # parte. Se avisa aqui porque es lo unico que se lee antes de arrancar, y

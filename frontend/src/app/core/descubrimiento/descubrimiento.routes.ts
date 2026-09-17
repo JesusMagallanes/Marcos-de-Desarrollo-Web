@@ -16,6 +16,8 @@ export const RUTAS_DESCUBRIMIENTO = {
   home: `${API}/descubrimiento/home`,
   segunIntereses: `${API}/descubrimiento/segun-intereses`,
   similares: (itemId: number) => `${API}/descubrimiento/similares/${itemId}`,
+  /** «¿Por qué veo esto?» sobre una tarjeta; usa el perfil de quien pregunta. */
+  porQue: (itemId: number) => `${API}/descubrimiento/por-que/${itemId}`,
   tendencias: `${API}/descubrimiento/tendencias`,
   /** Derechos de acceso y cancelación sobre el propio perfil. */
   misIntereses: `${API}/descubrimiento/mis-intereses`,

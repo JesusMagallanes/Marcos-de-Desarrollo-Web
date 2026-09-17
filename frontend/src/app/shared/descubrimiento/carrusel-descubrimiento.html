@@ -62,10 +62,22 @@
 
           @if (menuAbierto() === p.id) {
             <div class="carrusel-desc__menu">
+              <button type="button" (click)="verPorQue(p)">
+                <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+                ¿Por qué lo veo?
+              </button>
               <button type="button" (click)="noMeInteresa(p)">
                 <i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
                 No me interesa
               </button>
+            </div>
+          }
+
+          @if (porQue()?.id === p.id) {
+            <div class="carrusel-desc__porque" role="status">
+              {{ porQue()!.texto }}
+              <button type="button" class="btn-close btn-close-sm" aria-label="Cerrar explicación"
+                (click)="porQue.set(null)"></button>
             </div>
           }
 

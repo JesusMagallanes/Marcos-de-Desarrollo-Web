@@ -1,0 +1,43 @@
+/* Estilo compartido de los bloques de IA: se distinguen del contenido de la tienda. */
+
+:host {
+  display: block;
+}
+
+.ia-bloque {
+  padding: 0.85rem 1rem;
+  border: 1px solid #cdeedd;
+  border-radius: 0.75rem;
+  background: #f1fbf6;
+}
+
+.ia-bloque__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  color: #16251c;
+}
+
+.ia-bloque__titulo .fa-wand-magic-sparkles {
+  color: #06b56c;
+}
+
+.ia-respuesta {
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #fff;
+  border: 1px solid #e3e8e5;
+}
+
+.ia-nota {
+  margin-top: 0.35rem;
+  font-size: 0.7rem;
+  color: #6b7a70;
+}
+
+.ia-chip {
+  font-size: 0.75rem;
+  border-radius: 999px;
+}

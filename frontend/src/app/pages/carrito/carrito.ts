@@ -1,3 +1,4 @@
+import { ComplementosCarrito } from '../../shared/ia/complementos-carrito';
 import { ImagenCaida } from '../../shared/imagen/imagen-caida';
 import { Cargando } from '../../shared/cargando/cargando';
 import { ElegirDireccion } from '../../shared/direccion/elegir-direccion';
@@ -25,7 +26,7 @@ import {
 
 @Component({
   selector: 'app-carrito',
-  imports: [RouterLink, CurrencyPipe, Cargando, ElegirDireccion, ImagenCaida],
+  imports: [RouterLink, CurrencyPipe, Cargando, ElegirDireccion, ImagenCaida, ComplementosCarrito],
   templateUrl: './carrito.html',
   styleUrl: './carrito.css',
 })
@@ -103,6 +104,8 @@ export class Carrito implements OnInit, OnDestroy {
   protected total = this.carrito.total;
   protected faltaParaEnvioGratis = this.carrito.faltaParaEnvioGratis;
   protected vacio = computed(() => this.carrito.items().length === 0);
+  /** Lo que hay en el carrito, para los complementos con IA. */
+  protected idsEnCarrito = computed(() => this.carrito.items().map((i) => i.productId));
 
   ngOnInit(): void {
     this.carrito.obtener().subscribe({

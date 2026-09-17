@@ -1,3 +1,5 @@
+import { AyudaResena } from '../../shared/ia/ayuda-resena';
+import { PreguntaProducto } from '../../shared/ia/pregunta-producto';
 import { ImagenCaida } from '../../shared/imagen/imagen-caida';
 import { Cargando } from '../../shared/cargando/cargando';
 import { CarruselDescubrimiento } from '../../shared/descubrimiento';
@@ -10,10 +12,13 @@ import {
   Carrusel,
   DescubrimientoService,
   CarritoService,
+  ComparacionService,
   ErrorApi,
+  IaService,
   nombreCompleto,
   Producto,
   ProductoService,
+  ResumenResenas,
   Valoracion,
   ValoracionService,
 } from '../../core';
@@ -57,7 +62,7 @@ const ESTRELLAS = [1, 2, 3, 4, 5] as const;
 
 @Component({
   selector: 'app-producto-detalle',
-  imports: [RouterLink, DatePipe, Cargando, ImagenCaida, CarruselDescubrimiento],
+  imports: [RouterLink, DatePipe, Cargando, ImagenCaida, CarruselDescubrimiento, PreguntaProducto, AyudaResena],
   templateUrl: './producto-detalle.html',
   styleUrl: './producto-detalle.css',
 })
@@ -69,6 +74,21 @@ export class ProductoDetalle implements OnDestroy {
   private carrito = inject(CarritoService);
   private auth = inject(AuthService);
   private descubrimiento = inject(DescubrimientoService);
+  private ia = inject(IaService);
+  protected comparacion = inject(ComparacionService);
+  protected avisoComparar = signal('');
+
+  /** Añade o quita de la comparación; con tres ya elegidos, lo dice. */
+  protected alternarComparar(p: Producto): void {
+    const ok = this.comparacion.alternar({ id: p.id, name: p.name, imageUrl: p.imageUrl ?? null });
+    this.avisoComparar.set(ok ? '' : 'Ya tienes 3 productos para comparar. Quita uno primero.');
+  }
+
+  /** Una pregunta sugerida se añade al borrador como pie para contestar. */
+  protected usarIdeaResena(pregunta: string): void {
+    const actual = this.comentario().trim();
+    this.comentario.set((actual ? actual + '\n' : '') + pregunta + ' ');
+  }
 
   protected cargando = signal(true);
   protected noEncontrado = signal(false);
@@ -89,6 +109,8 @@ export class ProductoDetalle implements OnDestroy {
 
   /* ── valoraciones ── */
   protected valoraciones = signal<Valoracion[]>([]);
+  /** Resumen con IA de las reseñas aprobadas; null si no hay IA o hay menos de tres. */
+  protected resumenResenas = signal<ResumenResenas | null>(null);
   protected miValoracion = signal<Valoracion | null>(null);
   protected valoracionesCargadas = signal(false);
   protected calificacion = signal(0);
@@ -214,6 +236,7 @@ export class ProductoDetalle implements OnDestroy {
     this.cantidad.set(1);
     this.imagenActiva.set(0);
     this.valoraciones.set([]);
+    this.resumenResenas.set(null);
     this.miValoracion.set(null);
     this.valoracionesCargadas.set(false);
 
@@ -251,6 +274,10 @@ export class ProductoDetalle implements OnDestroy {
       next: ({ lista, mia }) => {
         this.valoraciones.set(lista);
         this.miValoracion.set(mia);
+        // Solo se pide si hay de qué: con menos de tres el backend no resume.
+        if (lista.length >= 3) {
+          this.ia.resumenResenas(id).subscribe((r) => this.resumenResenas.set(r));
+        }
         this.valoracionesCargadas.set(true);
         if (mia) {
           this.calificacion.set(mia.calificacion);

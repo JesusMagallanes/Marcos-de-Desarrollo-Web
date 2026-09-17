@@ -37,7 +37,7 @@ localizar() {
 }
 
 echo "── Clases que deben permanecer idénticas ──"
-for clase in IpCliente CorsConfig; do
+for clase in IpCliente CorsConfig ClienteIa GuardiaPrompt; do
     mapfile -t copias < <(localizar "$clase")
     if [ "${#copias[@]}" -lt 2 ]; then
         echo "  [?] $clase: solo ${#copias[@]} copia(s); nada que comparar"

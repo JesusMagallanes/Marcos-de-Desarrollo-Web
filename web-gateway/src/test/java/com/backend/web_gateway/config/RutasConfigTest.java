@@ -76,6 +76,8 @@ class RutasConfigTest {
             "/api/sync/valoraciones",
             "/api/descubrimiento/home",
             "/api/descubrimiento/eventos",
+            "/api/ia/estado",
+            "/api/ia/busqueda/interpretar",
             "/api/auth/login",
             "/api/usuarios/1",
             "/api/roles",

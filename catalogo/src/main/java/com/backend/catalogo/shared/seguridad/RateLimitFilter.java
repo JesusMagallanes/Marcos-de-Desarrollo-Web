@@ -34,6 +34,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private static final Cupo CHATBOT = new Cupo("chatbot", 30, Duration.ofMinutes(1));
+
+    /**
+     * Las funciones de IA cuestan dinero por llamada al proveedor. Sin cupo
+     * propio, el general de lectura (600/min) permitiría a un solo cliente
+     * gastar el presupuesto del mes en una tarde.
+     */
+    private static final Cupo IA = new Cupo("ia", 20, Duration.ofMinutes(1));
     private static final Cupo INVENTARIO = new Cupo("inventario", 600, Duration.ofMinutes(1));
     private static final Cupo ESCRITURA = new Cupo("escritura", 120, Duration.ofMinutes(1));
     private static final Cupo LECTURA = new Cupo("lectura", 600, Duration.ofMinutes(1));
@@ -88,6 +95,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         if (ruta.startsWith("/api/chatbot/")) {
             return CHATBOT;
+        }
+        // El estado no llama al modelo: no gasta el cupo de IA.
+        // «¿Por qué veo esto?» vive en descubrimiento, pero también llama al modelo.
+        if ((ruta.startsWith("/api/ia/") && !ruta.equals("/api/ia/estado"))
+                || ruta.startsWith("/api/descubrimiento/por-que/")) {
+            return IA;
         }
         // Solo las escrituras: leer las reseñas de una ficha es tráfico normal
         // de la tienda y va por el cupo de LECTURA. La moderación del panel

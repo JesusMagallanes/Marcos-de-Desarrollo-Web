@@ -41,16 +41,17 @@ src/app/
 ├── core/
 │   ├── shared/       transversal: config, errores, paginación, guards, interceptores
 │   ├── usuarios/     :8082  rutas + modelos + services de identidad
-│   ├── catalogo/     :8081  productos, categorías, marcas, chatbot
+│   ├── catalogo/     :8081  productos, categorías, marcas, chatbot, IA aplicada
 │   └── compras/      :8083  carrito, pedidos, pagos, envíos
-├── layout/           header, footer, chatbot
-├── pages/            home, categoria, producto-detalle, buscar, carrito, login,
+├── layout/           header, footer, chatbot, barra-comparacion
+├── pages/            home, categoria, producto-detalle, buscar, carrito, comparar, login,
 │                     perfil/{cuenta,mis-compras}, envios,
 │                     admin/{productos,categorias,marcas,usuarios,metodos-pago},
 │                     estaticas, no-encontrado
 └── shared/           producto-card, filtros-catalogo (rail de filtros compartido),
                       descubrimiento (carrusel de recomendaciones + directiva de impresión),
-                      imagen (ImagenCaida y el botón SubirImagen de las fotos de producto)
+                      imagen (ImagenCaida y el botón SubirImagen de las fotos de producto),
+                      ia (componentes de IA aplicada, ver abajo)
 ```
 
 Cada carpeta de servicio contiene **sus rutas, sus modelos y sus services**. Las páginas
@@ -68,6 +69,34 @@ La categoría dejó de filtrar en el navegador los doce productos cargados; el d
 «Búsqueda y navegación por categoría» del [README de la raíz](../README.md#frontend).
 
 Todas las rutas usan `loadComponent`, así que un visitante anónimo no descarga el panel admin.
+
+## IA aplicada
+
+Todo pasa por `IaService` (y `ColaboradorService.analizar`, `DescubrimientoService.porQue`,
+`ChatbotService.enviar` con historial). El diseño completo está en la sección
+[IA aplicada](../README.md#ia-aplicada) del README de la raíz; aquí, lo propio del frontend:
+
+- **`IaService.disponible()`** decide si se pintan los botones. Mientras no se sabe, es `false`:
+  no se ofrece nada que no vaya a funcionar.
+- **204 no es un error.** Las lecturas devuelven `null` cuando la IA no aporta; las funciones de
+  cliente (interpretar, resumen, complementos, ayuda de reseña, revisión de foto) además tragan
+  sus errores, porque son mejoras. Las que tienen a alguien esperando una respuesta concreta
+  (preguntar a la ficha, redactar, comparar, cómo corregir) propagan el `ErrorApi`.
+- **Nada se aplica solo.** La búsqueda interpretada se ofrece con un botón, los borradores rellenan
+  el formulario, las preguntas de reseña se añaden como pie, los análisis se piden a demanda.
+
+| Componente (`shared/ia`) | Dónde |
+|---|---|
+| `AnalisisIa` | bandejas de moderación de productos, reseñas y solicitudes |
+| `PreguntaProducto` · `AyudaResena` | ficha de producto |
+| `ComplementosCarrito` | carrito |
+| `RevisionFoto` | formulario de producto del panel y del colaborador |
+| `ComoCorregir` | «Mis productos», en los rechazados |
+| `BuscarFoto` | barra de búsqueda del header |
+
+La lista de comparación (`ComparacionService`) vive en `localStorage`, como mucho 3 productos, y
+la página `/comparar?ids=1,2,3` se puede compartir. La memoria del chat son los últimos 8 turnos
+en texto plano: el HTML de las respuestas se quita con `DOMParser`, no con una expresión regular.
 
 ## Interceptores
 

@@ -89,6 +89,13 @@ export interface Carrusel {
   items: Producto[];
 }
 
+/** «¿Por qué veo esto?». `senales` son coincidencias con el propio perfil, nunca de otras personas. */
+export interface PorQue {
+  explicacion: string;
+  senales: string[];
+  conIa: boolean;
+}
+
 export interface HomeDescubrimiento {
   /** El identificador que el visitante anónimo debe conservar. */
   sujetoId: string;

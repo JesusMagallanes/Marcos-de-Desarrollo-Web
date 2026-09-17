@@ -137,4 +137,14 @@ public final class DescubrimientoDtos {
     public record IngestaResponse(UUID sujetoId, String firma, int registrados,
             int descartados) {
     }
+
+    /**
+     * «¿Por qué veo esto?».
+     *
+     * @param senales las coincidencias reales entre el producto y el perfil de
+     *     quien pregunta («Categoría: Laptops»); nunca datos de otras personas
+     * @param conIa si la frase la redactó el modelo o es la plantilla fija
+     */
+    public record PorQueResponse(String explicacion, java.util.List<String> senales, boolean conIa) {
+    }
 }

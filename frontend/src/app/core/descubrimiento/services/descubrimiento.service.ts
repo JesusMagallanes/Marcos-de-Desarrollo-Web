@@ -8,6 +8,7 @@ import {
   HomeDescubrimiento,
   ImpresionRequest,
   IngestaResponse,
+  PorQue,
   TipoItem,
 } from '../models';
 
@@ -274,6 +275,16 @@ export class DescubrimientoService {
         // El usuario no tiene por qué enterarse de que hay un recomendador.
         catchError(() => of(null)),
       );
+  }
+
+  /** «¿Por qué veo esto?». Con las cabeceras del sujeto: la explicación sale de SU perfil. */
+  porQue(productoId: number, modulo: string): Observable<PorQue | null> {
+    return this.http
+      .get<PorQue>(RUTAS_DESCUBRIMIENTO.porQue(productoId), {
+        params: new HttpParams().set('modulo', modulo),
+        headers: this.cabeceras(),
+      })
+      .pipe(catchError(() => of(null)));
   }
 
   /** Relacionados con un producto. No necesita sujeto: van por contenido. */

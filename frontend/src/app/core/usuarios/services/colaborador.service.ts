@@ -4,6 +4,7 @@ import { Observable, map } from 'rxjs';
 import { RUTAS_USUARIOS } from '../usuarios.routes';
 import {
   AdjuntoResponse,
+  AnalisisSolicitud,
   EstadoSolicitud,
   RechazoRequest,
   SolicitudAdminResponse,
@@ -88,6 +89,11 @@ export class ColaboradorService {
     return this.http.get<SolicitudAdminResponse[]>(RUTAS_USUARIOS.colaboradores.solicitudes, {
       params,
     });
+  }
+
+  /** GET /{id}/analisis-ia — pre-revisión del negocio; solo orienta, no decide. */
+  analizar(id: number): Observable<AnalisisSolicitud> {
+    return this.http.get<AnalisisSolicitud>(RUTAS_USUARIOS.colaboradores.analisisIa(id));
   }
 
   /** POST /{id}/aprobar — cambia el rol del usuario en la misma transacción. */

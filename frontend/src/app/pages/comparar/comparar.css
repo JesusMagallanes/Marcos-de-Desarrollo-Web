@@ -1,0 +1,18 @@
+.explicacion {
+  padding: 0.9rem 1rem;
+  border: 1px solid #cdeedd;
+  border-radius: 0.75rem;
+  background: #f1fbf6;
+}
+
+.tabla-comparar img {
+  object-fit: contain;
+}
+
+.tabla-comparar th[scope='row'] {
+  width: 180px;
+}
+
+.tabla-comparar .recomendado {
+  background: #f1fbf6;
+}

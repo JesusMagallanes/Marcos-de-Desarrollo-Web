@@ -2,12 +2,14 @@ import { Cargando } from '../../shared/cargando/cargando';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Params, ParamMap, Router, RouterLink } from '@angular/router';
 import {
+  BusquedaInterpretada,
   DescubrimientoService,
   FacetasCatalogo,
   FiltroCatalogo,
   OrdenCatalogo,
   Producto,
   ProductoService,
+  IaService,
   filtroVacio,
   fusionarFacetas,
 } from '../../core';
@@ -34,6 +36,16 @@ export class Buscar {
   private router = inject(Router);
   private productoService = inject(ProductoService);
   private descubrimiento = inject(DescubrimientoService);
+  private ia = inject(IaService);
+
+  /**
+   * Lo que la IA entendió de una búsqueda escrita como frase.
+   *
+   * Se OFRECE, no se aplica solo: «laptop para jugar barata» puede querer decir
+   * lo que la IA cree o no, y cambiarle a alguien los resultados sin preguntar
+   * es la forma más rápida de que deje de fiarse del buscador.
+   */
+  protected sugerencia = signal<BusquedaInterpretada | null>(null);
 
   private static readonly POR_PAGINA = 24;
 
@@ -69,6 +81,7 @@ export class Buscar {
       // además descarta el término repetido.
       if (termino !== this.terminoResuelto) {
         this.terminoResuelto = termino;
+        this.sugerir(termino, this.filtro());
         this.descubrimiento.busqueda(termino);
         this.universo.set(null);
         this.productoService.facetas({ buscar: termino }).subscribe({
@@ -104,6 +117,48 @@ export class Buscar {
       next: (c) => this.conteos.set(c),
       error: () => this.conteos.set(null),
     });
+  }
+
+  /**
+   * Solo con frases (tres palabras o más) y sin filtros puestos: «monitor» ya
+   * lo resuelve el buscador de siempre, y si alguien filtró a mano no se le
+   * ofrece deshacerlo.
+   */
+  private sugerir(termino: string, filtro: FiltroCatalogo): void {
+    this.sugerencia.set(null);
+    const palabras = termino.trim().split(/\s+/).filter(Boolean).length;
+    const conFiltros = JSON.stringify(filtro) !== JSON.stringify(filtroVacio());
+    if (palabras < 3 || conFiltros) {
+      return;
+    }
+    this.ia.interpretar(termino).subscribe((s) => {
+      // Si mientras tanto la persona cambió de búsqueda, la respuesta vieja no vale.
+      if (s?.resumen && this.consulta() === termino) {
+        this.sugerencia.set(s);
+      }
+    });
+  }
+
+  /** Lleva a la categoría sugerida (o a la búsqueda) con los filtros entendidos, por la URL. */
+  protected aplicarSugerencia(): void {
+    const s = this.sugerencia();
+    if (!s) return;
+    const q: Params = {};
+    if (s.precioMin != null) q['precioMin'] = s.precioMin;
+    if (s.precioMax != null) q['precioMax'] = s.precioMax;
+    if (s.marcaIds.length) q['marca'] = s.marcaIds;
+    if (s.atributos.length) q['atr'] = s.atributos;
+    if (s.soloDisponibles) q['disp'] = 1;
+    if (s.orden !== 'relevancia') q['orden'] = s.orden;
+    this.sugerencia.set(null);
+
+    if (s.categoriaSlug) {
+      if (s.texto) q['q'] = s.texto;
+      this.router.navigate(['/categoria', s.categoriaSlug], { queryParams: q });
+    } else {
+      q['q'] = s.texto ?? '';
+      this.router.navigate(['/buscar'], { queryParams: q });
+    }
   }
 
   /* ── Interacción: todo pasa por la URL ── */

@@ -1,8 +1,16 @@
 import { Producto } from './producto.model';
 
 /** Servicio `catalogo` (:8081). Endpoint público. */
+export interface TurnoChat {
+  autor: 'usuario' | 'asistente';
+  /** Texto plano: el HTML de las respuestas se quita antes de mandarlo. */
+  texto: string;
+}
+
 export interface MensajeChat {
   mensaje: string;
+  /** Últimos turnos, para que el asistente entienda «¿y en 16 GB?». Máximo 8. */
+  historial?: TurnoChat[];
 }
 
 export type TipoRespuestaChat =
@@ -15,6 +23,7 @@ export type TipoRespuestaChat =
   | 'saludo'
   | 'gracias'
   | 'ayuda'
+  | 'ia'
   | 'error';
 
 export interface RespuestaChat {

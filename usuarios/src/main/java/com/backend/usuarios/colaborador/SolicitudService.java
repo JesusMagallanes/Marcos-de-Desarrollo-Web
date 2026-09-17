@@ -16,6 +16,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.backend.usuarios.colaborador.dto.SolicitudDtos.NegocioParaRevision;
 import com.backend.usuarios.colaborador.dto.SolicitudDtos.RechazoRequest;
 import com.backend.usuarios.colaborador.dto.SolicitudDtos.SolicitudAdminResponse;
 import com.backend.usuarios.colaborador.dto.SolicitudDtos.SolicitudRequest;
@@ -438,6 +439,13 @@ public class SolicitudService {
 
     private static String vacioComoNulo(String valor) {
         return (valor == null || valor.isBlank()) ? null : valor;
+    }
+
+    /** Solo los datos del negocio, para la pre-revisión con IA. Ver {@link NegocioParaRevision}. */
+    public NegocioParaRevision negocioParaRevision(Long id) {
+        SolicitudColaborador s = buscar(id);
+        return new NegocioParaRevision(s.getTipoPersona(), s.getNombreComercial(), s.getRubro(),
+                s.getDescripcion());
     }
 
     private SolicitudColaborador buscar(Long id) {

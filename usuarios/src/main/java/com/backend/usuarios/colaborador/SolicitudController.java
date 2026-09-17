@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.backend.usuarios.colaborador.dto.SolicitudDtos.AnalisisSolicitud;
 import com.backend.usuarios.colaborador.dto.SolicitudDtos.RechazoRequest;
 import com.backend.usuarios.colaborador.dto.SolicitudDtos.SolicitudAdminResponse;
 import com.backend.usuarios.colaborador.dto.SolicitudDtos.SolicitudRequest;
@@ -45,6 +46,7 @@ import lombok.RequiredArgsConstructor;
 public class SolicitudController {
 
     private final SolicitudService servicio;
+    private final RevisorSolicitudes revisor;
 
     /* ── Adjuntos de identidad ── */
 
@@ -121,6 +123,16 @@ public class SolicitudController {
     public List<SolicitudAdminResponse> listar(
             @RequestParam(required = false) EstadoSolicitud estado) {
         return servicio.listar(estado);
+    }
+
+    /**
+     * Pre-revisión del negocio con IA (y reglas si no hay modelo). Solo orienta:
+     * aprobar y rechazar siguen siendo decisiones del administrador.
+     */
+    @GetMapping("/{id}/analisis-ia")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public AnalisisSolicitud analizar(@PathVariable @Positive Long id) {
+        return revisor.analizar(id);
     }
 
     @PostMapping("/{id}/aprobar")

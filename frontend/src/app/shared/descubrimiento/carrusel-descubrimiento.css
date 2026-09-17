@@ -237,3 +237,28 @@
     scroll-behavior: auto;
   }
 }
+
+/* «¿Por qué lo veo?»: encima de la tarjeta, sin moverla. */
+.carrusel-desc__porque {
+  position: absolute;
+  left: 0.4rem;
+  right: 0.4rem;
+  top: 2.7rem;
+  z-index: 3;
+  display: flex;
+  gap: 0.4rem;
+  align-items: flex-start;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #cdeedd;
+  border-radius: 0.5rem;
+  background: #f1fbf6;
+  font-size: 0.78rem;
+  color: #16251c;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 12%);
+}
+
+.carrusel-desc__porque .btn-close {
+  flex-shrink: 0;
+  width: 0.6rem;
+  height: 0.6rem;
+}

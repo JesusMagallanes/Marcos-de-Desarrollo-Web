@@ -264,3 +264,31 @@
     padding: 5px 10px;
   }
 }
+
+/* Resumen de reseñas con IA: se distingue de las reseñas, no se hace pasar por una. */
+.resumen-resenas {
+  padding: 1rem 1.1rem;
+  border: 1px solid #cdeedd;
+  border-radius: 0.75rem;
+  background: #f1fbf6;
+}
+
+.resumen-resenas__titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+  font-weight: 700;
+  color: #16251c;
+}
+
+.resumen-resenas__titulo .fa-wand-magic-sparkles {
+  color: #06b56c;
+}
+
+.resumen-resenas__nota {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: #6b7a70;
+}

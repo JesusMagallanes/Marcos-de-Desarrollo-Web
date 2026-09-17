@@ -1,3 +1,4 @@
+import { AnalisisIa } from '../../../shared/ia/analisis-ia';
 import { Cargando } from '../../../shared/cargando/cargando';
 import { Coordenadas, Ubicacion } from '../../../shared/ubicacion/ubicacion';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
@@ -19,7 +20,7 @@ import {
  */
 @Component({
   selector: 'app-admin-solicitudes',
-  imports: [DatePipe, Cargando, Ubicacion],
+  imports: [DatePipe, Cargando, Ubicacion, AnalisisIa],
   templateUrl: './admin-solicitudes.html',
   styleUrl: './admin-solicitudes.css',
 })

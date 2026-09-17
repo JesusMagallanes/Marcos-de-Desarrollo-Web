@@ -290,6 +290,24 @@ public final class SolicitudDtos {
      * solicitante no debe viajar nunca hacia el propio usuario: ya sabe quién
      * es, y devolverlo solo amplía lo que se expone sin motivo.
      */
+    /**
+     * Lo único de una solicitud que se le enseña a un modelo de lenguaje.
+     *
+     * <p>Deliberadamente sin documento, nombre del titular, representante, fecha
+     * de nacimiento, teléfono ni domicilio: para juzgar si un negocio encaja en
+     * la tienda no hace falta saber quién es la persona, y esos datos no deben
+     * salir hacia un proveedor externo. La minimización empieza aquí, en el tipo,
+     * para que nadie pueda «añadir un campo más al prompt» sin cambiarlo.
+     */
+    public record NegocioParaRevision(TipoPersona tipoPersona, String nombreComercial, String rubro,
+            String descripcion) {
+    }
+
+    /** Pre-revisión para el administrador: nunca aprueba ni rechaza. */
+    public record AnalisisSolicitud(String riesgo, List<String> motivos, String sugerencia,
+            boolean conIa) {
+    }
+
     public record SolicitudAdminResponse(
             Long id,
             EstadoSolicitud estado,

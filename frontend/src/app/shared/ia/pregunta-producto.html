@@ -1,0 +1,42 @@
+@if (ia.disponible()) {
+  <section class="ia-bloque" aria-label="Pregúntale a este producto">
+    <div class="ia-bloque__titulo">
+      <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Pregúntale a este producto
+    </div>
+
+    <form class="d-flex gap-2" (submit)="$event.preventDefault(); preguntar()">
+      <label for="pregunta-producto" class="visually-hidden">Tu pregunta sobre el producto</label>
+      <input id="pregunta-producto" class="form-control form-control-sm" maxlength="300"
+        placeholder="¿Sirve para jugar? ¿Trae cargador?" [value]="pregunta()"
+        (input)="pregunta.set($any($event.target).value)" />
+      <button type="submit" class="btn btn-sm btn-success text-nowrap" [disabled]="preguntando() || !pregunta().trim()">
+        @if (preguntando()) {
+          <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        } @else {
+          Preguntar
+        }
+      </button>
+    </form>
+
+    @if (!respuesta() && !preguntando()) {
+      <div class="d-flex flex-wrap gap-1 mt-2">
+        @for (e of ejemplos; track e) {
+          <button type="button" class="btn btn-sm btn-light border ia-chip" (click)="usarEjemplo(e)">{{ e }}</button>
+        }
+      </div>
+    }
+
+    @if (respuesta(); as r) {
+      <div class="ia-respuesta mt-2" role="status">
+        <p class="mb-1">{{ r.respuesta }}</p>
+        @if (!r.consta) {
+          <div class="small text-body-secondary">¿Necesitas confirmarlo? Pregúntale al asistente del chat o escríbenos.</div>
+        }
+        <div class="ia-nota">Respondido con IA a partir de la ficha y las reseñas.</div>
+      </div>
+    }
+    @if (error()) {
+      <div class="small text-danger mt-2" role="alert">{{ error() }}</div>
+    }
+  </section>
+}

@@ -1,3 +1,5 @@
+import { RevisionFoto } from '../../../shared/ia/revision-foto';
+import { ComoCorregir } from '../../../shared/ia/como-corregir';
 import { Cargando } from '../../../shared/cargando/cargando';
 import { SubirImagen } from '../../../shared/imagen/subir-imagen';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
@@ -7,6 +9,7 @@ import {
   Categoria,
   CategoriaService,
   ErrorApi,
+  IaService,
   ImagenSubida,
   Marca,
   MarcaService,
@@ -24,7 +27,7 @@ import {
  */
 @Component({
   selector: 'app-mis-productos',
-  imports: [RouterLink, CurrencyPipe, Cargando, SubirImagen],
+  imports: [RouterLink, CurrencyPipe, Cargando, SubirImagen, ComoCorregir, RevisionFoto],
   templateUrl: './mis-productos.html',
   styleUrl: './mis-productos.css',
 })
@@ -51,8 +54,52 @@ export class MisProductos implements OnInit {
   protected marcaId = signal<number | null>(null);
   protected imagenes = signal('');
 
+  protected ia = inject(IaService);
+  protected redactando = signal(false);
+  protected avisoRedaccion = signal('');
+
+  /**
+   * Borrador de descripción con IA a partir del nombre, la categoría y lo ya
+   * escrito. Revisarlo es cosa del vendedor, y además pasa por moderación.
+   */
+  protected redactar(): void {
+    const categoriaId = this.categoriaId();
+    if (!this.nombre().trim() || !categoriaId) {
+      this.avisoRedaccion.set('Escribe el nombre y elige la categoría primero.');
+      return;
+    }
+    this.redactando.set(true);
+    this.avisoRedaccion.set('');
+    this.ia
+      .redactar({
+        nombre: this.nombre().trim(),
+        categoriaId,
+        marcaId: this.marcaId(),
+        notas: this.descripcion().trim() || null,
+      })
+      .subscribe({
+        next: (r) => {
+          this.redactando.set(false);
+          if (!r) {
+            this.avisoRedaccion.set('La IA no pudo redactar ahora. Inténtalo en un momento.');
+            return;
+          }
+          this.descripcion.set(r.descripcion);
+          this.avisoRedaccion.set('Borrador listo: revísalo antes de guardar.');
+        },
+        error: (e: ErrorApi) => {
+          this.redactando.set(false);
+          this.avisoRedaccion.set(e.mensaje);
+        },
+      });
+  }
+
+  /** La última foto subida, para que la IA la revise. */
+  protected ultimaFoto = signal<string | null>(null);
+
   /** Una foto subida se añade como una línea más; la primera sigue siendo la principal. */
   protected anadirImagen(imagen: ImagenSubida): void {
+    this.ultimaFoto.set(imagen.url);
     const actual = this.imagenes().trim();
     this.imagenes.set(actual ? `${actual}
 ${imagen.url}` : imagen.url);

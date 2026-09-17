@@ -1,0 +1,66 @@
+<div class="container py-4">
+  <h1 class="h4 mb-3">Comparar productos</h1>
+
+  @if (cargando()) {
+    <app-cargando />
+  } @else if (comparacion(); as c) {
+    @if (ia.disponible()) {
+      <section class="explicacion mb-4" aria-label="Explicación con IA">
+        <form class="d-flex flex-wrap gap-2 align-items-center" (submit)="$event.preventDefault(); explicar()">
+          <label for="uso-comparar" class="fw-semibold small mb-0">
+            <i class="fa-solid fa-wand-magic-sparkles text-success me-1" aria-hidden="true"></i>¿Para qué lo quieres?
+          </label>
+          <input id="uso-comparar" class="form-control form-control-sm flex-grow-1" maxlength="200"
+            placeholder="Estudiar y ver series, jugar, editar video…" [value]="uso()"
+            (input)="uso.set($any($event.target).value)" />
+          <button type="submit" class="btn btn-sm btn-success" [disabled]="explicando()">
+            @if (explicando()) {
+              <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+            }
+            Explicar diferencias
+          </button>
+        </form>
+        @if (c.explicacion) {
+          <p class="mt-3 mb-1">{{ c.explicacion }}</p>
+          <div class="small text-body-secondary">Explicación con IA a partir de la tabla. Comprueba los datos antes de decidir.</div>
+        }
+      </section>
+    }
+
+    <div class="table-responsive">
+      <table class="table align-middle tabla-comparar">
+        <thead>
+          <tr>
+            <th scope="col"><span class="visually-hidden">Característica</span></th>
+            @for (p of c.productos; track p.id) {
+              <th scope="col" class="text-center" [class.recomendado]="c.recomendadoId === p.id">
+                @if (c.recomendadoId === p.id) {
+                  <span class="badge text-bg-success mb-1">Encaja mejor</span>
+                }
+                <a [routerLink]="['/producto', p.id]" class="d-block text-decoration-none text-reset">
+                  <img [src]="imagenDe(p)" [alt]="p.name" width="96" height="96" loading="lazy" />
+                  <div class="fw-semibold small mt-1">{{ p.name }}</div>
+                </a>
+                <button type="button" class="btn btn-sm btn-link text-secondary" (click)="quitar(p.id)">Quitar</button>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of c.filas; track f.caracteristica) {
+            <tr>
+              <th scope="row" class="small text-body-secondary">{{ f.caracteristica }}</th>
+              @for (v of f.valores; track $index) {
+                <td class="text-center small" [class.recomendado]="c.recomendadoId === c.productos[$index].id">{{ v }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-light border">
+      {{ error() }} <a routerLink="/" class="link-success">Volver a la tienda</a>
+    </div>
+  }
+</div>

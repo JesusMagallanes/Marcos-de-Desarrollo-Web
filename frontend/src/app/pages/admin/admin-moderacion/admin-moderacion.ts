@@ -1,3 +1,4 @@
+import { AnalisisIa } from '../../../shared/ia/analisis-ia';
 import { Cargando } from '../../../shared/cargando/cargando';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
@@ -11,7 +12,7 @@ import { ErrorApi, EstadoModeracion, Producto, ProductoService } from '../../../
  */
 @Component({
   selector: 'app-admin-moderacion',
-  imports: [CurrencyPipe, Cargando],
+  imports: [CurrencyPipe, Cargando, AnalisisIa],
   templateUrl: './admin-moderacion.html',
 })
 export class AdminModeracion implements OnInit {

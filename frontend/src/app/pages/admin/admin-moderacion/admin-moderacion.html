@@ -53,6 +53,7 @@
             }
 
             @if (p.estadoModeracion === 'PENDIENTE') {
+              <app-analisis-ia class="mb-2" tipo="producto" [id]="p.id" />
               @if (pidiendoMotivo() === p.id) {
                 <textarea class="form-control form-control-sm mb-2" rows="2" maxlength="500"
                   placeholder="Las fotos no son del producto que describe."

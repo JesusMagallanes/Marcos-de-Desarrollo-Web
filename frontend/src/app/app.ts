@@ -1,3 +1,4 @@
+import { BarraComparacion } from './layout/barra-comparacion/barra-comparacion';
 import { Component, computed, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -10,7 +11,7 @@ import { LoginModal } from './shared/login-modal/login-modal';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Header, Footer, Chatbot, EstadoConexion, LoginModal],
+  imports: [RouterOutlet, Header, Footer, Chatbot, EstadoConexion, LoginModal, BarraComparacion],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

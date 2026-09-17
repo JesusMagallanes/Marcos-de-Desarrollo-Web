@@ -1,3 +1,4 @@
+import { RevisionFoto } from '../../../shared/ia/revision-foto';
 import { ImagenCaida } from '../../../shared/imagen/imagen-caida';
 import { SubirImagen } from '../../../shared/imagen/subir-imagen';
 import { Cargando } from '../../../shared/cargando/cargando';
@@ -11,6 +12,7 @@ import {
   CategoriaService,
   ErrorApi,
   EstadoPeticion,
+  IaService,
   ImagenSubida,
   Marca,
   MarcaService,
@@ -21,7 +23,7 @@ import {
 
 @Component({
   selector: 'app-admin-productos',
-  imports: [ReactiveFormsModule, CurrencyPipe, Cargando, ImagenCaida, SubirImagen],
+  imports: [ReactiveFormsModule, CurrencyPipe, Cargando, ImagenCaida, SubirImagen, RevisionFoto],
   templateUrl: './admin-productos.html',
   styleUrl: '../admin-tabla.css',
 })
@@ -30,6 +32,10 @@ export class AdminProductos implements OnInit, OnDestroy {
   private productoService = inject(ProductoService);
   private categoriaService = inject(CategoriaService);
   private marcaService = inject(MarcaService);
+  protected ia = inject(IaService);
+
+  protected redactando = signal(false);
+  protected avisoRedaccion = signal('');
 
   /** Cargando, error y aviso en un solo objeto; ver EstadoPeticion. */
   protected estado = new EstadoPeticion();
@@ -102,8 +108,54 @@ export class AdminProductos implements OnInit, OnDestroy {
     this.form.controls.imagenes.removeAt(indice);
   }
 
+  /**
+   * Borrador de descripción y especificaciones con IA.
+   *
+   * Lo ya escrito viaja como notas, así que sirve tanto para empezar de cero
+   * como para ordenar un texto a medias. Reemplaza los dos campos —es lo que se
+   * pidió con el botón— y la persona revisa antes de guardar: la IA puede
+   * equivocarse con un dato técnico, y por eso se le pide omitir lo que no sepa.
+   */
+  protected redactar(): void {
+    const v = this.form.getRawValue();
+    if (!v.name?.trim() || !v.categoriaId) {
+      this.avisoRedaccion.set('Escribe el nombre y elige la categoría primero.');
+      return;
+    }
+    const notas = [v.description, v.specifications].filter((t) => t?.trim()).join('\n');
+    this.redactando.set(true);
+    this.avisoRedaccion.set('');
+    this.ia
+      .redactar({
+        nombre: v.name.trim(),
+        categoriaId: +v.categoriaId,
+        marcaId: v.marcaId ? +v.marcaId : null,
+        notas: notas ? notas.slice(0, 1000) : null,
+      })
+      .subscribe({
+        next: (r) => {
+          this.redactando.set(false);
+          if (!r) {
+            this.avisoRedaccion.set('La IA no pudo redactar esta ficha ahora. Inténtalo en un momento.');
+            return;
+          }
+          this.form.patchValue({ description: r.descripcion, specifications: r.especificaciones });
+          this.form.markAsDirty();
+          this.avisoRedaccion.set('Borrador listo: revisa los datos técnicos antes de guardar.');
+        },
+        error: (e: ErrorApi) => {
+          this.redactando.set(false);
+          this.avisoRedaccion.set(e.mensaje);
+        },
+      });
+  }
+
+  /** La última foto subida, para que la IA la revise. */
+  protected ultimaFoto = signal<string | null>(null);
+
   /** La foto recién subida ocupa la casilla desde la que se subió. */
   protected ponerImagen(indice: number, imagen: ImagenSubida): void {
+    this.ultimaFoto.set(imagen.url);
     const control = this.form.controls.imagenes.at(indice);
     control.setValue(imagen.url);
     control.markAsDirty();

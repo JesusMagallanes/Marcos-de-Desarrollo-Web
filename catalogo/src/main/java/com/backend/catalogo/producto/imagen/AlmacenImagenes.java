@@ -168,6 +168,15 @@ public class AlmacenImagenes {
         }
     }
 
+    /**
+     * El tipo MIME de una imagen según sus primeros bytes, o vacío si no es JPG,
+     * PNG ni WebP. Para quien necesita validar una imagen sin guardarla (la
+     * búsqueda por foto).
+     */
+    public static Optional<String> tipoDe(byte[] contenido) {
+        return contenido == null ? Optional.empty() : Formato.detectar(contenido).map(Formato::mime);
+    }
+
     /** La raíz del almacén, para que la purga pueda recorrerlo. */
     public Path raiz() {
         return raiz;

@@ -117,6 +117,32 @@ region) es latencia pura: unos 35 viajes secuenciales a ~100 ms. Bajarlo mas
 exige reorganizar el pipeline (menos consultas o modulos en paralelo), no un
 arreglo local.
 
+### QUINTA revision (2026-09-16) - IA aplicada
+
+La IA de la rama `mobile` (chatbot con Groq sobre el monolito) se llevo a los
+microservicios y a todo el negocio. Detalle en README, «IA aplicada». Lo que
+salio al construirlo y probarlo:
+
+| # | Hallazgo | Servicio | Estado |
+|---|----------|----------|--------|
+| T | El `PromptSecurityFilter` de `mobile` bloqueaba mensajes normales («imprime», «--», «escape», «type c») | monolito → catalogo/usuarios | **FIX** - `GuardiaPrompt`: solo frases de manipulacion; la defensa principal es estructural (delimitar, validar, escapar) |
+| U | El cliente de IA mandaba el cuerpo con `Transfer-Encoding: chunked` y sin `Content-Length`: la IA fallaba siempre y todo caia a reglas sin avisar. Solo se vio con un proveedor falso de extremo a extremo | catalogo + usuarios | **FIX** - JSON serializado con longitud fija; `ClienteIaTest` lo exige |
+| V | `ChatbotService` era `@Transactional` de clase: con IA habria retenido una conexion del pool (10) mientras espera al proveedor | catalogo | **FIX** - sin transaccion de clase; cada consulta abre la suya |
+| W | «¿Por que lo veo?» creaba un sujeto por peticion anonima sin identificador | catalogo | **FIX** - como `similares`: sin JWT ni identificador, explicacion generica y ninguna fila |
+| X | «Completa tu compra» daba 500 si un producto del carrito no tenia relacionados: `similares` devuelve `null`, no un carrusel vacio | catalogo | **FIX** - se salta ese producto; `FuncionesInteraccionTest.sinRelacionados` |
+| Y | La pantalla «Cargando SmartZone» espera a que no quede ninguna peticion HTTP abierta, y las llamadas de IA que se lanzan solas (resumen de resenas, interpretar la busqueda, complementos) tardan segundos: la tienda ya lista quedaba tapada hasta que respondia el modelo | frontend | **FIX** - `IaService` las lanza cuando la aplicacion queda estable; `ia.service.spec` lo comprueba |
+
+Verificado despues (2026-09-17):
+- **Pruebas de integracion** con Docker Desktop encendido: catalogo 270, compras 16,
+  usuarios 4; ninguna saltada, ninguna fallida.
+- **Chat con pedidos reales** en una base desechable: responde con el numero del
+  pedido propio y al modelo no le llegan receptor, telefono, calle, referencia ni
+  pedidos de otro cliente (8/8).
+
+Pendiente real: **no se ha probado con una clave de Groq**, solo con un proveedor
+falso que habla el mismo protocolo (texto y vision). En el repositorio no hay
+ninguna clave; hace falta `GROQ_API_KEY` en el `.env`.
+
 ### CRITICOS - tercera revision (CI en rojo)
 
 Salieron cuando CI ejecuto `verify` por primera vez de verdad. **Ninguno lo
@@ -141,6 +167,8 @@ una **V12** nueva y la V11 quedo como estaba.
   y el build sale **verde con 0 ejecutadas** (15 en catalogo, 14 en compras). Las
   migraciones V11 y V17 y el `@Formula` de `Guia` **no estan validados contra
   Postgres real** en local. En CI (`ubuntu-latest`) si deberian correr.
+  *Resuelto:* `docker.api.version=1.41` en los `pom.xml`; el 2026-09-17 corrieron
+  las 290 en local, en verde.
 
 ### CRITICOS - primera revision
 

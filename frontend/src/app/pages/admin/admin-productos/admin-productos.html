@@ -116,6 +116,21 @@
         <input class="form-control form-control-sm" id="prod-name" formControlName="name" [class.is-invalid]="invalido('name')" />
       </div>
 
+      @if (ia.disponible()) {
+        <div class="redactar-ia mb-2">
+          <button type="button" class="btn btn-sm btn-outline-success" [disabled]="redactando()" (click)="redactar()">
+            @if (redactando()) {
+              <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Redactando…
+            } @else {
+              <i class="fa-solid fa-wand-magic-sparkles me-1" aria-hidden="true"></i> Redactar con IA
+            }
+          </button>
+          <span class="form-text mb-0">
+            {{ avisoRedaccion() || 'Con nombre y categoría escribe descripción y especificaciones. Revísalas antes de guardar.' }}
+          </span>
+        </div>
+      }
+
       <div class="mb-2">
         <label for="prod-description" class="form-label small fw-semibold">Descripción</label>
         <textarea
@@ -198,6 +213,7 @@
           </button>
           <span class="form-text mb-0">La primera es la principal. JPG, PNG o WebP, hasta 5 MB.</span>
         </div>
+        <app-revision-foto [url]="ultimaFoto()" [nombre]="form.controls.name.value" />
       </div>
 
       <div class="row g-2">

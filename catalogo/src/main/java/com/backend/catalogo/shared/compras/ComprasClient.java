@@ -1,10 +1,13 @@
 package com.backend.catalogo.shared.compras;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -13,7 +16,8 @@ import org.springframework.web.client.RestClientException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Lo único que este servicio le pregunta a `compras`.
+ * Lo que este servicio le pregunta a `compras`: si alguien compró un producto
+ * (para valorarlo) y, para el chat, sus propios pedidos.
  *
  * <p><b>Por qué existe.</b> Solo quien compró un producto puede valorarlo, y la
  * única fuente de verdad de eso son los pedidos, que viven en el otro servicio.
@@ -88,5 +92,37 @@ public class ComprasClient {
             log.warn("No se pudo comprobar la compra del producto {}: {}", productoId, ex.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Los pedidos y envíos de quien pregunta, en bruto, para el asistente del chat.
+     *
+     * <p>Con el token de la propia persona: {@code compras} aplica sus permisos y
+     * su RLS, así que es imposible que el chat vea pedidos ajenos. Vacío si
+     * {@code compras} no responde; el asistente lo dice en vez de inventar.
+     */
+    public Optional<PedidosDelCliente> pedidosDe(String token) {
+        try {
+            List<Map<String, Object>> pedidos = cliente.get()
+                    .uri("/api/pedidos/mios")
+                    .headers(h -> h.setBearerAuth(token))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() { });
+            List<Map<String, Object>> envios = cliente.get()
+                    .uri("/api/envios/mios")
+                    .headers(h -> h.setBearerAuth(token))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() { });
+            return Optional.of(new PedidosDelCliente(
+                    pedidos == null ? List.of() : pedidos,
+                    envios == null ? List.of() : envios));
+        } catch (RestClientException ex) {
+            log.warn("No se pudieron consultar los pedidos para el chat: {}", ex.getClass().getSimpleName());
+            return Optional.empty();
+        }
+    }
+
+    public record PedidosDelCliente(List<Map<String, Object>> pedidos,
+            List<Map<String, Object>> envios) {
     }
 }

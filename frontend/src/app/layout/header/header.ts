@@ -1,3 +1,4 @@
+import { BuscarFoto } from '../../shared/ia/buscar-foto';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +19,7 @@ import {
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, FormsModule, CurrencyPipe],
+  imports: [RouterLink, FormsModule, CurrencyPipe, BuscarFoto],
   templateUrl: './header.html',
   styleUrl: './header.css',
 })

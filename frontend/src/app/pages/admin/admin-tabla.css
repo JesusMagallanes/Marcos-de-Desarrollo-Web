@@ -354,3 +354,16 @@ code {
   height: 34px;
   object-fit: contain;
 }
+
+/* ── Redactar con IA ─────────────────────────────────────────────── */
+
+.redactar-ia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px dashed #b9e6cf;
+  border-radius: 0.5rem;
+  background: #f5fcf8;
+}

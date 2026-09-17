@@ -2,6 +2,22 @@ import { API } from '../shared/config/api.base';
 
 /** Rutas del servicio `catalogo` (:8081). */
 export const RUTAS_CATALOGO = {
+  /** IA aplicada. Todo responde 204 cuando la IA no puede aportar. */
+  ia: {
+    estado: `${API}/ia/estado`,
+    interpretar: `${API}/ia/busqueda/interpretar`,
+    redactar: `${API}/ia/productos/redactar`,
+    resumenResenas: (productoId: number) => `${API}/ia/productos/${productoId}/resumen-resenas`,
+    moderacionProducto: (id: number) => `${API}/ia/moderacion/productos/${id}`,
+    moderacionValoracion: (id: number) => `${API}/ia/moderacion/valoraciones/${id}`,
+    busquedaFoto: `${API}/ia/busqueda/foto`,
+    preguntar: (productoId: number) => `${API}/ia/productos/${productoId}/preguntar`,
+    comparar: `${API}/ia/comparar`,
+    complementos: `${API}/ia/carrito/complementos`,
+    ayudaResena: `${API}/ia/resenas/ayuda`,
+    revisarFoto: `${API}/ia/productos/revisar-foto`,
+    comoCorregir: (id: number) => `${API}/ia/productos/mios/${id}/como-corregir`,
+  },
   productos: {
     base: `${API}/productos`,
     /** Las tres listas de la portada en una respuesta, ya acotadas. */

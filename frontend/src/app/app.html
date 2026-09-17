@@ -11,6 +11,10 @@
   <app-footer />
 }
 
+@if (mostrarCascaron()) {
+  <app-barra-comparacion />
+}
+
 @if (mostrarChatbot()) {
   <app-chatbot />
 }

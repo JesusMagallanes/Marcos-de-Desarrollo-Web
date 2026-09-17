@@ -190,9 +190,21 @@
                 Agregar a Carrito
               </button>
             </b>
+            <button type="button" class="btn btn-outline-secondary btn-sm ms-2" [attr.aria-pressed]="comparacion.contiene(p.id)"
+              (click)="alternarComparar(p)">
+              <i class="fa-solid fa-code-compare me-1" aria-hidden="true"></i>
+              {{ comparacion.contiene(p.id) ? 'En comparación' : 'Comparar' }}
+            </button>
+            @if (avisoComparar()) {
+              <div class="small text-body-secondary mt-1">{{ avisoComparar() }}</div>
+            }
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="container mt-4">
+      <app-pregunta-producto [productoId]="p.id" />
     </div>
 
     <!-- INICIO VALORACIONES -->
@@ -261,6 +273,8 @@
               </button>
             }
           </div>
+          <app-ayuda-resena [productoId]="p.id" [calificacion]="calificacion()" [borrador]="comentario()"
+            (usar)="usarIdeaResena($event)" />
           <textarea
             class="form-control mb-2"
             rows="3"
@@ -301,6 +315,33 @@
           </a>
           para calificar este producto.
         </div>
+      }
+
+      @if (resumenResenas(); as r) {
+        <section class="resumen-resenas mb-4" aria-label="Resumen de las reseñas">
+          <div class="resumen-resenas__titulo">
+            <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+            Lo que dicen los compradores
+            <span class="resumen-resenas__nota">resumen con IA de {{ r.basadoEn }} reseñas</span>
+          </div>
+          <p class="mb-2">{{ r.resumen }}</p>
+          <div class="row g-2 small">
+            @if (r.aFavor.length) {
+              <div class="col-12 col-md-6">
+                @for (x of r.aFavor; track x) {
+                  <div><i class="fa-solid fa-circle-plus text-success me-1" aria-hidden="true"></i>{{ x }}</div>
+                }
+              </div>
+            }
+            @if (r.enContra.length) {
+              <div class="col-12 col-md-6">
+                @for (x of r.enContra; track x) {
+                  <div><i class="fa-solid fa-circle-minus text-danger me-1" aria-hidden="true"></i>{{ x }}</div>
+                }
+              </div>
+            }
+          </div>
+        </section>
       }
 
       <!-- Lista -->

@@ -8,30 +8,50 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.catalogo.categoria.CategoriaService;
 import com.backend.catalogo.categoria.dto.CategoriaDtos.CategoriaResponse;
 import com.backend.catalogo.chatbot.dto.ChatbotDtos.RespuestaChat;
+import com.backend.catalogo.chatbot.dto.ChatbotDtos.TurnoChat;
 import com.backend.catalogo.producto.ProductoService;
 import com.backend.catalogo.producto.dto.ProductoDtos.ProductoResponse;
 
 import lombok.RequiredArgsConstructor;
 
+/*
+ * Sin @Transactional de clase, a proposito. Con IA, responder espera segundos
+ * a un proveedor externo, y una transaccion abierta retendria una conexion del
+ * pool —diez en total— todo ese tiempo: diez chats a la vez dejarian la tienda
+ * sin base. Cada consulta abre la suya dentro de ProductoService y CategoriaService.
+ */
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ChatbotService {
 
     private final ProductoService productoService;
     private final CategoriaService categoriaService;
+    private final AsistenteChat asistente;
 
     /** Acentos y diacríticos fuera: "envío" y "envio" son la misma intención. */
     private static final Pattern DIACRITICOS = Pattern.compile("\\p{M}+");
 
     public RespuestaChat responder(String mensaje) {
+        return responder(mensaje, List.of(), null);
+    }
+
+    /**
+     * @param historial turnos anteriores; solo los usa el asistente con IA
+     * @param token el JWT de quien pregunta, o null; para consultar sus pedidos
+     */
+    public RespuestaChat responder(String mensaje, List<TurnoChat> historial, String token) {
         if (mensaje == null || mensaje.isBlank()) {
             return new RespuestaChat("Por favor, escribe un mensaje.", "error", List.of(), null);
+        }
+
+        // Con IA, primero el asistente; si no hay modelo o falla, las reglas.
+        Optional<RespuestaChat> conIa = asistente.responder(mensaje, historial, token);
+        if (conIa.isPresent()) {
+            return conIa.get();
         }
 
         String texto = normalizar(mensaje);
@@ -245,6 +265,24 @@ public class ChatbotService {
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;");
+    }
+
+    /**
+     * Envíos, pagos y contacto en texto plano, para el prompt del asistente.
+     *
+     * <p>Sale de los MISMOS textos que enseñan las reglas: si cambia el horario o
+     * el umbral de envío gratis se cambia en un sitio, y la IA y el chat por
+     * reglas no pueden contradecirse.
+     */
+    static String informacionTiendaEnTexto() {
+        return (TEXTO_ENVIO + "\n" + TEXTO_PAGO + "\n" + TEXTO_CONTACTO)
+                .replace("<br>", "\n")
+                .replaceAll("<[^>]+>", "")
+                // Los emojis de las reglas no aportan nada al modelo.
+                .replaceAll("[\\p{So}\\p{Cn}\\x{FE0F}]", "")
+                .replaceAll("[ ]{2,}", " ")
+                .replaceAll("\\n\\s*\\n+", "\n")
+                .trim();
     }
 
     private static final String TEXTO_ENVIO = """

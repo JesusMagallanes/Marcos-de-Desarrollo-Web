@@ -141,6 +141,14 @@ public class ValoracionService {
                 .toList();
     }
 
+    /** Una valoración cualquiera, para analizarla antes de decidir. */
+    public ValoracionAdminResponse obtenerParaModeracion(Long id) {
+        return repositorio.findById(id)
+                .map(ValoracionAdminResponse::desde)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Valoración " + id + " no encontrada"));
+    }
+
     /** Aprueba, rechaza o devuelve a pendiente una valoración. */
     @Transactional
     public ValoracionAdminResponse cambiarEstado(Long id, EstadoValoracion estado) {

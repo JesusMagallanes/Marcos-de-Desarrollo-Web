@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, signal, viewChild, type ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ChatbotService, imagenDe, LIMITES, porcentajeDescuento, Producto } from '../../core';
+import { ChatbotService, imagenDe, LIMITES, porcentajeDescuento, Producto, TurnoChat } from '../../core';
 
 interface Mensaje {
   autor: 'bot' | 'usuario';
@@ -82,6 +82,8 @@ export class Chatbot {
     const texto = this.entrada().trim();
     if (!texto || this.escribiendo()) return;
 
+    // La memoria del asistente: los turnos anteriores, sin la bienvenida y en texto plano.
+    const historial = this.historial();
     this.mensajes.update((m) => [
       ...m,
       { autor: 'usuario', html: this.escapar(texto), fecha: Date.now() },
@@ -89,7 +91,7 @@ export class Chatbot {
     this.entrada.set('');
     this.escribiendo.set(true);
 
-    this.chat.enviar(texto).subscribe({
+    this.chat.enviar(texto, historial).subscribe({
       next: (res) => {
         this.mensajes.update((m) => [
           ...m,
@@ -109,6 +111,21 @@ export class Chatbot {
         this.escribiendo.set(false);
       },
     });
+  }
+
+  /**
+   * Los últimos turnos en texto plano. El HTML se quita con el parser del
+   * navegador (DOMParser no ejecuta scripts ni carga imágenes), no con una regex.
+   */
+  private historial(): TurnoChat[] {
+    return this.mensajes()
+      .slice(1)
+      .slice(-8)
+      .map((m) => ({
+        autor: m.autor === 'usuario' ? ('usuario' as const) : ('asistente' as const),
+        texto: new DOMParser().parseFromString(m.html, 'text/html').body.textContent?.trim() ?? '',
+      }))
+      .filter((t) => t.texto);
   }
 
   protected verProducto(id: number): void {
