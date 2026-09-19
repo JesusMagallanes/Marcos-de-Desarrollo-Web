@@ -220,6 +220,8 @@ export interface FacetaMarca {
 export interface FacetaAtributo {
   codigo: string;
   nombre: string;
+  /** «GB», «pulgadas», «meses»… o null si el valor se explica solo. */
+  unidad: string | null;
   valores: FacetaValor[];
 }
 

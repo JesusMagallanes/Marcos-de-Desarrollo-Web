@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import jakarta.annotation.PostConstruct;
@@ -46,10 +47,20 @@ import tools.jackson.databind.json.JsonMapper;
  * el proveedor caído cada mensaje del chat esperaría el timeout completo antes
  * de caer a la respuesta algorítmica, y la tienda parecería lenta sin motivo.
  *
+ * <h4>Tope de gasto</h4>
+ *
+ * <p>El cupo por IP del filtro de rate limit no acota la factura: basta con que
+ * lleguen visitantes de muchas IP. Por eso hay además un tope de llamadas por
+ * minuto que se cuenta en la base y por tanto vale para todas las réplicas a la
+ * vez ({@link PresupuestoIa}): el gasto es uno solo, aunque los procesos sean
+ * tres. Al pasarlo, las funciones siguen respondiendo con su versión
+ * algorítmica, que es lo mismo que ocurre si el proveedor se cae.
+ *
  * <h4>Lo que NUNCA se registra</h4>
  *
  * <p>Ni el prompt ni la respuesta: llevan texto de clientes. En el log y en las
- * métricas solo queda la función, el resultado y el tiempo.
+ * métricas solo queda la función, el resultado, el tiempo y cuántos tokens
+ * costó.
  *
  * <p>Esta clase es idéntica en {@code catalogo} y {@code usuarios}; el guardián de
  * copias del CI lo vigila.
@@ -72,6 +83,9 @@ public class ClienteIa {
     private final JsonMapper json;
     private final MeterRegistry registro;
 
+    private final int maxPorMinuto;
+    private final PresupuestoIa presupuesto;
+
     private final AtomicInteger fallosSeguidos = new AtomicInteger();
     private final AtomicLong abiertoHasta = new AtomicLong();
 
@@ -79,17 +93,20 @@ public class ClienteIa {
      * `RestClient.builder()` y no el `RestClient.Builder` de Spring: ese bean no
      * existe en todos los servicios, y esta clase tiene que ser igual en todos.
      */
-    public ClienteIa(JsonMapper json, MeterRegistry registro,
+    public ClienteIa(JsonMapper json, MeterRegistry registro, PresupuestoIa presupuesto,
             @Value("${ia.api-key:}") String apiKey,
             @Value("${ia.api-url:https://api.groq.com/openai/v1/chat/completions}") String apiUrl,
             @Value("${ia.modelo:llama-3.3-70b-versatile}") String modelo,
             @Value("${ia.modelo-vision:meta-llama/llama-4-scout-17b-16e-instruct}") String modeloVision,
             @Value("${ia.temperatura:0.2}") double temperatura,
-            @Value("${ia.timeout:8s}") Duration timeout) {
+            @Value("${ia.timeout:8s}") Duration timeout,
+            @Value("${ia.max-por-minuto:120}") int maxPorMinuto) {
         this.apiKey = apiKey == null ? "" : apiKey.trim();
         this.modelo = modelo;
         this.modeloVision = modeloVision;
         this.temperatura = temperatura;
+        this.maxPorMinuto = maxPorMinuto;
+        this.presupuesto = presupuesto;
         this.json = json;
         this.registro = registro;
         SimpleClientHttpRequestFactory fabrica = new SimpleClientHttpRequestFactory();
@@ -99,6 +116,15 @@ public class ClienteIa {
                 .baseUrl(apiUrl)
                 .requestFactory(fabrica)
                 .build();
+
+        /*
+         * El contador de `circuito_abierto` dice cuántas llamadas se rechazaron,
+         * pero no si AHORA mismo está abierto: una alerta necesita el estado, no
+         * el acumulado.
+         */
+        Gauge.builder("smartzone_ia_circuito_abierto", this, c -> c.circuitoAbierto() ? 1 : 0)
+                .description("1 mientras el cortacircuitos esta abierto y no se llama al modelo")
+                .register(registro);
     }
 
     @PostConstruct
@@ -115,9 +141,15 @@ public class ClienteIa {
         return !apiKey.isEmpty();
     }
 
+    boolean circuitoAbierto() {
+        return System.currentTimeMillis() < abiertoHasta.get();
+    }
+
     /** Una respuesta en texto libre. */
     public Optional<String> texto(String funcion, String sistema, String usuario, int maxTokens) {
-        return llamar(funcion, modelo, sistema, usuario, maxTokens, false);
+        Optional<String> respuesta = llamar(funcion, modelo, sistema, usuario, maxTokens, false);
+        respuesta.ifPresent(r -> contar(funcion, "ok"));
+        return respuesta;
     }
 
     /**
@@ -149,11 +181,18 @@ public class ClienteIa {
         return comoObjeto(funcion, llamar(funcion, modeloVision, sistema, contenido, maxTokens, true));
     }
 
+    /*
+     * El «ok» se cuenta aquí y no en `llamar`: una respuesta que llega pero no se
+     * puede leer no es un acierto. Contándolo antes, una función rota por
+     * formato salía en las métricas como ok Y como invalida a la vez, y el
+     * porcentaje de aciertos del panel daba de más.
+     */
     private Optional<JsonNode> comoObjeto(String funcion, Optional<String> respuesta) {
         return respuesta.flatMap(contenido -> {
             try {
                 JsonNode nodo = json.readTree(contenido);
                 if (nodo != null && nodo.isObject()) {
+                    contar(funcion, "ok");
                     return Optional.of(nodo);
                 }
             } catch (RuntimeException ilegible) {
@@ -173,8 +212,12 @@ public class ClienteIa {
             contar(funcion, "no_configurada");
             return Optional.empty();
         }
-        if (System.currentTimeMillis() < abiertoHasta.get()) {
+        if (circuitoAbierto()) {
             contar(funcion, "circuito_abierto");
+            return Optional.empty();
+        }
+        if (!presupuesto.hayCupo(maxPorMinuto)) {
+            contar(funcion, "sin_presupuesto");
             return Optional.empty();
         }
 
@@ -212,7 +255,7 @@ public class ClienteIa {
                 throw new IllegalStateException("respuesta sin contenido");
             }
             fallosSeguidos.set(0);
-            contar(funcion, "ok");
+            anotarTokens(funcion, respuesta);
             return Optional.of(contenido.trim());
 
         } catch (RuntimeException fallo) {
@@ -228,10 +271,39 @@ public class ClienteIa {
             return Optional.empty();
 
         } finally {
+            /*
+             * Con cubos y no solo suma y máximo: el promedio esconde justo lo que
+             * importa —la visita lenta— y sin cubos no se puede calcular un
+             * percentil en Prometheus. Los cortes son los que se miran al decidir
+             * si una función sigue mereciendo la pena.
+             */
             reloj.stop(Timer.builder("smartzone_ia_segundos")
                     .description("Tiempo de las llamadas al modelo de lenguaje")
                     .tag("funcion", funcion)
+                    .serviceLevelObjectives(Duration.ofMillis(500), Duration.ofSeconds(1),
+                            Duration.ofSeconds(2), Duration.ofSeconds(4), Duration.ofSeconds(8))
                     .register(registro));
+        }
+    }
+
+    /**
+     * Lo que costó la llamada, en tokens. Es lo único que se puede convertir a
+     * dinero: sin esto, «la IA gasta mucho» no se puede comprobar ni repartir
+     * por función. Un proveedor que no mande {@code usage} simplemente no suma.
+     */
+    private void anotarTokens(String funcion, JsonNode respuesta) {
+        JsonNode uso = respuesta.path("usage");
+        sumarTokens(funcion, "entrada", uso.path("prompt_tokens").asInt(0));
+        sumarTokens(funcion, "salida", uso.path("completion_tokens").asInt(0));
+    }
+
+    private void sumarTokens(String funcion, String tipo, int cantidad) {
+        if (cantidad > 0) {
+            Counter.builder("smartzone_ia_tokens_total")
+                    .description("Tokens consumidos por funcion, para estimar el gasto")
+                    .tags("funcion", funcion, "tipo", tipo)
+                    .register(registro)
+                    .increment(cantidad);
         }
     }
 

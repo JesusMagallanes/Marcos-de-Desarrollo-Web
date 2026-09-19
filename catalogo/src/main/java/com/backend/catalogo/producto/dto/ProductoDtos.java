@@ -205,7 +205,7 @@ public final class ProductoDtos {
     }
 
     /** Un atributo con sus valores posibles dentro del conjunto y su conteo. */
-    public record FacetaAtributo(String codigo, String nombre, List<FacetaValor> valores) {
+    public record FacetaAtributo(String codigo, String nombre, String unidad, List<FacetaValor> valores) {
     }
 
     public record FacetaValor(String valor, long conteo) {

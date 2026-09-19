@@ -1,51 +1,107 @@
 :host {
-  --verde: #28aa00;
-  --verde-hover: #218e00;
-  --fondo-oscuro: #232323;
-  --fondo-oscuro-2: #2a2a2a;
-  --texto-medio: #505050;
+  /* Los colores salen del tema (src/styles/tema.css); aqui solo se les da el
+     nombre corto que usa esta hoja. */
+  --verde: var(--sz-verde);
+  --verde-hover: var(--sz-verde-oscuro);
+  --fondo-oscuro: var(--sz-oscuro);
+  --fondo-oscuro-2: #1f2937;
+  --texto-medio: var(--sz-texto);
 }
 
+/*
+ * La cabecera se queda arriba al desplazar: en una tienda, el buscador y el
+ * carrito tienen que estar a mano en cualquier punto de la pagina. Blanca y
+ * con una linea abajo, no gris: el gris #f8f8f8 sobre el fondo gris de la
+ * pagina no se distinguia de nada.
+ */
 .header-principal {
-  background-color: #f8f8f8;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background-color: var(--sz-superficie);
+  border-bottom: 1px solid var(--sz-borde);
 }
 
 .barra-superior {
-  height: 4rem;
+  height: 4.25rem;
   box-shadow: none;
-  background-color: #f8f8f8;
+  background-color: var(--sz-superficie);
 }
 
 .boton-menu {
   border: none;
   font-size: 1.4rem;
   background-color: transparent;
-  color: #505050;
+  color: var(--texto-medio);
 }
 
 .boton-categorias {
-  background-color: #28aa00;
+  background-color: var(--verde);
   border: none;
-  height: 2.8rem;
-  font-size: 1rem;
+  height: 2.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
   color: #fff;
+  border-radius: 10px;
+  padding-inline: 1rem !important;
 }
 
 .boton-categorias:hover {
   color: #fff;
-  filter: brightness(0.95);
+  background-color: var(--verde-hover);
+}
+
+/* El buscador como pildora: un solo borde alrededor del campo, la camara y la
+   lupa, en vez de tres cajas pegadas de colores distintos. */
+.barra-superior .input-group {
+  border: 1px solid var(--sz-borde);
+  border-radius: var(--sz-radio-pildora);
+  background: var(--sz-fondo);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.barra-superior .input-group:focus-within {
+  border-color: var(--verde);
+  background: var(--sz-superficie);
+  box-shadow: var(--sz-anillo);
 }
 
 .campo-busqueda {
   border: none;
+  background: transparent;
+  padding-left: 1.1rem;
+  height: 2.75rem;
+}
+
+.campo-busqueda:focus {
+  box-shadow: none;
+  background: transparent;
+}
+
+.barra-superior .input-group .btn {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--sz-texto-suave);
+  box-shadow: none;
+  transform: none;
 }
 
 .boton-lupa {
-  background-color: #fff;
-  color: #b3b3b3;
+  background-color: var(--verde) !important;
+  color: #fff !important;
+  padding-inline: 1.1rem;
+}
+
+.boton-lupa:hover {
+  background-color: var(--verde-hover) !important;
 }
 
 .panel-busqueda {
+  border-radius: var(--sz-radio-grande) !important;
+  border: 1px solid var(--sz-borde);
+  box-shadow: var(--sz-sombra-alta) !important;
   width: 760px;
   left: 50%;
   transform: translateX(-50%);
@@ -58,8 +114,12 @@
   cursor: pointer;
 }
 
+.resultado {
+  border-radius: 8px;
+}
+
 .resultado:hover {
-  background-color: #f5f5f5;
+  background-color: var(--sz-verde-tenue);
 }
 
 .miniatura {
@@ -69,15 +129,26 @@
 }
 
 .boton-usuario {
-  color: #505050;
+  color: var(--texto-medio);
   background: transparent;
   border: none;
+}
+
+.btn-nav,
+.btn-nav-carrito {
+  border-radius: 10px;
+  transition: background-color 0.15s ease;
+}
+
+.btn-nav:hover,
+.btn-nav-carrito:hover {
+  background-color: var(--sz-fondo);
 }
 
 .btn-nav i,
 .btn-nav p,
 .btn-nav-carrito i {
-  color: #505050;
+  color: var(--texto-medio);
 }
 
 .btn-nav i,
@@ -93,16 +164,17 @@
 }
 
 .franja-ayuda {
-  background-color: #ececec;
-  height: 2.5rem;
+  background-color: var(--sz-superficie);
+  border-top: 1px solid var(--sz-borde);
+  height: 2.4rem;
 }
 
 .franja-ayuda-nav {
-  height: 2.5rem;
+  height: 2.4rem;
   box-shadow: none;
-  background-color: #ececec;
-  font-size: 0.9rem;
-  color: #505050;
+  background-color: var(--sz-superficie);
+  font-size: 0.85rem;
+  color: var(--sz-texto-suave);
 }
 
 .caja-ayuda {
@@ -114,12 +186,13 @@
 .btns-ayuda a {
   display: block;
   padding: 0.6rem;
-  color: #505050;
+  color: var(--sz-texto);
   text-decoration: none;
 }
 
 .btns-ayuda a:hover {
-  background-color: #f0f0f0;
+  background-color: var(--sz-verde-tenue);
+  color: var(--sz-verde-texto);
 }
 
 /* Categorías (#cat1) */
@@ -208,7 +281,7 @@
 }
 
 .offcanvas-carrito-header {
-  background-color: #ececec;
+  background-color: var(--sz-borde);
   color: var(--texto-medio);
   border-bottom: 1px solid #dcdcdc;
 }
@@ -258,7 +331,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #ececec;
+  border-bottom: 1px solid var(--sz-borde);
 }
 
 .carrito-item:last-child {
@@ -271,7 +344,7 @@
   object-fit: contain;
   border-radius: 8px;
   background: #fff;
-  border: 1px solid #ececec;
+  border: 1px solid var(--sz-borde);
   flex-shrink: 0;
 }
 

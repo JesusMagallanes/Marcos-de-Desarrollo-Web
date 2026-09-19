@@ -35,7 +35,13 @@ SmartZone es un e-commerce de tecnologia (Perú) con arquitectura de microservic
 ### 1.2 Rate limiting in-memory no escala
 - **Servicios afectados:** usuarios, catalogo, compras, web-gateway
 - **Problema:** `ConcurrentHashMap` por instancia. En multi-replica, un atacante multiplica su tasa
-- **Solucion:** Redis para rate limiting distribuido (cuando haya replicas)
+- **Solucion:** para el CUPO POR IP se mantiene en memoria a proposito (cada
+  instancia acota lo que atiende; compartirlo cuesta un salto de red por
+  peticion). Para el TOPE DE GASTO de IA, que es una factura comun, ya no: se
+  cuenta en la base y vale para todas las replicas. Ver `PresupuestoIa`
+- **Ademas (2026-09-19):** el limitador era una ventana fija, no deslizante como
+  decia su comentario, y regalaba el doble del cupo en el borde de la ventana.
+  Ahora es un cubo de fichas con reposicion continua
 
 ### 1.3 Cache
 - **Frontend:** dos capas. `CacheLecturaService` (IndexedDB, sobrevive a recargar)
@@ -132,12 +138,44 @@ salio al construirlo y probarlo:
 | X | «Completa tu compra» daba 500 si un producto del carrito no tenia relacionados: `similares` devuelve `null`, no un carrusel vacio | catalogo | **FIX** - se salta ese producto; `FuncionesInteraccionTest.sinRelacionados` |
 | Y | La pantalla «Cargando SmartZone» espera a que no quede ninguna peticion HTTP abierta, y las llamadas de IA que se lanzan solas (resumen de resenas, interpretar la busqueda, complementos) tardan segundos: la tienda ya lista quedaba tapada hasta que respondia el modelo | frontend | **FIX** - `IaService` las lanza cuando la aplicacion queda estable; `ia.service.spec` lo comprueba |
 
+| Z | Repaso de metricas (2026-09-19). Una respuesta ilegible se contaba a la vez como `ok` y como `invalida`: el porcentaje de aciertos salia inflado. Ademas `smartzone_ia_segundos` no publicaba cubos (sin percentiles, solo media y maximo), no habia medida de tokens —es decir, del gasto— ni forma de saber si el cortacircuitos esta abierto AHORA, y el unico tope era por IP, que no acota la factura | catalogo + usuarios | **FIX** - `ok` solo cuando la respuesta sirve; cubos 0,5/1/2/4/8 s; `smartzone_ia_tokens_total{funcion,tipo}`; medidor `smartzone_ia_circuito_abierto`; tope global `IA_MAX_POR_MINUTO` (120). Cinco pruebas nuevas por servicio y comprobado en vivo |
+| Z2 | Lo que faltaba para que la IA se pueda operar, no solo ejecutar (2026-09-19). Las metricas no las recogia nadie: `/actuator/prometheus` exige rol ADMINISTRADOR y un recolector no puede tener un JWT que caduca en minutos. Comparar, completar el carrito y preguntar a la ficha llamaban al modelo aunque fuera la misma pregunta sobre los mismos datos. Y la redaccion de fichas tiraba en silencio toda linea que no llevara el formato exacto, asi que el vendedor veia el campo vacio | 4 servicios | **FIX** - `AccesoMetricas` (secreto `METRICAS_TOKEN` en `X-Metricas-Token`, comparacion en tiempo constante, identica en los 4 y vigilada por el guardian); Prometheus con perfil `observabilidad` y 5 alertas (`docker/alertas.yml`); `CacheIa` con huella de lo enviado; normalizacion de especificaciones. Comprobado: scrape en verde desde un Prometheus real, 401 sin el secreto |
+
+### SEXTA revision (2026-09-19) - diseno del frontend, mirado en pantalla
+
+Se levanto la tienda entera y se fotografiaron las pantallas principales en
+escritorio (1400 px) y movil (420 px), antes y despues. Lo que salio:
+
+| # | Hallazgo | Donde | Estado |
+|---|----------|-------|--------|
+| D1 | El marcador de «sin foto» era el LOGO de la tienda a tamano completo: con 68 de 71 productos sin foto, la portada, la busqueda y el carrito eran una pared de logos y ninguna foto real se distinguia | `public/Img/img.png` | **FIX** - marcador neutro («Sin foto», gris), que es lo que la base ya apunta en esos 68 productos |
+| D2 | Buscar «laptop» o «asus» devolvia **cero resultados**: la busqueda miraba solo nombre y descripcion, y ningun producto se llama «laptop»; la categoria si | catalogo `ProductoRepository` | **FIX** - tambien categoria y marca, con `LEFT JOIN` para no excluir productos sin marca; caso en `BusquedaFiltradaIT` |
+| D3 | Ficha de producto: en el movil el precio y «Agregar al carrito» quedaban dos pantallas mas abajo, tras la descripcion y las caracteristicas; el boton de comprar era de contorno, igual que «Comparar»; las caracteristicas iban en una caja de 200 px con su propio scroll; todo centrado; iconos de pago enlazados a seeklogo, icons8, wikipedia y una miniatura de Google (uno fallaba y aparecia el logo); moneda «S/.» aqui y «S/» en las tarjetas | frontend `producto-detalle` | **FIX** - caja de compra primero (precio, stock, cantidad, boton solido), caracteristicas sin scroll, descripcion en fila propia, iconos locales, titulos de bloque con clase en vez de `style=`, `S/` |
+| D4 | Carrito vacio: una frase perdida en una caja de 400 px fijos; con productos, el importe de linea en rojo y repitiendo el unitario aunque hubiera dos unidades; total en azul | frontend `carrito` | **FIX** - estado vacio con icono y salida; importe = precio x cantidad; verde como el resto |
+| D5 | Portada: tres jerarquias de titulo distintas en la misma pagina (h4 suelto, h2 con etiqueta y subtitulo, etc.); la tarjeta promo recortaba la foto y dejaba un bloque verde vacio; el banner en movil se recortaba a un tercio y no se leia; `alt="..."` en los tres banners | frontend `home` | **FIX** - `.seccion-titulo` comun, promo con foto entera, banner completo en movil, textos alternativos |
+| D6 | Los filtros de la busqueda decian «512», «16», «12» sin unidad: gigas, pulgadas o meses, a adivinar | catalogo facetas + frontend filtros | **FIX** - la unidad viaja en la faceta y se pinta «512 GB» |
+
+| D7 | Remasterizacion (misma fecha): cinco verdes distintos para una marca, grises sueltos, la cabecera gris sobre fondo gris, botones y formularios con el aspecto por defecto de Bootstrap, precios escritos a mano (`S/ 5499.9`) | frontend | **FIX** - `src/styles/tema.css` con tokens y overrides de Bootstrap cargado el ultimo; Inter autoalojada; cabecera fija, blanca, buscador en pildora; tarjeta, pie y ficha sobre los tokens; `currency` en todos los precios. Detalle en `frontend/README.md`, «Tema visual» |
+| D8 | El pie listaba las 17 categorias, incluidas la raiz y las intermedias | frontend `footer` | **FIX** - solo hojas, maximo 8, en dos columnas |
+
+| D9 | Tiempo de carga (misma fecha). La base esta a ~130 ms por viaje y la portada hacia 64 consultas (8,9 s); `DataSourceRls` gastaba dos viajes por transaccion aunque el visitante fuera anonimo; nada publico se cacheaba; la pantalla de carga esperaba al recomendador (3 s) | catalogo, compras, usuarios, frontend | **FIX** - portada en 10 consultas con ventana; cache Caffeine de 60 s para lo publico (`CacheConfig`); contexto RLS solo cuando hay identidad, con expulsion del pool si la limpieza falla; descubrimiento y relacionados fuera del camino critico. Portada 4,4 s → 1,2 s en visitas siguientes. Tabla completa en README, «Tiempo de carga» |
+
+| D10 | Portada: tres carruseles de Bootstrap distintos (ofertas, top, categorias) troceados en diapositivas, con flechas negras encima de las tarjetas, huecos entre descripcion y precio porque la fila se estiraba a la altura del tile promocional, y un tile «REPUBLIC OF GAMERS» en verde ajeno a la marca que llevaba a la propia portada | frontend `home` | **FIX** - una sola pieza «estante» (cabecera con etiqueta, titulo, subtitulo, «ver todo» y flechas; carril con scroll-snap) para las tres secciones y todos los tamanos; tile promocional con degradado de marca que enlaza a Laptops |
+
+Sin cambios: el panel de administracion (limpio y coherente) y el chat.
+Pendiente de verdad: fotos reales para los 68 productos de la semilla; el
+marcador nuevo solo hace que su ausencia no parezca un fallo.
+
 Verificado despues (2026-09-17):
 - **Pruebas de integracion** con Docker Desktop encendido: catalogo 270, compras 16,
   usuarios 4; ninguna saltada, ninguna fallida.
 - **Chat con pedidos reales** en una base desechable: responde con el numero del
   pedido propio y al modelo no le llegan receptor, telefono, calle, referencia ni
   pedidos de otro cliente (8/8).
+- **Las 13 funciones de IA ejercitadas contra el proveedor falso** (2026-09-19),
+  mirando las metricas resultantes. Unica que no llego al modelo: «¿por que lo
+  veo?» con una cuenta sin historial, que es lo correcto —sin señales, frase
+  generica y ninguna llamada—; con perfil si llama (visto en el navegador).
 
 Pendiente real: **no se ha probado con una clave de Groq**, solo con un proveedor
 falso que habla el mismo protocolo (texto y vision). En el repositorio no hay
@@ -310,7 +348,12 @@ una **V12** nueva y la V11 quedo como estaba.
       service worker + 504 en las pocas URLs externas; no es un fallo del codigo.
 - [ ] **Hacer que las pruebas de integracion corran en local**, o que su ausencia
       no deje el build en verde. Hoy 29 pruebas se saltan sin que nada avise
-- [ ] Implementar Redis para cache y rate limiting distribuido
+- [x] **Tope de gasto de IA distribuido, sin Redis** (2026-09-19). Se cuenta en la
+      base con un UPSERT atomico (`ia_presupuesto`), asi que vale para todas las
+      replicas; comprobado con 20 hilos contra Postgres real. El cupo por IP sigue
+      siendo por instancia a proposito: un salto de red por peticion cuesta mas de
+      lo que protege
+- [ ] Redis para cache distribuida (el cupo por IP no lo necesita; ver README)
 - [ ] Automatizar tests E2E en CI
 - [ ] Agregar contract testing entre servicios
 - [ ] Rotar credenciales expuestas en historial de git

@@ -6,3 +6,21 @@
 .nombre-item-link:hover {
   color: #28aa00;
 }
+
+/*
+ * La lista de productos ya no tiene una altura fija de 400 px con scroll
+ * propio: con el carrito vacio era un hueco enorme, y con seis productos
+ * obligaba a desplazar una caja dentro de la pagina. Crece con lo que hay, y
+ * solo se limita cuando la lista es de verdad larga.
+ */
+.carrito-lista .card-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* El total y cada importe, del mismo verde que los precios del resto de la tienda. */
+.carrito-importe,
+.carrito-total {
+  color: #06b56c;
+  font-weight: 700;
+}

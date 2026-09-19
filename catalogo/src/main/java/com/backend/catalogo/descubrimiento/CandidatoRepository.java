@@ -4,11 +4,13 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import com.backend.catalogo.producto.Producto;
+import com.backend.catalogo.shared.config.CacheConfig;
 
 /**
  * La etapa de RECUPERACIÓN del recomendador.
@@ -126,6 +128,10 @@ public interface CandidatoRepository extends Repository<Producto, Long> {
              ORDER BY 4 DESC
              LIMIT :limite
             """, nativeQuery = true)
+    // No depende de quien mira: el parecido por ficha es el mismo para todos, y
+    // es la consulta mas cara de la ficha de producto (cruza atributos). Un
+    // minuto en memoria le ahorra ese viaje a cada visita siguiente.
+    @Cacheable(cacheNames = CacheConfig.SIMILARES, key = "#itemId + ':' + #limite")
     List<Candidato> similaresPorContenido(@Param("itemId") Long itemId,
             @Param("limite") int limite);
 

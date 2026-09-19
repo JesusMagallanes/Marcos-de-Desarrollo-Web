@@ -1,6 +1,10 @@
 package com.backend.catalogo.shared.ia;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -16,6 +20,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.sun.net.httpserver.HttpServer;
+
+import org.springframework.dao.DataAccessResourceFailureException;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import tools.jackson.databind.json.JsonMapper;
@@ -63,10 +69,21 @@ class ClienteIaTest {
         servidor.stop(0);
     }
 
+    /**
+     * Con la base fuera de juego, el presupuesto cuenta en memoria: es la misma
+     * caída que en produccion cuando la base no contesta, y aquí sirve para
+     * probar el tope sin levantar Postgres.
+     */
+    private PresupuestoIa presupuesto() {
+        PresupuestoIaRepository sinBase = mock(PresupuestoIaRepository.class);
+        when(sinBase.anotarLlamada(any(), anyLong())).thenThrow(new DataAccessResourceFailureException("sin base"));
+        return new PresupuestoIa(sinBase);
+    }
+
     private ClienteIa cliente(String clave) {
-        return new ClienteIa(JsonMapper.builder().build(), metricas, clave,
+        return new ClienteIa(JsonMapper.builder().build(), metricas, presupuesto(), clave,
                 "http://127.0.0.1:" + servidor.getAddress().getPort() + "/chat",
-                "modelo-de-prueba", "modelo-vision", 0.2, Duration.ofSeconds(2));
+                "modelo-de-prueba", "modelo-vision", 0.2, Duration.ofSeconds(2), 0);
     }
 
     private static String completado(String contenido) {
@@ -77,6 +94,16 @@ class ClienteIaTest {
     private double contador(String resultado) {
         var c = metricas.find("smartzone_ia_total").tag("resultado", resultado).counter();
         return c == null ? 0 : c.count();
+    }
+
+    private double tokens(String tipo) {
+        var c = metricas.find("smartzone_ia_tokens_total").tag("tipo", tipo).counter();
+        return c == null ? 0 : c.count();
+    }
+
+    private double medidor(String nombre) {
+        var g = metricas.find(nombre).gauge();
+        return g == null ? -1 : g.value();
     }
 
     @Test
@@ -151,5 +178,71 @@ class ClienteIaTest {
         assertThat(ultimoCuerpo.get()).as("con el circuito abierto no sale la peticion").isNull();
         assertThat(contador("error")).isEqualTo(3);
         assertThat(contador("circuito_abierto")).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("una respuesta ilegible NO se cuenta tambien como acierto")
+    void invalidaNoEsOk() {
+        respuestas.add(new Respuesta(200, completado("claro, aqui tienes: [1,2]")));
+
+        assertThat(cliente("k").json("chat", "s", "u", 10)).isEmpty();
+
+        assertThat(contador("invalida")).isEqualTo(1);
+        assertThat(contador("ok")).as("contarla como ok inflaba el porcentaje de aciertos").isZero();
+    }
+
+    @Test
+    @DisplayName("anota los tokens que costo la llamada, para poder estimar el gasto")
+    void tokens() {
+        respuestas.add(new Respuesta(200, "{\"choices\":[{\"message\":{\"content\":\"{}\"}}],"
+                + "\"usage\":{\"prompt_tokens\":120,\"completion_tokens\":30}}"));
+
+        assertThat(cliente("k").json("resumen_resenas", "s", "u", 10)).isPresent();
+
+        assertThat(tokens("entrada")).isEqualTo(120);
+        assertThat(tokens("salida")).isEqualTo(30);
+    }
+
+    @Test
+    @DisplayName("el tiempo se publica con cubos: sin ellos no hay percentiles, solo la media")
+    void cubosDeTiempo() {
+        respuestas.add(new Respuesta(200, completado("{}")));
+        cliente("k").json("chat", "s", "u", 10);
+
+        var tiempo = metricas.find("smartzone_ia_segundos").timer();
+        assertThat(tiempo).isNotNull();
+        assertThat(tiempo.takeSnapshot().histogramCounts()).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("el cortacircuitos se ve tambien como estado, no solo como cuenta")
+    void medidorDelCircuito() {
+        ClienteIa ia = cliente("k");
+        assertThat(medidor("smartzone_ia_circuito_abierto")).isZero();
+
+        for (int i = 0; i < 3; i++) {
+            respuestas.add(new Respuesta(503, "{}"));
+            ia.texto("chat", "s", "u", 10);
+        }
+
+        assertThat(medidor("smartzone_ia_circuito_abierto")).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("pasado el tope por minuto no se llama al proveedor: la factura tiene techo")
+    void topePorMinuto() {
+        ClienteIa ia = new ClienteIa(JsonMapper.builder().build(), metricas, presupuesto(), "k",
+                "http://127.0.0.1:" + servidor.getAddress().getPort() + "/chat",
+                "modelo-de-prueba", "modelo-vision", 0.2, Duration.ofSeconds(2), 2);
+        respuestas.add(new Respuesta(200, completado("{}")));
+        respuestas.add(new Respuesta(200, completado("{}")));
+
+        assertThat(ia.json("chat", "s", "u", 10)).isPresent();
+        assertThat(ia.json("chat", "s", "u", 10)).isPresent();
+        ultimoCuerpo.set(null);
+
+        assertThat(ia.json("chat", "s", "u", 10)).isEmpty();
+        assertThat(ultimoCuerpo.get()).as("con el tope pasado la peticion no sale").isNull();
+        assertThat(contador("sin_presupuesto")).isEqualTo(1);
     }
 }

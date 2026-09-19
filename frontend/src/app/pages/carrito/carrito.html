@@ -2,7 +2,7 @@
   <div class="row">
     <!-- Carrito -->
     <div class="col-md-8">
-      <div class="card mb-3" style="height: 400px; overflow-y: auto">
+      <div class="card mb-3 carrito-lista">
         <div class="card-body">
           <small class="text-muted">
             Productos del
@@ -26,7 +26,21 @@
           @if (cargando()) {
             <app-cargando />
           } @else if (vacio()) {
-            <p class="text-center">Tu carrito está vacío.</p>
+            <!--
+              Un carrito vacio no es un error: es el estado normal de quien
+              acaba de entrar. Se dice que esta vacio y se ofrece la salida, en
+              vez de dejar una frase suelta en medio de una caja enorme.
+            -->
+            <div class="estado-vacio">
+              <span class="estado-vacio__icono" aria-hidden="true">
+                <i class="fa-solid fa-cart-shopping"></i>
+              </span>
+              <p class="estado-vacio__titulo">Tu carrito está vacío</p>
+              <p class="estado-vacio__texto">
+                Cuando agregues productos los verás aquí, con su precio y el envío calculado.
+              </p>
+              <a class="btn btn-success" routerLink="/">Ver productos</a>
+            </div>
           } @else {
             @for (item of carrito.items(); track item.itemId) {
               <div class="row align-items-center mb-2">
@@ -47,7 +61,15 @@
                   <p class="mb-1 text-muted">{{ item.precio | currency: 'PEN' : 'S/ ' }} c/u</p>
                 </div>
                 <div class="col-4 text-end">
-                  <h5 class="fw-bold text-danger mb-1">{{ item.precio | currency: 'PEN' : 'S/ ' }}</h5>
+                  <!--
+                    El importe de la linea (precio por cantidad), no el unitario
+                    repetido: con dos unidades decia lo mismo arriba y abajo. Y
+                    en el verde de los precios de la tienda, no en rojo: el rojo
+                    aqui se leia como error o como descuento.
+                  -->
+                  <h5 class="fw-bold carrito-importe mb-1">
+                    {{ item.precio * item.cantidad | currency: 'PEN' : 'S/ ' }}
+                  </h5>
                   <div class="d-flex justify-content-end align-items-center mt-2">
                     <button
                       type="button"
@@ -133,7 +155,7 @@
         <hr />
         <div class="d-flex justify-content-between fw-bold">
           <span>Total:</span>
-          <span class="text-primary">{{ total() | currency: 'PEN' : 'S/ ' }}</span>
+          <span class="carrito-total">{{ total() | currency: 'PEN' : 'S/ ' }}</span>
         </div>
 
         <!--

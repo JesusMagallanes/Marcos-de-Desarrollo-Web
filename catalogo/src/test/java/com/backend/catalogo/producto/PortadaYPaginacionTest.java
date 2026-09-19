@@ -129,8 +129,10 @@ class PortadaYPaginacionTest {
                 .thenReturn(List.of(producto(2, "Teclado")));
         when(categoriaService.listar()).thenReturn(
                 List.of(new CategoriaResponse(7L, "Monitores", "monitores", "d", null, null)));
-        when(repositorio.listarDeCategoria(eq(7L), any(Pageable.class)))
-                .thenReturn(List.of(producto(1, "Monitor")));
+        // Los bloques por categoría salen de UNA consulta con ventana: filas
+        // [id, categoriaId]. Antes era una consulta por categoría.
+        when(repositorio.primerosPorCategoria(12)).thenReturn(List.<Object[]>of(new Object[] { 1L, 7L }));
+        when(repositorio.buscarConImagenes(List.of(1L))).thenReturn(List.of(producto(1, "Monitor")));
 
         var portada = servicio.portada();
 
@@ -138,6 +140,7 @@ class PortadaYPaginacionTest {
         assertThat(portada.ofertas()).hasSize(1);
         assertThat(portada.porCategoria()).hasSize(1);
         assertThat(portada.porCategoria().get(0).categoria().name()).isEqualTo("Monitores");
+        assertThat(portada.porCategoria().get(0).productos()).extracting(r -> r.name()).containsExactly("Monitor");
 
         // Lo que importa: TODAS las consultas van acotadas. Si alguna dejara de
         // llevar `Pageable`, volveríamos a descargar la tienda entera.
@@ -145,9 +148,9 @@ class PortadaYPaginacionTest {
         verify(repositorio).listarConRelaciones(destacados.capture());
         assertThat(destacados.getValue().getPageSize()).isEqualTo(10);
 
-        ArgumentCaptor<Pageable> porCategoria = ArgumentCaptor.forClass(Pageable.class);
-        verify(repositorio).listarDeCategoria(eq(7L), porCategoria.capture());
-        assertThat(porCategoria.getValue().getPageSize()).isEqualTo(12);
+        // Y los bloques, en una sola consulta acotada a doce por categoría.
+        verify(repositorio).primerosPorCategoria(12);
+        verify(repositorio, never()).listarDeCategoria(any(), any(Pageable.class));
     }
 
     @Test
@@ -157,7 +160,7 @@ class PortadaYPaginacionTest {
         when(repositorio.listarEnOferta(any(Instant.class), any(Pageable.class))).thenReturn(List.of());
         when(categoriaService.listar()).thenReturn(
                 List.of(new CategoriaResponse(9L, "Sin nada", "sin-nada", "d", null, null)));
-        when(repositorio.listarDeCategoria(eq(9L), any(Pageable.class))).thenReturn(List.of());
+        when(repositorio.primerosPorCategoria(12)).thenReturn(List.of());
 
         assertThat(servicio.portada().porCategoria()).isEmpty();
     }

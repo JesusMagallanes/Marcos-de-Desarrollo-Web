@@ -1,0 +1,66 @@
+# ============================================================================
+#  Alertas
+# ============================================================================
+#
+#  Pocas y con una acción detrás cada una. Una alerta que nadie sabe qué hacer
+#  con ella se acaba silenciando, y con ella las demás.
+#
+#  Sin Alertmanager configurado, estas reglas se ven igual en la pestaña
+#  «Alerts» de Prometheus: sirven para mirar, aunque todavía no notifiquen.
+groups:
+  - name: ia
+    rules:
+      - alert: IaProveedorCaido
+        # El cortacircuitos abierto significa que ya hubo tres fallos seguidos.
+        # La tienda sigue funcionando con su versión algorítmica, así que no es
+        # urgencia de madrugada, pero si dura, alguien tiene que mirar la clave,
+        # la cuota del proveedor o si cambió el modelo.
+        expr: smartzone_ia_circuito_abierto == 1
+        for: 5m
+        labels: { severidad: aviso }
+        annotations:
+          summary: 'IA sin proveedor en {{ $labels.servicio }}'
+          description: 'El cortacircuitos lleva 5 minutos abierto: revisa GROQ_API_KEY, la cuota y el modelo.'
+
+      - alert: IaRespuestasInservibles
+        # Lo que se rompe de verdad cuando cambia un modelo: sigue contestando,
+        # pero ya no en el formato que se le pidió. Sin esto solo se nota porque
+        # un vendedor dice que «la IA no hace nada».
+        expr: |
+          sum by (servicio, funcion) (rate(smartzone_ia_total{resultado=~"invalida|error"}[15m]))
+            / sum by (servicio, funcion) (rate(smartzone_ia_total{resultado!="no_configurada"}[15m])) > 0.2
+        for: 15m
+        labels: { severidad: aviso }
+        annotations:
+          summary: 'La funcion {{ $labels.funcion }} falla mas de un 20 %'
+          description: 'Respuestas invalidas o con error en {{ $labels.servicio }}: revisa el prompt y el modelo.'
+
+      - alert: IaGastoDisparado
+        # Techo de gasto en tokens. El umbral es deliberadamente alto: esto avisa
+        # de una fuga (un bucle, un prompt que engordó), no del uso normal.
+        expr: sum by (servicio) (rate(smartzone_ia_tokens_total{tipo="entrada"}[5m])) * 60 > 20000
+        for: 10m
+        labels: { severidad: aviso }
+        annotations:
+          summary: 'Consumo de tokens inusual en {{ $labels.servicio }}'
+          description: 'Mas de 20 000 tokens de entrada por minuto: mira smartzone_ia_tokens_total por funcion.'
+
+      - alert: IaSinPresupuesto
+        # El tope global (IA_MAX_POR_MINUTO) está frenando llamadas. O hay más
+        # tráfico del previsto y hay que subirlo, o algo está llamando en bucle.
+        expr: sum by (servicio) (rate(smartzone_ia_total{resultado="sin_presupuesto"}[10m])) > 0
+        for: 10m
+        labels: { severidad: informativa }
+        annotations:
+          summary: 'El tope de llamadas de IA esta frenando peticiones en {{ $labels.servicio }}'
+          description: 'Sube IA_MAX_POR_MINUTO si el trafico es legitimo; si no, busca quien llama en bucle.'
+
+  - name: servicio
+    rules:
+      - alert: ServicioSinResponder
+        expr: up == 0
+        for: 2m
+        labels: { severidad: critica }
+        annotations:
+          summary: 'Sin metricas de {{ $labels.servicio }}'
+          description: 'El servicio no responde al scrape. Si es 401, falta METRICAS_TOKEN en el .env.'

@@ -292,3 +292,170 @@
   font-weight: 400;
   color: #6b7a70;
 }
+
+/* ── La ficha como tarjeta, sin estilos en linea ── */
+.ficha-producto {
+  background: #fff;
+  padding: 1.25rem 1.5rem 1.75rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(16, 32, 24, 0.08);
+}
+
+.ficha-producto__nombre {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #16251c;
+  margin: 0.25rem 0 1rem;
+}
+
+/*
+ * Titulo de bloque. Antes cada uno repetia el mismo `style=` con su borde
+ * inferior; ademas eran h5 sueltos bajo un h4, y el lector de pantalla oia una
+ * jerarquia que no existia.
+ */
+.ficha-producto__bloque {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #16251c;
+  border-bottom: 1px solid #e3e8e5;
+  padding-bottom: 0.6rem;
+  margin: 1.75rem 0 1rem;
+}
+
+/*
+ * La descripcion va en una fila propia bajo la galeria y la caja de compra. En
+ * el movil, donde las dos columnas se apilan, tenerla en medio empujaba el
+ * precio y el boton de comprar fuera de la pantalla: habia que bajar dos
+ * pantallas para saber cuanto cuesta.
+ *
+ * El ancho se limita porque a lo largo de todo el contenedor las lineas salen
+ * de mas de 120 caracteres y se pierde el renglon al saltar.
+ */
+.ficha-producto__descripcion {
+  color: #5c6b64;
+  margin: 0 0 0.5rem;
+  line-height: 1.6;
+  max-width: 75ch;
+}
+
+/*
+ * Las caracteristicas ya no viven en una caja con scroll propio: una lista de
+ * diez lineas dentro de un recuadro de 200 px escondia la mitad de la ficha y
+ * obligaba a arrastrar una barra diminuta dentro de una pagina que ya se
+ * desplaza. Se lee entera y punto.
+ */
+.spec-box {
+  max-height: none;
+  max-width: none;
+  overflow: visible;
+  border: 1px solid #e3e8e5;
+  border-radius: 10px;
+  box-shadow: none;
+  padding: 0.85rem 1rem;
+  background: #fbfcfc;
+}
+
+.spec-box li {
+  margin-bottom: 0.4rem;
+  color: #3f4b45;
+}
+
+.spec-box li:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Caja de compra ── */
+.caja-compra {
+  border: 1px solid #e3e8e5;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  background: #fbfcfc;
+}
+
+.caja-compra__precio {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #06b56c;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.caja-compra__antes {
+  font-size: 1rem;
+  color: #8c9a93;
+  margin-left: 0.5rem;
+  font-weight: 500;
+}
+
+.caja-compra__stock {
+  margin: 0.4rem 0 1rem;
+  font-size: 0.9rem;
+  color: #2f8f63;
+}
+
+.caja-compra__stock--agotado {
+  color: #c0392b;
+}
+
+.caja-compra__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.caja-compra__cantidad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: #5c6b64;
+}
+
+.caja-compra__cantidad input {
+  width: 96px;
+}
+
+/*
+ * La accion principal, solida. Antes «Agregar a Carrito» era un boton de
+ * contorno igual de discreto que «Comparar»: dos acciones con el mismo peso
+ * visual cuando una es la que cierra la venta.
+ */
+.caja-compra__comprar {
+  flex: 1 1 200px;
+  font-weight: 600;
+  padding-block: 0.55rem;
+}
+
+.caja-compra__aviso {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: #6b7a72;
+}
+
+/* ── Metodos de pago ── */
+.metodos-pago {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.metodos-pago img {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 575.98px) {
+  .ficha-producto {
+    padding: 1rem;
+  }
+
+  .caja-compra__comprar {
+    flex-basis: 100%;
+  }
+}

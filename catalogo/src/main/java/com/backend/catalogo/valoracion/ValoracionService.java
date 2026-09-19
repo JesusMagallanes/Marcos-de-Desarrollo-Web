@@ -6,10 +6,13 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.catalogo.producto.ProductoRepository;
+import com.backend.catalogo.shared.config.CacheConfig;
 import com.backend.catalogo.shared.error.ConflictoException;
 import com.backend.catalogo.shared.compras.ComprasClient;
 import com.backend.catalogo.shared.error.RecursoNoEncontradoException;
@@ -30,6 +33,7 @@ public class ValoracionService {
     private final ComprasClient compras;
 
     /** Las reseñas que ve la tienda: solo las aprobadas por un administrador. */
+    @Cacheable(cacheNames = CacheConfig.VALORACIONES, key = "'producto:' + #productoId")
     public List<ValoracionResponse> listar(Long productoId) {
         verificarProducto(productoId);
         return repositorio.findByProductoIdAndEstadoOrderByCreadoEnDesc(
@@ -57,6 +61,7 @@ public class ValoracionService {
      * revisarlo otra vez.
      */
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.VALORACIONES, CacheConfig.LISTADOS, CacheConfig.PORTADA}, allEntries = true)
     public ValoracionResponse guardar(Long productoId, Long usuarioId, ValoracionRequest dto,
             String token) {
         var producto = productoRepository.findById(productoId)
@@ -91,6 +96,7 @@ public class ValoracionService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.VALORACIONES, CacheConfig.LISTADOS, CacheConfig.PORTADA}, allEntries = true)
     public void eliminar(Long productoId, Long usuarioId) {
         Valoracion valoracion = repositorio.findByProductoIdAndUsuarioId(productoId, usuarioId)
                 .orElseThrow(() -> new ConflictoException("No tienes una valoración en este producto"));
@@ -110,6 +116,7 @@ public class ValoracionService {
      * @return true si había algo que borrar
      */
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.VALORACIONES, CacheConfig.LISTADOS, CacheConfig.PORTADA}, allEntries = true)
     public boolean eliminarSiExiste(Long productoId, Long usuarioId) {
         return repositorio.findByProductoIdAndUsuarioId(productoId, usuarioId)
                 .map(valoracion -> {
@@ -123,6 +130,7 @@ public class ValoracionService {
      * Las 6 reseñas aprobadas mejor valoradas (más estrellas), para la
      * portada. Si hay menos de 6 aprobadas, devuelve las que haya.
      */
+    @Cacheable(cacheNames = CacheConfig.VALORACIONES, key = "'destacadas'")
     public List<ValoracionDestacadaResponse> destacadas() {
         return repositorio.findTop6ByEstadoOrderByCalificacionDescCreadoEnDesc(EstadoValoracion.APROBADA)
                 .stream()
@@ -151,6 +159,7 @@ public class ValoracionService {
 
     /** Aprueba, rechaza o devuelve a pendiente una valoración. */
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.VALORACIONES, CacheConfig.LISTADOS, CacheConfig.PORTADA}, allEntries = true)
     public ValoracionAdminResponse cambiarEstado(Long id, EstadoValoracion estado) {
         Valoracion valoracion = repositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
@@ -162,6 +171,7 @@ public class ValoracionService {
 
     /** Retira una reseña, por ejemplo abusiva o duplicada. */
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.VALORACIONES, CacheConfig.LISTADOS, CacheConfig.PORTADA}, allEntries = true)
     public void eliminarComoAdmin(Long id) {
         Valoracion valoracion = repositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(

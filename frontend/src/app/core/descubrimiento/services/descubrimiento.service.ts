@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { DestroyRef, Injectable, inject, signal } from '@angular/core';
-import { EMPTY, Observable, catchError, of, tap } from 'rxjs';
+import { ApplicationRef, DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { EMPTY, Observable, catchError, defer, of, switchMap, tap } from 'rxjs';
 import { RUTAS_DESCUBRIMIENTO } from '../descubrimiento.routes';
 import {
   Carrusel,
@@ -63,6 +63,23 @@ const DWELL_MAXIMO_MS = 180_000;
 export class DescubrimientoService {
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly app = inject(ApplicationRef);
+
+  /**
+   * Fuera del camino crítico de la primera pantalla.
+   *
+   * La pantalla de carga de `main.ts` espera a que no quede ninguna petición
+   * abierta. Los carruseles personalizados son la petición más lenta de la
+   * portada —un recomendador que encadena una treintena de consultas contra
+   * una base a 130 ms de distancia, unos tres segundos— y tenían la tienda
+   * tapada mientras la portada, ya descargada, esperaba detrás. Lanzados cuando
+   * la aplicación queda estable, la tienda aparece con el catálogo y los
+   * carruseles llegan después sobre su esqueleto, que para eso existe. En una
+   * navegación posterior la aplicación ya está estable y esto no retrasa nada.
+   */
+  private enSegundoPlano<T>(peticion: () => Observable<T>): Observable<T> {
+    return defer(() => this.app.whenStable()).pipe(switchMap(peticion));
+  }
 
   /** Identificador del sujeto; lo asigna el servidor y aquí solo se guarda. */
   private readonly sujetoSig = signal<string | null>(leerGuardado(CLAVE_SUJETO));
@@ -264,12 +281,12 @@ export class DescubrimientoService {
     if (this.ubigeoActual) {
       params = params.set('ubigeo', this.ubigeoActual);
     }
-    return this.http
-      .get<HomeDescubrimiento>(RUTAS_DESCUBRIMIENTO.home, {
+    return this.enSegundoPlano(() =>
+      this.http.get<HomeDescubrimiento>(RUTAS_DESCUBRIMIENTO.home, {
         params,
         headers: this.cabeceras(),
-      })
-      .pipe(
+      }),
+    ).pipe(
         tap((res) => this.guardarSujeto(res?.sujetoId, res?.firma)),
         // Si Descubrimiento falla, el Home se pinta con el catálogo de siempre.
         // El usuario no tiene por qué enterarse de que hay un recomendador.
@@ -289,12 +306,14 @@ export class DescubrimientoService {
 
   /** Relacionados con un producto. No necesita sujeto: van por contenido. */
   similares(productoId: number, limite = 12): Observable<Carrusel | null> {
-    return this.http
-      .get<Carrusel>(RUTAS_DESCUBRIMIENTO.similares(productoId), {
+    // Está bajo el pliegue y es lo más lento de la ficha: que no retenga la
+    // pantalla de carga.
+    return this.enSegundoPlano(() =>
+      this.http.get<Carrusel>(RUTAS_DESCUBRIMIENTO.similares(productoId), {
         params: new HttpParams().set('limite', limite),
         headers: this.cabeceras(),
-      })
-      .pipe(catchError(() => of(null)));
+      }),
+    ).pipe(catchError(() => of(null)));
   }
 
   /**

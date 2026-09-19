@@ -1,14 +1,11 @@
+/* Los colores de la tienda viven en src/styles/tema.css. Este :root queda
+   como puente para lo que aun los lea con estos nombres. */
 :root {
-  --bs-primary: #00ff95;
-  /* Celeste brillante */
-  --bs-secondary: #BDC3C7;
-  /* Plateado */
-  --bs-success: #0dc763;
-  /* Naranja */
-  --bs-dark: #eaebea;
-  /* Azul petróleo */
-  --bs-light: #FFFFFF;
-  /* Blanco puro */
+  --bs-primary: var(--sz-verde);
+  --bs-secondary: var(--sz-texto-suave);
+  --bs-success: var(--sz-verde);
+  --bs-dark: var(--sz-oscuro);
+  --bs-light: var(--sz-superficie);
 }
 
 #carouselProductosTop .card-body h6 {
@@ -78,16 +75,39 @@
   box-sizing: border-box;
 }
 
+/*
+ * La foto del repartidor se recortaba con `cover` dentro de 160 px fijos: le
+ * cortaba la cabeza y las cajas, y debajo quedaba un bloque verde vacio con el
+ * texto pegado al borde. Se ve entera y el verde solo ocupa lo que necesita el
+ * texto.
+ */
 #carouselProductosTop .card-promo .card-img-top {
-  max-height: 160px; /* ajustar para que imagen ocupe parte superior */
-  object-fit: cover;
+  aspect-ratio: 4 / 3;
+  height: auto;
+  object-fit: contain;
   width: 100%;
   background: #fff;
+  padding: 10px;
 }
 
 #carouselProductosTop .card-promo .card-body {
-  margin-top: auto; /* fuerza que el body quede al fondo y la zona verde llene el espacio */
+  margin-top: auto;
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+#carouselProductosTop .card-promo .card-body h6 {
+  font-size: 0.8rem;
+  letter-spacing: 0.4px;
+  line-height: 1.25;
+}
+
+#carouselProductosTop .card-promo .card-body p {
+  font-size: 0.75rem;
+  line-height: 1.3;
 }
 
 #carouselProductosTop .card:hover {
@@ -130,14 +150,10 @@ a {
   padding: 30px;
 }
 
+/* El aspecto de la caja de caracteristicas vive ahora en producto-detalle.css,
+   que es donde se usa; aqui solo queda el ancho del bloque. */
 .spec-box {
-  box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179);
   margin: 0 auto;
-  max-height: 200px;
-  max-width: 500px;
-  overflow-y: auto;
-  border: 3px solid #BDC3C7;
-  border-radius: 8px;
 }
 
 .btn-primary {
@@ -317,14 +333,10 @@ a {
   padding: 30px;
 }
 
+/* El aspecto de la caja de caracteristicas vive ahora en producto-detalle.css,
+   que es donde se usa; aqui solo queda el ancho del bloque. */
 .spec-box {
-  box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179);
   margin: 0 auto;
-  max-height: 200px;
-  max-width: 500px;
-  overflow-y: auto;
-  border: 3px solid #BDC3C7;
-  border-radius: 8px;
 }
 
 .enviospend {

@@ -11,13 +11,10 @@
       <a class="btn btn-success mt-2" routerLink="/">Volver al inicio</a>
     </div>
   } @else if (producto(); as p) {
-    <div
-      class="container text-center"
-      style="background-color: white; padding: 10px; border-radius: 10px; box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.179)"
-    >
+    <div class="container ficha-producto">
       <div class="row row-cols-1 row-cols-lg-2 g-5">
         <div class="col">
-          <h4 class="card-title mt-4"><b>{{ p.name }}</b></h4>
+          <h1 class="ficha-producto__nombre">{{ p.name }}</h1>
 
           <div class="galeria-producto">
             <div class="miniaturas">
@@ -72,29 +69,78 @@
             </div>
           </div>
 
-          <h5
-            class="card-title text-start mt-4"
-            style="border-bottom: 2px solid #bdc3c7; padding-bottom: 13px"
-          >
-            Descripción
-          </h5>
-          <p class="text-start text-muted mb-4" style="margin: 15px">{{ p.description }}</p>
         </div>
 
         <div class="col text-start">
-          <h5
-            class="card-title text-start mt-4"
-            style="border-bottom: 2px solid #bdc3c7; padding-bottom: 13px"
-          >
+          <div class="caja-compra">
+            <p class="caja-compra__precio">
+              @if (enOferta()) {
+                <span class="badge bg-danger align-middle me-2">{{ etiquetaDescuento() }}</span>
+              }
+              {{ precioMostrado() }}
+              @if (enOferta()) {
+                <s class="caja-compra__antes">{{ precioOriginalMostrado() }}</s>
+              }
+            </p>
+
+            @if (agotado()) {
+              <p class="caja-compra__stock caja-compra__stock--agotado">
+                <i class="fa-solid fa-circle-xmark me-1" aria-hidden="true"></i>Sin stock
+              </p>
+            } @else {
+              <p class="caja-compra__stock">
+                <i class="fa-solid fa-circle-check me-1" aria-hidden="true"></i>Disponible para envío
+              </p>
+            }
+
+            <div class="caja-compra__acciones">
+              <label class="caja-compra__cantidad">
+                <span>Cantidad</span>
+                <input
+                  type="number"
+                  class="form-control"
+                  [value]="cantidad()"
+                  [min]="1"
+                  [max]="maximo()"
+                  [disabled]="agotado()"
+                  (change)="onCantidadInput($event)"
+                />
+              </label>
+
+              <button
+                type="button"
+                class="btn btn-success caja-compra__comprar"
+                [disabled]="agotado()"
+                (click)="agregarAlCarrito()"
+              >
+                <i class="fa-solid fa-cart-plus me-2" aria-hidden="true"></i>Agregar al carrito
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                [attr.aria-pressed]="comparacion.contiene(p.id)"
+                (click)="alternarComparar(p)"
+              >
+                <i class="fa-solid fa-code-compare me-1" aria-hidden="true"></i>
+                {{ comparacion.contiene(p.id) ? 'En comparación' : 'Comparar' }}
+              </button>
+            </div>
+
+            @if (avisoComparar()) {
+              <p class="caja-compra__aviso">{{ avisoComparar() }}</p>
+            }
+          </div>
+
+          <h2 class="ficha-producto__bloque">
             Características específicas
-          </h5>
-          <br />
+          </h2>
 
           <div class="spec-box">
-            <div class="text-start" style="margin: 15px">
+            <div class="text-start">
               <ul class="list-unstyled mb-0">
                 @for (spec of especificaciones(); track $index) {
-                  <li style="margin-bottom: 6px">
+                  <li>
                     @if (spec.label) {
                       <span class="fw-semibold">{{ spec.label }}:</span>
                     }
@@ -105,100 +151,20 @@
             </div>
           </div>
 
-          <h5
-            class="card-title text-start mt-4"
-            style="border-bottom: 2px solid #bdc3c7; padding-bottom: 13px"
-          >
+          <h2 class="ficha-producto__bloque">
             Métodos de pago
-          </h5>
-
-          <div class="container text-center mt-4">
-            <div class="row justify-content-center">
-              <div class="col-4 col-md-2">
-                <img
-                  src="https://images.seeklogo.com/logo-png/39/3/yape-app-logo-png_seeklogo-399697.png"
-                  width="60px"
-                  class="img-fluid rounded"
-                  alt="yape"
-                />
-              </div>
-              <div class="col-4 col-md-2">
-                <img
-                  src="https://img.icons8.com/?size=512&id=13608&format=png"
-                  width="60px"
-                  class="img-fluid rounded"
-                  alt="visa"
-                />
-              </div>
-              <div class="col-4 col-md-2">
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/8/88/MasterCard_early_1990s_logo.svg"
-                  width="60px"
-                  style="margin-top: 15px"
-                  class="img-fluid rounded"
-                  alt="mastercard"
-                />
-              </div>
-              <div class="col-4 col-md-2">
-                <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaft1EtwutCeXGzg0hfXfXubaH1jXMJeb-Rg&s"
-                  width="60px"
-                  class="img-fluid rounded"
-                  alt="paypal"
-                />
-              </div>
-            </div>
-          </div>
-
-          <h2 class="card-title text-start mt-4" style="color: #06b56c">
-            @if (enOferta()) {
-              <span class="badge bg-danger align-middle me-2" style="font-size: 0.65em">{{ etiquetaDescuento() }}</span>
-            }
-            {{ precioMostrado() }}
-            @if (enOferta()) {
-              <s class="text-muted ms-2" style="font-size: 0.6em">{{ precioOriginalMostrado() }}</s>
-            }
           </h2>
-          <br />
 
-          @if (agotado()) {
-            <p class="badge bg-danger">Sin stock</p>
-          }
-
-          <div class="d-flex align-items-center justify-content-center" style="gap: 40px">
-            <div class="d-flex align-items-center">
-              <span class="me-2">Cantidad</span>
-              <input
-                type="number"
-                class="form-control"
-                style="max-width: 100px"
-                [value]="cantidad()"
-                [min]="1"
-                [max]="maximo()"
-                [disabled]="agotado()"
-                (change)="onCantidadInput($event)"
-              />
-            </div>
-            <b>
-              <button
-                type="button"
-                class="btn btn-outline-success"
-                style="font-size: 15px"
-                [disabled]="agotado()"
-                (click)="agregarAlCarrito()"
-              >
-                Agregar a Carrito
-              </button>
-            </b>
-            <button type="button" class="btn btn-outline-secondary btn-sm ms-2" [attr.aria-pressed]="comparacion.contiene(p.id)"
-              (click)="alternarComparar(p)">
-              <i class="fa-solid fa-code-compare me-1" aria-hidden="true"></i>
-              {{ comparacion.contiene(p.id) ? 'En comparación' : 'Comparar' }}
-            </button>
-            @if (avisoComparar()) {
-              <div class="small text-body-secondary mt-1">{{ avisoComparar() }}</div>
+          <ul class="metodos-pago" aria-label="Métodos de pago aceptados">
+            @for (m of metodosPagoIconos; track m.nombre) {
+              <li><img [src]="m.icono" [alt]="m.nombre" loading="lazy" /></li>
             }
-          </div>
+          </ul>
+        </div>
+
+        <div class="col-12">
+          <h2 class="ficha-producto__bloque">Descripción</h2>
+          <p class="ficha-producto__descripcion">{{ p.description }}</p>
         </div>
       </div>
     </div>
@@ -209,15 +175,12 @@
 
     <!-- INICIO VALORACIONES -->
     <div class="container mt-5">
-      <h5
-        class="card-title text-start mb-3"
-        style="border-bottom: 2px solid #bdc3c7; padding-bottom: 13px"
-      >
+      <h2 class="ficha-producto__bloque">
         Valoraciones
         @if (promedio() > 0) {
           <span class="badge bg-success ms-2 align-middle">{{ promedio() }} / 5</span>
         }
-      </h5>
+      </h2>
 
       @if (promedio() > 0) {
         <div class="mb-4 d-flex align-items-center gap-2">

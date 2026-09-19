@@ -1,35 +1,35 @@
 <a [routerLink]="['/producto', producto().id]" class="text-decoration-none">
   <article class="pc-card">
     <div class="pc-imagen">
-      <img [src]="imagenDe(producto())" [alt]="producto().name" loading="lazy" />
+      <img [src]="imagenDe(producto())" [alt]="producto().name" loading="lazy" [class.pc-marcador]="sinFoto()" />
       @if (producto().enOferta) {
-        <span class="pc-badge">{{ porcentaje() }}% DSCTO</span>
+        <span class="pc-badge">-{{ porcentaje() }}%</span>
+      }
+      @if ((producto().stock ?? 1) <= 0) {
+        <span class="pc-agotado">Agotado</span>
       }
     </div>
     <div class="pc-cuerpo">
-      @if (producto().marcaName) {
-        <span class="pc-marca">{{ producto().marcaName }}</span>
-      }
+      <div class="pc-linea">
+        @if (producto().marcaName) {
+          <span class="pc-marca">{{ producto().marcaName }}</span>
+        }
+        @if ((producto().cantidadValoraciones ?? 0) > 0) {
+          <span class="pc-valoracion" [attr.aria-label]="producto().calificacionPromedio + ' de 5'">
+            <i class="fa-solid fa-star" aria-hidden="true"></i>
+            {{ producto().calificacionPromedio }}
+            <span class="pc-valoracion-num">({{ producto().cantidadValoraciones }})</span>
+          </span>
+        }
+      </div>
       <h3 class="pc-nombre">{{ producto().name }}</h3>
       <p class="pc-desc">{{ producto().description }}</p>
-      @if ((producto().cantidadValoraciones ?? 0) > 0) {
-        <div class="pc-valoracion">
-          @for (n of [1, 2, 3, 4, 5]; track n) {
-            <i
-              class="fa-solid fa-star"
-              [class.text-warning]="n <= redondeadoPromedio()"
-              [class.text-muted]="n > redondeadoPromedio()"
-            ></i>
-          }
-          <span class="pc-valoracion-num">({{ producto().calificacionPromedio }})</span>
-        </div>
-      }
       <div class="pc-precios">
         @if (producto().enOferta) {
-          <span class="pc-precio-actual">S/ {{ producto().precioActual }}</span>
-          <s class="pc-precio-original">S/ {{ producto().precio }}</s>
+          <span class="pc-precio-actual">{{ producto().precioActual | currency: 'PEN' : 'S/ ' : '1.2-2' }}</span>
+          <s class="pc-precio-original">{{ producto().precio | currency: 'PEN' : 'S/ ' : '1.2-2' }}</s>
         } @else {
-          <span class="pc-precio-actual">S/ {{ producto().precio }}</span>
+          <span class="pc-precio-actual">{{ producto().precio | currency: 'PEN' : 'S/ ' : '1.2-2' }}</span>
         }
       </div>
     </div>

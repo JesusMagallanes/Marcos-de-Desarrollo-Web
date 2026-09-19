@@ -88,6 +88,20 @@
   object-position: center;
 }
 
+/*
+ * Los banners son tiras de 3,9:1 con el texto y los precios pintados dentro.
+ * En un telefono, recortarlos a 220 px de alto se llevaba dos tercios de la
+ * imagen: quedaba media palabra del titular y la mitad de un producto. Se ve la
+ * tira entera aunque sea baja; recortada no decia nada.
+ */
+@media (max-width: 575.98px) {
+  #Carrusel .carousel-item img {
+    height: auto;
+    aspect-ratio: 2857 / 735;
+    object-fit: contain;
+  }
+}
+
 #Carrusel .carousel-indicators {
   margin-bottom: 4px;
 }
@@ -293,5 +307,215 @@
   .descubrimiento-esqueleto__titulo,
   .descubrimiento-esqueleto__tarjeta {
     animation: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   ESTANTES: la pieza única de la portada (ofertas, top, cada categoría)
+   ══════════════════════════════════════════════════════════════════════ */
+
+.estante {
+  max-width: 1280px;
+  margin: 2.75rem auto;
+  padding: 0 50px;
+}
+
+.estante__cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.estante__textos {
+  min-width: 0;
+}
+
+.estante__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--sz-verde);
+}
+
+.estante__etiqueta--oferta {
+  color: var(--sz-oferta);
+}
+
+.estante__titulo {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--sz-tinta);
+  margin: 0.1rem 0 0;
+  line-height: 1.2;
+}
+
+.estante__subtitulo {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--sz-texto-suave);
+}
+
+.estante__ver-todo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--sz-verde);
+  text-decoration: none;
+}
+
+.estante__ver-todo:hover {
+  color: var(--sz-verde-oscuro);
+  text-decoration: underline;
+}
+
+.estante__flechas {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.estante__flecha {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--sz-borde);
+  background: var(--sz-superficie);
+  color: var(--sz-tinta);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--sz-sombra);
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.estante__flecha:hover {
+  background: var(--sz-verde);
+  border-color: var(--sz-verde);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/*
+ * El carril. Se desliza con el dedo, la rueda o las flechas y encaja tarjeta a
+ * tarjeta (scroll-snap). Sin barra visible: las flechas y el borde cortado de
+ * la última tarjeta ya dicen que hay más.
+ */
+.estante__pista {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 0;
+  padding: 0.25rem 0 1rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.estante__pista::-webkit-scrollbar {
+  display: none;
+}
+
+.estante__item {
+  flex: 0 0 268px;
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+/* ── Tile promocional ── */
+.estante__promo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  padding: 1.1rem;
+  border-radius: var(--sz-radio-grande);
+  color: #fff;
+  text-decoration: none;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
+    linear-gradient(160deg, var(--sz-verde) 0%, var(--sz-verde-oscuro) 55%, #064e3b 100%);
+  box-shadow: var(--sz-sombra);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.estante__promo:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sz-sombra-alta);
+  color: #fff;
+}
+
+.estante__promo-foto {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  object-position: center bottom;
+  margin-bottom: auto;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.25));
+  transition: transform 0.3s ease;
+}
+
+.estante__promo:hover .estante__promo-foto {
+  transform: translateY(-4px) scale(1.03);
+}
+
+.estante__promo-etiqueta {
+  align-self: flex-start;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--sz-radio-pildora);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.estante__promo-titulo {
+  font-size: 1.15rem;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.estante__promo-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+@media (max-width: 1199.98px) {
+  .estante {
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .estante {
+    padding: 0 16px;
+    margin: 2rem auto;
+  }
+
+  .estante__item {
+    flex-basis: 210px;
+  }
+
+  .estante__pista {
+    gap: 0.75rem;
+  }
+
+  .estante__flechas {
+    display: none;
   }
 }

@@ -71,19 +71,23 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     Page<Producto> listarConRelaciones(Pageable pageable);
 
     @Query(value = """
-            SELECT p FROM Producto p
+            SELECT p FROM Producto p LEFT JOIN p.marca m
             LEFT JOIN FETCH p.categoria
             LEFT JOIN FETCH p.marca
             WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
               AND (LOWER(p.name) LIKE LOWER(CONCAT('%', :texto, '%'))
-                   OR LOWER(p.description) LIKE LOWER(CONCAT('%', :texto, '%')))
+                   OR LOWER(p.description) LIKE LOWER(CONCAT('%', :texto, '%'))
+                   OR LOWER(p.categoria.name) LIKE LOWER(CONCAT('%', :texto, '%'))
+                   OR LOWER(m.name) LIKE LOWER(CONCAT('%', :texto, '%')))
             ORDER BY p.id
             """,
             countQuery = """
-                    SELECT COUNT(p) FROM Producto p
+                    SELECT COUNT(p) FROM Producto p LEFT JOIN p.marca m
                     WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
                       AND (LOWER(p.name) LIKE LOWER(CONCAT('%', :texto, '%'))
-                           OR LOWER(p.description) LIKE LOWER(CONCAT('%', :texto, '%')))
+                           OR LOWER(p.description) LIKE LOWER(CONCAT('%', :texto, '%'))
+                           OR LOWER(p.categoria.name) LIKE LOWER(CONCAT('%', :texto, '%'))
+                           OR LOWER(m.name) LIKE LOWER(CONCAT('%', :texto, '%')))
                     """)
     Page<Producto> buscarPorTexto(@Param("texto") String texto, Pageable pageable);
 
@@ -118,6 +122,27 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             ORDER BY p.id
             """)
     List<Producto> listarDeCategoria(@Param("categoriaId") Long categoriaId, Pageable pageable);
+
+    /**
+     * Los primeros {@code porCategoria} productos aprobados de CADA categoría, en
+     * una sola consulta. Filas [id, categoriaId].
+     *
+     * <p>La portada los pedía con una consulta por categoría: diecisiete viajes
+     * a una base que está a ~130 ms, más las colecciones de cada uno. Con una
+     * ventana ({@code ROW_NUMBER() OVER (PARTITION BY categoria)}) Postgres los
+     * recorta todos de una vez y aquí solo quedan los ids; las entidades se
+     * cargan después en bloque con {@link #buscarConImagenes}.
+     */
+    @Query(value = """
+            SELECT id, categoria_id
+              FROM (SELECT p.id, p.categoria_id,
+                           ROW_NUMBER() OVER (PARTITION BY p.categoria_id ORDER BY p.id) AS n
+                      FROM catalogo.producto p
+                     WHERE p.estado_moderacion = 'APROBADO') t
+             WHERE n <= :porCategoria
+             ORDER BY categoria_id, id
+            """, nativeQuery = true)
+    List<Object[]> primerosPorCategoria(@Param("porCategoria") int porCategoria);
 
     /* ── Panel de descuentos ── */
 
@@ -291,12 +316,14 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      * producto tenga TODOS los codigos pedidos, no cualquiera.
      */
     @Query(value = """
-            SELECT p.id FROM Producto p
+            SELECT p.id FROM Producto p LEFT JOIN p.marca m
             WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
               AND (CAST(:slug AS string) IS NULL OR p.categoria.slug = :slug)
               AND (CAST(:texto AS string) IS NULL
                    OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
-                   OR LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%')))
+                   OR LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
+                   OR LOWER(p.categoria.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
+                   OR LOWER(m.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%')))
               AND (:precioMin IS NULL OR p.precio >= :precioMin)
               AND (:precioMax IS NULL OR p.precio <= :precioMax)
               AND (:sinMarcas = TRUE OR p.marca.id IN :marcaIds)
@@ -309,12 +336,14 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
                    ) = :numAtributos)
             """,
             countQuery = """
-                    SELECT COUNT(p) FROM Producto p
+                    SELECT COUNT(p) FROM Producto p LEFT JOIN p.marca m
                     WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
                       AND (CAST(:slug AS string) IS NULL OR p.categoria.slug = :slug)
                       AND (CAST(:texto AS string) IS NULL
                            OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
-                           OR LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%')))
+                           OR LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
+                           OR LOWER(p.categoria.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
+                           OR LOWER(m.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%')))
                       AND (:precioMin IS NULL OR p.precio >= :precioMin)
                       AND (:precioMax IS NULL OR p.precio <= :precioMax)
                       AND (:sinMarcas = TRUE OR p.marca.id IN :marcaIds)
@@ -339,12 +368,14 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      * conjunto ENTERO y no sobre la pagina visible. Son IDs, no entidades.
      */
     @Query(value = """
-            SELECT p.id FROM Producto p
+            SELECT p.id FROM Producto p LEFT JOIN p.marca m
             WHERE p.estadoModeracion = com.backend.catalogo.producto.EstadoModeracion.APROBADO
               AND (CAST(:slug AS string) IS NULL OR p.categoria.slug = :slug)
               AND (CAST(:texto AS string) IS NULL
                    OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
-                   OR LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%')))
+                   OR LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
+                   OR LOWER(p.categoria.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%'))
+                   OR LOWER(m.name) LIKE LOWER(CONCAT('%', CAST(:texto AS string), '%')))
               AND (:precioMin IS NULL OR p.precio >= :precioMin)
               AND (:precioMax IS NULL OR p.precio <= :precioMax)
               AND (:sinMarcas = TRUE OR p.marca.id IN :marcaIds)
@@ -365,20 +396,25 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     /** Cuantos productos del conjunto tiene cada marca. Filas [marcaId, nombre, conteo]. */
     @Query("""
-            SELECT p.marca.id, p.marca.name, COUNT(p)
-              FROM Producto p
+            SELECT p.marca.id, m.name, COUNT(p)
+              FROM Producto p LEFT JOIN p.marca m
              WHERE p.id IN :ids AND p.marca IS NOT NULL
-             GROUP BY p.marca.id, p.marca.name
-             ORDER BY COUNT(p) DESC, p.marca.name ASC
+             GROUP BY p.marca.id, m.name
+             ORDER BY COUNT(p) DESC, m.name ASC
             """)
     List<Object[]> conteoMarcas(@Param("ids") List<Long> ids);
 
-    /** Cuantos del conjunto tienen cada valor de cada atributo. Filas [codigo, nombre, valor, conteo]. */
+    /**
+     * Cuantos del conjunto tienen cada valor de cada atributo.
+     * Filas [codigo, nombre, unidad, valor, conteo]. La unidad va aparte del
+     * valor porque asi esta guardada; sin ella el filtro decia «512» y «16» y
+     * el cliente tenia que adivinar si eran gigas, pulgadas o meses.
+     */
     @Query("""
-            SELECT pa.atributo.codigo, pa.atributo.nombre, pa.valor, COUNT(pa)
+            SELECT pa.atributo.codigo, pa.atributo.nombre, pa.atributo.unidad, pa.valor, COUNT(pa)
               FROM ProductoAtributo pa
              WHERE pa.producto.id IN :ids
-             GROUP BY pa.atributo.codigo, pa.atributo.nombre, pa.valor
+             GROUP BY pa.atributo.codigo, pa.atributo.nombre, pa.atributo.unidad, pa.valor
              ORDER BY pa.atributo.nombre ASC, COUNT(pa) DESC, pa.valor ASC
             """)
     List<Object[]> conteoAtributos(@Param("ids") List<Long> ids);

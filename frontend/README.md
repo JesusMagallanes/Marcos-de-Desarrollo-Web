@@ -70,6 +70,24 @@ La categoría dejó de filtrar en el navegador los doce productos cargados; el d
 
 Todas las rutas usan `loadComponent`, así que un visitante anónimo no descarga el panel admin.
 
+## Tema visual
+
+Todo el aspecto sale de **un** fichero: `src/styles/tema.css`. Define los tokens (`--sz-verde`,
+`--sz-tinta`, `--sz-borde`, radios, sombras, el anillo de foco) y sobre ellos los de Bootstrap
+(`--bs-primary`, `--bs-body-bg`, `--bs-font-sans-serif`…), así que los componentes de Bootstrap
+salen ya con la marca sin tocarlos uno a uno. Se carga el **último** en `angular.json` para ganar
+a las hojas heredadas del monolito (`Style.css`, `productosCategoria.css`, `Chat-Bot.css`) sin
+reescribirlas.
+
+Antes había cinco verdes distintos para una sola marca (`#28aa00` en la cabecera, `#06b56c` en
+las tarjetas, `#198754` en los botones, `#00ff95` en un `:root`, `#0dc763` en otro). Eso es lo que
+hacía que la tienda se viera «casi bien». Los componentes con estilos propios (cabecera, tarjeta de
+producto, pie, ficha, carrito) leen los tokens con `var(--sz-…)`: cambiar la marca es cambiar aquí.
+
+La tipografía es **Inter** (`@fontsource-variable/inter`), servida desde la propia tienda porque la
+CSP no deja cargar fuentes de fuera. Los precios se formatean siempre igual, `S/ 5,499.90`, con el
+pipe `currency` de Angular; escribir `S/ {{ precio }}` a mano es lo que producía `S/ 5499.9`.
+
 ## IA aplicada
 
 Todo pasa por `IaService` (y `ColaboradorService.analizar`, `DescubrimientoService.porQue`,

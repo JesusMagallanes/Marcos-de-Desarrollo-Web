@@ -11,6 +11,7 @@ import com.backend.compras.shared.seguridad.CabecerasSeguridad;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.backend.compras.shared.seguridad.AccesoMetricas;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -42,6 +43,13 @@ public class SecurityConfig {
 
     @Value("${seguridad.jwt.audiencia}")
     private String audiencia;
+
+    /**
+     * Secreto del recolector de metricas. Vacio (lo normal en desarrollo) deja
+     * `/actuator/prometheus` como estaba: solo con rol de ADMINISTRADOR.
+     */
+    @Value("${seguridad.metricas.token:}")
+    private String tokenMetricas;
 
     /** A02/A08: se valida firma, caducidad, emisor y audiencia. */
     @Bean
@@ -101,8 +109,10 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health").permitAll()
-                        // Las métricas revelan volumen y errores: solo ADMINISTRADOR.
-                        .requestMatchers("/actuator/prometheus").hasRole("ADMINISTRADOR")
+                        // Las métricas revelan volumen y errores: un administrador con su JWT, o
+                        // el recolector de metricas con METRICAS_TOKEN (ver AccesoMetricas).
+                        .requestMatchers("/actuator/prometheus")
+                        .access(AccesoMetricas.conTokenOAdministrador(tokenMetricas))
                         // El webhook lo llama MercadoPago, no el navegador: se valida
                         // por firma dentro del controlador, no por JWT.
                         .requestMatchers("/api/pagos/webhook").permitAll()

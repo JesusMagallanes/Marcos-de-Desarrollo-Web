@@ -2,6 +2,10 @@ package com.backend.catalogo.categoria;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+
+import com.backend.catalogo.shared.config.CacheConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +23,7 @@ public class CategoriaService {
 
     private final CategoriaRepository repositorio;
 
+    @Cacheable(CacheConfig.CATEGORIAS)
     public List<CategoriaResponse> listar() {
         return repositorio.findAllByOrderByNameAsc().stream().map(CategoriaResponse::desde).toList();
     }
@@ -44,6 +49,7 @@ public class CategoriaService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.CATEGORIAS, CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public CategoriaResponse crear(CategoriaRequest dto) {
         if (repositorio.existsByName(dto.name())) {
             throw new ConflictoException("Ya existe una categoría con ese nombre");
@@ -64,6 +70,7 @@ public class CategoriaService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.CATEGORIAS, CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public CategoriaResponse actualizar(Long id, CategoriaRequest dto) {
         Categoria categoria = buscar(id);
 
@@ -111,6 +118,7 @@ public class CategoriaService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.CATEGORIAS, CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public void eliminar(Long id) {
         if (!repositorio.existsById(id)) {
             throw new RecursoNoEncontradoException("Categoría " + id + " no encontrada");

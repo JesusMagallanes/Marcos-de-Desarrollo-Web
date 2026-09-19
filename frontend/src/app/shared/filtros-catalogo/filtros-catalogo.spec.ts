@@ -15,6 +15,7 @@ const FACETAS: FacetasCatalogo = {
     {
       codigo: 'ram_gb',
       nombre: 'RAM',
+      unidad: 'GB',
       valores: [
         { valor: '16', conteo: 18 },
         { valor: '32', conteo: 12 },
@@ -62,8 +63,9 @@ describe('FiltrosCatalogo', () => {
     );
     expect(etiquetas).toContain('Lenovo');
     expect(etiquetas).toContain('ASUS');
-    expect(etiquetas).toContain('16');
-    expect(etiquetas).toContain('32');
+    // Con la unidad al lado: «16» solo no dice si son gigas o pulgadas.
+    expect(etiquetas).toContain('16 GB');
+    expect(etiquetas).toContain('32 GB');
   });
 
   it('marcar una marca produce un filtro NUEVO con esa marca', () => {

@@ -41,9 +41,9 @@
                     <small class="product-marca">{{ p.marcaName }}</small>
                   }
                   <span class="product-price">
-                    S/ {{ p.precioActual }}
+                    {{ p.precioActual | currency: 'PEN' : 'S/ ' : '1.2-2' }}
                     @if (p.enOferta) {
-                      <s class="product-price-old">S/ {{ p.precio }}</s>
+                      <s class="product-price-old">{{ p.precio | currency: 'PEN' : 'S/ ' : '1.2-2' }}</s>
                       <em class="product-discount">{{ porcentajeDescuento(p) }}% DSCTO</em>
                     }
                   </span>

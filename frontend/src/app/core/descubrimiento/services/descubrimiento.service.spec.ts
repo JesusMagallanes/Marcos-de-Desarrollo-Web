@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DescubrimientoService } from './descubrimiento.service';
@@ -325,14 +326,17 @@ describe('DescubrimientoService', () => {
 
   /* ══════════════ Lectura ══════════════ */
 
-  it('el Home se pide en UNA petición', () => {
+  it('el Home se pide en UNA petición, y solo cuando la aplicación ya está estable', async () => {
     servicio.home(12).subscribe();
+    // Los carruseles son lo más lento de la portada: salen después de que la
+    // primera pantalla haya terminado, no compitiendo con ella.
+    await TestBed.inject(ApplicationRef).whenStable();
     const req = http.expectOne((r) => r.url === '/api/descubrimiento/home');
     expect(req.request.params.get('porCarrusel')).toBe('12');
     req.flush({ sujetoId: SUJETO, carruseles: [] });
   });
 
-  it('si el Home de descubrimiento falla, devuelve null en vez de romper', () => {
+  it('si el Home de descubrimiento falla, devuelve null en vez de romper', async () => {
     /*
      * Es lo que permite al componente pintar el catálogo de siempre. El usuario
      * no tiene por qué enterarse de que existe un recomendador, y menos de que
@@ -340,6 +344,7 @@ describe('DescubrimientoService', () => {
      */
     let recibido: unknown = 'sin tocar';
     servicio.home().subscribe((r) => (recibido = r));
+    await TestBed.inject(ApplicationRef).whenStable();
 
     http
       .expectOne((r) => r.url === '/api/descubrimiento/home')
@@ -348,9 +353,10 @@ describe('DescubrimientoService', () => {
     expect(recibido).toBeNull();
   });
 
-  it('los similares también degradan a null', () => {
+  it('los similares también degradan a null', async () => {
     let recibido: unknown = 'sin tocar';
     servicio.similares(9).subscribe((r) => (recibido = r));
+    await TestBed.inject(ApplicationRef).whenStable();
 
     http
       .expectOne((r) => r.url === '/api/descubrimiento/similares/9')

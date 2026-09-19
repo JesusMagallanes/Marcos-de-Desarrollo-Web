@@ -47,7 +47,7 @@
             <input class="form-check-input filter-checkbox" type="checkbox"
               [checked]="atributoActivo(a.codigo, v.valor)"
               (change)="alternarAtributo(a.codigo, v.valor)" />
-            <span>{{ v.valor }}</span>
+            <span>{{ v.valor }}{{ a.unidad ? ' ' + a.unidad : '' }}</span>
             <span class="conteo">{{ v.conteo }}</span>
           </label>
         }

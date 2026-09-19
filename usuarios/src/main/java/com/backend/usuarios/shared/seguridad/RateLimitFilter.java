@@ -80,7 +80,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String clave = ip + "|" + claveDeAmbito(peticion, ruta);
 
         if (!limitador.permitir(clave, maximo, ventana)) {
-            long reintentar = limitador.segundosParaReintentar(clave, ventana);
+            long reintentar = limitador.segundosParaReintentar(clave, maximo, ventana);
             metricas.rateLimitBloqueado(ambito(ruta));
             log.warn("Cupo excedido para {} en {}", ip, ruta);
 

@@ -113,6 +113,29 @@ class BusquedaFiltradaIT extends PruebaIntegracion {
             assertThat(servicio.buscar("zqxwmega", null, filtroVacio(), 0, 12).totalElements())
                     .isEqualTo(1);
         }
+
+        @Test
+        @DisplayName("el texto también encuentra por categoría y por marca, y no excluye a los productos sin marca")
+        void textoPorCategoriaYMarca() {
+            /*
+             * Lo que escribe la gente es «laptop» o «asus», no el modelo. Con la
+             * busqueda solo por nombre y descripcion, «laptop» devolvia cero
+             * resultados en una tienda con doce laptops, porque ninguna se llama
+             * asi: se llaman «ASUS TUF A15». La categoria se llama Laptops.
+             */
+            crearProducto(categoria, "TUF A15 zq1", "1000", 5, asus);
+            crearProducto(categoria, "IdeaPad zq2", "1200", 5, lenovo);
+            jdbc.update("INSERT INTO catalogo.producto"
+                    + " (name, description, precio, stock, categoria_id, marca_id, estado_moderacion)"
+                    + " VALUES ('Generica zq3', 'IT', 500, 5, ?, NULL, 'APROBADO')", categoria);
+
+            // Por el nombre de la categoria (el slug es filt-laptops; el name tambien).
+            assertThat(servicio.buscar(SLUG, null, filtroVacio(), 0, 12).totalElements()).isEqualTo(3);
+            // Por la marca.
+            assertThat(servicio.buscar("filt-asus", null, filtroVacio(), 0, 12).totalElements()).isEqualTo(1);
+            // Sin marca sigue apareciendo cuando coincide por nombre: el join es LEFT.
+            assertThat(servicio.buscar("zq3", null, filtroVacio(), 0, 12).totalElements()).isEqualTo(1);
+        }
     }
 
     /* ══════════════ Precio ══════════════ */

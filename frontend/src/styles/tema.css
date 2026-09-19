@@ -1,0 +1,304 @@
+/*
+ * ══════════════════════════════════════════════════════════════════════════
+ *  Tema de SmartZone — la única fuente de verdad del aspecto de la tienda
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Antes cada pieza traía su verde: #28aa00 en la cabecera, #06b56c en las
+ * tarjetas, #198754 (el de Bootstrap) en los botones, #00ff95 neón en el :root
+ * de Style.css y #0dc763 en otro sitio. Cinco verdes para una marca. Con los
+ * grises pasaba lo mismo. Eso es lo que hace que una tienda se vea «casi bien»
+ * sin que nadie sepa decir por qué.
+ *
+ * Este fichero define los tokens y se carga el ÚLTIMO, de modo que gana a las
+ * hojas heredadas del monolito (Style.css, productosCategoria.css, Chat-Bot.css)
+ * sin tener que reescribirlas. Los componentes leen los tokens con var(); el
+ * día que cambie la marca se cambia aquí.
+ *
+ * Tipografía: Inter, servida desde la propia tienda. La CSP no deja cargar
+ * fuentes de fuera (font-src 'self'), y así tampoco dependemos de Google para
+ * pintar texto.
+ */
+@import '@fontsource-variable/inter/index.css';
+
+:root {
+  /* ── Marca ── */
+  --sz-verde: #059669;
+  --sz-verde-oscuro: #047857;
+  --sz-verde-suave: #d1fae5;
+  --sz-verde-tenue: #ecfdf5;
+  --sz-verde-texto: #065f46;
+
+  /* ── Neutros ── */
+  --sz-tinta: #14261c;
+  --sz-texto: #334155;
+  --sz-texto-suave: #64748b;
+  --sz-borde: #e4e9e6;
+  --sz-borde-fuerte: #cbd5d0;
+  --sz-fondo: #f5f7f6;
+  --sz-superficie: #ffffff;
+  --sz-oscuro: #111827;
+
+  /* ── Acentos ── */
+  --sz-oferta: #dc2626;
+  --sz-estrella: #f59e0b;
+
+  /* ── Forma ── */
+  --sz-radio: 12px;
+  --sz-radio-grande: 16px;
+  --sz-radio-pildora: 999px;
+  --sz-sombra: 0 1px 2px rgb(16 32 24 / 0.06), 0 4px 14px rgb(16 32 24 / 0.06);
+  --sz-sombra-alta: 0 12px 32px rgb(16 32 24 / 0.14);
+  --sz-anillo: 0 0 0 4px rgb(5 150 105 / 0.18);
+
+  /* ── Bootstrap lee estos ── */
+  --bs-primary: var(--sz-verde);
+  --bs-primary-rgb: 5, 150, 105;
+  --bs-success: var(--sz-verde);
+  --bs-success-rgb: 5, 150, 105;
+  --bs-secondary: var(--sz-texto-suave);
+  --bs-dark: var(--sz-oscuro);
+  --bs-light: var(--sz-fondo);
+  --bs-body-bg: var(--sz-fondo);
+  --bs-body-color: var(--sz-texto);
+  --bs-heading-color: var(--sz-tinta);
+  --bs-link-color: var(--sz-verde);
+  --bs-link-hover-color: var(--sz-verde-oscuro);
+  --bs-link-color-rgb: 5, 150, 105;
+  --bs-link-hover-color-rgb: 4, 120, 87;
+  --bs-border-color: var(--sz-borde);
+  --bs-border-radius: var(--sz-radio);
+  --bs-border-radius-sm: 8px;
+  --bs-border-radius-lg: var(--sz-radio-grande);
+  --bs-font-sans-serif: 'Inter Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Base ── */
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--bs-font-sans-serif);
+  background: var(--sz-fondo);
+  color: var(--sz-texto);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+/* Chat-Bot.css pone `font-family` en `*`, que pisa cualquier cosa: se repite
+   aquí con la misma especificidad para que gane el último. */
+* {
+  font-family: var(--bs-font-sans-serif);
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  color: var(--sz-tinta);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+a {
+  transition: color 0.15s ease;
+}
+
+/* ── Botones ── */
+.btn {
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 0.55rem 1.1rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--sz-radio);
+}
+
+.btn-success,
+.btn-primary {
+  --bs-btn-bg: var(--sz-verde);
+  --bs-btn-border-color: var(--sz-verde);
+  --bs-btn-hover-bg: var(--sz-verde-oscuro);
+  --bs-btn-hover-border-color: var(--sz-verde-oscuro);
+  --bs-btn-active-bg: var(--sz-verde-oscuro);
+  --bs-btn-active-border-color: var(--sz-verde-oscuro);
+  --bs-btn-disabled-bg: #a7d9c5;
+  --bs-btn-disabled-border-color: #a7d9c5;
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-color: #fff;
+  --bs-btn-disabled-color: #fff;
+  background-color: var(--sz-verde);
+  border-color: var(--sz-verde);
+  box-shadow: 0 1px 2px rgb(5 150 105 / 0.25);
+}
+
+.btn-success:hover,
+.btn-primary:hover {
+  background-color: var(--sz-verde-oscuro);
+  border-color: var(--sz-verde-oscuro);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgb(5 150 105 / 0.28);
+}
+
+.btn-outline-success {
+  --bs-btn-color: var(--sz-verde-texto);
+  --bs-btn-border-color: var(--sz-verde);
+  --bs-btn-hover-bg: var(--sz-verde);
+  --bs-btn-hover-border-color: var(--sz-verde);
+  --bs-btn-active-bg: var(--sz-verde-oscuro);
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--sz-texto);
+  --bs-btn-border-color: var(--sz-borde-fuerte);
+  --bs-btn-hover-bg: var(--sz-fondo);
+  --bs-btn-hover-color: var(--sz-tinta);
+  --bs-btn-hover-border-color: var(--sz-borde-fuerte);
+}
+
+.btn:focus-visible {
+  box-shadow: var(--sz-anillo);
+}
+
+/* ── Formularios ── */
+.form-control,
+.form-select {
+  border-radius: 10px;
+  border-color: var(--sz-borde);
+  padding: 0.55rem 0.85rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--sz-verde);
+  box-shadow: var(--sz-anillo);
+}
+
+.form-check-input:checked {
+  background-color: var(--sz-verde);
+  border-color: var(--sz-verde);
+}
+
+.form-check-input:focus {
+  box-shadow: var(--sz-anillo);
+  border-color: var(--sz-verde);
+}
+
+/* ── Superficies ── */
+.card {
+  border-color: var(--sz-borde);
+  border-radius: var(--sz-radio);
+  box-shadow: var(--sz-sombra);
+}
+
+.badge.bg-success {
+  background-color: var(--sz-verde) !important;
+}
+
+.badge.bg-danger {
+  background-color: var(--sz-oferta) !important;
+}
+
+.alert {
+  border-radius: var(--sz-radio);
+}
+
+.text-success {
+  color: var(--sz-verde-texto) !important;
+}
+
+.text-warning {
+  color: var(--sz-estrella) !important;
+}
+
+.dropdown-menu {
+  border-radius: var(--sz-radio);
+  border-color: var(--sz-borde);
+  box-shadow: var(--sz-sombra-alta);
+  padding: 0.4rem;
+}
+
+.dropdown-item {
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: var(--sz-verde-tenue);
+  color: var(--sz-verde-texto);
+}
+
+.dropdown-menu .dropdown-item:active {
+  background-color: var(--sz-verde) !important;
+}
+
+.offcanvas {
+  border: none;
+}
+
+.modal-content {
+  border: none;
+  border-radius: var(--sz-radio-grande);
+  box-shadow: var(--sz-sombra-alta);
+}
+
+/* Barras de scroll finas en todo el sitio, no solo en los carruseles. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sz-borde-fuerte);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Lo heredado que se corrige desde aquí ── */
+
+/* Style.css: precio de la tarjeta de rejilla y botón «primary» del monolito. */
+.btn-primary {
+  background-color: var(--sz-verde);
+}
+
+.btn-primary:hover {
+  background-color: var(--sz-verde-oscuro);
+}
+
+/* La franja de ayuda y los fondos «casi blancos» de las hojas antiguas. */
+.franja-ayuda,
+.header-principal,
+.barra-superior {
+  background-color: var(--sz-superficie) !important;
+}
+
+/* Secciones de la portada: mismo ritmo vertical para todas. */
+.mas-vendidos,
+.canales-de-atencion {
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Foco visible en todo lo que se pueda pulsar, con el anillo de la marca. */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--sz-anillo);
+  border-radius: 6px;
+}

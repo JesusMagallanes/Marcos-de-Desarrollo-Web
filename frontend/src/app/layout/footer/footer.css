@@ -133,3 +133,40 @@
     transition: none;
   }
 }
+
+/* Las categorías en dos columnas: ocho enlaces en cuatro filas, a la altura
+   del resto del pie, en vez de una sola columna que lo doblaba. */
+.pie-categorias {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1rem;
+}
+
+.pie-categorias a {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * Los colores del pie son los de siempre (#363636 arriba, #2D2D2D abajo): se
+ * probaron los oscuros del tema y se descartaron; el pie gris es parte de la
+ * identidad de la tienda. Solo se anade el verde al pasar por los enlaces.
+ */
+.pie-principal {
+  background-color: #363636;
+  color: #fff;
+}
+
+.pie-principal a[style] {
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.pie-principal a[style]:hover {
+  color: #34d399 !important;
+}
+
+.pie-inferior {
+  background-color: #2d2d2d;
+}

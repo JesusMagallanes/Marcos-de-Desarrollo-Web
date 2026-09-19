@@ -1,3 +1,4 @@
+import { CurrencyPipe } from '@angular/common';
 import { Component, computed, effect, inject, signal, viewChild, type ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -26,7 +27,7 @@ const MENSAJE_BIENVENIDA = {
 
 @Component({
   selector: 'app-chatbot',
-  imports: [FormsModule],
+  imports: [FormsModule, CurrencyPipe],
   templateUrl: './chatbot.html',
 })
 export class Chatbot {

@@ -39,14 +39,20 @@ public class Comparador {
 
     static final String FUNCION = "comparador";
 
+    /** Lo que aporta el modelo, que es lo único que se guarda: la tabla se rehace. */
+    record Veredicto(String explicacion, Long recomendadoId) {
+    }
+
     private final ClienteIa ia;
     private final GuardiaPrompt guardia;
     private final ProductoService productos;
+    private final CacheIa cache;
 
-    public Comparador(ClienteIa ia, GuardiaPrompt guardia, ProductoService productos) {
+    public Comparador(ClienteIa ia, GuardiaPrompt guardia, ProductoService productos, CacheIa cache) {
         this.ia = ia;
         this.guardia = guardia;
         this.productos = productos;
+        this.cache = cache;
     }
 
     public Comparacion comparar(ComparacionRequest dto) {
@@ -86,10 +92,18 @@ public class Comparador {
         String usuario = guardia.delimitar("productos", cabecera + "\n\n" + tabla)
                 + (uso.vacia() ? "" : "\n\n" + guardia.delimitar("uso", uso.texto()));
 
-        return ia.json(FUNCION, sistema, usuario, 350)
-                .map(r -> new Comparacion(lista, filas,
-                        vacioANulo(Respuestas.texto(r, "explicacion", 700)), recomendado(r, ids)))
-                .orElseGet(() -> new Comparacion(lista, filas, null, null));
+        /*
+         * Se guarda el veredicto, no la comparación entera: los precios y el
+         * stock se vuelven a leer en cada visita, y la clave lleva la tabla que
+         * se envió, así que un cambio de precio invalida lo guardado.
+         */
+        Veredicto veredicto = cache.recordar(FUNCION, CacheIa.huella(sistema, usuario),
+                () -> ia.json(FUNCION, sistema, usuario, 350)
+                        .map(r -> new Veredicto(vacioANulo(Respuestas.texto(r, "explicacion", 700)),
+                                recomendado(r, ids))))
+                .orElse(null);
+        return veredicto == null ? new Comparacion(lista, filas, null, null)
+                : new Comparacion(lista, filas, veredicto.explicacion(), veredicto.recomendadoId());
     }
 
     /** Precio, valoración, stock y la unión de características, en orden estable. */

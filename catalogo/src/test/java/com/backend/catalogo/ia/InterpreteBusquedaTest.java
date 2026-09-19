@@ -51,8 +51,7 @@ class InterpreteBusquedaTest {
             List.of(new CategoriaResponse(1L, "Laptops", "laptops", "", "laptop", null)),
             List.of(new MarcaResponse(10L, "ASUS", "", 1L, List.of(1L)),
                     new MarcaResponse(11L, "Lenovo", "", 1L, List.of(1L))),
-            List.of(new FacetaAtributo("ram", "Memoria RAM",
-                    List.of(new FacetaValor("16 GB", 4), new FacetaValor("8 GB", 9)))),
+            List.of(new FacetaAtributo("ram", "Memoria RAM", null, List.of(new FacetaValor("16 GB", 4), new FacetaValor("8 GB", 9)))),
             Instant.now());
 
     @BeforeEach

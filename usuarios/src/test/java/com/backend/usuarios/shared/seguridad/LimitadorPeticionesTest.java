@@ -39,8 +39,8 @@ class LimitadorPeticionesTest {
     }
 
     @Test
-    @DisplayName("al expirar la ventana el cupo se renueva")
-    void ventanaDeslizante() throws InterruptedException {
+    @DisplayName("al reponerse las fichas el cupo vuelve")
+    void reposicion() throws InterruptedException {
         LimitadorPeticiones limitador = new LimitadorPeticiones();
         Duration ventana = Duration.ofMillis(100);
 
@@ -127,5 +127,66 @@ class LimitadorPeticionesTest {
 
         long espera = limitador.segundosParaReintentar("ip|login", ventana);
         assertThat(espera).isBetween(1L, 30L);
+    }
+
+    @Test
+    @DisplayName("no regala el cupo entero al cambiar de ventana: es un cubo, no una ventana fija")
+    void sinRafagaEnElBorde() throws InterruptedException {
+        LimitadorPeticiones limitador = new LimitadorPeticiones();
+        Duration ventana = Duration.ofSeconds(2);
+
+        // Calentar: la primera llamada de la clase carga clases y tarda lo
+        // bastante como para reponer fichas y falsear la medida.
+        for (int i = 0; i < 100; i++) {
+            limitador.permitir("ip|calentar", 1000, ventana);
+        }
+
+        /*
+         * El agujero que tenia la version anterior: gastar el cupo al final de
+         * una ventana y volver a gastarlo entero al principio de la siguiente,
+         * o sea el doble seguido. Con reposicion continua, tras esperar media
+         * ventana solo se ha repuesto la mitad.
+         */
+        for (int i = 0; i < 20; i++) {
+            assertThat(limitador.permitir("ip|prueba", 20, ventana)).isTrue();
+        }
+        assertThat(limitador.permitir("ip|prueba", 20, ventana)).isFalse();
+
+        Thread.sleep(ventana.dividedBy(2).toMillis());
+
+        int permitidas = 0;
+        for (int i = 0; i < 20; i++) {
+            if (limitador.permitir("ip|prueba", 20, ventana)) {
+                permitidas++;
+            }
+        }
+        assertThat(permitidas).as("media ventana repone media carga, no la entera")
+                .isBetween(7, 13);
+    }
+
+    @Test
+    @DisplayName("una rafaga legitima cabe: el cubo empieza lleno")
+    void laRafagaLegitimaPasa() {
+        LimitadorPeticiones limitador = new LimitadorPeticiones();
+
+        for (int i = 0; i < 20; i++) {
+            assertThat(limitador.permitir("ip|lectura", 20, Duration.ofMinutes(1))).isTrue();
+        }
+    }
+
+    @Test
+    @DisplayName("el tiempo de espera sale del ritmo de reposicion, no de la ventana entera")
+    void esperaSegunElRitmo() {
+        LimitadorPeticiones limitador = new LimitadorPeticiones();
+        Duration ventana = Duration.ofSeconds(60);
+
+        for (int i = 0; i < 60; i++) {
+            limitador.permitir("ip|lectura", 60, ventana);
+        }
+        assertThat(limitador.permitir("ip|lectura", 60, ventana)).isFalse();
+
+        // 60 por minuto es una ficha por segundo: esperar un minuto entero
+        // seria mentirle al cliente.
+        assertThat(limitador.segundosParaReintentar("ip|lectura", 60, ventana)).isEqualTo(1);
     }
 }

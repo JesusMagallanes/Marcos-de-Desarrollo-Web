@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import com.backend.catalogo.shared.seguridad.AccesoMetricas;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,6 +44,13 @@ public class SecurityConfig {
 
     @Value("${seguridad.jwt.audiencia}")
     private String audiencia;
+
+    /**
+     * Secreto del recolector de metricas. Vacio (lo normal en desarrollo) deja
+     * `/actuator/prometheus` como estaba: solo con rol de ADMINISTRADOR.
+     */
+    @Value("${seguridad.metricas.token:}")
+    private String tokenMetricas;
 
     /**
      * A02/A08: además de la firma se exige emisor y audiencia. Un token válido emitido
@@ -152,8 +160,10 @@ public class SecurityConfig {
                          */
                         .requestMatchers("/api/descubrimiento/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
-                        // Las métricas revelan volumen y errores: solo ADMINISTRADOR.
-                        .requestMatchers("/actuator/prometheus").hasRole("ADMINISTRADOR")
+                        // Las métricas revelan volumen y errores: un administrador con su JWT, o
+                        // el recolector de metricas con METRICAS_TOKEN (ver AccesoMetricas).
+                        .requestMatchers("/actuator/prometheus")
+                        .access(AccesoMetricas.conTokenOAdministrador(tokenMetricas))
                         // Contrato interno de la saga: solo servicios autenticados.
                         .requestMatchers("/api/inventario/**").authenticated()
                         // Todo lo demás (POST/PUT/DELETE) exige rol, vía @PreAuthorize.

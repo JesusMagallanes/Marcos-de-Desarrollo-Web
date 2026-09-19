@@ -47,13 +47,15 @@ public class AsistenteCarrito {
     private final GuardiaPrompt guardia;
     private final ProductoService productos;
     private final RecomendacionService recomendaciones;
+    private final CacheIa cache;
 
     public AsistenteCarrito(ClienteIa ia, GuardiaPrompt guardia, ProductoService productos,
-            RecomendacionService recomendaciones) {
+            RecomendacionService recomendaciones, CacheIa cache) {
         this.ia = ia;
         this.guardia = guardia;
         this.productos = productos;
         this.recomendaciones = recomendaciones;
+        this.cache = cache;
     }
 
     public Optional<Complementos> complementos(List<Long> enCarrito) {
@@ -105,7 +107,27 @@ public class AsistenteCarrito {
                                 + p.precioActual().toPlainString())
                         .collect(Collectors.joining("\n")));
 
-        return ia.json(FUNCION, sistema, usuario, 300).map(r -> elegir(r, candidatos));
+        /*
+         * Se guardan los motivos —lo que dijo el modelo—, no los productos: el
+         * carrito se abre varias veces antes de pagar y en cada visita hay que
+         * releer precio y stock. Si un sugerido ya no está entre los candidatos
+         * (se agotó), `conMotivos` lo deja fuera.
+         */
+        return cache.recordar(FUNCION, CacheIa.huella(sistema, usuario),
+                () -> ia.json(FUNCION, sistema, usuario, 300).map(r -> elegir(r, candidatos)))
+                .map(elegidos -> conMotivos(elegidos.motivos(), candidatos))
+                .filter(c -> !c.productos().isEmpty());
+    }
+
+    /** Los motivos guardados, con los productos tal como están AHORA. */
+    static Complementos conMotivos(Map<Long, String> motivos, Map<Long, ProductoResponse> candidatos) {
+        Map<Long, String> vigentes = new LinkedHashMap<>();
+        for (Map.Entry<Long, String> sugerido : motivos.entrySet()) {
+            if (candidatos.containsKey(sugerido.getKey())) {
+                vigentes.put(sugerido.getKey(), sugerido.getValue());
+            }
+        }
+        return new Complementos(vigentes.keySet().stream().map(candidatos::get).toList(), vigentes);
     }
 
     static Complementos elegir(JsonNode r, Map<Long, ProductoResponse> candidatos) {

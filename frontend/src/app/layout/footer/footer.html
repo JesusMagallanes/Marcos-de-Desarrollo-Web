@@ -1,4 +1,4 @@
-<footer class="py-5 mt-auto" style="background-color: #363636; color: white;">
+<footer class="py-5 mt-auto pie-principal">
   <div class="container gap-5">
     <!-- ESTRUCTURA ESCRITORIO -->
     <div class="row d-none d-xl-flex">
@@ -46,15 +46,15 @@
           <a href="" style="font-size: 13px; color: white;">Xiaomi</a>
         </div>
       </div>
-      <div class="col-xl-2">
-        <h5 style="font-size: 17px; color: white;">Nuestras categorias</h5>
-        <div class="d-flex flex-column gap-2">
-          @for (c of categorias(); track c.id) {
+      <div class="col-xl-3">
+        <h5 style="font-size: 17px; color: white;">Nuestras categorías</h5>
+        <div class="pie-categorias">
+          @for (c of categoriasPie(); track c.id) {
             <a [routerLink]="['/categoria', c.slug]" style="font-size: 13px; color: white;">{{ c.name }}</a>
           }
         </div>
       </div>
-      <div class="col-xl-3">
+      <div class="col-xl-2">
         <h5 style="font-size: 17px; color: white;">Aprende con nosotros</h5>
         <div class="d-flex flex-column gap-2">
           @for (guia of guias(); track guia.id) {
@@ -138,7 +138,7 @@
           </h2>
           <div id="collapseCategorias" class="accordion-collapse collapse" data-bs-parent="#footerAccordion">
             <div class="accordion-body d-flex flex-column gap-2" style="padding-top: 5px;">
-              @for (c of categorias(); track c.id) {
+              @for (c of categoriasPie(); track c.id) {
                 <a [routerLink]="['/categoria', c.slug]" style="font-size: 13px; color: white;">{{ c.name }}</a>
               }
             </div>
@@ -168,7 +168,7 @@
     </div>
   </div>
 </footer>
-<footer style="background-color: #2D2D2D;">
+<footer class="pie-inferior">
   <div class="container">
     <div class="row py-2">
       <div class="col-12 col-md-3 d-flex flex-row gap-2 align-items-center justify-content-center justify-content-md-start">

@@ -3,6 +3,10 @@ package com.backend.catalogo.guia;
 import java.time.Instant;
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+
+import com.backend.catalogo.shared.config.CacheConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +27,7 @@ public class GuiaService {
     private final GuiaRepository repositorio;
 
     /** Lo que ve la tienda: solo guías publicadas. */
+    @Cacheable(CacheConfig.GUIAS)
     public List<GuiaResumen> listarPublicadas() {
         return repositorio.findByPublicadaTrueOrderByPosicionAscTituloAsc()
                 .stream().map(GuiaResumen::desde).toList();
@@ -52,6 +57,7 @@ public class GuiaService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheConfig.GUIAS, allEntries = true)
     public GuiaResponse crear(GuiaRequest dto) {
         if (repositorio.existsBySlug(dto.slug())) {
             throw new ConflictoException("Ya existe una guía con ese slug");
@@ -74,6 +80,7 @@ public class GuiaService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheConfig.GUIAS, allEntries = true)
     public GuiaResponse actualizar(Long id, GuiaRequest dto) {
         Guia guia = repositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Guía " + id + " no encontrada"));
@@ -95,6 +102,7 @@ public class GuiaService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheConfig.GUIAS, allEntries = true)
     public void eliminar(Long id) {
         if (!repositorio.existsById(id)) {
             throw new RecursoNoEncontradoException("Guía " + id + " no encontrada");

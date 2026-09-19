@@ -31,7 +31,6 @@ import { CarruselDescubrimiento } from '../../shared/descubrimiento';
 interface Bloque {
   categoria: Categoria;
   productos: Producto[];
-  chunks: Producto[][];
 }
 
 @Component({
@@ -112,24 +111,18 @@ export class Home implements OnInit {
   protected valoraciones = signal<ValoracionDestacada[]>([]);
   protected resenasChunks = computed(() => this.chunk(this.valoraciones(), 3));
 
-  /**
-   * Agrupación por categoría; sustituye a productosPorCategoria del
-   * IndexController. La agrupación la hace el servidor; aquí solo se parte en
-   * diapositivas para el carrusel, que es cosa de la vista.
-   */
+  /** Agrupación por categoría, tal como la manda el servidor. */
   protected bloques = computed<Bloque[]>(() =>
-    this.porCategoria().map((b) => ({
-      categoria: b.categoria,
-      productos: b.productos,
-      chunks: this.chunk(b.productos, 6),
-    })),
+    this.porCategoria().map((b) => ({ categoria: b.categoria, productos: b.productos })),
   );
 
-  /** "Productos Top": los diez que manda el servidor, en slides de 5. */
-  protected topChunks = computed(() => this.chunk(this.destacados(), 5));
-
-  /** Carrusel de ofertas, en slides de 6. */
-  protected ofertaChunks = computed(() => this.chunk(this.enOferta(), 6));
+  /**
+   * Desliza un estante casi un ancho de pantalla. Casi, para que la última
+   * tarjeta visible siga viéndose y se entienda que es continuación.
+   */
+  protected desplazar(pista: HTMLElement, direccion: 1 | -1): void {
+    pista.scrollBy({ left: direccion * pista.clientWidth * 0.85, behavior: 'smooth' });
+  }
 
   ngOnInit(): void {
     /*

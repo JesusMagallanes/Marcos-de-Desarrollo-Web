@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ import com.backend.catalogo.producto.dto.ProductoDtos.Facetas;
 import com.backend.catalogo.producto.dto.ProductoDtos.FacetaAtributo;
 import com.backend.catalogo.producto.dto.ProductoDtos.FacetaMarca;
 import com.backend.catalogo.producto.dto.ProductoDtos.FacetaValor;
+import com.backend.catalogo.shared.config.CacheConfig;
 import com.backend.catalogo.shared.error.ConflictoException;
 import com.backend.catalogo.shared.metricas.MetricasSeguridad;
 import com.backend.catalogo.shared.error.RecursoNoEncontradoException;
@@ -94,7 +97,16 @@ public class ProductoService {
      * @param texto términos de búsqueda, o {@code null}
      * @param slug categoría, o {@code null}
      */
+    /*
+     * <p>Cacheado un minuto, con la petición entera como clave. Un listado de
+     * categoría o una búsqueda no dependen de quién pregunta, y son tres o
+     * cuatro viajes a la base cada uno; la segunda persona que abra «Laptops»
+     * en ese minuto no debería pagarlos otra vez. Las escrituras de producto
+     * vacían la caché igual que la portada.
+     */
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheConfig.LISTADOS,
+            key = "'p|' + #texto + '|' + #slug + '|' + #filtro + '|' + #page + '|' + #size")
     public PaginaResponse<ProductoResponse> buscar(String texto, String slug,
             FiltroProductos filtro, int page, int size) {
 
@@ -117,6 +129,7 @@ public class ProductoService {
      * ellos. Si el conjunto es vacío, no hay nada que ofrecer.
      */
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheConfig.LISTADOS, key = "'f|' + #texto + '|' + #slug + '|' + #filtro")
     public Facetas facetas(String texto, String slug, FiltroProductos filtro) {
         List<Long> ids = repositorio.filtrarTodos(
                 limpiar(texto), slug, filtro.precioMin(), filtro.precioMax(),
@@ -138,9 +151,10 @@ public class ProductoService {
         for (Object[] f : repositorio.conteoAtributos(ids)) {
             String codigo = (String) f[0];
             String nombre = (String) f[1];
-            FacetaValor valor = new FacetaValor((String) f[2], ((Number) f[3]).longValue());
+            String unidad = (String) f[2];
+            FacetaValor valor = new FacetaValor((String) f[3], ((Number) f[4]).longValue());
             porCodigo.computeIfAbsent(codigo,
-                    c -> new FacetaAtributo(codigo, nombre, new ArrayList<>()))
+                    c -> new FacetaAtributo(codigo, nombre, unidad, new ArrayList<>()))
                     .valores().add(valor);
         }
 
@@ -181,26 +195,44 @@ public class ProductoService {
      * categoría. Ninguna necesitaba el catálogo entero, y el catálogo entero es
      * justo lo que se descargaba.
      */
+    /*
+     * <p>Una transacción y un puñado de consultas. Antes eran 64 consultas en
+     * 64 transacciones —una por categoría, y las colecciones de cada bloque por
+     * separado— que contra una base a ~130 ms de distancia sumaban ocho
+     * segundos de portada. Ahora: los ids de todos los bloques salen de UNA
+     * consulta con ventana, las entidades se cargan en bloque y las
+     * valoraciones se resumen en una sola pasada.
+     */
+    @Transactional(readOnly = true)
+    @Cacheable(CacheConfig.PORTADA)
     public PortadaResponse portada() {
-        Instant ahora = Instant.now();
-
         List<Producto> destacados = repositorio
                 .listarConRelaciones(PageRequest.of(0, DESTACADOS_PORTADA)).getContent();
 
         List<ProductoResponse> ofertas = ofertas(MAX_OFERTAS_PORTADA);
 
-        // Un bloque por categoría, con sus primeros productos. Las categorías
-        // son pocas y fijas, así que esto es un número conocido de consultas
-        // acotadas, no una por producto.
+        Map<Long, List<Long>> idsPorCategoria = new LinkedHashMap<>();
+        for (Object[] fila : repositorio.primerosPorCategoria(PRODUCTOS_POR_BLOQUE)) {
+            idsPorCategoria.computeIfAbsent(((Number) fila[1]).longValue(), k -> new ArrayList<>())
+                    .add(((Number) fila[0]).longValue());
+        }
+        Map<Long, ProductoResponse> porId = enOrden(idsPorCategoria.values().stream()
+                .flatMap(List::stream).toList()).stream()
+                .collect(Collectors.toMap(ProductoResponse::id, r -> r));
+
+        // En el orden de las categorías, como siempre; sin productos, sin bloque.
         List<BloqueCategoria> bloques = categoriaService.listar().stream()
-                .map(categoria -> new BloqueCategoria(categoria, aRespuestas(repositorio
-                        .listarDeCategoria(categoria.id(), PageRequest.of(0, PRODUCTOS_POR_BLOQUE)))))
+                .map(categoria -> new BloqueCategoria(categoria,
+                        idsPorCategoria.getOrDefault(categoria.id(), List.of()).stream()
+                                .map(porId::get).filter(Objects::nonNull).toList()))
                 .filter(bloque -> !bloque.productos().isEmpty())
                 .toList();
 
         return new PortadaResponse(aRespuestas(destacados), ofertas, bloques);
     }
 
+    // La ficha es la misma para todos y son cuatro viajes: un minuto en memoria.
+    @Cacheable(cacheNames = CacheConfig.LISTADOS, key = "'d|' + #id")
     public ProductoResponse obtener(Long id) {
         Producto producto = repositorio.buscarConRelaciones(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto " + id + " no encontrado"));
@@ -328,6 +360,7 @@ public class ProductoService {
      * lista) no cambia, para poder mostrar el "antes" en la tienda.
      */
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public List<ProductoResponse> aplicarDescuento(AplicarDescuentoRequest dto) {
         if (dto.fin().isBefore(dto.inicio())) {
             throw new ConflictoException("La fecha de fin debe ser posterior a la de inicio");
@@ -371,6 +404,7 @@ public class ProductoService {
 
     /** Quita el descuento del lote indicado; el precio de lista queda vigente. */
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public List<ProductoResponse> quitarDescuento(List<Long> productoIds) {
         List<Producto> productos = repositorio.findAllById(productoIds);
         for (Producto p : productos) {
@@ -388,6 +422,7 @@ public class ProductoService {
      * Para el alta de un colaborador está {@link #crearComoColaborador}.
      */
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public ProductoResponse crear(ProductoRequest dto) {
         Producto producto = Producto.builder()
                 .name(dto.name())
@@ -404,6 +439,7 @@ public class ProductoService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public ProductoResponse actualizar(Long id, ProductoRequest dto) {
         Producto producto = repositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto " + id + " no encontrado"));
@@ -449,6 +485,7 @@ public class ProductoService {
      * publica en la tienda sin que lo mire una persona.
      */
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public ProductoResponse crearComoColaborador(Long propietarioId, ProductoRequest dto) {
         if (repositorio.countByPropietarioId(propietarioId) >= MAXIMO_POR_COLABORADOR) {
             throw new ConflictoException(
@@ -481,6 +518,7 @@ public class ProductoService {
      * después por otra cosa.
      */
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public ProductoResponse actualizarComoColaborador(Long id, Long propietarioId, ProductoRequest dto) {
         Producto producto = exigirPropio(id, propietarioId);
 
@@ -498,11 +536,13 @@ public class ProductoService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public void eliminarComoColaborador(Long id, Long propietarioId) {
         repositorio.delete(exigirPropio(id, propietarioId));
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public ProductoResponse aprobarModeracion(Long id, Long moderadorId) {
         Producto producto = buscarParaModerar(id);
         producto.aprobarModeracion(moderadorId);
@@ -512,6 +552,7 @@ public class ProductoService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public ProductoResponse rechazarModeracion(Long id, Long moderadorId, String motivo) {
         Producto producto = buscarParaModerar(id);
         producto.rechazarModeracion(moderadorId, motivo);
@@ -588,6 +629,7 @@ public class ProductoService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {CacheConfig.PORTADA, CacheConfig.LISTADOS}, allEntries = true)
     public void eliminar(Long id) {
         if (!repositorio.existsById(id)) {
             throw new RecursoNoEncontradoException("Producto " + id + " no encontrado");

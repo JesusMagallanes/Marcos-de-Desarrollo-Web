@@ -6,6 +6,7 @@ import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.function.Consumer;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -15,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -32,6 +34,22 @@ import lombok.extern.slf4j.Slf4j;
  * si no se limpiara al devolver la conexión al pool, la siguiente petición
  * heredaría la identidad de la anterior — exactamente el fallo que este código
  * intenta evitar. De ahí el proxy que hace RESET en `close()`.
+ *
+ * <h4>La invariante: una conexión en el pool está siempre vacía</h4>
+ *
+ * <p>Con la base a ~130 ms de ida y vuelta, el `set_config` al coger la conexión
+ * y el RESET al devolverla eran DOS viajes por transacción, más que la propia
+ * consulta en la mayoría de lecturas del catálogo. Y casi todas esas lecturas
+ * son anónimas: ni usuario, ni rol, ni `omitir_rls`. Para ellas el contexto
+ * vacío es exactamente el que tiene una conexión recién creada o recién
+ * limpiada, así que no hay nada que poner ni nada que quitar.
+ *
+ * <p>Eso solo es seguro si se cumple que TODA conexión que vuelve al pool está
+ * vacía. Se cumple porque: (1) una petición anónima no toca el contexto; (2) una
+ * con identidad lo pone al coger la conexión y lo limpia al devolverla; (3) si
+ * esa limpieza falla, la conexión se EXPULSA del pool en vez de devolverse, de
+ * modo que nadie hereda una identidad a medias. Con eso, una lectura pública
+ * pasa de cuatro viajes a dos: la consulta y el COMMIT.
  */
 @Slf4j
 public class DataSourceRls extends DelegatingDataSource {
@@ -51,8 +69,36 @@ public class DataSourceRls extends DelegatingDataSource {
     }
 
     private Connection preparar(Connection conexion) throws SQLException {
-        aplicarContexto(conexion);
-        return envolver(conexion);
+        Identidad identidad = identidadActual();
+        if (identidad.vacia()) {
+            // Anónimo: la conexión ya está vacía (invariante) y no hay que limpiar nada.
+            return envolver(conexion, false);
+        }
+        try {
+            aplicarContexto(conexion, identidad);
+        } catch (SQLException fallo) {
+            // Sin contexto no puede salir al pool con esta identidad a medias.
+            expulsar(conexion);
+            throw fallo;
+        }
+        return envolver(conexion, true);
+    }
+
+    /**
+     * Saca la conexión del pool. Se usa cuando no se puede garantizar que esté
+     * limpia: una conexión sucia en el pool es una identidad que hereda el
+     * siguiente, y eso es peor que abrir otra.
+     */
+    private void expulsar(Connection conexion) {
+        try {
+            if (getTargetDataSource() instanceof HikariDataSource hikari) {
+                hikari.evictConnection(conexion);
+            } else {
+                conexion.close();
+            }
+        } catch (RuntimeException | SQLException ex) {
+            log.warn("No se pudo expulsar una conexión con contexto RLS a medias: {}", ex.getMessage());
+        }
     }
 
     /**
@@ -60,9 +106,7 @@ public class DataSourceRls extends DelegatingDataSource {
      * forma de función, lo que permite pasar el valor como parámetro y no
      * concatenarlo: un id de usuario nunca se interpola en el SQL.
      */
-    private void aplicarContexto(Connection conexion) throws SQLException {
-        Identidad identidad = identidadActual();
-
+    private void aplicarContexto(Connection conexion, Identidad identidad) throws SQLException {
         try (var sentencia = conexion.prepareStatement(
                 "SELECT set_config('app.usuario_id', ?, false),"
                         + " set_config('app.rol', ?, false),"
@@ -111,29 +155,41 @@ public class DataSourceRls extends DelegatingDataSource {
     }
 
     /** Devuelve la conexión al pool sin rastro del usuario anterior. */
-    private Connection envolver(Connection conexion) {
+    private Connection envolver(Connection conexion, boolean conContexto) {
         return (Connection) Proxy.newProxyInstance(
                 Connection.class.getClassLoader(),
                 new Class<?>[] { Connection.class },
-                new LimpiezaAlCerrar(conexion));
+                new LimpiezaAlCerrar(conexion, conContexto, this::expulsar));
     }
 
     private record Identidad(Long usuarioId, String rol, String permisos, boolean sistema) {
+
+        /** Sin usuario, sin rol, sin permisos y sin `omitir_rls`: lo mismo que una conexión recién creada. */
+        boolean vacia() {
+            return usuarioId == null && (rol == null || rol.isEmpty()) && permisos.isEmpty() && !sistema;
+        }
     }
 
     private static final class LimpiezaAlCerrar implements InvocationHandler {
 
         private final Connection real;
+        private final boolean conContexto;
+        private final Consumer<Connection> expulsar;
 
-        private LimpiezaAlCerrar(Connection real) {
+        private LimpiezaAlCerrar(Connection real, boolean conContexto, Consumer<Connection> expulsar) {
             this.real = real;
+            this.conContexto = conContexto;
+            this.expulsar = expulsar;
         }
 
         @Override
         public Object invoke(Object proxy, Method metodo, Object[] argumentos) throws Throwable {
             if ("close".equals(metodo.getName())) {
-                limpiar();
-                real.close();
+                if (!conContexto || limpiar()) {
+                    real.close();
+                } else {
+                    expulsar.accept(real);
+                }
                 return null;
             }
             // equals/hashCode sobre el proxy deben mirar la conexión real.
@@ -156,17 +212,16 @@ public class DataSourceRls extends DelegatingDataSource {
         }
 
         /**
-         * Si la limpieza falla no se propaga el error: la conexión probablemente
-         * ya esté rota y lo importante es que se cierre. Se registra para que no
-         * pase inadvertido.
+         * @return true si la conexión quedó limpia (o ya estaba cerrada); false si
+         *         la limpieza falló y no debe volver al pool tal cual
          */
-        private void limpiar() {
+        private boolean limpiar() {
             if (real == null) {
-                return;
+                return true;
             }
             try {
                 if (real.isClosed()) {
-                    return;
+                    return true;
                 }
                 try (Statement sentencia = real.createStatement()) {
                     sentencia.execute("SELECT set_config('app.usuario_id', '', false),"
@@ -174,8 +229,11 @@ public class DataSourceRls extends DelegatingDataSource {
                             + " set_config('app.permisos', '', false),"
                             + " set_config('app.omitir_rls', 'off', false)");
                 }
+                return true;
             } catch (SQLException ex) {
-                log.warn("No se pudo limpiar el contexto RLS de la conexión: {}", ex.getMessage());
+                log.warn("No se pudo limpiar el contexto RLS de la conexión; se expulsa del pool: {}",
+                        ex.getMessage());
+                return false;
             }
         }
     }

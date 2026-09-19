@@ -4,6 +4,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+
+import com.backend.catalogo.shared.config.CacheConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +28,12 @@ public class MarcaService {
     private final MarcaRepository repositorio;
     private final CategoriaService categoriaService;
 
+    @Cacheable(cacheNames = CacheConfig.MARCAS, key = "'todas'")
     public List<MarcaResponse> listar() {
         return repositorio.listarConCategorias().stream().map(MarcaResponse::desde).toList();
     }
 
+    @Cacheable(cacheNames = CacheConfig.MARCAS, key = "'categoria:' + #categoriaId")
     public List<MarcaResponse> listarPorCategoria(Long categoriaId) {
         return repositorio.listarPorCategoria(categoriaId).stream()
                 .map(MarcaResponse::desde)
@@ -40,6 +46,7 @@ public class MarcaService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheConfig.MARCAS, allEntries = true)
     public MarcaResponse crear(MarcaRequest dto) {
         if (repositorio.existsByName(dto.name())) {
             throw new ConflictoException("Ya existe una marca con ese nombre");
@@ -54,6 +61,7 @@ public class MarcaService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheConfig.MARCAS, allEntries = true)
     public MarcaResponse actualizar(Long id, MarcaRequest dto) {
         Marca marca = buscar(id);
 
@@ -91,6 +99,7 @@ public class MarcaService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = CacheConfig.MARCAS, allEntries = true)
     public void eliminar(Long id) {
         if (!repositorio.existsById(id)) {
             throw new RecursoNoEncontradoException("Marca " + id + " no encontrada");

@@ -1,0 +1,44 @@
+# ============================================================================
+#  Recolección de métricas de SmartZone
+# ============================================================================
+#
+#  Se levanta con el perfil `observabilidad`:
+#
+#      docker compose --profile default --profile observabilidad up -d
+#
+#  y se mira en http://localhost:9090 (consola de Prometheus).
+#
+#  AUTENTICACIÓN. `/actuator/prometheus` exige rol de ADMINISTRADOR, y un
+#  recolector no puede tener uno: los JWT de la tienda caducan en minutos. Por
+#  eso cada servicio acepta además el secreto compartido `METRICAS_TOKEN` en la
+#  cabecera `X-Metricas-Token` (ver `AccesoMetricas`). Sin esa variable en el
+#  `.env`, los servicios siguen pidiendo JWT y aquí saldrá 401 en cada scrape,
+#  que es el aviso de que falta configurarlo, no un fallo silencioso.
+#
+#  El marcador @@METRICAS_TOKEN@@ lo sustituye el propio contenedor al arrancar
+#  (ver `command` en docker-compose.yml): Prometheus no expande variables.
+#
+#  Va por la red interna de Docker (`http://catalogo:8081`), así que el secreto
+#  no sale de la máquina ni pasa por el gateway.
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - /etc/prometheus/alertas.yml
+
+scrape_configs:
+  - job_name: smartzone
+    metrics_path: /actuator/prometheus
+    http_headers:
+      X-Metricas-Token:
+        values: ['@@METRICAS_TOKEN@@']
+    static_configs:
+      - targets: ['usuarios:8082']
+        labels: { servicio: usuarios }
+      - targets: ['catalogo:8081']
+        labels: { servicio: catalogo }
+      - targets: ['compras:8083']
+        labels: { servicio: compras }
+      - targets: ['web-gateway:8080']
+        labels: { servicio: gateway }

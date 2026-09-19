@@ -32,7 +32,8 @@
               "src/styles.css",
               "src/styles/Style.css",
               "src/styles/productosCategoria.css",
-              "src/styles/Chat-Bot.css"
+              "src/styles/Chat-Bot.css",
+              "src/styles/tema.css"
             ],
             "scripts": [
               "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"

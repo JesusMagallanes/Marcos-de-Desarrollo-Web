@@ -624,13 +624,62 @@ la búsqueda por foto valida los bytes y no guarda nada.
   para vender solo viajan nombre comercial, rubro y descripción; el tipo `NegocioParaRevision` no
   tiene campo para el documento, el titular, el teléfono ni el domicilio, así que añadirlos al
   prompt exige cambiar el tipo, no «una línea más».
-- **Ni prompts ni respuestas en el log.** Solo la función, el resultado y el tiempo, en
-  `smartzone_ia_total{funcion,resultado}` y `smartzone_ia_segundos{funcion}`.
+- **Ni prompts ni respuestas en el log.** Solo la función, el resultado, el tiempo y los tokens.
+
+### Qué se mide
+
+| Métrica | Etiquetas | Para qué |
+|---------|-----------|----------|
+| `smartzone_ia_total` | `funcion`, `resultado` | Cuántas llamadas y en qué acabaron: `ok`, `invalida` (contestó algo ilegible), `error`, `circuito_abierto`, `sin_presupuesto`, `no_configurada` |
+| `smartzone_ia_segundos` | `funcion` | Tiempo, con cubos en 0,5 / 1 / 2 / 4 / 8 s: sin cubos solo hay media y máximo, y la media esconde justo la visita lenta |
+| `smartzone_ia_tokens_total` | `funcion`, `tipo` (`entrada`/`salida`) | Lo único que se convierte en dinero. Permite ver qué función gasta y si un prompt engordó |
+| `smartzone_ia_circuito_abierto` | — | 1 mientras el cortacircuitos está abierto. El contador dice cuántas se rechazaron; esto dice si está pasando **ahora** |
+
+Cada resultado se cuenta **una vez**: una respuesta que llega pero no se puede leer es `invalida` y
+no también `ok`, que es lo que hacía antes e inflaba el porcentaje de aciertos.
+
+Además, `smartzone_ia_cache_total{funcion,resultado}` (aciertos de la caché de respuestas) y
+`smartzone_ia_lineas_descartadas_total`, que sube cuando el modelo deja de escribir las
+especificaciones en el formato del formulario.
+
+**Quién las recoge.** `/actuator/prometheus` pide rol de administrador, y un recolector no puede
+tener uno: los JWT de la tienda caducan en minutos. Por eso los cuatro servicios aceptan también el
+secreto `METRICAS_TOKEN` en la cabecera `X-Metricas-Token` (`AccesoMetricas`, idéntica en los
+cuatro, comparación en tiempo constante). Sin ese secreto definido, todo sigue como antes: solo JWT
+de administrador. Con él, `docker compose --profile default --profile observabilidad up -d` levanta
+un Prometheus en el 9090 que ya trae estas alertas cargadas (`docker/alertas.yml`):
+
+| Alerta | Cuándo salta | Qué hacer |
+|--------|--------------|-----------|
+| `IaProveedorCaido` | El cortacircuitos lleva 5 min abierto | Revisar clave, cuota del proveedor y nombre del modelo |
+| `IaRespuestasInservibles` | Más del 20 % de respuestas inválidas o con error en 15 min | Suele ser un modelo que cambió: revisar el prompt |
+| `IaGastoDisparado` | Más de 20 000 tokens de entrada por minuto | Buscar la fuga con `smartzone_ia_tokens_total` por función |
+| `IaSinPresupuesto` | El tope global está frenando llamadas | Subir `IA_MAX_POR_MINUTO` si el tráfico es legítimo |
 
 ### Coste y abuso
 
-Cupo propio `ia` de 20 peticiones por minuto por IP en `catalogo` (cada llamada al proveedor cuesta
-dinero). El resumen de reseñas se guarda con una huella de las reseñas que lo produjeron: la ficha,
+Dos topes, porque protegen de cosas distintas. Cupo `ia` de 20 peticiones por minuto **por IP** en
+`catalogo`, contra el visitante que abusa; y `IA_MAX_POR_MINUTO` (120 por defecto), el tope de
+gasto, porque el cupo por IP no acota la factura: basta con que lleguen de muchas IP. Pasado el
+tope, las funciones responden con su versión algorítmica —igual que si el proveedor se cayera— y se
+cuenta como `sin_presupuesto`.
+
+**El tope de gasto se cuenta en la base**, en una fila (`ia_presupuesto`) con un `INSERT … ON
+CONFLICT … RETURNING` que Postgres serializa, así que vale para todas las réplicas a la vez: un
+contador en memoria le daba el cupo entero a cada proceso y con tres réplicas se gastaba el triple.
+No es Redis porque Redis sería un servicio más que desplegar y vigilar para un contador que cambia
+como mucho dos veces por segundo, mientras que la base ya está y el viaje —milisegundos— es ruido
+al lado de una llamada al modelo que tarda segundos. Si la base no contesta, el tope no
+desaparece: se cae al contador en memoria de cada instancia, que es lo que había antes.
+`PresupuestoIaIT` lo comprueba con veinte hilos pidiendo a la vez contra Postgres real: con un tope
+de diez, pasan exactamente diez.
+
+Y lo que no se pide dos veces no se paga dos veces: `CacheIa` guarda 15 minutos lo que contestó el
+modelo para comparar, completar el carrito y preguntar a la ficha, además del resumen de reseñas
+que ya lo hacía. La clave es una huella de **lo que se le envió**, así que un cambio de precio, de
+stock o de reseñas la invalida sola; y de la comparación y del carrito se guarda solo la parte del
+modelo —la explicación, los motivos—, mientras que precios y disponibilidad se releen en cada
+visita. El resumen de reseñas se guarda con una huella de las reseñas que lo produjeron: la ficha,
 que es la página más visitada, solo llama al modelo cuando cambian. Los análisis de moderación se
 piden con un botón, no al abrir la bandeja. Ninguna llamada al modelo ocurre dentro de una
 transacción: el chat dejó de ser `@Transactional` para no retener una conexión del pool mientras
@@ -668,6 +717,56 @@ en `/api/ia/**`), `catalogo/chatbot/AsistenteChat` y `usuarios/colaborador/Revis
 > siempre en silencio; ahora se envía con longitud fija y la prueba lo exige. **No se ha probado
 > con una clave real**: antes de publicarlo conviene revisar la calidad de las respuestas del modelo
 > por defecto (`llama-3.3-70b-versatile`, que admite modo JSON).
+
+## Tiempo de carga: la base está lejos
+
+La base (Neon) está en São Paulo y desde Lima **cada ida y vuelta cuesta ~130 ms**. Medido con
+`psql`: `SELECT 1` 100–150 ms, y una transacción de una sola consulta —BEGIN, el contexto RLS, la
+consulta, COMMIT— unos 700 ms. Ninguna consulta es lenta; lo lento es cuántas veces se va y se
+vuelve. Todo lo de esta sección va de eso.
+
+**Lo que se midió (2026-09-19), antes → después**, con la tienda entera contra la base real:
+
+| Petición | Antes | Ahora (1.ª vez) | Ahora (siguientes) |
+|----------|-------|-----------------|--------------------|
+| `GET /api/productos/portada` | 8,9 s, **64 consultas** | 1,7 s, 10 consultas | 13 ms |
+| `GET /api/categorias` | 570 ms | 330 ms | 3 ms |
+| `GET /api/productos/{id}` | 870 ms | 550 ms | 8 ms |
+| `GET /api/productos?search=…` + facetas | 2,4 s | 2,0 s | 20 ms |
+| Portada lista en el navegador | 4,4 s | 3,2 s | 1,2 s |
+| Ficha lista en el navegador | 2,3 s | 1,2 s | 1,2 s |
+
+Cuatro cambios, del más al menos importante:
+
+1. **La portada en 10 consultas y no en 64.** Los bloques por categoría se pedían con una
+   consulta por categoría (17) y cada una arrastraba sus colecciones. Ahora una sola consulta con
+   ventana (`ROW_NUMBER() OVER (PARTITION BY categoria_id)`) devuelve los ids de todos los
+   bloques, las entidades se cargan en bloque y las valoraciones se resumen de una vez.
+2. **Caché en memoria de lo público** (`CacheConfig`, Caffeine, 60 s): categorías, marcas, guías,
+   portada, listados y facetas de búsqueda/categoría, ficha de producto, reseñas aprobadas y el
+   parecido por contenido de «relacionados». Solo lo que es igual para todo el mundo; nada que
+   dependa de quién pregunta. Las escrituras vacían lo que tocan (`@CacheEvict`) y, por si alguna
+   se escapa —un cambio de stock desde `compras`—, todo caduca solo al minuto. Las pruebas de
+   integración corren con `spring.cache.type=none`.
+3. **Dos viajes menos por transacción anónima.** `DataSourceRls` ponía el contexto RLS al coger
+   cada conexión y lo borraba al devolverla: dos viajes por transacción, aunque el visitante fuera
+   anónimo y el contexto fuera el vacío. Ahora una petición sin identidad no toca el contexto,
+   sobre la invariante de que toda conexión que vuelve al pool está vacía; si la limpieza de una
+   conexión con identidad falla, la conexión se **expulsa** del pool en vez de devolverse. Los
+   `AislamientoBaseIT` de los tres servicios lo comprueban contra Postgres real.
+4. **Lo lento fuera del camino crítico.** La pantalla de carga espera a que no quede ninguna
+   petición abierta, y los carruseles personalizados de descubrimiento (una treintena de
+   consultas encadenadas, ~3 s) tenían la tienda tapada mientras la portada, ya descargada,
+   esperaba detrás. Se piden cuando la aplicación queda estable: la tienda aparece con el catálogo
+   y los carruseles llegan sobre su esqueleto. Lo mismo con «relacionados» en la ficha.
+
+**Lo que sigue costando y por qué.** `GET /api/descubrimiento/home` sigue en ~3 s: es un
+recomendador con unas treinta consultas que dependen unas de otras (sujeto, perfil, descartes,
+candidatos por módulo, anotación de lo servido) y no se puede cachear porque es personal. Ya no
+retrasa la pantalla, pero el carrusel tarda en llenarse. Paralelizar sus módulos bajaría el tiempo
+a un tercio; es un cambio con más riesgo (propagar el contexto de seguridad a otros hilos) y no se
+ha hecho. Y lo estructural: una base a 130 ms siempre será una base a 130 ms; con la base en la
+misma región que el servidor, todo lo de esta tabla se divide por diez.
 
 ## Row Level Security
 
@@ -1140,14 +1239,24 @@ Los cupos se separan por ámbito según lo caro que sea abusar:
 Al rechazar devuelve **429 con `Retry-After`** en segundos, que el frontend lee y respeta.
 El healthcheck y los assets no consumen cupo.
 
-**Implementación**: ventana deslizante en memoria, escrita a mano (~60 líneas) en vez de
-Bucket4j, para no añadir una dependencia sobre un Spring Boot recién salido. Tiene un tope de
-50 000 claves: si se desborda deja pasar la petición en vez de quedarse sin memoria — el
-limitador nunca debe ser lo que tumbe el servicio.
+**Implementación**: un **cubo de fichas** en memoria, escrito a mano (~70 líneas) en vez de
+Bucket4j, para no añadir una dependencia sobre un Spring Boot recién salido. Cada clave tiene
+`maximo` fichas y se repone a `maximo / ventana` de forma continua. Antes era una ventana fija
+—el comentario decía «deslizante», que era la intención y no lo que hacía— y eso **regalaba el
+doble del cupo en el borde**: veinte peticiones en el último segundo de una ventana y otras
+veinte en el primero de la siguiente. Quien prueba contraseñas solo tenía que esperar al cambio
+de ventana. El cubo no tiene bordes: la ráfaga legítima sigue cabiendo, pero a partir de ahí
+solo se pasa al ritmo de reposición. De paso, el `Retry-After` ya sale de ese ritmo —«un
+segundo» con 60/min— y no de la ventana entera.
 
-**Limitación conocida**: el cupo es **por instancia**. Con varias réplicas detrás de un
-balanceador el límite efectivo se multiplica por el número de réplicas. Para un tope global
-haría falta Redis; a esta escala no compensa.
+Tiene un tope de 50 000 claves: si se desborda deja pasar la petición en vez de quedarse sin
+memoria — el limitador nunca debe ser lo que tumbe el servicio.
+
+**Por instancia, y es deliberado.** Con varias réplicas el cupo efectivo se multiplica.
+Compartirlo exigiría un salto de red en **cada** petición, y ese salto cuesta más de lo que
+protege: el cupo existe para que nadie tumbe el servicio, y cada instancia acota lo que ella
+misma atiende. Lo que sí tenía que ser global es el gasto en el proveedor de IA —ahí se pierde
+dinero, no CPU—, y eso está resuelto abajo sin añadir Redis.
 
 ### Topes de entrada
 
@@ -1357,8 +1466,10 @@ stock 5 → preferencia creada (init_point real de MercadoPago) → stock 2 (res
 - **`auto_return` se omite cuando la URL de retorno es localhost**, porque MercadoPago exige
   una URL que pueda alcanzar. En local el comprador vuelve pulsando el enlace de la pasarela;
   en producción, con `MP_RETORNO_BASE` público, el retorno es automático.
-- **El rate limiting es por proceso.** Con varias instancias detrás de un balanceador el cupo
-  efectivo se multiplica; para un límite global haría falta Redis.
+- **El rate limiting por IP es por proceso.** Con varias instancias detrás de un balanceador el
+  cupo efectivo se multiplica. Es una decisión, no un olvido: cada instancia acota lo que ella
+  atiende, y compartir el contador costaría un salto de red por petición. El tope de gasto en
+  IA, que sí es una factura común, se cuenta en la base y vale para todas las réplicas.
 - **Revocar un rol no invalida los tokens ya emitidos**: el rol viaja dentro del JWT y sigue
   valiendo hasta que caduca (30 min para admin). Queda registrado en auditoría. Para el sentido
   contrario —*conceder* el rol de colaborador— no hace falta esperar: `POST /api/auth/refresh`

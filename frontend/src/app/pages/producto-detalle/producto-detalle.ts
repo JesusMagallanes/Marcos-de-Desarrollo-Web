@@ -5,7 +5,7 @@ import { Cargando } from '../../shared/cargando/cargando';
 import { CarruselDescubrimiento } from '../../shared/descubrimiento';
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { DatePipe, formatCurrency } from '@angular/common';
 import { forkJoin, of } from 'rxjs';
 import {
   AuthService,
@@ -129,12 +129,31 @@ export class ProductoDetalle implements OnDestroy {
   protected maximo = computed(() => Math.max(1, this.producto()?.stock ?? 1));
 
   protected enOferta = computed(() => this.producto()?.enOferta ?? false);
+  /*
+   * `S/ 4299.00`, igual que en las tarjetas del catálogo. Antes aquí ponía
+   * «S/.» y en las tarjetas «S/»: la misma tienda escribiendo su moneda de dos
+   * maneras en dos pantallas seguidas.
+   */
   protected precioMostrado = computed(() =>
-    `S/. ${(this.producto()?.precioActual ?? this.producto()?.precio ?? 0).toFixed(2)}`,
+    formatCurrency(this.producto()?.precioActual ?? this.producto()?.precio ?? 0, 'en-US', 'S/ ', 'PEN', '1.2-2'),
   );
   protected precioOriginalMostrado = computed(() =>
-    `S/. ${(this.producto()?.precio ?? 0).toFixed(2)}`,
+    formatCurrency(this.producto()?.precio ?? 0, 'en-US', 'S/ ', 'PEN', '1.2-2'),
   );
+
+  /*
+   * Iconos alojados en la tienda. Estaban enlazados a seeklogo, icons8,
+   * wikipedia y una miniatura de Google Imágenes: cuando uno de esos sitios no
+   * responde —o bloquea el hotlink—, la directiva de imagen caída los sustituye
+   * por el marcador y la fila de pagos acaba enseñando cuadros grises.
+   */
+  protected readonly metodosPagoIconos = [
+    { nombre: 'Yape', icono: '/Img/yape-icon.svg' },
+    { nombre: 'Plin', icono: '/Img/plin-icon.svg' },
+    { nombre: 'Visa', icono: '/Img/visa-icon.svg' },
+    { nombre: 'Mastercard', icono: '/Img/mastercard-icon.svg' },
+    { nombre: 'PayPal', icono: '/Img/paypal-icon.svg' },
+  ];
   protected etiquetaDescuento = computed(() => {
     const p = this.producto();
     if (!p?.enOferta || p.descuentoValor == null) return '';

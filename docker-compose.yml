@@ -138,6 +138,7 @@ services:
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
       GROQ_VISION_MODEL: ${GROQ_VISION_MODEL:-meta-llama/llama-4-scout-17b-16e-instruct}
+      IA_MAX_POR_MINUTO: ${IA_MAX_POR_MINUTO:-120}
     # Documentos de identidad de los colaboradores. En un volumen y no dentro
     # del contenedor porque si no se perderian en cada despliegue, y con ellos
     # la prueba de que la identidad se verifico. No lo monta nadie mas: solo
@@ -174,6 +175,7 @@ services:
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
       GROQ_VISION_MODEL: ${GROQ_VISION_MODEL:-meta-llama/llama-4-scout-17b-16e-instruct}
+      IA_MAX_POR_MINUTO: ${IA_MAX_POR_MINUTO:-120}
     # Fotos de producto subidas desde el panel. En un volumen para que
     # sobrevivan a un despliegue: se sirven por /api/productos/imagenes/**.
     volumes:
@@ -257,11 +259,40 @@ services:
     depends_on:
       web-gateway: {condition: service_healthy}
 
+  # ── prometheus :9090 — solo con el perfil `observabilidad` ─────────
+  #
+  # Aparte del perfil por defecto porque no hace falta para desarrollar y
+  # arrancarlo siempre serian 200 MB de RAM que nadie mira. Se levanta cuando
+  # se quiere ver de verdad el gasto de la IA, la latencia o los errores:
+  #
+  #     docker compose --profile default --profile observabilidad up -d
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    profiles: [observabilidad]
+    # Prometheus no expande variables en su configuracion, asi que la plantilla
+    # lleva el marcador @@METRICAS_TOKEN@@ y se sustituye al arrancar. Sin esto
+    # se mandaria el texto literal y cada scrape daria 401.
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        sed "s|@@METRICAS_TOKEN@@|$$METRICAS_TOKEN|" /etc/prometheus/plantilla.yml > /tmp/prometheus.yml
+        exec /bin/prometheus --config.file=/tmp/prometheus.yml           --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=15d
+    environment:
+      METRICAS_TOKEN: ${METRICAS_TOKEN:-}
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/plantilla.yml:ro
+      - ./docker/alertas.yml:/etc/prometheus/alertas.yml:ro
+      - datos-prometheus:/prometheus
+    ports: ['${PUERTO_PROMETHEUS:-9090}:9090']
+    restart: unless-stopped
+    networks: [smartzone]
+
 networks:
   smartzone:
     driver: bridge
 
 volumes:
   datos-postgres:
+  datos-prometheus:
   documentos-identidad:
   imagenes-productos:

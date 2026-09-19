@@ -40,13 +40,15 @@ public class AsistenteProducto {
     private final GuardiaPrompt guardia;
     private final ProductoService productos;
     private final ValoracionService valoraciones;
+    private final CacheIa cache;
 
     public AsistenteProducto(ClienteIa ia, GuardiaPrompt guardia, ProductoService productos,
-            ValoracionService valoraciones) {
+            ValoracionService valoraciones, CacheIa cache) {
         this.ia = ia;
         this.guardia = guardia;
         this.productos = productos;
         this.valoraciones = valoraciones;
+        this.cache = cache;
     }
 
     public Optional<RespuestaFicha> preguntar(Long productoId, String pregunta) {
@@ -100,10 +102,13 @@ public class AsistenteProducto {
                 + guardia.delimitar("opiniones", resenas.equals("- ") ? "(sin opiniones)" : resenas) + "\n\n"
                 + guardia.delimitar("pregunta", entrada.texto());
 
-        return ia.json(FUNCION, sistema, usuario, 300)
-                .map(r -> new RespuestaFicha(Respuestas.texto(r, "respuesta", 600),
-                        r.path("consta").asBoolean(false)))
-                .filter(r -> !r.respuesta().isEmpty());
+        // «¿Trae cargador?» es la pregunta de siempre en la misma ficha. La clave
+        // lleva la ficha y las reseñas que se enviaron: si cambian, se repregunta.
+        return cache.recordar(FUNCION, CacheIa.huella(sistema, usuario),
+                () -> ia.json(FUNCION, sistema, usuario, 300)
+                        .map(r -> new RespuestaFicha(Respuestas.texto(r, "respuesta", 600),
+                                r.path("consta").asBoolean(false)))
+                        .filter(r -> !r.respuesta().isEmpty()));
     }
 
     private static String linea(AtributoValor a) {

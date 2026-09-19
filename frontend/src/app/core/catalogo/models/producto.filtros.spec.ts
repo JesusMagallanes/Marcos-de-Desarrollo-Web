@@ -41,6 +41,7 @@ describe('Filtro de catálogo · helpers', () => {
       {
         codigo: 'ram_gb',
         nombre: 'RAM',
+        unidad: 'GB',
         valores: [
           { valor: '16', conteo: 18 },
           { valor: '32', conteo: 12 },
@@ -54,7 +55,7 @@ describe('Filtro de catálogo · helpers', () => {
       total: 20,
       disponibles: 20,
       marcas: [{ id: 1, nombre: 'Lenovo', conteo: 20 }],
-      atributos: [{ codigo: 'ram_gb', nombre: 'RAM', valores: [{ valor: '16', conteo: 20 }] }],
+      atributos: [{ codigo: 'ram_gb', nombre: 'RAM', unidad: 'GB', valores: [{ valor: '16', conteo: 20 }] }],
     };
 
     const vista = fusionarFacetas(universo, conteos)!;

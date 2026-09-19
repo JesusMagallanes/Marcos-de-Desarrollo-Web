@@ -130,7 +130,7 @@ public class PagoController {
             return;
         }
 
-        long espera = limitador.segundosParaReintentar(clave, VENTANA_CHECKOUT);
+        long espera = limitador.segundosParaReintentar(clave, MAX_CHECKOUTS_POR_USUARIO, VENTANA_CHECKOUT);
         metricas.rateLimitBloqueado("checkout-usuario");
         log.warn("El usuario {} agotó su cupo de checkouts", usuarioId);
 

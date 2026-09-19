@@ -7,6 +7,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import com.backend.usuarios.shared.seguridad.AccesoMetricas;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -50,6 +52,13 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final JwtProperties propiedades;
+
+    /**
+     * Secreto del recolector de metricas. Vacio (lo normal en desarrollo) deja
+     * `/actuator/prometheus` como estaba: solo con rol de ADMINISTRADOR.
+     */
+    @Value("${seguridad.metricas.token:}")
+    private String tokenMetricas;
 
     /**
      * A02: factor de coste 12 en lugar del 10 por defecto. Encarece el ataque por
@@ -172,8 +181,10 @@ public class SecurityConfig {
                         // departamentos solo estorbaria en el registro.
                         .requestMatchers(HttpMethod.GET, "/api/ubigeo/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
-                        // Las métricas revelan intentos de login y sesiones: solo ADMINISTRADOR.
-                        .requestMatchers("/actuator/prometheus").hasRole("ADMINISTRADOR")
+                        // Las métricas revelan intentos de login y sesiones: un administrador con su JWT, o
+                        // el recolector de metricas con METRICAS_TOKEN (ver AccesoMetricas).
+                        .requestMatchers("/actuator/prometheus")
+                        .access(AccesoMetricas.conTokenOAdministrador(tokenMetricas))
                         .anyRequest().authenticated())
                 // 401 y 403 con el mismo formato RFC 7807 que el resto de errores.
                 .exceptionHandling(ex -> ex

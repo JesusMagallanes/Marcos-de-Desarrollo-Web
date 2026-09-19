@@ -8,6 +8,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.backend.web_gateway.seguridad.AccesoMetricas;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -48,6 +49,13 @@ public class SecurityConfig {
 
     @Value("${seguridad.jwt.audiencia}")
     private String audiencia;
+
+    /**
+     * Secreto del recolector de metricas. Vacio (lo normal en desarrollo) deja
+     * `/actuator/prometheus` como estaba: solo con rol de ADMINISTRADOR.
+     */
+    @Value("${seguridad.metricas.token:}")
+    private String tokenMetricas;
 
     /**
      * CSP del HTML que sirve el gateway.
@@ -178,8 +186,10 @@ public class SecurityConfig {
                         // quien lo gestiona de verdad es el servicio usuarios.
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
-                        // Las métricas revelan volumen de tráfico y bloqueos: solo ADMINISTRADOR.
-                        .requestMatchers("/actuator/prometheus").hasRole("ADMINISTRADOR")
+                        // Las métricas revelan volumen de tráfico y bloqueos: un administrador con su JWT, o
+                        // el recolector de metricas con METRICAS_TOKEN (ver AccesoMetricas).
+                        .requestMatchers("/actuator/prometheus")
+                        .access(AccesoMetricas.conTokenOAdministrador(tokenMetricas))
                         // La autorización fina vive en cada servicio; aquí solo se deja
                         // pasar para que el destino decida.
                         .anyRequest().permitAll())
