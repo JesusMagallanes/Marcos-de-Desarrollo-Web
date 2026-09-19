@@ -1,6 +1,6 @@
 package com.backend.usuarios.auth;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 
@@ -170,7 +170,7 @@ public class AuthService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void cortarSesiones(String email) {
         repositorio.findByEmailAddress(email).ifPresent(usuario -> {
-            usuario.setTokensValidosDesde(LocalDateTime.now());
+            usuario.setTokensValidosDesde(Instant.now());
             repositorio.save(usuario);
             log.warn("Sesiones de {} cortadas por reúso de refresh token", email);
         });
@@ -186,12 +186,12 @@ public class AuthService {
      * antes, no de ese mismo instante.
      */
     private boolean emitidoAntesDelCorte(Claims claims, Usuario usuario) {
-        LocalDateTime corte = usuario.getTokensValidosDesde();
+        Instant corte = usuario.getTokensValidosDesde();
         if (corte == null || claims.getIssuedAt() == null) {
             return false;
         }
-        LocalDateTime emitido = LocalDateTime.ofInstant(
-                claims.getIssuedAt().toInstant(), ZoneId.systemDefault());
+        // Instantes absolutos: da igual la zona de la JVM o de Postgres.
+        Instant emitido = claims.getIssuedAt().toInstant();
         return emitido.isBefore(corte.truncatedTo(ChronoUnit.SECONDS));
     }
 

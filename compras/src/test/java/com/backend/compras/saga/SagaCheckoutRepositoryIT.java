@@ -1,10 +1,11 @@
 package com.backend.compras.saga;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -52,9 +53,9 @@ class SagaCheckoutRepositoryIT extends PruebaIntegracion {
      * salta los callbacks de ciclo de vida, que es justo lo que hace falta para
      * simular el paso del tiempo.
      */
-    private void envejecer(String referencia, LocalDateTime cuando) {
+    private void envejecer(String referencia, Instant cuando) {
         jdbc.update("UPDATE compras.saga_checkout SET actualizado_en = ? WHERE referencia = ?",
-                Timestamp.valueOf(cuando), referencia);
+                Timestamp.from(cuando), referencia);
     }
 
     private SagaCheckout saga(String referencia, Long usuarioId, Estado estado, Paso paso) {
@@ -112,10 +113,10 @@ class SagaCheckoutRepositoryIT extends PruebaIntegracion {
         saga("sz-1-1-nueva", 2L, Estado.ESPERANDO_PAGO, Paso.PEDIDO_CREADO);
         saga("sz-1-1-hecha", 3L, Estado.COMPLETADA, Paso.FIN);
 
-        envejecer("sz-1-1-vieja", LocalDateTime.now().minusHours(2));
+        envejecer("sz-1-1-vieja", Instant.now().minus(2, ChronoUnit.HOURS));
 
         List<SagaCheckout> abandonadas =
-                repositorio.buscarAbandonadas(LocalDateTime.now().minusMinutes(25));
+                repositorio.buscarAbandonadas(Instant.now().minus(25, ChronoUnit.MINUTES));
 
         assertThat(abandonadas).extracting(SagaCheckout::getReferencia)
                 .containsExactly("sz-1-1-vieja");

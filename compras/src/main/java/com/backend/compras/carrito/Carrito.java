@@ -1,6 +1,6 @@
 package com.backend.compras.carrito;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +40,7 @@ public class Carrito {
     private Long usuarioId;
 
     @Column(name = "creado_en", nullable = false, updatable = false)
-    private LocalDateTime creadoEn;
+    private Instant creadoEn;
 
     @OneToMany(mappedBy = "carrito", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -49,7 +49,7 @@ public class Carrito {
     @PrePersist
     void alCrear() {
         if (creadoEn == null) {
-            creadoEn = LocalDateTime.now();
+            creadoEn = Instant.now();
         }
     }
 

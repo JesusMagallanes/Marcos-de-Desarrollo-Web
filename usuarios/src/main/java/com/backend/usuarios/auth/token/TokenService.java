@@ -1,6 +1,6 @@
 package com.backend.usuarios.auth.token;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -70,7 +70,7 @@ public class TokenService {
     }
 
     private void borrarCaducados() {
-        int borrados = repositorio.borrarExpirados(LocalDateTime.now());
+        int borrados = repositorio.borrarExpirados(Instant.now());
         if (borrados > 0) {
             log.info("Purgados {} tokens revocados ya caducados", borrados);
         }

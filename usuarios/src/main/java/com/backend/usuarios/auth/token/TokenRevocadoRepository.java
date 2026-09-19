@@ -1,6 +1,6 @@
 package com.backend.usuarios.auth.token;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -24,7 +24,7 @@ public interface TokenRevocadoRepository extends JpaRepository<TokenRevocado, St
     @Modifying
     @Transactional
     @Query("DELETE FROM TokenRevocado t WHERE t.expiraEn < :limite")
-    int borrarExpirados(@Param("limite") LocalDateTime limite);
+    int borrarExpirados(@Param("limite") Instant limite);
 
     /** Revocación masiva: al eliminar un usuario o degradar su rol. */
     @Modifying

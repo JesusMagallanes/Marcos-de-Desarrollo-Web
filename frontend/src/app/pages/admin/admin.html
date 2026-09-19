@@ -4,7 +4,7 @@
   [class.abierta]="abierta()"
 >
   @if (abierta()) {
-    <div class="fondo-menu" (click)="cerrarMenu()"></div>
+    <div class="fondo-menu" (click)="cerrarMenu()" (keydown.escape)="cerrarMenu()" tabindex="-1" aria-hidden="true"></div>
   }
 
   <aside class="barra-admin">

@@ -41,7 +41,7 @@ describe('ColaSyncService', () => {
 
     const filas = await bd.cola.toArray();
     expect(filas.length).toBe(1);
-    expect((filas[0].cuerpo as any).valoracion.calificacion).toBe(5);
+    expect((filas[0].cuerpo as { valoracion: { calificacion: number } }).valoracion.calificacion).toBe(5);
     expect(cola.pendientes()).toBe(1);
   });
 

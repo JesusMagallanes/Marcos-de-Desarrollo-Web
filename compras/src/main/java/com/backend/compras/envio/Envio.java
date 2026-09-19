@@ -1,7 +1,7 @@
 package com.backend.compras.envio;
 
+import java.time.Instant;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 import com.backend.compras.pedido.Pedido;
 
@@ -106,18 +106,18 @@ public class Envio {
     private EstadoEnvio estadoEnvio = EstadoEnvio.PENDIENTE;
 
     @Column(name = "fecha_envio_programado")
-    private LocalDateTime fechaEnvioProgramado;
+    private Instant fechaEnvioProgramado;
 
     @Column(name = "fecha_envio_entregado")
-    private LocalDateTime fechaEnvioEntregado;
+    private Instant fechaEnvioEntregado;
 
     public void marcarEnTransito() {
         this.estadoEnvio = EstadoEnvio.EN_TRANSITO;
-        this.fechaEnvioProgramado = LocalDateTime.now();
+        this.fechaEnvioProgramado = Instant.now();
     }
 
     public void marcarEntregado() {
         this.estadoEnvio = EstadoEnvio.ENTREGADO;
-        this.fechaEnvioEntregado = LocalDateTime.now();
+        this.fechaEnvioEntregado = Instant.now();
     }
 }

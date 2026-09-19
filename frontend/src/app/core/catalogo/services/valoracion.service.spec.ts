@@ -155,7 +155,7 @@ describe('ValoracionService', () => {
       if (estadoReal) {
         Object.defineProperty(navigator, 'onLine', estadoReal);
       } else {
-        delete (navigator as any).onLine;
+        delete (navigator as { onLine?: boolean }).onLine;
       }
       // La siguiente prueba rearma su propio inyector en el beforeEach.
       TestBed.resetTestingModule();

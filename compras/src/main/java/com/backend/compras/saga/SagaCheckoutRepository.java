@@ -1,6 +1,6 @@
 package com.backend.compras.saga;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +30,7 @@ public interface SagaCheckoutRepository extends JpaRepository<SagaCheckout, Long
             WHERE s.estado = com.backend.compras.saga.SagaCheckout$Estado.ESPERANDO_PAGO
               AND s.actualizadoEn < :limite
             """)
-    List<SagaCheckout> buscarAbandonadas(@Param("limite") LocalDateTime limite);
+    List<SagaCheckout> buscarAbandonadas(@Param("limite") Instant limite);
 
     /** Compensaciones que fallaron y hay que reintentar. */
     @Query("""

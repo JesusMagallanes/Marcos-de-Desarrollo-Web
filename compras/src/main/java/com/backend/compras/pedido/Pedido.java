@@ -1,7 +1,7 @@
 package com.backend.compras.pedido;
 
+import java.time.Instant;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,7 +78,7 @@ public class Pedido {
     private String referenciaSaga;
 
     @Column(name = "creado_en", nullable = false, updatable = false)
-    private LocalDateTime creadoEn;
+    private Instant creadoEn;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -87,7 +87,7 @@ public class Pedido {
     @PrePersist
     void alCrear() {
         if (creadoEn == null) {
-            creadoEn = LocalDateTime.now();
+            creadoEn = Instant.now();
         }
     }
 

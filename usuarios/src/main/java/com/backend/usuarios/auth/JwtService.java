@@ -2,7 +2,6 @@ package com.backend.usuarios.auth;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.UUID;
@@ -110,9 +109,8 @@ public class JwtService {
                 .getPayload();
     }
 
-    public LocalDateTime expiracionDe(Claims claims) {
-        return LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(claims.getExpiration().getTime()), ZoneId.systemDefault());
+    public Instant expiracionDe(Claims claims) {
+        return claims.getExpiration().toInstant();
     }
 
     public long duracionSegundos(String rol) {

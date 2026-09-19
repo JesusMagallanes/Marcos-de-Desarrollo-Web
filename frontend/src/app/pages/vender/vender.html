@@ -619,7 +619,7 @@
     puede empezar directamente con ese tipo ya elegido.
   -->
   @if (guiaAbierta(); as tipo) {
-    <div class="guia-fondo" (click)="cerrarGuia()"></div>
+    <div class="guia-fondo" (click)="cerrarGuia()" (keydown.escape)="cerrarGuia()" tabindex="-1" aria-hidden="true"></div>
 
     <div class="guia-modal" role="dialog" aria-modal="true" aria-labelledby="guia-titulo">
       <div class="guia-cabecera">

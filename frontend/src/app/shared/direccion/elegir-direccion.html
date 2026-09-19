@@ -10,14 +10,16 @@
     (cerrar)="cerrar.emit()"
   />
 } @else {
-  <div class="direccion-fondo" (click)="cerrar.emit()"></div>
+  <div class="direccion-fondo" (click)="cerrar.emit()" (keydown.escape)="cerrar.emit()" tabindex="-1" aria-hidden="true"></div>
 
   <div
     class="direccion-panel"
     role="dialog"
     aria-modal="true"
     aria-labelledby="elegir-titulo"
+    tabindex="-1"
     (click)="$event.stopPropagation()"
+    (keydown.escape)="cerrar.emit()"
   >
     <div class="direccion-cabecera">
       <div>

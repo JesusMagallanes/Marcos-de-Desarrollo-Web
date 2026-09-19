@@ -1,6 +1,7 @@
 package com.backend.compras.saga;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -45,7 +46,7 @@ public class SagaBarrendero {
     }
 
     private void barrerAbandonadas() {
-        LocalDateTime limite = LocalDateTime.now().minusMinutes(minutosAbandono);
+        Instant limite = Instant.now().minus(minutosAbandono, ChronoUnit.MINUTES);
         List<SagaCheckout> abandonadas = sagas.buscarAbandonadas(limite);
 
         if (abandonadas.isEmpty()) {

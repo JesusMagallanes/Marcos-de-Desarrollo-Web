@@ -1,13 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  OnInit,
-  computed,
-  effect,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
@@ -35,7 +26,7 @@ interface ModalBootstrap {
   templateUrl: './login-modal.html',
   styleUrl: './login-modal.css',
 })
-export class LoginModal implements OnInit {
+export class LoginModal implements OnInit, AfterViewInit {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private carrito = inject(CarritoService);

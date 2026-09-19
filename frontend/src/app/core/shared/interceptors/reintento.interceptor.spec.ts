@@ -1,4 +1,4 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { describe, it, expect } from 'vitest';
 
 /**
@@ -15,7 +15,7 @@ function httpError(status: number, headers?: Record<string, string>): HttpErrorR
   return new HttpErrorResponse({
     status,
     statusText: status === 0 ? 'Unknown Error' : 'Error',
-    headers: headers ? { get: (name: string) => headers[name] ?? null } as any : undefined,
+    headers: headers ? ({ get: (name: string) => headers[name] ?? null } as unknown as HttpHeaders) : undefined,
   });
 }
 

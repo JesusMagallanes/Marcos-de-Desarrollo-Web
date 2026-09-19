@@ -162,6 +162,8 @@ escritorio (1400 px) y movil (420 px), antes y despues. Lo que salio:
 
 | D10 | Portada: tres carruseles de Bootstrap distintos (ofertas, top, categorias) troceados en diapositivas, con flechas negras encima de las tarjetas, huecos entre descripcion y precio porque la fila se estiraba a la altura del tile promocional, y un tile «REPUBLIC OF GAMERS» en verde ajeno a la marca que llevaba a la propia portada | frontend `home` | **FIX** - una sola pieza «estante» (cabecera con etiqueta, titulo, subtitulo, «ver todo» y flechas; carril con scroll-snap) para las tres secciones y todos los tamanos; tile promocional con degradado de marca que enlaza a Laptops |
 
+| D11 | Modelo de datos, revisado contra la base real: 12 columnas de fecha sin zona horaria en `usuarios` y `compras` (`pedido.creado_en`, `token_revocado.expira_en`, `usuario.tokens_validos_desde`…; `catalogo` ya lo habia corregido en V17) y 6 claves foraneas sin indice | usuarios V13, compras V13, catalogo V27 | **FIX** - TIMESTAMPTZ y entidades en `Instant`; indices en las 6. Comprobado en la base real: 0 columnas sin zona, 0 FK sin indice. 40 tablas de negocio en 3 esquemas, todas con clave primaria, 30 FK, 30 politicas RLS |
+
 Sin cambios: el panel de administracion (limpio y coherente) y el chat.
 Pendiente de verdad: fotos reales para los 68 productos de la semilla; el
 marcador nuevo solo hace que su ausencia no parezca un fallo.

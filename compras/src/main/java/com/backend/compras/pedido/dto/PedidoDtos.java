@@ -1,7 +1,7 @@
 package com.backend.compras.pedido.dto;
 
+import java.time.Instant;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import com.backend.compras.pedido.DetallePedido;
@@ -47,7 +47,7 @@ public final class PedidoDtos {
              */
             String numero,
             Long usuarioId,
-            LocalDateTime fecha,
+            Instant fecha,
             EstadoPedido estado,
             /* El desglose, para que el detalle de la compra cuadre: las líneas
              * suman el subtotal y el envío es la diferencia con el total. */

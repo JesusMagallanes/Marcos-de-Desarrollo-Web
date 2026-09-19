@@ -1,6 +1,6 @@
 package com.backend.usuarios.usuario;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -64,12 +64,12 @@ public class Rol {
     private Set<Permiso> permisos = new HashSet<>();
 
     @Column(name = "creado_en", nullable = false, updatable = false)
-    private LocalDateTime creadoEn;
+    private Instant creadoEn;
 
     @PrePersist
     void alCrear() {
         if (creadoEn == null) {
-            creadoEn = LocalDateTime.now();
+            creadoEn = Instant.now();
         }
         if (descripcion == null) {
             descripcion = "";

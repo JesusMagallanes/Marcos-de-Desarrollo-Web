@@ -1,6 +1,6 @@
 package com.backend.compras.envio.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import com.backend.compras.envio.Distancia;
 import com.backend.compras.envio.Envio;
@@ -39,8 +39,8 @@ public final class EnvioDtos {
             String pais,
 
             EstadoEnvio estadoEnvio,
-            LocalDateTime fechaEnvioProgramado,
-            LocalDateTime fechaEnvioEntregado,
+            Instant fechaEnvioProgramado,
+            Instant fechaEnvioEntregado,
 
             /*
              * Épica 3: a qué distancia está el destino de la tienda y cuánto se

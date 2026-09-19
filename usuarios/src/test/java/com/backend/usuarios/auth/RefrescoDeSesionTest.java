@@ -1,5 +1,7 @@
 package com.backend.usuarios.auth;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,7 +11,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -200,7 +201,7 @@ class RefrescoDeSesionTest {
         String anterior = jwtService.generarRefreshToken(ana);
 
         // El corte ocurre DESPUÉS de emitirse ese token.
-        ana.setTokensValidosDesde(LocalDateTime.now().plusSeconds(5));
+        ana.setTokensValidosDesde(Instant.now().plusSeconds(5));
         when(tokenService.estaRevocado(anyString())).thenReturn(false);
         when(repositorio.findByEmailAddress(EMAIL)).thenReturn(Optional.of(ana));
 
@@ -217,7 +218,7 @@ class RefrescoDeSesionTest {
     void despuesDelCorteLoNuevoSiVale() {
         Usuario ana = ana();
         // Corte en el pasado; el token se emite ahora, después.
-        ana.setTokensValidosDesde(LocalDateTime.now().minusMinutes(10));
+        ana.setTokensValidosDesde(Instant.now().minus(10, ChronoUnit.MINUTES));
         String reciente = jwtService.generarRefreshToken(ana);
 
         when(tokenService.estaRevocado(anyString())).thenReturn(false);

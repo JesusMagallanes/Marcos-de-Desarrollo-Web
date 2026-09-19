@@ -103,7 +103,7 @@
 }
 
 @if (formAbierto()) {
-  <div class="fondo-modal" (click)="cerrar()"></div>
+  <div class="fondo-modal" (click)="cerrar()" (keydown.escape)="cerrar()" tabindex="-1" aria-hidden="true"></div>
   <div class="panel-modal shadow">
     <div class="cabecera-modal">
       <h6 class="mb-0">{{ editandoId() ? 'Editar producto' : 'Nuevo producto' }}</h6>

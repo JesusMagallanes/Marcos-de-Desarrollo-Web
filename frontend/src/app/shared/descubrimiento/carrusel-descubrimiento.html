@@ -81,7 +81,7 @@
             </div>
           }
 
-          <div class="carrusel-desc__tarjeta" (click)="alAbrir(p)">
+          <div class="carrusel-desc__tarjeta" (click)="alAbrir(p)" (keydown.enter)="alAbrir(p)" tabindex="-1">
             <app-producto-card [producto]="p" variante="carrusel" />
           </div>
         </div>

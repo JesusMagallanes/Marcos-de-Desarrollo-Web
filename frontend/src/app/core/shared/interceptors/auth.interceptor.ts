@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import { HttpErrorResponse, HttpEvent, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, EMPTY, Observable, catchError, filter, switchMap, take, throwError } from 'rxjs';
@@ -60,9 +60,9 @@ function renovarYReintentar(
   auth: AuthService,
   router: Router,
   req: HttpRequest<unknown>,
-  next: (r: HttpRequest<unknown>) => Observable<any>,
+  next: (r: HttpRequest<unknown>) => Observable<HttpEvent<unknown>>,
   conToken: (p: HttpRequest<unknown>, t: string | null) => HttpRequest<unknown>,
-): Observable<any> {
+): Observable<HttpEvent<unknown>> {
   if (refrescando) {
     return tokenNuevo$.pipe(
       filter((t): t is string => t !== null),

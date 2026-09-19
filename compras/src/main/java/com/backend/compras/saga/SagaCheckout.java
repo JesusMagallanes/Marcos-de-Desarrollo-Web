@@ -1,7 +1,7 @@
 package com.backend.compras.saga;
 
+import java.time.Instant;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -151,10 +151,10 @@ public class SagaCheckout {
     private String ultimoError;
 
     @Column(name = "creado_en", nullable = false, updatable = false)
-    private LocalDateTime creadoEn;
+    private Instant creadoEn;
 
     @Column(name = "actualizado_en", nullable = false)
-    private LocalDateTime actualizadoEn;
+    private Instant actualizadoEn;
 
     /** Evita que dos hilos avancen la misma saga a la vez. */
     @Version
@@ -163,7 +163,7 @@ public class SagaCheckout {
 
     @PrePersist
     void alCrear() {
-        LocalDateTime ahora = LocalDateTime.now();
+        Instant ahora = Instant.now();
         if (creadoEn == null) {
             creadoEn = ahora;
         }
@@ -172,7 +172,7 @@ public class SagaCheckout {
 
     @PreUpdate
     void alActualizar() {
-        actualizadoEn = LocalDateTime.now();
+        actualizadoEn = Instant.now();
     }
 
     public void avanzarA(Paso siguiente) {

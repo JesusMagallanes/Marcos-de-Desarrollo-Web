@@ -2,13 +2,21 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DescubrimientoService, ProductoService } from '../../core';
+import { DescubrimientoService, FiltroCatalogo, Producto, ProductoService } from '../../core';
 import { Buscar } from './buscar';
 
 const FACETAS = { total: 0, disponibles: 0, marcas: [], atributos: [] };
 
 function pagina(total = 0, totalPages = 0, content: unknown[] = []) {
   return { content, number: 0, size: 24, totalElements: total, totalPages };
+}
+
+/** Lo protegido del componente, visto desde la prueba (mismas firmas que en la clase). */
+interface Interno {
+  filtro: () => FiltroCatalogo;
+  resultados: () => Producto[];
+  totalEncontrados: () => number;
+  alFiltrar: (nuevo: FiltroCatalogo) => void;
 }
 
 describe('Buscar (página) · filtrado en servidor', () => {
@@ -22,7 +30,7 @@ describe('Buscar (página) · filtrado en servidor', () => {
     fixture.detectChanges();
     const router = TestBed.inject(Router);
     const navegar = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    return { fixture, comp: fixture.componentInstance as any, navegar };
+    return { fixture, comp: fixture.componentInstance as unknown as Interno, navegar };
   }
 
   beforeEach(() => {

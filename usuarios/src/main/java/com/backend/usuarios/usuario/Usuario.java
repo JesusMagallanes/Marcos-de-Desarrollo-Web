@@ -1,7 +1,7 @@
 package com.backend.usuarios.usuario;
 
+import java.time.Instant;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -122,15 +122,15 @@ public class Usuario {
      * entera y no solo el token que se reutilizó.
      */
     @Column(name = "tokens_validos_desde")
-    private LocalDateTime tokensValidosDesde;
+    private Instant tokensValidosDesde;
 
     @Column(name = "creado_en", nullable = false, updatable = false)
-    private LocalDateTime creadoEn;
+    private Instant creadoEn;
 
     @PrePersist
     void alCrear() {
         if (creadoEn == null) {
-            creadoEn = LocalDateTime.now();
+            creadoEn = Instant.now();
         }
         if (rol == null) {
             rol = "CLIENTE";
