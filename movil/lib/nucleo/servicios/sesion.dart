@@ -12,7 +12,8 @@ import '../modelos/usuario.dart';
 /// anterior y, si sigue siendo válido, recupera la sesión sin pedir nada. Si
 /// caducó o fue revocado, se limpia y se muestra el login.
 class Sesion extends ChangeNotifier {
-  Sesion(this._api, {AlmacenSesion? almacen}) : _almacen = almacen ?? AlmacenSesion() {
+  Sesion(this._api, {AlmacenSesion? almacen})
+    : _almacen = almacen ?? AlmacenSesion() {
     // Si el cliente HTTP da la sesión por perdida (el refresco falló), la app
     // entera debe enterarse, no solo la pantalla que hizo la petición.
     _api.alCerrarSesion = () {
@@ -29,14 +30,17 @@ class Sesion extends ChangeNotifier {
 
   Usuario? get usuario => _usuario;
   bool get autenticado => _usuario != null;
+
   /// true mientras se comprueba si había sesión previa; evita el parpadeo de
   /// enseñar el login durante un instante a quien ya estaba dentro.
   bool get cargando => _cargando;
 
   /// Se llama una vez al arrancar la app.
   Future<void> restaurar() async {
-    _cargando = true;
-    notifyListeners();
+    // `_cargando` ya arranca en `true` desde el campo de la clase; no hay que
+    // volver a ponerlo aquí ni notificar. Hacerlo dispara un rebuild que cae
+    // durante el build inicial y salta
+    // "setState() or markNeedsBuild() called during build".
 
     try {
       if (await _almacen.haySesion) {
@@ -61,10 +65,12 @@ class Sesion extends ChangeNotifier {
   /// o el error para que la pantalla lo enseñe.
   Future<ErrorApi?> entrar(String email, String password) async {
     try {
-      final datos = await _api.post('/auth/login', cuerpo: {
-        'email': email.trim(),
-        'password': password,
-      }) as Map<String, dynamic>;
+      final datos =
+          await _api.post(
+                '/auth/login',
+                cuerpo: {'email': email.trim(), 'password': password},
+              )
+              as Map<String, dynamic>;
 
       await _almacen.guardar(
         tokenAcceso: datos['accessToken'] as String,
@@ -90,14 +96,17 @@ class Sesion extends ChangeNotifier {
     required String direccion,
   }) async {
     try {
-      await _api.post('/auth/registrar', cuerpo: {
-        'name': nombre.trim(),
-        'lastname': apellidos.trim(),
-        'emailAddress': email.trim(),
-        'password': password,
-        'phoneNumber': telefono.trim(),
-        'address': direccion.trim(),
-      });
+      await _api.post(
+        '/auth/registrar',
+        cuerpo: {
+          'name': nombre.trim(),
+          'lastname': apellidos.trim(),
+          'emailAddress': email.trim(),
+          'password': password,
+          'phoneNumber': telefono.trim(),
+          'address': direccion.trim(),
+        },
+      );
       // El registro no devuelve sesión: se entra a continuación con los mismos
       // datos, que es lo que hace la web.
       //

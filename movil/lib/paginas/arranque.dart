@@ -54,7 +54,15 @@ class _ArranqueEstado extends State<Arranque> {
     _temporizadorAviso = Timer(_avisoLentitud, () {
       if (mounted) setState(() => _lento = true);
     });
-    _preparar();
+
+    // La carga se dispara DESPUÉS del primer frame. `restaurar()` (y otras
+    // cargas) terminan notificando a los providers con `notifyListeners()`, y
+    // si eso ocurre mientras Flutter todavía está montando el árbol, salta
+    // "setState() or markNeedsBuild() called during build". Diferirlo al
+    // siguiente frame lo evita sin cambiar el comportamiento visible.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _preparar();
+    });
   }
 
   @override
@@ -94,10 +102,7 @@ class _ArranqueEstado extends State<Arranque> {
       ]);
     }
 
-    await Future.any([
-      trabajo(),
-      Future.delayed(_maximoEspera),
-    ]);
+    await Future.any([trabajo(), Future.delayed(_maximoEspera)]);
 
     final restante = _minimoVisible - reloj.elapsed;
     if (restante > Duration.zero) {
@@ -118,7 +123,10 @@ class _ArranqueEstado extends State<Arranque> {
       duration: const Duration(milliseconds: 600),
       child: _listo
           ? const Armazon(key: ValueKey('tienda'))
-          : PantallaCarga(key: const ValueKey('carga'), mostrarAvisoLento: _lento),
+          : PantallaCarga(
+              key: const ValueKey('carga'),
+              mostrarAvisoLento: _lento,
+            ),
     );
   }
 }

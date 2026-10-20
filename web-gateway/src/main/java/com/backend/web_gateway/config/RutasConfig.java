@@ -1,5 +1,6 @@
 package com.backend.web_gateway.config;
 
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.dedupeResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -14,6 +15,19 @@ import org.springframework.web.servlet.function.ServerResponse;
 /** Enrutado por prefijo hacia los tres servicios de dominio. */
 @Configuration
 public class RutasConfig {
+
+    /**
+     * Catálogo, usuarios y compras tienen su propia configuración CORS además
+     * de la del gateway (por si alguien los llama directamente, ya que sus
+     * puertos también quedan expuestos en docker-compose). Al proxiar una
+     * petición ya resuelta por el CORS del gateway, la respuesta del servicio
+     * de abajo trae ADEMÁS su propia cabecera Access-Control-Allow-Origin, y
+     * las dos terminan en la respuesta final. El navegador la rechaza por
+     * tener el origen duplicado en la misma cabecera. `dedupeResponseHeader`
+     * se queda solo con el primer valor (el que puso el gateway).
+     */
+    private static final String CABECERAS_CORS_A_DEDUPLICAR =
+            "Access-Control-Allow-Origin Access-Control-Allow-Credentials";
 
     @Value("${servicios.catalogo.url}")
     private String catalogoUrl;
@@ -51,6 +65,7 @@ public class RutasConfig {
                 // IA aplicada: búsqueda en lenguaje natural, fichas, moderación, reseñas.
                 .route(path("/api/ia/**"), http())
                 .before(uri(catalogoUrl))
+                .after(dedupeResponseHeader(CABECERAS_CORS_A_DEDUPLICAR))
                 .build();
     }
 
@@ -66,6 +81,7 @@ public class RutasConfig {
                 // porque lo que conceden es un rol, no un producto.
                 .route(path("/api/colaboradores/**"), http())
                 .before(uri(usuariosUrl))
+                .after(dedupeResponseHeader(CABECERAS_CORS_A_DEDUPLICAR))
                 .build();
     }
 
@@ -76,6 +92,7 @@ public class RutasConfig {
                 .route(path("/oauth2/**"), http())
                 .route(path("/login/oauth2/**"), http())
                 .before(uri(usuariosUrl))
+                .after(dedupeResponseHeader(CABECERAS_CORS_A_DEDUPLICAR))
                 .build();
     }
 
@@ -88,6 +105,7 @@ public class RutasConfig {
                 .route(path("/api/envios/**"), http())
                 .route(path("/api/pagos/**"), http())
                 .before(uri(comprasUrl))
+                .after(dedupeResponseHeader(CABECERAS_CORS_A_DEDUPLICAR))
                 .build();
     }
 

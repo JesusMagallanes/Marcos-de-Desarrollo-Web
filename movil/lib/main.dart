@@ -8,6 +8,7 @@ import 'nucleo/servicios/carrito_servicio.dart';
 import 'nucleo/servicios/catalogo_servicio.dart';
 import 'nucleo/servicios/sesion.dart';
 import 'paginas/arranque.dart';
+import 'paginas/portero_inicial.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,9 +23,6 @@ class AppSmartZone extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Un único ClienteApi para toda la app: comparte el token y, sobre todo,
-    // el candado del refresco. Con uno por servicio, tres peticiones que
-    // caducan a la vez lanzarían tres refrescos y se invalidarían entre sí.
     final api = ClienteApi();
 
     return MultiProvider(
@@ -38,7 +36,7 @@ class AppSmartZone extends StatelessWidget {
         title: 'SmartZone',
         debugShowCheckedModeBanner: false,
         theme: construirTema(),
-        home: const Arranque(),
+        home: const PorteroInicial(), // <-- CAMBIADO
       ),
     );
   }

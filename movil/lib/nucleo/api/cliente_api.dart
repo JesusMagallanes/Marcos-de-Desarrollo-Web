@@ -7,6 +7,9 @@ import 'package:http/http.dart' as http;
 import '../config/entorno.dart';
 import 'almacen_sesion.dart';
 import 'error_api.dart';
+import 'http_cliente_io.dart'
+    if (dart.library.html) 'http_cliente_web.dart'
+    as fabrica_http;
 
 /// Cliente HTTP contra el gateway. Es el equivalente de los interceptores de
 /// la web (auth, error, correlación) reunidos en un sitio.
@@ -19,8 +22,8 @@ import 'error_api.dart';
 ///  3. Traduce los errores del backend (RFC 7807) a ErrorApi.
 class ClienteApi {
   ClienteApi({AlmacenSesion? almacen, http.Client? http})
-      : _almacen = almacen ?? AlmacenSesion(),
-        _http = http ?? _crearCliente();
+    : _almacen = almacen ?? AlmacenSesion(),
+      _http = http ?? _crearCliente();
 
   final AlmacenSesion _almacen;
   final http.Client _http;
@@ -34,10 +37,7 @@ class ClienteApi {
   /// si no, se pisarían entre ellas y el backend revocaría el token bueno.
   Future<bool>? _refrescoEnCurso;
 
-  static http.Client _crearCliente() {
-    final base = HttpClient()..connectionTimeout = Entorno.tiempoEspera;
-    return IOClient(base);
-  }
+  static http.Client _crearCliente() => fabrica_http.crearClienteHttp();
 
   Future<dynamic> get(String ruta, {Map<String, String>? consulta}) =>
       _enviar('GET', ruta, consulta: consulta);
@@ -60,9 +60,9 @@ class ClienteApi {
     Map<String, String>? consulta,
     bool reintentado = false,
   }) async {
-    final uri = Uri.parse('${Entorno.apiBase}$ruta').replace(
-      queryParameters: consulta?.isEmpty ?? true ? null : consulta,
-    );
+    final uri = Uri.parse(
+      '${Entorno.apiBase}$ruta',
+    ).replace(queryParameters: consulta?.isEmpty ?? true ? null : consulta);
 
     final cabeceras = <String, String>{
       'Accept': 'application/json',
@@ -93,8 +93,13 @@ class ClienteApi {
     if (respuesta.statusCode == 401 && !reintentado && !_esRutaDeAuth(ruta)) {
       final renovada = await _refrescar();
       if (renovada) {
-        return _enviar(metodo, ruta,
-            cuerpo: cuerpo, consulta: consulta, reintentado: true);
+        return _enviar(
+          metodo,
+          ruta,
+          cuerpo: cuerpo,
+          consulta: consulta,
+          reintentado: true,
+        );
       }
       await _almacen.limpiar();
       alCerrarSesion?.call();
@@ -126,7 +131,10 @@ class ClienteApi {
       final respuesta = await _http
           .post(
             Uri.parse('${Entorno.apiBase}/auth/refresh'),
-            headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
             body: jsonEncode({'refreshToken': refresco}),
           )
           .timeout(Entorno.tiempoEspera);
@@ -149,7 +157,11 @@ class ClienteApi {
 
     if (estado == 204 || respuesta.body.isEmpty) {
       if (estado >= 400) {
-        throw ErrorApi(estado: estado, titulo: 'Error', mensaje: 'El servidor respondió $estado.');
+        throw ErrorApi(
+          estado: estado,
+          titulo: 'Error',
+          mensaje: 'El servidor respondió $estado.',
+        );
       }
       return null;
     }
@@ -159,7 +171,11 @@ class ClienteApi {
       cuerpo = jsonDecode(utf8.decode(respuesta.bodyBytes));
     } catch (_) {
       if (estado >= 400) {
-        throw ErrorApi(estado: estado, titulo: 'Error', mensaje: 'Respuesta no válida del servidor.');
+        throw ErrorApi(
+          estado: estado,
+          titulo: 'Error',
+          mensaje: 'Respuesta no válida del servidor.',
+        );
       }
       return null;
     }
@@ -167,7 +183,11 @@ class ClienteApi {
     if (estado >= 400) {
       throw cuerpo is Map<String, dynamic>
           ? ErrorApi.desdeJson(estado, cuerpo)
-          : ErrorApi(estado: estado, titulo: 'Error', mensaje: 'El servidor respondió $estado.');
+          : ErrorApi(
+              estado: estado,
+              titulo: 'Error',
+              mensaje: 'El servidor respondió $estado.',
+            );
     }
     return cuerpo;
   }
@@ -182,40 +202,4 @@ class ClienteApi {
   }
 
   void cerrar() => _http.close();
-}
-
-/// `IOClient` sobre un `HttpClient` propio: es lo que permite fijar el tiempo
-/// de conexión, que el cliente por defecto no expone.
-class IOClient extends http.BaseClient {
-  IOClient(this._interno);
-  final HttpClient _interno;
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest peticion) async {
-    final salida = await _interno.openUrl(peticion.method, peticion.url);
-    peticion.headers.forEach(salida.headers.set);
-
-    final cuerpo = await peticion.finalize().toBytes();
-    if (cuerpo.isNotEmpty) salida.add(cuerpo);
-
-    final entrada = await salida.close();
-
-    // `HttpHeaders` no expone las claves como colección, solo permite
-    // recorrerlas, así que se copian a un mapa a mano.
-    final cabeceras = <String, String>{};
-    entrada.headers.forEach((nombre, valores) {
-      cabeceras[nombre] = valores.join(',');
-    });
-
-    return http.StreamedResponse(
-      entrada,
-      entrada.statusCode,
-      contentLength: entrada.contentLength == -1 ? null : entrada.contentLength,
-      headers: cabeceras,
-      reasonPhrase: entrada.reasonPhrase,
-    );
-  }
-
-  @override
-  void close() => _interno.close();
 }
