@@ -12,7 +12,7 @@ import 'paginas/portero_inicial.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Formatos de fecha y moneda en español de Perú, como en la web.
+
   await initializeDateFormatting('es_PE');
 
   runApp(const AppSmartZone());
