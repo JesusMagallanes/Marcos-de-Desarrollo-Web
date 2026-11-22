@@ -5,6 +5,7 @@ import '../../nucleo/modelos/categoria.dart';
 import '../../nucleo/servicios/catalogo_servicio.dart';
 import '../inicio/buscador_widget.dart';
 import 'pagina_categoria_productos.dart';
+import '../chat/chat_pagina.dart';
 
 class PaginaCategorias extends StatelessWidget {
   const PaginaCategorias({super.key});
@@ -17,9 +18,17 @@ class PaginaCategorias extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ChatPagina()),
+          );
+        },
         backgroundColor: const Color(0xFF00E676),
-        child: const Icon(Icons.chat_bubble, color: Colors.black),
+        foregroundColor: Colors.black,
+        elevation: 6,
+        tooltip: 'Hablar con el Asesor IA',
+        child: const Icon(Icons.auto_awesome, size: 28),
       ),
       body: SafeArea(
         child: Column(
@@ -69,21 +78,7 @@ class PaginaCategorias extends StatelessWidget {
                   ),
                   Row(
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFFEEEEEE)),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.chat_bubble_outline,
-                            size: 20,
-                            color: Paleta.texto,
-                          ),
-                          onPressed: () {},
-                        ),
-                      ),
-                      const SizedBox(width: 8),
+                      // Botón de chat eliminado de aquí
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: const Color(0xFFEEEEEE)),

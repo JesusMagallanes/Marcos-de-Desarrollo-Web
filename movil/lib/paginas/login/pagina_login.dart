@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../nucleo/config/tema.dart';
 import '../../nucleo/servicios/carrito_servicio.dart';
 import '../../nucleo/servicios/sesion.dart';
 import '../arranque.dart';
+import 'recuperar_clave_pagina.dart';
 
 const Color colorRojoError = Color(0xFFD32F2F);
 
@@ -28,14 +30,12 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
   bool _recordarme = true;
   bool _aceptaTerminos = false;
 
-  // Controladores
   final _email = TextEditingController();
   final _clave = TextEditingController();
   final _nombreCompleto = TextEditingController();
   final _telefono = TextEditingController();
   final _direccion = TextEditingController();
 
-  // Colores del Figma
   static const Color colorVerde = Color(0xFF00FF7F);
   static const Color colorFondo = Color(0xFFF8F9FA);
   static const Color colorGrisInput = Color(0xFFF1F3F5);
@@ -113,7 +113,6 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             children: [
-              // Logo
               Center(
                 child: Container(
                   width: 60,
@@ -127,7 +126,6 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
               ),
               const SizedBox(height: 24),
 
-              // Títulos
               const Text(
                 "Acceso a SmartZone",
                 textAlign: TextAlign.center,
@@ -145,7 +143,6 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
               ),
               const SizedBox(height: 32),
 
-              // Pestañas (Iniciar Sesión / Crear Cuenta)
               Container(
                 height: 48,
                 decoration: BoxDecoration(
@@ -235,7 +232,6 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
               ),
               const SizedBox(height: 24),
 
-              // Mensaje de error general
               if (_errorGeneral != null) ...[
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -251,7 +247,6 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
                 const SizedBox(height: 16),
               ],
 
-              // --- CAMPOS PARA CREAR CUENTA ---
               if (_modoRegistro) ...[
                 _InputFigma(
                   control: _nombreCompleto,
@@ -290,7 +285,6 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
                   hint: 'Ej. 987654321',
                   icono: Icons.phone_outlined,
                   teclado: TextInputType.phone,
-                  // 👇 AQUÍ SE APLICA EL LÍMITE Y EL FILTRO
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                     LengthLimitingTextInputFormatter(9),
@@ -341,7 +335,6 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
                       : null,
                 ),
 
-                // Checkbox de términos
                 Row(
                   children: [
                     Checkbox(
@@ -384,7 +377,6 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
                 const SizedBox(height: 16),
               ],
 
-              // --- CAMPOS PARA INICIAR SESIÓN ---
               if (!_modoRegistro) ...[
                 _InputFigma(
                   control: _email,
@@ -420,7 +412,6 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
                   validar: (v) =>
                       (v == null || v.isEmpty) ? 'Ingresa tu contraseña' : null,
                 ),
-                // Recordar y Olvidé contraseña
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -443,7 +434,14 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
                       ],
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RecuperarClavePagina(),
+                          ),
+                        );
+                      },
                       child: const Text(
                         "¿Olvidaste tu clave?",
                         style: TextStyle(
@@ -459,7 +457,6 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
 
               const SizedBox(height: 16),
 
-              // Botón Principal
               SizedBox(
                 height: 56,
                 child: ElevatedButton(
@@ -524,16 +521,16 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
                             ),
                             backgroundColor: Colors.white,
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.language,
-                                color: Colors.black87,
-                                size: 20,
+                              SvgPicture.asset(
+                                'assets/carga/google_logo.svg',
+                                width: 20,
+                                height: 20,
                               ),
-                              SizedBox(width: 8),
-                              Text(
+                              const SizedBox(width: 8),
+                              const Text(
                                 "Google",
                                 style: TextStyle(
                                   color: Colors.black87,
@@ -585,7 +582,6 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
 
               const SizedBox(height: 24),
 
-              // Botón "Continuar como invitado"
               TextButton(
                 onPressed: () {
                   Navigator.pushReplacement(
@@ -655,7 +651,7 @@ class _InputFigma extends StatelessWidget {
             obscureText: oculto,
             keyboardType: teclado,
             validator: validar,
-            inputFormatters: inputFormatters, // <-- SE APLICA AQUÍ
+            inputFormatters: inputFormatters,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: const TextStyle(color: Colors.black38, fontSize: 14),

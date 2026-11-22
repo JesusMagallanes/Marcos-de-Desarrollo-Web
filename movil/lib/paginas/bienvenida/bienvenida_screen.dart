@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import '../login/pagina_login.dart';
 
 class BienvenidaScreen extends StatefulWidget {
-  final VoidCallback alTerminar; // Para "Comenzar"
-  final VoidCallback alOmitir; // Para "Omitir"
+  final VoidCallback alTerminar;
+  final VoidCallback alOmitir;
 
   const BienvenidaScreen({
     super.key,
     required this.alTerminar,
-    required this.alOmitir, // <-- Añadido
+    required this.alOmitir,
   });
 
   @override
@@ -71,11 +71,11 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Botón "Omitir" (Va directo a la tienda)
+              // 1. Botón "Omitir"
               Align(
                 alignment: Alignment.topRight,
                 child: TextButton(
-                  onPressed: widget.alOmitir, // <-- Usa alOmitir
+                  onPressed: widget.alOmitir,
                   child: const Text(
                     "Omitir",
                     style: TextStyle(color: Colors.black54, fontSize: 16),
@@ -84,7 +84,7 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
               ),
               const SizedBox(height: 10),
 
-              // 2. PageView
+              // 2. PageView (contenido de cada página)
               Expanded(
                 flex: 5,
                 child: PageView.builder(
@@ -127,7 +127,7 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_paginaActual == _paginas.length - 1) {
-                      widget.alTerminar(); // <-- Va al Login
+                      widget.alTerminar();
                     } else {
                       _pageController.nextPage(
                         duration: const Duration(milliseconds: 300),
@@ -201,110 +201,113 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
   }
 
   Widget _buildContenidoPagina(Map<String, dynamic> pagina) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24.0),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.circular(24.0),
-          ),
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(pagina['iconoIzq'], size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        pagina['etiquetaIzq'],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(24.0),
+            ),
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(pagina['iconoIzq'], size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          pagina['etiquetaIzq'],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                width: 160,
-                height: 160,
-                decoration: const BoxDecoration(
-                  color: colorVerde,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  pagina['iconoCentro'],
-                  size: 80,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                const SizedBox(height: 20),
+                Container(
+                  width: 160,
+                  height: 160,
+                  decoration: const BoxDecoration(
+                    color: colorVerde,
+                    shape: BoxShape.circle,
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                  child: Icon(
+                    pagina['iconoCentro'],
+                    size: 80,
+                    color: Colors.black,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(pagina['iconoDer'], size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        pagina['etiquetaDer'],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                ),
+                const SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(pagina['iconoDer'], size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          pagina['etiquetaDer'],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 32),
-        Text(
-          pagina['titulo'],
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-            height: 1.2,
+          const SizedBox(height: 32),
+          Text(
+            pagina['titulo'],
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+              height: 1.2,
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          pagina['descripcion'],
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.black54,
-            height: 1.4,
+          const SizedBox(height: 16),
+          Text(
+            pagina['descripcion'],
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.black54,
+              height: 1.4,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 20), // Un pequeño margen al final
+        ],
+      ),
     );
   }
 }
