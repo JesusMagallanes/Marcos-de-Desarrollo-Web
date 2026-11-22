@@ -51,7 +51,7 @@ del código.
 | Variable | Obligatoria | Nota |
 |---|---|---|
 | `DB_URL` · `DB_USER` · `DB_PASSWORD` | **Sí** | Neon o Postgres local. Cada servicio crea su propio esquema |
-| `JWT_SECRET` | **Sí** | Ya viene una clave de 384 bits generada. Idéntica en los cuatro |
+| `JWT_SECRET` | **Sí** | Genera uno con `openssl rand -base64 48`; mínimo 32 bytes e idéntico en los cuatro |
 | `ADMIN_PASSWORD` | No | Vacío = no se crea administrador inicial |
 | `GOOGLE_CLIENT_ID` · `GOOGLE_CLIENT_SECRET` | No | Vacío = sin botón de Google |
 | `FACEBOOK_CLIENT_ID` · `FACEBOOK_CLIENT_SECRET` | No | Vacío = sin botón de Facebook |
@@ -144,7 +144,7 @@ vuelve a ser stateless, que es lo único que funciona entre los cuatro servicios
 ### Con Docker (recomendado)
 
 ```bash
-docker compose up --build
+docker compose --profile default up --build
 ```
 
 Levanta Postgres, los cuatro servicios y el frontend en nginx, respetando el orden de arranque

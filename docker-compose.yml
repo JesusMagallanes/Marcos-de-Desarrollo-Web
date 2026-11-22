@@ -1,14 +1,14 @@
 # SmartZone — pila completa en un comando.
 #
-#   docker compose up --build
+#   docker compose --profile default up --build
 #
-# Las credenciales salen del .env de la raíz, que Compose lee solo. El único
-# valor obligatorio para arrancar en local es ADMIN_PASSWORD (para el usuario
-# administrador inicial); los de Neon y MercadoPago tienen alternativa local.
+# Las credenciales salen del .env de la raíz, que Compose lee solo. JWT_SECRET
+# es obligatorio para firmar tokens; ADMIN_PASSWORD y los secretos de Neon y
+# MercadoPago tienen alternativa local.
 #
 # Perfiles:
-#   por defecto      → Postgres local + los 4 servicios + frontend
-#   --profile neon   → omite Postgres y usa la base en la nube del .env
+#   --profile default  → Postgres local + los 4 servicios + frontend
+#   --profile neon     → omite Postgres y usa la base en la nube del .env
 
 name: smartzone
 

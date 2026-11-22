@@ -3,10 +3,13 @@ import 'package:provider/provider.dart';
 
 import '../../nucleo/api/error_api.dart';
 import '../../nucleo/config/tema.dart';
+import '../../nucleo/estado/navegacion.dart';
+import '../../nucleo/modelos/carrito.dart';
 import '../../nucleo/modelos/producto.dart';
 import '../../nucleo/servicios/carrito_servicio.dart';
 import '../../nucleo/servicios/catalogo_servicio.dart';
 import '../../nucleo/servicios/sesion.dart';
+import '../../widgets/confirmacion_agregar.dart';
 import '../../widgets/formatos.dart';
 import '../../widgets/tarjeta_producto.dart';
 import '../login/pagina_login.dart';
@@ -26,6 +29,8 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
   bool _cargando = true;
   int _imagenActual = 0;
   int _cantidad = 1;
+  bool _agregando = false;
+  bool _confirmacionAbierta = false;
 
   @override
   void initState() {
@@ -51,6 +56,7 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
   }
 
   Future<void> _agregar() async {
+    if (_agregando || _confirmacionAbierta) return;
     final sesion = context.read<Sesion>();
 
     // El carrito vive en el servidor y va atado al usuario del token, así que
@@ -64,17 +70,72 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
     }
 
     final carrito = context.read<CarritoServicio>();
-    await carrito.agregar(widget.productoId, _cantidad);
-    if (!mounted) return;
+    setState(() => _agregando = true);
+    try {
+      await carrito.agregar(widget.productoId, _cantidad);
+      if (!mounted) return;
 
-    final error = carrito.error;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(error?.mensajeCompleto ?? 'Añadido al carrito'),
-        backgroundColor: error != null ? Paleta.rojo : Paleta.verde,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+      final error = carrito.error;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.mensajeCompleto),
+            backgroundColor: Paleta.rojo,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
+      final producto = _producto;
+      if (producto == null) return;
+
+      ItemCarrito? agregado;
+      for (final linea in carrito.carrito.items) {
+        if (linea.productoId == widget.productoId) {
+          agregado = linea;
+          break;
+        }
+      }
+      if (agregado == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No pudimos confirmar el producto agregado.'),
+            backgroundColor: Paleta.rojo,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
+      final catalogo = context.read<CatalogoServicio>();
+      final recomendados = (catalogo.productosEnCache ?? const <Producto>[])
+          .where((p) =>
+              p.id != producto.id &&
+              !p.sinStock &&
+              p.categoriaId == producto.categoriaId)
+          .take(2)
+          .toList();
+
+      _confirmacionAbierta = true;
+      ConfirmacionAgregar.mostrar(
+        context: context,
+        producto: producto,
+        item: agregado,
+        carrito: carrito.carrito,
+        recomendados: recomendados,
+        alIrAlCarrito: () {
+          pestanaActivaNotifier.value = 2;
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+        },
+      ).whenComplete(() {
+        _confirmacionAbierta = false;
+      });
+    } finally {
+      if (mounted) setState(() => _agregando = false);
+    }
   }
 
   @override
@@ -299,7 +360,11 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: context.watch<CarritoServicio>().cargando ? null : _agregar,
+                        onPressed: context.watch<CarritoServicio>().cargando ||
+                                _agregando ||
+                                _confirmacionAbierta
+                            ? null
+                            : _agregar,
                         icon: const Icon(Icons.add_shopping_cart, size: 20),
                         label: const Text('Agregar al carrito'),
                       ),

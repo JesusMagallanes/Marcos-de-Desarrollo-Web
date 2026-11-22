@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../nucleo/config/tema.dart';
+import '../../nucleo/estado/navegacion.dart';
 import '../../nucleo/servicios/carrito_servicio.dart';
 import '../../nucleo/servicios/sesion.dart';
 import '../carrito/pagina_carrito.dart';
@@ -23,15 +24,30 @@ class Armazon extends StatefulWidget {
 }
 
 class _ArmazonEstado extends State<Armazon> {
-  int _indice = 0;
+  int _indice = pestanaActivaNotifier.value;
 
   @override
   void initState() {
     super.initState();
+    pestanaActivaNotifier.addListener(_sincronizarPestana);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (context.read<Sesion>().autenticado) {
         context.read<CarritoServicio>().cargar();
       }
+    });
+  }
+
+  @override
+  void dispose() {
+    pestanaActivaNotifier.removeListener(_sincronizarPestana);
+    super.dispose();
+  }
+
+  void _sincronizarPestana() {
+    if (!mounted) return;
+    setState(() {
+      _indice = pestanaActivaNotifier.value;
+      if (_indice != 1) categoriaSeleccionadaNotifier.value = null;
     });
   }
 
@@ -67,13 +83,7 @@ class _ArmazonEstado extends State<Armazon> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _indice,
-        onDestinationSelected: (i) {
-          setState(() {
-            _indice = i;
-            // Si cambiamos de pestaña, limpiamos la categoría
-            if (i != 1) categoriaSeleccionadaNotifier.value = null;
-          });
-        },
+        onDestinationSelected: (i) => pestanaActivaNotifier.value = i,
         destinations: [
           const NavigationDestination(
             icon: Icon(Icons.home_outlined),
