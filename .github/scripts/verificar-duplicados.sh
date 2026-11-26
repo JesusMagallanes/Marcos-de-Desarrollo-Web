@@ -20,10 +20,16 @@
 #   1. Las clases que HOY son idénticas tienen que seguir siéndolo.
 #   2. Ciertas invariantes de seguridad tienen que estar en TODAS las copias,
 #      aunque el resto del fichero difiera.
+#
+# CorsConfig se compara solo entre los tres servicios de abajo: el gateway es
+# la entrada del navegador y necesita su bean de CORS siempre, mientras los otros
+# lo registran solo si `seguridad.cors.habilitado=true`, para no duplicar la
+# cabecera cuando el gateway ya la puso. Es divergencia deliberada, no atraso.
 
 set -uo pipefail
 
 SERVICIOS=(usuarios catalogo compras web-gateway)
+SERVICIOS_CORS=(usuarios catalogo compras)
 fallos=0
 
 # El `package` y los `import` difieren siempre —cada servicio tiene el suyo— así
@@ -33,12 +39,22 @@ sin_cabecera() {
 }
 
 localizar() {
-    find "${SERVICIOS[@]}" -name "$1.java" -path '*/main/*' 2>/dev/null | sort
+    local clase="$1"
+    shift
+    local servicios=("$@")
+    if [ "${#servicios[@]}" -eq 0 ]; then
+        servicios=("${SERVICIOS[@]}")
+    fi
+    find "${servicios[@]}" -name "$clase.java" -path '*/main/*' 2>/dev/null | sort
 }
 
 echo "── Clases que deben permanecer idénticas ──"
 for clase in IpCliente CorsConfig ClienteIa GuardiaPrompt AccesoMetricas; do
-    mapfile -t copias < <(localizar "$clase")
+    if [ "$clase" = "CorsConfig" ]; then
+        mapfile -t copias < <(localizar "$clase" "${SERVICIOS_CORS[@]}")
+    else
+        mapfile -t copias < <(localizar "$clase")
+    fi
     if [ "${#copias[@]}" -lt 2 ]; then
         echo "  [?] $clase: solo ${#copias[@]} copia(s); nada que comparar"
         continue

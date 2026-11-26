@@ -84,7 +84,16 @@ class CatalogoNuevoIT extends PruebaIntegracion {
         jdbc.update("DELETE FROM catalogo.evento_interaccion");
         jdbc.update("DELETE FROM catalogo.perfil_faceta");
         jdbc.update("DELETE FROM catalogo.sujeto");
+        // Otras IT dan de alta por JPA, lo que sella creado_en = now(), y no
+        // limpian: sin esto serían «catálogo nuevo» y coparían el cupo. Los
+        // históricos de la semilla (sin fecha) no se tocan.
+        jdbc.update("DELETE FROM catalogo.producto WHERE creado_en IS NOT NULL");
         categoria = crearCategoria("catalogo-nuevo-it-" + UUID.randomUUID());
+        // Base sin fecha para que «sin novedades» siga teniendo carrusel aunque
+        // otra clase haya vaciado la semilla con deleteAll().
+        for (int i = 0; i < 3; i++) {
+            crearProducto("Historico base " + i);
+        }
         sujeto = crearSujeto();
     }
 

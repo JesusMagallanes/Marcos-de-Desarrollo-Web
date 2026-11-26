@@ -56,6 +56,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
         "DB_USER=prueba",
         "DB_PASSWORD=prueba",
         "JWT_SECRET=secreto-de-pruebas-suficientemente-largo-para-hs256",
+        // El almacén de documentos apunta por defecto a /datos/identidad, que en
+        // un runner de CI sin root no se puede crear y tumbaría el contexto.
+        "smartzone.documentos.ruta=${java.io.tmpdir}/smartzone-documentos-pruebas",
 })
 @Tag("integracion")
 public abstract class PruebaIntegracion {

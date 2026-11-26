@@ -78,7 +78,10 @@ class MedicionIT extends PruebaIntegracion {
         jdbc.update("DELETE FROM catalogo.sujeto");
         categoria = crearCategoria("medicion-it-" + UUID.randomUUID());
         sujeto = crearSujeto();
-        hoy = LocalDate.now(ZoneOffset.UTC);
+        // Los eventos del fixture se retrasan dos horas. Entre 00:00 y 02:00 UTC
+        // eso ya es el día anterior: agregar «hoy» dejaría la ventana vacía.
+        hoy = Instant.now().minus(2, ChronoUnit.HOURS)
+                .atZone(ZoneOffset.UTC).toLocalDate();
     }
 
     /* ══════════════ Atribución ══════════════ */

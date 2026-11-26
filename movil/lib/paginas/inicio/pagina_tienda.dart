@@ -5,7 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../nucleo/api/error_api.dart';
 import '../../nucleo/config/tema.dart';
 import '../../nucleo/estado/navegacion.dart';
-import '../../nucleo/modelos/categoria.dart';
 import '../../nucleo/modelos/producto.dart';
 import '../../nucleo/servicios/catalogo_servicio.dart';
 import '../../widgets/boton_favorito.dart';
@@ -22,7 +21,6 @@ class PaginaTienda extends StatefulWidget {
 
 class _PaginaTiendaEstado extends State<PaginaTienda> {
   List<Producto> _productos = const [];
-  List<Categoria> _categorias = const [];
   bool _cargando = true;
   ErrorApi? _error;
 
@@ -35,7 +33,6 @@ class _PaginaTiendaEstado extends State<PaginaTienda> {
 
     if (productos != null && categorias != null) {
       _productos = productos;
-      _categorias = categorias;
       _cargando = false;
     } else {
       _cargar();
@@ -57,7 +54,6 @@ class _PaginaTiendaEstado extends State<PaginaTienda> {
       if (!mounted) return;
       setState(() {
         _productos = resultados[0] as List<Producto>;
-        _categorias = resultados[1] as List<Categoria>;
         _cargando = false;
       });
     } on ErrorApi catch (e) {

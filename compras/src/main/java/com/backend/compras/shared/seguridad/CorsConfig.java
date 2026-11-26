@@ -73,7 +73,20 @@ public class CorsConfig {
         return limpios;
     }
 
+    /**
+     * El CORS lo gestiona el gateway, que es el único punto de entrada desde
+     * el navegador. Este bean solo se registra si `seguridad.cors.habilitado`
+     * vale "true" (por ejemplo al ejecutar el servicio aislado, sin gateway).
+     *
+     * Con el gateway delante, sus cabeceras Access-Control-Allow-Origin ya
+     * viajan en la respuesta; si este bean también las añadiera, el navegador
+     * vería el mismo origen duplicado y rechazaría la respuesta por CORS.
+     */
     @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            name = "seguridad.cors.habilitado",
+            havingValue = "true",
+            matchIfMissing = false)
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration listaBlanca = base();
         listaBlanca.setAllowedOrigins(origenes);

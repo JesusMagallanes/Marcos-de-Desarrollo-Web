@@ -43,6 +43,18 @@ jobs:
           # siguientes arrancan en segundos.
           cache: maven
 
+      # El wrapper baja Maven de Central. Un corte de red puntual tumba el job
+      # antes de compilar; se reintenta solo la descarga, no las pruebas.
+      - name: Preparar Maven
+        working-directory: ${{ matrix.servicio }}
+        run: |
+          for intento in 1 2 3; do
+            if ./mvnw -v; then exit 0; fi
+            echo "No se pudo descargar Maven ($intento/3); reintentando..."
+            sleep 10
+          done
+          exit 1
+
       - name: Compilar y probar
         working-directory: ${{ matrix.servicio }}
         # `verify` y no `test` para que corran también las *IT con Testcontainers
