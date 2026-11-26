@@ -1,6 +1,8 @@
 // lib/paginas/login/recuperar_clave_pagina.dart
 import 'package:flutter/material.dart';
 
+import '../../widgets/aviso_pendiente.dart';
+
 class RecuperarClavePagina extends StatefulWidget {
   const RecuperarClavePagina({super.key});
 
@@ -26,20 +28,12 @@ class _RecuperarClavePaginaState extends State<RecuperarClavePagina> {
   void _enviarEnlace() async {
     if (_emailController.text.trim().isEmpty) return;
 
-    setState(() => _enviando = true);
-
-    // Aquí iría la llamada real a tu backend para enviar el correo.
-    // Ejemplo: await context.read<Sesion>().recuperarClave(_emailController.text);
-
-    // Simulamos un pequeño delay para que se vea el estado de carga
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!mounted) return;
-
-    setState(() {
-      _enviando = false;
-      _enviado = true;
-    });
+    // El servicio de usuarios todavía no tiene un endpoint para restablecer
+    // la contraseña (solo login, registrar, refresh, logout y yo). Simular el
+    // envío dejaba a la persona esperando un correo que nunca llega, así que
+    // se avisa con honestidad. Cuando exista el endpoint, llamarlo aquí y
+    // poner `_enviado = true` solo si el servidor responde bien.
+    mostrarModuloPendiente(context, 'Recuperar contraseña por correo');
   }
 
   @override

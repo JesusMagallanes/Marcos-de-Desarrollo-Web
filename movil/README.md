@@ -73,6 +73,19 @@ el contador en memoria:
 docker compose restart usuarios web-gateway
 ```
 
+Además hay un **recorrido de la app entera** en un emulador, tocando la interfaz
+como lo haría una persona: onboarding, login, recuperar clave, chat, el "+" del
+inicio, la ficha y el carrito. Necesita el backend levantado y guarda una captura
+por paso en la carpeta de `CAPTURAS` (o en `build/capturas`):
+
+```bash
+flutter drive -d emulator-5554 \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/recorrido_app_test.dart
+```
+
+Entra con la cuenta de administrador y deja su carrito como lo encontró.
+
 Las de integración usan el mismo `ClienteApi` y los mismos servicios que la
 app, contra el backend de verdad: comprueban que el catálogo llega, que se
 entra con una cuenta existente, que la sesión se recupera al reabrir y que el

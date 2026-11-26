@@ -18,6 +18,9 @@ class ProductoRecomendado {
   final double rating;
   final int reviews;
   final String? imagenUrl;
+  final int stock;
+
+  bool get sinStock => stock <= 0;
 
   ProductoRecomendado({
     required this.id,
@@ -29,5 +32,6 @@ class ProductoRecomendado {
     required this.rating,
     required this.reviews,
     this.imagenUrl,
+    this.stock = 0,
   });
 }

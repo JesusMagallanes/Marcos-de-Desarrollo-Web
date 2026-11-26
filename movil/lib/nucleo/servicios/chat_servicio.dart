@@ -23,7 +23,7 @@ class ChatServicio {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        String respuesta = data['respuesta'] ?? "No entendí eso.";
+        final respuesta = aTextoPlano(data['respuesta'] ?? 'No entendí eso.');
         ProductoRecomendado? producto;
 
         if (data['productos'] != null &&
@@ -41,12 +41,17 @@ class ChatServicio {
             nombre: p['name'] ?? 'Producto',
             descripcion: p['description'] ?? '',
             precio: (p['precioActual'] ?? p['precio'] ?? 0).toDouble(),
-            precioAnterior: p['precioOferta'] != null
+            // `precioOferta` llega aunque la oferta ya no esté vigente; lo que
+            // dice si hay descuento hoy es `enOferta`.
+            precioAnterior:
+                p['enOferta'] == true &&
+                    (p['precio'] as num) > (p['precioActual'] as num)
                 ? (p['precio'] as num).toDouble()
                 : null,
             rating: (p['calificacionPromedio'] ?? 0).toDouble(),
             reviews: p['cantidadValoraciones'] ?? 0,
             imagenUrl: imgUrl,
+            stock: (p['stock'] as num?)?.toInt() ?? 0,
           );
         }
 
@@ -71,3 +76,17 @@ class ChatServicio {
     }
   }
 }
+
+/// La respuesta del chat viene en HTML porque la web la pinta así (`<b>`,
+/// `<br>`) y con el texto del modelo ya escapado. En la app se muestra como
+/// texto: los saltos se conservan, las etiquetas se quitan y las entidades se
+/// devuelven a su carácter (`&amp;` al final, para no des-escapar dos veces).
+String aTextoPlano(String html) => html
+    .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+    .replaceAll(RegExp(r'<[^>]+>'), '')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&amp;', '&')
+    .trim();

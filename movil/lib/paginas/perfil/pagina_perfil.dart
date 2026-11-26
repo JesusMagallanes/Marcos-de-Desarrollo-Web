@@ -8,6 +8,7 @@ import '../../nucleo/servicios/carrito_servicio.dart';
 import '../../nucleo/servicios/favoritos_servicio.dart';
 import '../../nucleo/servicios/sesion.dart';
 import '../../widgets/aviso_pendiente.dart';
+import '../chat/chat_pagina.dart';
 import '../direcciones/pagina_direcciones.dart';
 import '../login/pagina_login.dart';
 import '../pedidos/pagina_pedidos.dart';
@@ -143,7 +144,7 @@ class PaginaPerfil extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-          Container(
+          Material(
             color: Colors.white,
             child: Column(
               children: [
@@ -163,7 +164,7 @@ class PaginaPerfil extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-          Container(
+          Material(
             color: Colors.white,
             child: Column(
               children: [
@@ -205,7 +206,7 @@ class PaginaPerfil extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-          Container(
+          Material(
             color: Colors.white,
             child: Column(
               children: [
@@ -228,8 +229,10 @@ class PaginaPerfil extends StatelessWidget {
                 _Enlace(
                   icono: Icons.smart_toy_outlined,
                   etiqueta: 'Asesor IA',
-                  subtitulo: 'Sin cambios en esta entrega',
-                  alPulsar: () => mostrarModuloPendiente(context, 'Asesor IA'),
+                  subtitulo: 'Pregunta qué equipo te conviene',
+                  alPulsar: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ChatPagina()),
+                  ),
                 ),
                 const Divider(height: 1),
                 _Enlace(
@@ -250,7 +253,7 @@ class PaginaPerfil extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-          Container(
+          Material(
             color: Colors.white,
             child: ListTile(
               leading: const Icon(Icons.logout, color: Paleta.rojo),

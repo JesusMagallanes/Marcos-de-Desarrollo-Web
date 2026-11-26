@@ -9,7 +9,6 @@ import '../../nucleo/modelos/producto.dart';
 import '../../nucleo/servicios/carrito_servicio.dart';
 import '../../nucleo/servicios/catalogo_servicio.dart';
 import '../../nucleo/servicios/sesion.dart';
-import '../../widgets/aviso_pendiente.dart';
 import '../../widgets/boton_accion.dart';
 import '../../widgets/boton_favorito.dart';
 import '../../widgets/cabecera_seccion.dart';
@@ -17,6 +16,7 @@ import '../../widgets/chip_estado.dart';
 import '../../widgets/control_cantidad.dart';
 import '../../widgets/formatos.dart';
 import '../../widgets/tarjeta_producto.dart';
+import '../chat/chat_pagina.dart';
 import '../checkout/pagina_checkout.dart';
 import '../login/pagina_login.dart';
 import '../producto/pagina_producto.dart';
@@ -135,7 +135,11 @@ class _LineaCarrito extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Paleta.bordeTarjeta),
       ),
-      child: Row(
+      // IntrinsicHeight da a la fila el alto de su contenido. Sin él, la
+      // columna de la derecha (papelera arriba, total abajo con un Spacer)
+      // recibía alto infinito dentro de la lista y la línea no se pintaba.
+      child: IntrinsicHeight(
+        child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
@@ -220,6 +224,7 @@ class _LineaCarrito extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -398,7 +403,9 @@ class _CarritoVacio extends StatelessWidget {
             etiqueta: 'Hablar con el asesor IA',
             icono: Icons.smart_toy_outlined,
             verde: false,
-            alPulsar: () => mostrarModuloPendiente(context, 'Asesor IA'),
+            alPulsar: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ChatPagina()),
+            ),
           ),
           const SizedBox(height: 24),
           const Text(

@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../nucleo/modelos/mensaje_chat.dart';
 import '../../nucleo/servicios/chat_servicio.dart';
 import '../../nucleo/servicios/sesion.dart';
+import '../../widgets/agregar_al_carrito.dart';
 import '../producto/pagina_producto.dart';
 
 class ChatPagina extends StatefulWidget {
@@ -334,13 +335,15 @@ class _ChatPaginaState extends State<ChatPagina> {
               ),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${producto.nombre} agregado al carrito'),
-                      ),
-                    );
-                  },
+                  // El asesor puede recomendar algo agotado: el botón lo dice
+                  // en vez de prometer y fallar al pulsarlo.
+                  onPressed: producto.sinStock
+                      ? null
+                      : () => agregarAlCarrito(
+                          context,
+                          productoId: producto.id,
+                          nombre: producto.nombre,
+                        ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00E676),
                     foregroundColor: Colors.black,
@@ -350,9 +353,9 @@ class _ChatPaginaState extends State<ChatPagina> {
                       ),
                     ),
                   ),
-                  child: const Text(
-                    "Agregar",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    producto.sinStock ? 'Sin stock' : 'Agregar',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

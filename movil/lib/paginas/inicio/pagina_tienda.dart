@@ -8,7 +8,9 @@ import '../../nucleo/estado/navegacion.dart';
 import '../../nucleo/modelos/producto.dart';
 import '../../nucleo/servicios/catalogo_servicio.dart';
 import '../../widgets/boton_favorito.dart';
+import '../../widgets/agregar_al_carrito.dart';
 import '../categorias/pagina_categorias.dart';
+import '../chat/chat_pagina.dart';
 import '../producto/pagina_producto.dart';
 import 'buscador_widget.dart';
 
@@ -282,12 +284,15 @@ class _HeaderFigma extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
+                  tooltip: 'Hablar con el Asesor IA',
                   icon: const Icon(
                     Icons.chat_bubble_outline,
                     size: 20,
                     color: Paleta.texto,
                   ),
-                  onPressed: () {},
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ChatPagina()),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -657,7 +662,13 @@ class _TarjetaProductoFigma extends StatelessWidget {
                         ),
                       ),
                       InkWell(
-                        onTap: () {},
+                        onTap: producto.sinStock
+                            ? null
+                            : () => agregarAlCarrito(
+                                context,
+                                productoId: producto.id,
+                                nombre: producto.nombre,
+                              ),
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
