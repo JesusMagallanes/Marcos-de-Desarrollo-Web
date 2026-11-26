@@ -10,6 +10,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +55,8 @@ import com.backend.usuarios.usuario.UsuarioRepository;
 class RecuperacionClaveIT extends PruebaIntegracion {
 
     private static final String CORREO = "recupera.integracion@smartzone.test";
+    /** Otro correo para la prueba de carrera: los cupos por correo son por cuenta. */
+    private static final String CORREO_CARRERA = "recupera.carrera@smartzone.test";
     private static final String CLAVE_NUEVA = "Nueva#2025x";
 
     @Autowired
@@ -64,15 +74,17 @@ class RecuperacionClaveIT extends PruebaIntegracion {
 
     @BeforeEach
     void preparar() {
-        ContextoRls.comoSistema(() -> {
-            usuarios.findByEmailAddress(CORREO).ifPresent(usuarios::delete);
-            usuarios.save(Usuario.builder()
-                    .name("Rosa")
-                    .lastname("Huamán")
-                    .emailAddress(CORREO)
-                    .password(codificador.encode("Vieja#2024"))
-                    .build());
-        });
+        for (String correoDePrueba : List.of(CORREO, CORREO_CARRERA)) {
+            ContextoRls.comoSistema(() -> {
+                usuarios.findByEmailAddress(correoDePrueba).ifPresent(usuarios::delete);
+                usuarios.save(Usuario.builder()
+                        .name("Rosa")
+                        .lastname("Huamán")
+                        .emailAddress(correoDePrueba)
+                        .password(codificador.encode("Vieja#2024"))
+                        .build());
+            });
+        }
     }
 
     private Usuario rosa() {
@@ -80,20 +92,66 @@ class RecuperacionClaveIT extends PruebaIntegracion {
     }
 
     private int intentosDelUltimoCodigo() {
+        return intentosDelUltimoCodigo(CORREO);
+    }
+
+    private int intentosDelUltimoCodigo(String correoDePrueba) {
         return ContextoRls.comoSistema(() -> jdbc.queryForObject("""
                 SELECT c.intentos FROM usuarios.codigo_recuperacion c
                 JOIN usuarios.usuario u ON u.id = c.usuario_id
                 WHERE u.email_address = ? ORDER BY c.creado_en DESC, c.id DESC LIMIT 1
-                """, Integer.class, CORREO));
+                """, Integer.class, correoDePrueba));
     }
 
     private String pedirCodigo() {
-        var respuesta = controlador.recuperar(new RecuperarRequest(CORREO));
+        return pedirCodigo(CORREO);
+    }
+
+    private String pedirCodigo(String correoDePrueba) {
+        var respuesta = controlador.recuperar(new RecuperarRequest(correoDePrueba));
         assertThat(respuesta.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
 
         ArgumentCaptor<String> codigo = ArgumentCaptor.forClass(String.class);
-        verify(correo, timeout(3000)).codigoRecuperacion(eq(CORREO), eq("Rosa"), codigo.capture(), anyLong());
+        verify(correo, timeout(3000)).codigoRecuperacion(eq(correoDePrueba), eq("Rosa"), codigo.capture(), anyLong());
         return codigo.getValue();
+    }
+
+    @Test
+    @DisplayName("intentos en paralelo no se pisan: el tope de 5 se cumple exacto")
+    void intentosEnParaleloNoSePisan() throws Exception {
+        String codigo = pedirCodigo(CORREO_CARRERA);
+        String equivocado = codigo.equals("000000") ? "111111" : "000000";
+
+        // Ocho intentos equivocados soltados a la vez. Sin el bloqueo de fila,
+        // varios leían el mismo contador y los +1 se pisaban: quedaba por debajo
+        // de 5 y el código seguía admitiendo intentos.
+        int hilos = 8;
+        ExecutorService pool = Executors.newFixedThreadPool(hilos);
+        CountDownLatch salida = new CountDownLatch(1);
+        List<Future<?>> tareas = new ArrayList<>();
+        for (int i = 0; i < hilos; i++) {
+            tareas.add(pool.submit(() -> {
+                salida.await();
+                try {
+                    controlador.restablecer(new RestablecerRequest(CORREO_CARRERA, equivocado, CLAVE_NUEVA));
+                } catch (DatosInvalidosException esperado) {
+                    // Todos fallan: el código es incorrecto.
+                }
+                return null;
+            }));
+        }
+        salida.countDown();
+        for (Future<?> tarea : tareas) {
+            tarea.get(30, TimeUnit.SECONDS);
+        }
+        pool.shutdown();
+
+        assertThat(intentosDelUltimoCodigo(CORREO_CARRERA))
+                .as("cinco intentos contados, ni uno perdido ni uno de más")
+                .isEqualTo(5);
+        assertThatThrownBy(() -> controlador.restablecer(new RestablecerRequest(CORREO_CARRERA, codigo, CLAVE_NUEVA)))
+                .as("agotado, ni el código correcto sirve")
+                .isInstanceOf(DatosInvalidosException.class);
     }
 
     @Test

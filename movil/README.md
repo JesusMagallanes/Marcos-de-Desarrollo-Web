@@ -88,7 +88,7 @@ Entra con la cuenta de administrador y deja su carrito como lo encontró.
 
 `integration_test/recuperar_clave_test.dart` recorre **recuperar la contraseña** en dos fases,
 porque el código llega por correo y el teléfono no lo ve: `FASE=pedir` lo pide desde la pantalla;
-se lee del correo (sin SMTP, del log de `usuarios`) y `FASE=cambiar` lo escribe con
+se lee del correo (sin SMTP, del log de `usuarios` arrancado con `CORREO_SECRETOS_EN_LOG=true`) y `FASE=cambiar` lo escribe con
 `--dart-define=CODIGO=… --dart-define=CLAVE_NUEVA=…`, se equivoca una vez, acierta y entra con la
 clave nueva. **Cambia la contraseña de verdad**: úsalo contra una base de pruebas.
 

@@ -212,6 +212,16 @@ class RecuperacionClaveServiceTest {
     }
 
     @Test
+    @DisplayName("agotado el cupo de intentos del correo, ni el código correcto sirve")
+    void cupoDeCanjesPorCorreo() {
+        when(limitador.permitir(eq("restablecer|" + EMAIL), any(Integer.class), any())).thenReturn(false);
+
+        assertThat(servicio.restablecer(EMAIL, "123456", CLAVE_NUEVA)).isFalse();
+        assertThat(codificador.matches(CLAVE_VIEJA, ana.getPassword())).isTrue();
+        verify(codigos, never()).findFirstByUsuarioIdOrderByCreadoEnDescIdDesc(any());
+    }
+
+    @Test
     @DisplayName("sin cuenta responde igual que con código equivocado")
     void restablecerSinCuenta() {
         when(usuarios.findByEmailAddress("nadie@ejemplo.com")).thenReturn(Optional.empty());

@@ -46,6 +46,15 @@ public class CorreoService {
     @Value("${app.correo.remitente:SmartZone <no-responder@smartzone.com>}")
     private String de;
 
+    /**
+     * Sin SMTP, los avisos se escriben en el log; los que llevan un secreto
+     * (el código para cambiar la contraseña) NO, salvo que esto se active.
+     * Quien lee los logs de producción no debe poder cambiar la contraseña de
+     * nadie. Ponerlo a true solo en desarrollo.
+     */
+    @Value("${app.correo.secretos-en-log:false}")
+    private boolean secretosEnLog;
+
     /** Si no, el enlace del correo no lleva a ninguna parte. */
     @Value("${app.frontend-url:http://localhost:4200}")
     private String frontendUrl;
@@ -94,12 +103,13 @@ public class CorreoService {
     /* ── Recuperar la contraseña ── */
 
     /**
-     * El código va también en el asunto: en el móvil se ve en la notificación
-     * sin abrir el correo, que es justo donde se va a escribir.
+     * El código va solo en el cuerpo. En el asunto quedaba en el log de cada
+     * envío ("Aviso enviado: …"), y con él, la cuenta al alcance de quien leyera
+     * los logs.
      */
     public void codigoRecuperacion(String destinatario, String nombre, String codigo, long minutos) {
-        enviar(destinatario,
-                "%s es tu código para cambiar la contraseña de SmartZone".formatted(codigo),
+        enviarSecreto(destinatario,
+                "Tu código para cambiar la contraseña de SmartZone",
                 """
                         Hola %s:
 
@@ -139,6 +149,15 @@ public class CorreoService {
     /* ── Envío ── */
 
     private void enviar(String destinatario, String asunto, String cuerpo) {
+        enviar(destinatario, asunto, cuerpo, false);
+    }
+
+    /** Un correo con un secreto dentro: su cuerpo no se escribe en el log. */
+    private void enviarSecreto(String destinatario, String asunto, String cuerpo) {
+        enviar(destinatario, asunto, cuerpo, true);
+    }
+
+    private void enviar(String destinatario, String asunto, String cuerpo, boolean secreto) {
         if (destinatario == null || destinatario.isBlank()) {
             log.warn("Aviso sin destinatario: {}", asunto);
             metricas.correo("omitido");
@@ -147,6 +166,13 @@ public class CorreoService {
 
         JavaMailSender emisor = remitente.getIfAvailable();
         if (emisor == null || usuario == null || usuario.isBlank()) {
+            if (secreto && !secretosEnLog) {
+                log.warn("CORREO NO CONFIGURADO — no se envió «{}» y su contenido no se escribe "
+                        + "en el log porque lleva un secreto (app.correo.secretos-en-log=true en "
+                        + "desarrollo para verlo)", asunto);
+                metricas.correo("omitido");
+                return;
+            }
             // En desarrollo esto es lo normal. Se deja el texto en el log para
             // poder revisarlo sin mandar correos de verdad.
             log.info("""

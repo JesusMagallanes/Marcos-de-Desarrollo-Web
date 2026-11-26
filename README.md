@@ -554,14 +554,20 @@ app móvil no tiene a dónde llevar un enlace web.
   el 202 callaba. El correo sale en otro hilo, después de confirmar, por lo mismo.
 - **Fuerza bruta.** El código se guarda con BCrypt, caduca en 15 minutos, admite 5 intentos y solo
   vale el último pedido. Pedir códigos tiene cupo por IP (5/hora) y por correo (3/hora, contra quien
-  quiera llenar un buzón desde muchas IP); probarlos, 10 cada 15 minutos por IP. El intento fallido
-  **se guarda aunque la respuesta sea un 400**: el servicio devuelve `false` en vez de lanzar, porque
-  una excepción desharía el contador.
+  quiera llenar un buzón desde muchas IP); probarlos, 10 cada 15 minutos por IP y otros 10 por
+  correo. El intento fallido **se guarda aunque la respuesta sea un 400**: el servicio devuelve
+  `false` en vez de lanzar, porque una excepción desharía el contador.
+- **Los intentos en paralelo no se pisan.** El código se lee con `SELECT … FOR UPDATE`: sin el
+  bloqueo, ocho intentos soltados a la vez se contaban como uno (`RecuperacionClaveIT` lo comprueba).
+- **El código no va al log.** Solo viaja en el cuerpo del correo; ni en el asunto, que se registra
+  en cada envío.
 - **Corta todas las sesiones** (`tokens_validos_desde`): quien recupera la clave suele creer que otro
   la tiene.
 - Una cuenta de Google o Facebook recibe un aviso de con qué entrar, no un código.
 
-Sin SMTP, el código aparece en el asunto del correo que se escribe en el log.
+Sin SMTP, el correo del código **no** se escribe en el log; para verlo en desarrollo,
+`CORREO_SECRETOS_EN_LOG=true`. Nunca en producción: quien leyera los logs podría cambiar la
+contraseña de cualquiera.
 
 > Para Gmail hace falta una **contraseña de aplicación** (16 caracteres), no la de la cuenta:
 > verificación en dos pasos activada → [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)

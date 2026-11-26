@@ -58,6 +58,14 @@ public class RecuperacionClaveService {
     static final int MAXIMO_POR_CORREO = 3;
     static final Duration VENTANA_POR_CORREO = Duration.ofHours(1);
 
+    /**
+     * Intentos de canje por correo. El cupo por IP (RateLimitFilter) se esquiva
+     * repartiendo las peticiones entre muchas IP; este no, porque cuenta sobre
+     * la cuenta atacada.
+     */
+    static final int MAXIMO_CANJES_POR_CORREO = 10;
+    static final Duration VENTANA_CANJES_POR_CORREO = Duration.ofMinutes(15);
+
     private static final SecureRandom AZAR = new SecureRandom();
 
     private final UsuarioRepository usuarios;
@@ -149,6 +157,12 @@ public class RecuperacionClaveService {
     public boolean restablecer(String emailEnBruto, String codigo, String nuevaClave) {
         String email = Saneador.normalizarEmail(emailEnBruto);
         Instant ahora = Instant.now();
+
+        if (!limitador.permitir("restablecer|" + email, MAXIMO_CANJES_POR_CORREO, VENTANA_CANJES_POR_CORREO)) {
+            codificador.matches(codigo, hashDeRelleno());
+            auditoria.registrarFallo(Evento.CLAVE_RESTABLECIDA, email, "cupo de intentos por correo agotado");
+            return false;
+        }
 
         Usuario usuario = usuarios.findByEmailAddress(email)
                 .filter(Usuario::puedeIniciarSesionConPassword)
