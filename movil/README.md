@@ -86,6 +86,12 @@ flutter drive -d emulator-5554 \
 
 Entra con la cuenta de administrador y deja su carrito como lo encontró.
 
+`integration_test/recuperar_clave_test.dart` recorre **recuperar la contraseña** en dos fases,
+porque el código llega por correo y el teléfono no lo ve: `FASE=pedir` lo pide desde la pantalla;
+se lee del correo (sin SMTP, del log de `usuarios`) y `FASE=cambiar` lo escribe con
+`--dart-define=CODIGO=… --dart-define=CLAVE_NUEVA=…`, se equivoca una vez, acierta y entra con la
+clave nueva. **Cambia la contraseña de verdad**: úsalo contra una base de pruebas.
+
 Las de integración usan el mismo `ClienteApi` y los mismos servicios que la
 app, contra el backend de verdad: comprueban que el catálogo llega, que se
 entra con una cuenta existente, que la sesión se recupera al reabrir y que el

@@ -33,7 +33,8 @@ public class VerificacionRls implements ApplicationRunner {
 
     /** Las que guardan datos de una persona concreta. */
     private static final String[] TABLAS = {
-            "usuario", "empleado", "solicitud_colaborador", "documento_identidad", "token_revocado"
+            "usuario", "empleado", "solicitud_colaborador", "documento_identidad", "token_revocado",
+            "codigo_recuperacion"
     };
 
     private final DataSource dataSource;

@@ -55,6 +55,31 @@ public final class AuthDtos {
         }
     }
 
+    /** Pedir un código para restablecer la contraseña. */
+    public record RecuperarRequest(@NotBlank @Email @Size(max = UsuarioDtos.MAX_EMAIL) String email) {
+
+        public RecuperarRequest {
+            email = Saneador.email(email);
+        }
+    }
+
+    /**
+     * Cambiar la contraseña con el código recibido. La clave nueva cumple la
+     * misma regla que la del registro; no se sanea por lo mismo que en el
+     * login: es un secreto y se guarda tal cual se escribió.
+     */
+    public record RestablecerRequest(
+            @NotBlank @Email @Size(max = UsuarioDtos.MAX_EMAIL) String email,
+            @NotBlank @Pattern(regexp = "\\d{6}", message = "El código tiene 6 dígitos") String codigo,
+            @NotBlank @Size(max = 200)
+            @Pattern(regexp = UsuarioDtos.PATRON_PASSWORD, message = UsuarioDtos.MENSAJE_PASSWORD) String nuevaClave) {
+
+        public RestablecerRequest {
+            email = Saneador.email(email);
+            codigo = Saneador.texto(codigo);
+        }
+    }
+
     /** El tope evita que un "refresh token" de megas llegue al parser de JWT. */
     public record RefreshRequest(@NotBlank @Size(max = 4000) String refreshToken) {
 

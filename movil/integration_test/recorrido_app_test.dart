@@ -100,14 +100,12 @@ void main() {
       await esperar(t, find.text('Ingresar a SmartZone'));
       await captura(t, '02_login');
 
-      // 3a. Recuperar clave.
+      // 3a. Recuperar clave: abre en el paso de pedir el código. No se pide
+      // ninguno: cambiaría la contraseña de una cuenta real (el flujo entero
+      // está en recuperar_clave_test.dart, para una base de pruebas).
       await tocar(t, find.text('¿Olvidaste tu clave?'));
-      await esperar(t, find.text('Enviar enlace'));
-      await t.enterText(find.byType(TextField).first, _email);
-      await tocar(t, find.text('Enviar enlace'));
-      // Sin endpoint en el backend: debe avisar, no fingir que envió.
-      await esperar(t, find.textContaining('módulo pendiente'));
-      expect(find.textContaining('Enlace enviado'), findsNothing);
+      await esperar(t, find.text('Enviar código'));
+      expect(find.text('Ya tengo un código'), findsOneWidget);
       await captura(t, '03_recuperar_clave');
       await t.binding.handlePopRoute();
       await t.pump(const Duration(seconds: 1));

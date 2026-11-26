@@ -91,6 +91,51 @@ public class CorreoService {
                         """.formatted(nombreComercial, motivo, frontendUrl));
     }
 
+    /* ── Recuperar la contraseña ── */
+
+    /**
+     * El código va también en el asunto: en el móvil se ve en la notificación
+     * sin abrir el correo, que es justo donde se va a escribir.
+     */
+    public void codigoRecuperacion(String destinatario, String nombre, String codigo, long minutos) {
+        enviar(destinatario,
+                "%s es tu código para cambiar la contraseña de SmartZone".formatted(codigo),
+                """
+                        Hola %s:
+
+                        Tu código para cambiar la contraseña es:
+
+                            %s
+
+                        Escríbelo en la app o en la web. Caduca en %d minutos y solo
+                        sirve una vez.
+
+                        Si no lo pediste tú, ignora este correo: tu contraseña no cambia
+                        mientras nadie use el código.
+
+                        — El equipo de SmartZone
+                        """.formatted(nombre, codigo, minutos));
+    }
+
+    /** Pidió recuperar la clave una cuenta que entra con Google o Facebook. */
+    public void recuperacionConProveedor(String destinatario, String proveedor) {
+        String nombre = proveedor.charAt(0) + proveedor.substring(1).toLowerCase();
+        enviar(destinatario,
+                "Sobre tu contraseña de SmartZone",
+                """
+                        Hola:
+
+                        Pediste cambiar la contraseña, pero tu cuenta de SmartZone entra con
+                        %s y no tiene una contraseña propia que cambiar.
+
+                        Para entrar, usa el botón «Continuar con %s».
+
+                        Si no lo pediste tú, ignora este correo.
+
+                        — El equipo de SmartZone
+                        """.formatted(nombre, nombre));
+    }
+
     /* ── Envío ── */
 
     private void enviar(String destinatario, String asunto, String cuerpo) {

@@ -87,6 +87,42 @@ class Sesion extends ChangeNotifier {
     }
   }
 
+  /// Pide un código de 6 dígitos para cambiar la contraseña.
+  ///
+  /// El servidor responde igual exista o no la cuenta (no dice qué correos
+  /// están registrados), así que un null aquí significa "pedido", no
+  /// "enviado": la pantalla debe decirlo con esas palabras.
+  Future<ErrorApi?> solicitarRecuperacion(String email) async {
+    try {
+      await _api.post('/auth/recuperar', cuerpo: {'email': email.trim()});
+      return null;
+    } on ErrorApi catch (e) {
+      return e;
+    }
+  }
+
+  /// Cambia la contraseña con el código recibido por correo. El servidor
+  /// cierra todas las sesiones abiertas de la cuenta: hay que volver a entrar.
+  Future<ErrorApi?> restablecerClave({
+    required String email,
+    required String codigo,
+    required String nuevaClave,
+  }) async {
+    try {
+      await _api.post(
+        '/auth/restablecer',
+        cuerpo: {
+          'email': email.trim(),
+          'codigo': codigo.trim(),
+          'nuevaClave': nuevaClave,
+        },
+      );
+      return null;
+    } on ErrorApi catch (e) {
+      return e;
+    }
+  }
+
   /// Vuelve a leer `/auth/yo` después de cambiar el perfil o la dirección.
   Future<ErrorApi?> recargar() async {
     try {

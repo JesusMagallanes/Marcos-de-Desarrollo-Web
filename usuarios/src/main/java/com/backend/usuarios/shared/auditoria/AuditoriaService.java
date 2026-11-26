@@ -22,6 +22,11 @@ public class AuditoriaService {
         USUARIO_ELIMINADO,
         ACCESO_DENEGADO,
 
+        /* Recuperar la contraseña: quién pidió un código y quién la cambió.
+         * Es lo que permite reconstruir una toma de cuenta por esta vía. */
+        RECUPERACION_SOLICITADA,
+        CLAVE_RESTABLECIDA,
+
         /* Solicitudes para vender en la tienda. Quedan en auditoría porque
          * aprobar a alguien le da permiso para publicar en el catálogo, y hay
          * que poder reconstruir quién concedió qué y cuándo. */

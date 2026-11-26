@@ -10,8 +10,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.backend.usuarios.auth.dto.AuthDtos.AuthResponse;
 import com.backend.usuarios.auth.dto.AuthDtos.LoginRequest;
+import com.backend.usuarios.auth.dto.AuthDtos.RecuperarRequest;
 import com.backend.usuarios.auth.dto.AuthDtos.RefreshRequest;
 import com.backend.usuarios.auth.dto.AuthDtos.RegistroRequest;
+import com.backend.usuarios.auth.dto.AuthDtos.RestablecerRequest;
+import com.backend.usuarios.auth.recuperacion.RecuperacionClaveService;
+import com.backend.usuarios.shared.error.DatosInvalidosException;
 import com.backend.usuarios.shared.seguridad.ContextoRls;
 import com.backend.usuarios.shared.security.UsuarioAutenticado;
 import com.backend.usuarios.usuario.UsuarioService;
@@ -27,6 +31,7 @@ public class AuthController {
 
     private final AuthService servicio;
     private final UsuarioService usuarioService;
+    private final RecuperacionClaveService recuperacion;
 
     /** Perfil del usuario del token. */
     @GetMapping("/yo")
@@ -85,6 +90,32 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody(required = false) RefreshRequest peticion) {
         ContextoRls.comoSistema(() -> servicio.logout(peticion == null ? null : peticion.refreshToken()));
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Pide un código para restablecer la contraseña. Responde 202 SIEMPRE,
+     * exista o no la cuenta: decir "ese correo no está registrado" convertiría
+     * este endpoint en un buscador de clientes.
+     */
+    @PostMapping("/recuperar")
+    public ResponseEntity<Void> recuperar(@Valid @RequestBody RecuperarRequest peticion) {
+        ContextoRls.comoSistema(() -> recuperacion.solicitar(peticion.email()));
+        return ResponseEntity.accepted().build();
+    }
+
+    /**
+     * Cambia la contraseña con el código. El 400 se lanza aquí, ya fuera de la
+     * transacción del servicio, para que el intento fallido quede contado.
+     */
+    @PostMapping("/restablecer")
+    public ResponseEntity<Void> restablecer(@Valid @RequestBody RestablecerRequest peticion) {
+        boolean cambiada = ContextoRls.comoSistema(
+                () -> recuperacion.restablecer(peticion.email(), peticion.codigo(), peticion.nuevaClave()));
+        if (!cambiada) {
+            throw new DatosInvalidosException(
+                    "El código no es válido o ya caducó. Revisa el último correo o pide uno nuevo.");
+        }
         return ResponseEntity.noContent().build();
     }
 }

@@ -49,6 +49,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final Duration VENTANA_ADJUNTOS = Duration.ofMinutes(10);
     private static final int MAXIMO_ADJUNTOS = 30;
 
+    // Pedir un código manda un correo: cupo estrecho, para que nadie use la
+    // tienda para llenar el buzón de otro. Hay además un cupo por correo en
+    // RecuperacionClaveService, porque este se esquiva cambiando de IP.
+    private static final Duration VENTANA_RECUPERAR = Duration.ofHours(1);
+    private static final int MAXIMO_RECUPERAR = 5;
+
+    // Probar códigos. Cada código admite 5 intentos; este cupo frena además a
+    // quien pide códigos nuevos para seguir probando.
+    private static final Duration VENTANA_RESTABLECER = Duration.ofMinutes(15);
+    private static final int MAXIMO_RESTABLECER = 10;
+
     private static final Duration VENTANA_GENERAL = Duration.ofMinutes(1);
     private static final int MAXIMO_GENERAL = 300;
 
@@ -69,6 +80,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         } else if (ruta.startsWith("/api/auth/registrar")) {
             maximo = MAXIMO_REGISTRO;
             ventana = VENTANA_REGISTRO;
+        } else if (ruta.startsWith("/api/auth/recuperar")) {
+            maximo = MAXIMO_RECUPERAR;
+            ventana = VENTANA_RECUPERAR;
+        } else if (ruta.startsWith("/api/auth/restablecer")) {
+            maximo = MAXIMO_RESTABLECER;
+            ventana = VENTANA_RESTABLECER;
         } else if (esSubidaDeDocumento(peticion, ruta)) {
             maximo = MAXIMO_ADJUNTOS;
             ventana = VENTANA_ADJUNTOS;
@@ -118,6 +135,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private String ambito(String ruta) {
         if (ruta.startsWith("/api/auth/login")) return "login";
         if (ruta.startsWith("/api/auth/registrar")) return "registro";
+        if (ruta.startsWith("/api/auth/recuperar")) return "recuperar";
+        if (ruta.startsWith("/api/auth/restablecer")) return "restablecer";
         if (ruta.startsWith(RUTA_ADJUNTOS)) return "adjuntos";
         return "general";
     }

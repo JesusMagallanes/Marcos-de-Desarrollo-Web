@@ -173,7 +173,9 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registrar",
-                                "/api/auth/refresh", "/api/auth/logout")
+                                "/api/auth/refresh", "/api/auth/logout",
+                                // Recuperar la clave es, por definición, para quien no puede entrar.
+                                "/api/auth/recuperar", "/api/auth/restablecer")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/proveedores").permitAll()
                         // El ubigeo del Peru es un catalogo publico del INEI, igual

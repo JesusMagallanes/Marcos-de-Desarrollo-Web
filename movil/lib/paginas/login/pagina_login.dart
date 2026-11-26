@@ -433,13 +433,23 @@ class _PaginaLoginEstado extends State<PaginaLogin> {
                       ],
                     ),
                     TextButton(
-                      onPressed: () {
-                        Navigator.push(
+                      onPressed: () async {
+                        // Vuelve con el correo si se cambió la clave: queda
+                        // escrito y solo falta la contraseña nueva.
+                        final email = await Navigator.push<String>(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const RecuperarClavePagina(),
+                            builder: (context) => RecuperarClavePagina(
+                              emailInicial: _email.text.trim(),
+                            ),
                           ),
                         );
+                        if (email != null && mounted) {
+                          setState(() {
+                            _email.text = email;
+                            _clave.clear();
+                          });
+                        }
                       },
                       child: const Text(
                         "¿Olvidaste tu clave?",
