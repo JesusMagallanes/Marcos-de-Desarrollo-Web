@@ -41,7 +41,9 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
 
   Future<void> _cargar() async {
     try {
-      final p = await context.read<CatalogoServicio>().producto(widget.productoId);
+      final p = await context.read<CatalogoServicio>().producto(
+        widget.productoId,
+      );
       if (!mounted) return;
       setState(() {
         _producto = p;
@@ -65,7 +67,10 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
     // continúa con lo que estaba haciendo.
     if (!sesion.autenticado) {
       final entro = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(builder: (_) => const PaginaLogin(motivo: 'Entra para añadir al carrito')),
+        MaterialPageRoute(
+          builder: (_) =>
+              const PaginaLogin(motivo: 'Entra para añadir al carrito'),
+        ),
       );
       if (entro != true || !mounted) return;
     }
@@ -154,7 +159,11 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.search_off, size: 56, color: Paleta.textoTenue),
+                const Icon(
+                  Icons.search_off,
+                  size: 56,
+                  color: Paleta.textoTenue,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   _error?.mensaje ?? 'No encontramos este producto.',
@@ -169,7 +178,9 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
     }
 
     final p = _producto!;
-    final galeria = p.imagenes.isNotEmpty ? p.imagenes : [if (p.imagenUrl != null) p.imagenUrl!];
+    final galeria = p.imagenes.isNotEmpty
+        ? p.imagenes
+        : [if (p.imagenUrl != null) p.imagenUrl!];
 
     return Scaffold(
       appBar: AppBar(
@@ -200,7 +211,8 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
                       ? const ImagenProducto(url: null)
                       : PageView.builder(
                           itemCount: galeria.length,
-                          onPageChanged: (i) => setState(() => _imagenActual = i),
+                          onPageChanged: (i) =>
+                              setState(() => _imagenActual = i),
                           itemBuilder: (_, i) => Padding(
                             padding: const EdgeInsets.all(16),
                             child: ImagenProducto(url: galeria[i]),
@@ -220,7 +232,9 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
                           width: i == _imagenActual ? 18 : 6,
                           height: 6,
                           decoration: BoxDecoration(
-                            color: i == _imagenActual ? Paleta.verde : Paleta.borde,
+                            color: i == _imagenActual
+                                ? Paleta.verde
+                                : Paleta.borde,
                             borderRadius: BorderRadius.circular(3),
                           ),
                         ),
@@ -263,16 +277,26 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.star, size: 16, color: Color(0xFFFFC107)),
+                      const Icon(
+                        Icons.star,
+                        size: 16,
+                        color: Color(0xFFFFC107),
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         (p.calificacionPromedio ?? 0).toStringAsFixed(1),
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
                       const SizedBox(width: 6),
                       Text(
                         '(${p.cantidadValoraciones})',
-                        style: const TextStyle(color: Paleta.textoTenue, fontSize: 13),
+                        style: const TextStyle(
+                          color: Paleta.textoTenue,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
@@ -311,7 +335,9 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
                 Row(
                   children: [
                     Icon(
-                      p.sinStock ? Icons.cancel_outlined : Icons.check_circle_outline,
+                      p.sinStock
+                          ? Icons.cancel_outlined
+                          : Icons.check_circle_outline,
                       size: 17,
                       color: p.sinStock ? Paleta.rojo : Paleta.verde,
                     ),
@@ -330,24 +356,38 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
                 const SizedBox(height: 20),
                 const Text(
                   'Descripción',
-                  style: TextStyle(fontWeight: FontWeight.w700, color: Paleta.texto),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Paleta.texto,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   p.descripcion,
-                  style: const TextStyle(color: Paleta.textoSuave, height: 1.6, fontSize: 14),
+                  style: const TextStyle(
+                    color: Paleta.textoSuave,
+                    height: 1.6,
+                    fontSize: 14,
+                  ),
                 ),
 
                 if ((p.especificaciones ?? '').trim().isNotEmpty) ...[
                   const SizedBox(height: 20),
                   const Text(
                     'Especificaciones',
-                    style: TextStyle(fontWeight: FontWeight.w700, color: Paleta.texto),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Paleta.texto,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     p.especificaciones!,
-                    style: const TextStyle(color: Paleta.textoSuave, height: 1.6, fontSize: 14),
+                    style: const TextStyle(
+                      color: Paleta.textoSuave,
+                      height: 1.6,
+                      fontSize: 14,
+                    ),
                   ),
                 ],
               ],
@@ -420,7 +460,10 @@ class _SelectorCantidad extends StatelessWidget {
             onPressed: cantidad > 1 ? () => alCambiar(cantidad - 1) : null,
             icon: const Icon(Icons.remove, size: 18),
           ),
-          Text('$cantidad', style: const TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            '$cantidad',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
           IconButton(
             visualDensity: VisualDensity.compact,
             onPressed: cantidad < maximo ? () => alCambiar(cantidad + 1) : null,
