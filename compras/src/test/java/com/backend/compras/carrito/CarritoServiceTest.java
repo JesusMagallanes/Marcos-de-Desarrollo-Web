@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.backend.compras.carrito.dto.CarritoDtos.AgregarItemRequest;
 import com.backend.compras.carrito.dto.CarritoDtos.CarritoResponse;
 import com.backend.compras.envio.TarifaEnvio;
 import com.backend.compras.shared.catalogo.CatalogoClient;
@@ -81,6 +82,26 @@ class CarritoServiceTest {
     private void catalogoResponde(long productoId, String precio, int stock) {
         lenient().when(catalogo.precios(any(), anyList())).thenReturn(
                 List.of(new LineaPrecio(productoId, "Monitor LG", null, new BigDecimal(precio), stock)));
+    }
+
+    /* ══════════════ Agregar ══════════════ */
+
+    @Test
+    @DisplayName("el primer producto de un cliente nuevo aparece en la respuesta")
+    void primerProductoDeUnCarritoNuevo() {
+        // Como el contexto de persistencia: la primera búsqueda no encuentra
+        // carrito, se crea, y las siguientes devuelven ESA MISMA instancia, con
+        // la lista de líneas que tenga en memoria.
+        Carrito nuevo = Carrito.builder().id(5L).usuarioId(USUARIO).build();
+        when(carritos.findByUsuarioId(USUARIO)).thenReturn(Optional.empty(), Optional.of(nuevo));
+        when(carritos.save(any(Carrito.class))).thenReturn(nuevo);
+        when(items.findByCarritoIdAndProductoId(5L, 300L)).thenReturn(Optional.empty());
+        catalogoResponde(300L, "1399.90", 4);
+
+        CarritoResponse respuesta = servicio.agregar(USUARIO, new AgregarItemRequest(300L, 1));
+
+        assertThat(respuesta.items()).as("antes salía vacío aunque la línea se guardaba").hasSize(1);
+        assertThat(respuesta.items().get(0).cantidad()).isEqualTo(1);
     }
 
     /* ══════════════ Borrar ══════════════ */

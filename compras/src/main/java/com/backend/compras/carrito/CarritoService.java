@@ -72,10 +72,16 @@ public class CarritoService {
 
         if (item == null) {
             item = CarritoItem.builder()
-                    .carrito(carrito)
                     .productoId(peticion.productoId())
                     .cantidad(peticion.cantidad())
                     .build();
+            // Por el método de la entidad y no solo con `.carrito(carrito)`: la
+            // relación es bidireccional y hay que mantener los dos lados. Con un
+            // carrito recién creado, la instancia que vuelve a dar el contexto de
+            // persistencia es esta misma, con su lista en memoria; si la línea no
+            // entraba en ella, el primer producto de un cliente nuevo se guardaba
+            // pero la respuesta decía que el carrito seguía vacío.
+            carrito.agregar(item);
         } else {
             item.setCantidad(cantidadFinal);
         }
