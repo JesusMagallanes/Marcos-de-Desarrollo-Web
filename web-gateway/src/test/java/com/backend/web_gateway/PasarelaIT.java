@@ -38,6 +38,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
                 "servicios.catalogo.url=http://localhost:1",
                 "servicios.usuarios.url=http://localhost:1",
                 "servicios.compras.url=http://localhost:1",
+                "JWT_SECRET=secreto-de-pruebas-suficientemente-largo-para-hs256",
         })
 @Tag("integracion")
 @DisplayName("La pasarela en marcha")

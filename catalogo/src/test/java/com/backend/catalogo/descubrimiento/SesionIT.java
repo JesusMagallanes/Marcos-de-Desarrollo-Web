@@ -78,6 +78,7 @@ class SesionIT extends PruebaIntegracion {
 
     private Long catMonitores;
     private Long catImpresoras;
+    private Long catBase;
     private UUID sujeto;
     private UUID sesion;
 
@@ -91,13 +92,17 @@ class SesionIT extends PruebaIntegracion {
         jdbc.update("DELETE FROM catalogo.sujeto");
         catMonitores = crearCategoria("sesion-monitores-" + UUID.randomUUID());
         catImpresoras = crearCategoria("sesion-impresoras-" + UUID.randomUUID());
+        catBase = crearCategoria("sesion-base-" + UUID.randomUUID());
+        for (int i = 0; i < 3; i++) {
+            crearProducto(catBase, "Base historica " + i);
+        }
         sujeto = crearSujeto();
         sesion = UUID.randomUUID();
     }
 
     @AfterEach
     void devolverElCatalogoComoEstaba() {
-        for (Long c : List.of(catMonitores, catImpresoras)) {
+        for (Long c : List.of(catMonitores, catImpresoras, catBase)) {
             jdbc.update("DELETE FROM catalogo.recomendacion_servida WHERE item_id IN"
                     + " (SELECT id FROM catalogo.producto WHERE categoria_id = ?)", c);
             jdbc.update("DELETE FROM catalogo.producto WHERE categoria_id = ?", c);
