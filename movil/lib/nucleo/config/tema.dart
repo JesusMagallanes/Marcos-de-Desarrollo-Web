@@ -27,6 +27,38 @@ class Paleta {
   static const borde = Color(0xFFE6E9E7);
   static const fondo = Color(0xFFF3F4F6);
   static const rojo = Color(0xFFDC3545);
+
+  /// Alias del sistema de diseño de las capturas.
+  ///
+  /// Se conservan los valores históricos de la marca y se documenta con qué
+  /// color de referencia se corresponde cada uno. Así las pantallas nuevas no
+  /// introducen una paleta paralela y el día que se ajuste el verde de marca
+  /// solo cambia aquí.
+  ///
+  /// Referencia de captura `#F8F8F8` -> fondo claro (el `fondo` histórico es
+  /// `#F3F4F6`; se mantiene para las pantallas antiguas).
+  static const fondoClaro = Color(0xFFF8F8F8);
+
+  /// Referencia `#00F58C` / `#00FF95` -> `verdeVivo`.
+  static const acentoVerde = verdeVivo;
+
+  /// Referencia `#008B58` -> `verde`.
+  static const verdeOscuro = verde;
+
+  /// Referencia `#0C120E` -> `texto`.
+  static const textoPrimario = texto;
+
+  /// Referencia `#646866` -> `textoSuave`.
+  static const textoSecundario = textoSuave;
+
+  /// Referencia `#E8EAE9` -> `borde`.
+  static const bordeTarjeta = borde;
+
+  /// Referencia `#0B120E` para las tarjetas protagonistas oscuras.
+  static const negroTarjeta = Color(0xFF0B120E);
+
+  /// Referencia naranja suave para advertencias.
+  static const advertencia = Color(0xFFF2A65A);
 }
 
 ThemeData construirTema() {
@@ -110,10 +142,17 @@ ThemeData construirTema() {
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Colors.white,
       indicatorColor: Paleta.verdeSuave,
-      elevation: 3,
-      labelTextStyle: WidgetStatePropertyAll(
-        const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-      ),
+      elevation: 1,
+      labelTextStyle: WidgetStateProperty.resolveWith((estados) {
+        if (estados.contains(WidgetState.selected)) {
+          return const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: Paleta.textoPrimario,
+          );
+        }
+        return const TextStyle(fontSize: 10, color: Paleta.textoSecundario);
+      }),
     ),
 
     chipTheme: base.chipTheme.copyWith(

@@ -4,9 +4,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../nucleo/api/error_api.dart';
 import '../../nucleo/config/tema.dart';
+import '../../nucleo/estado/navegacion.dart';
 import '../../nucleo/modelos/categoria.dart';
 import '../../nucleo/modelos/producto.dart';
 import '../../nucleo/servicios/catalogo_servicio.dart';
+import '../../widgets/boton_favorito.dart';
 import '../categorias/pagina_categorias.dart';
 import '../producto/pagina_producto.dart';
 import 'buscador_widget.dart';
@@ -299,12 +301,13 @@ class _HeaderFigma extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
+                  tooltip: 'Mis favoritos',
                   icon: const Icon(
-                    Icons.notifications_none_outlined,
+                    Icons.favorite_border,
                     size: 20,
                     color: Paleta.texto,
                   ),
-                  onPressed: () {},
+                  onPressed: () => favoritosDesdeNotifier.value = 0,
                 ),
               ),
             ],
@@ -583,18 +586,7 @@ class _TarjetaProductoFigma extends StatelessWidget {
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.favorite_border,
-                      size: 16,
-                      color: Paleta.textoTenue,
-                    ),
-                  ),
+                  child: BotonFavorito(productoId: producto.id),
                 ),
               ],
             ),

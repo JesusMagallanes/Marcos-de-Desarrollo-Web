@@ -5,6 +5,7 @@ import '../../nucleo/config/tema.dart';
 import '../../nucleo/modelos/categoria.dart';
 import '../../nucleo/modelos/producto.dart';
 import '../../nucleo/servicios/catalogo_servicio.dart';
+import '../../widgets/boton_favorito.dart';
 import '../producto/pagina_producto.dart';
 import '../inicio/buscador_widget.dart';
 
@@ -706,18 +707,7 @@ class _TarjetaProductoCategoria extends StatelessWidget {
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.favorite_border,
-                      size: 14,
-                      color: Paleta.textoTenue,
-                    ),
-                  ),
+                  child: BotonFavorito(productoId: producto.id, size: 14),
                 ),
               ],
             ),

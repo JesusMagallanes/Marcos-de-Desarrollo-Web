@@ -87,6 +87,18 @@ class Sesion extends ChangeNotifier {
     }
   }
 
+  /// Vuelve a leer `/auth/yo` después de cambiar el perfil o la dirección.
+  Future<ErrorApi?> recargar() async {
+    try {
+      final datos = await _api.get('/auth/yo');
+      _usuario = Usuario.desdeJson(datos as Map<String, dynamic>);
+      notifyListeners();
+      return null;
+    } on ErrorApi catch (e) {
+      return e;
+    }
+  }
+
   Future<ErrorApi?> registrar({
     required String nombre,
     required String apellidos,

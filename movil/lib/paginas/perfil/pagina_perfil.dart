@@ -3,11 +3,17 @@ import 'package:provider/provider.dart';
 
 import '../../nucleo/config/entorno.dart';
 import '../../nucleo/config/tema.dart';
+import '../../nucleo/estado/navegacion.dart';
 import '../../nucleo/servicios/carrito_servicio.dart';
+import '../../nucleo/servicios/favoritos_servicio.dart';
 import '../../nucleo/servicios/sesion.dart';
+import '../../widgets/aviso_pendiente.dart';
+import '../direcciones/pagina_direcciones.dart';
 import '../login/pagina_login.dart';
+import '../pedidos/pagina_pedidos.dart';
 
-/// Mi cuenta. Sin sesión enseña el acceso; con sesión, los datos del usuario.
+/// Mi cuenta. Sin sesión enseña el acceso; con sesión, los datos del usuario y
+/// los atajos a las pantallas ya integradas con el backend.
 class PaginaPerfil extends StatelessWidget {
   const PaginaPerfil({super.key});
 
@@ -32,7 +38,8 @@ class PaginaPerfil extends StatelessWidget {
                     color: Paleta.verdeSuave,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.person_outline, size: 36, color: Paleta.verde),
+                  child: const Icon(Icons.person_outline,
+                      size: 36, color: Paleta.verde),
                 ),
                 const SizedBox(height: 20),
                 const Text(
@@ -62,7 +69,11 @@ class PaginaPerfil extends StatelessWidget {
       );
     }
 
+    final favoritos = context.watch<FavoritosServicio>().cantidad;
+    final direccion = usuario.direccionDetallada?.enUnaLinea ?? usuario.direccion;
+
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
       appBar: AppBar(title: const Text('Mi cuenta')),
       body: ListView(
         children: [
@@ -90,17 +101,26 @@ class PaginaPerfil extends StatelessWidget {
                     children: [
                       Text(
                         usuario.nombreCompleto,
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         usuario.email,
-                        style: const TextStyle(color: Paleta.textoSuave, fontSize: 13),
+                        style: const TextStyle(
+                          color: Paleta.textoSuave,
+                          fontSize: 13,
+                        ),
                       ),
                       if (usuario.esStaff) ...[
                         const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: Paleta.verdeSuave,
                             borderRadius: BorderRadius.circular(6),
@@ -127,9 +147,104 @@ class PaginaPerfil extends StatelessWidget {
             color: Colors.white,
             child: Column(
               children: [
-                _Dato(icono: Icons.phone_outlined, etiqueta: 'Teléfono', valor: usuario.telefono),
+                _Dato(
+                  icono: Icons.phone_outlined,
+                  etiqueta: 'Teléfono',
+                  valor: usuario.telefono,
+                ),
                 const Divider(height: 1),
-                _Dato(icono: Icons.home_outlined, etiqueta: 'Dirección', valor: usuario.direccion),
+                _Dato(
+                  icono: Icons.home_outlined,
+                  etiqueta: 'Dirección',
+                  valor: direccion,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+          Container(
+            color: Colors.white,
+            child: Column(
+              children: [
+                _Enlace(
+                  icono: Icons.receipt_long_outlined,
+                  etiqueta: 'Mis pedidos',
+                  subtitulo: 'Consulta tus compras y su estado real',
+                  alPulsar: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PaginaPedidos(),
+                    ),
+                  ),
+                ),
+                const Divider(height: 1),
+                _Enlace(
+                  icono: Icons.edit_location_outlined,
+                  etiqueta: 'Dirección de entrega',
+                  subtitulo: direccion.isEmpty
+                      ? 'Todavía no registras una dirección'
+                      : direccion,
+                  alPulsar: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PaginaDirecciones(),
+                    ),
+                  ),
+                ),
+                const Divider(height: 1),
+                _Enlace(
+                  icono: Icons.favorite_border,
+                  etiqueta: 'Mis favoritos',
+                  subtitulo: favoritos == 0
+                      ? 'Sin productos guardados'
+                      : '$favoritos producto${favoritos == 1 ? '' : 's'} guardado${favoritos == 1 ? '' : 's'}',
+                  alPulsar: () =>
+                      favoritosDesdeNotifier.value = pestanaActivaNotifier.value,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+          Container(
+            color: Colors.white,
+            child: Column(
+              children: [
+                _Enlace(
+                  icono: Icons.notifications_none_outlined,
+                  etiqueta: 'Notificaciones',
+                  subtitulo: 'Módulo a cargo de otra persona del equipo',
+                  alPulsar: () =>
+                      mostrarModuloPendiente(context, 'Notificaciones'),
+                ),
+                const Divider(height: 1),
+                _Enlace(
+                  icono: Icons.credit_card_outlined,
+                  etiqueta: 'Métodos de pago guardados',
+                  subtitulo: 'Requiere tokenización del proveedor',
+                  alPulsar: () =>
+                      mostrarModuloPendiente(context, 'Métodos guardados'),
+                ),
+                const Divider(height: 1),
+                _Enlace(
+                  icono: Icons.smart_toy_outlined,
+                  etiqueta: 'Asesor IA',
+                  subtitulo: 'Sin cambios en esta entrega',
+                  alPulsar: () => mostrarModuloPendiente(context, 'Asesor IA'),
+                ),
+                const Divider(height: 1),
+                _Enlace(
+                  icono: Icons.support_agent_outlined,
+                  etiqueta: 'Soporte',
+                  subtitulo: 'Sin canal oficial configurado',
+                  alPulsar: () => mostrarModuloPendiente(context, 'Soporte'),
+                ),
+                const Divider(height: 1),
+                _Enlace(
+                  icono: Icons.settings_outlined,
+                  etiqueta: 'Ajustes',
+                  subtitulo: 'Sin opciones disponibles todavía',
+                  alPulsar: () => mostrarModuloPendiente(context, 'Ajustes'),
+                ),
               ],
             ),
           ),
@@ -139,7 +254,10 @@ class PaginaPerfil extends StatelessWidget {
             color: Colors.white,
             child: ListTile(
               leading: const Icon(Icons.logout, color: Paleta.rojo),
-              title: const Text('Cerrar sesión', style: TextStyle(color: Paleta.rojo)),
+              title: const Text(
+                'Cerrar sesión',
+                style: TextStyle(color: Paleta.rojo),
+              ),
               onTap: () async {
                 await context.read<Sesion>().salir();
                 if (context.mounted) context.read<CarritoServicio>().olvidar();
@@ -174,10 +292,52 @@ class _Dato extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListTile(
         leading: Icon(icono, color: Paleta.textoTenue, size: 20),
-        title: Text(etiqueta, style: const TextStyle(fontSize: 12, color: Paleta.textoTenue)),
+        title: Text(
+          etiqueta,
+          style: const TextStyle(fontSize: 12, color: Paleta.textoTenue),
+        ),
         subtitle: Text(
           valor.isEmpty ? '—' : valor,
           style: const TextStyle(fontSize: 14, color: Paleta.texto),
         ),
+      );
+}
+
+class _Enlace extends StatelessWidget {
+  const _Enlace({
+    required this.icono,
+    required this.etiqueta,
+    required this.subtitulo,
+    required this.alPulsar,
+  });
+
+  final IconData icono;
+  final String etiqueta;
+  final String subtitulo;
+  final VoidCallback alPulsar;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+        leading: Icon(icono, color: Paleta.verdeOscuro, size: 20),
+        title: Text(
+          etiqueta,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Paleta.textoPrimario,
+          ),
+        ),
+        subtitle: Text(
+          subtitulo,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 11, color: Paleta.textoSecundario),
+        ),
+        trailing: const Icon(
+          Icons.chevron_right,
+          size: 18,
+          color: Paleta.textoTenue,
+        ),
+        onTap: alPulsar,
       );
 }

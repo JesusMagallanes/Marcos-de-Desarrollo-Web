@@ -9,6 +9,7 @@ import '../../nucleo/modelos/producto.dart';
 import '../../nucleo/servicios/carrito_servicio.dart';
 import '../../nucleo/servicios/catalogo_servicio.dart';
 import '../../nucleo/servicios/sesion.dart';
+import '../../widgets/boton_favorito.dart';
 import '../../widgets/confirmacion_agregar.dart';
 import '../../widgets/formatos.dart';
 import '../../widgets/tarjeta_producto.dart';
@@ -171,7 +172,21 @@ class _PaginaProductoEstado extends State<PaginaProducto> {
     final galeria = p.imagenes.isNotEmpty ? p.imagenes : [if (p.imagenUrl != null) p.imagenUrl!];
 
     return Scaffold(
-      appBar: AppBar(title: Text(p.categoriaNombre)),
+      appBar: AppBar(
+        title: Text(p.categoriaNombre),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Center(
+              child: BotonFavorito(
+                productoId: p.id,
+                size: 20,
+                padding: const EdgeInsets.all(8),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: ListView(
         children: [
           // Galería

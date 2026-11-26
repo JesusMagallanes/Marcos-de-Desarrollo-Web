@@ -1,3 +1,5 @@
+import 'direccion.dart';
+
 /// Usuario autenticado. Nunca incluye la contraseña: el backend no la manda.
 class Usuario {
   final int id;
@@ -6,6 +8,7 @@ class Usuario {
   final String email;
   final String telefono;
   final String direccion;
+  final Direccion? direccionDetallada;
   final String rol;
 
   const Usuario({
@@ -16,6 +19,7 @@ class Usuario {
     required this.telefono,
     required this.direccion,
     required this.rol,
+    this.direccionDetallada,
   });
 
   String get nombreCompleto => '$nombre $apellidos'.trim();
@@ -37,6 +41,9 @@ class Usuario {
         email: (j['emailAddress'] ?? '') as String,
         telefono: (j['phoneNumber'] ?? '') as String,
         direccion: (j['address'] ?? '') as String,
+        direccionDetallada: j['direccion'] is Map<String, dynamic>
+            ? Direccion.desdeJson(j['direccion'] as Map<String, dynamic>)
+            : null,
         rol: (j['rol'] ?? 'CLIENTE') as String,
       );
 }

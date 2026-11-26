@@ -38,19 +38,44 @@ class ItemCarrito {
 class Carrito {
   final List<ItemCarrito> items;
   final double subtotal;
+  final double costoEnvio;
+  final double total;
 
-  const Carrito({required this.items, required this.subtotal});
+  /// El backend todavía no expone cupones. Estos dos campos se leen si algún
+  /// día llegan en la respuesta, pero nunca se inventan en el cliente.
+  final String? cuponCodigo;
+  final double descuento;
 
-  const Carrito.vacio() : items = const [], subtotal = 0;
+  const Carrito({
+    required this.items,
+    required this.subtotal,
+    this.costoEnvio = 0,
+    this.total = 0,
+    this.cuponCodigo,
+    this.descuento = 0,
+  });
+
+  const Carrito.vacio()
+      : items = const [],
+        subtotal = 0,
+        costoEnvio = 0,
+        total = 0,
+        cuponCodigo = null,
+        descuento = 0;
 
   bool get estaVacio => items.isEmpty;
   int get unidades => items.fold(0, (n, i) => n + i.cantidad);
+  bool get envioGratis => costoEnvio <= 0;
 
   factory Carrito.desdeJson(Map<String, dynamic> j) => Carrito(
         items: ((j['items'] as List?) ?? const [])
             .map((e) => ItemCarrito.desdeJson(e as Map<String, dynamic>))
             .toList(),
         subtotal: _aDouble(j['subtotal']),
+        costoEnvio: _aDouble(j['costoEnvio']),
+        total: _aDouble(j['total']),
+        cuponCodigo: j['cuponCodigo'] as String?,
+        descuento: _aDouble(j['descuento']),
       );
 }
 
